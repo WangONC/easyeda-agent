@@ -21,7 +21,7 @@ test('stdio MCP initializes, lists tools, and invokes offline discovery', async 
   try {
     await client.connect(transport);
     const listed = await client.listTools();
-    assert.equal(listed.tools.length, 11);
+    assert.equal(listed.tools.length, 14);
     assert.ok(listed.tools.some((tool) => tool.name === 'easyeda_pcb'));
     assert.ok(!listed.tools.some((tool) => tool.name === 'easyeda_debug'));
 

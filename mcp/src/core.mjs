@@ -71,7 +71,9 @@ export function buildCallArgs(action, input = {}) {
   const args = [];
   if (input.project) args.push('--project', input.project);
   if (input.doc) args.push('--doc', input.doc);
-  args.push('call', action);
+  const fast = { 'board.snapshot_compact': 'snapshot-compact', 'route.preflight': 'route-preflight', 'route.apply_batch': 'route-apply-batch' };
+  if (fast[action]) args.push('pcb', fast[action]);
+  else args.push('call', action);
   if (input.payload && Object.keys(input.payload).length > 0) {
     args.push('--payload', JSON.stringify(input.payload));
   }
@@ -128,16 +130,16 @@ export function buildBlocksArgs(input) {
   }
 }
 
-export function toMcpResult(execution) {
+export function toMcpResult(execution, options = {}) {
   const rawValue = execution.ok ? execution.result : execution.error;
   const value = execution.ok && execution.stderr
     ? { result: rawValue, warnings: execution.stderr }
     : rawValue;
   const result = {
-    content: [{ type: 'text', text: JSON.stringify(value, null, 2) }],
+    content: [{ type: 'text', text: JSON.stringify(value, null, options.compact ? 0 : 2) }],
     isError: !execution.ok,
   };
-  if (execution.ok && value && typeof value === 'object' && !Array.isArray(value)) {
+  if ((execution.ok || options.structuredErrors) && value && typeof value === 'object' && !Array.isArray(value)) {
     result.structuredContent = value;
   }
   return result;

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { FAST_ACTIONS, fastTools, fastInput, compactFastResult } from './fast-path.mjs';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -25,7 +26,7 @@ const actions = catalogExecution.result.filter((action) => DOMAIN_NAMES.includes
 const byName = new Map(actions.map((action) => [action.name, action]));
 
 const server = new Server(
-  { name: 'easyeda-agent-mcp', version: '0.18.3' },
+  { name: 'easyeda-agent-mcp', version: '0.18.4' },
   {
     capabilities: { tools: {} },
     instructions: [
@@ -86,6 +87,7 @@ function domainTool(domain) {
 }
 
 const tools = [
+  ...fastTools().filter(tool => byName.has(FAST_ACTIONS[tool.name])),
   {
     name: 'easyeda_health',
     title: 'EasyEDA connection health',
@@ -168,6 +170,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (name === 'easyeda_workflow') {
       return toMcpResult(await runEasyeda(buildWorkflowArgs(input)));
     }
+    if (FAST_ACTIONS[name]) {
+      if (!byName.has(FAST_ACTIONS[name])) throw new Error("CLI upgrade required for Fast Path V0.1");
+      return toMcpResult(compactFastResult(await runEasyeda(buildCallArgs(FAST_ACTIONS[name], fastInput(input)))), { compact: true, structuredErrors: true });
+    }
     if (name.startsWith('easyeda_')) {
       const domain = name.slice('easyeda_'.length);
       if (!DOMAIN_NAMES.includes(domain)) throw new Error(`unknown EasyEDA domain tool: ${name}`);
@@ -178,7 +184,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       if (action.mutates && (!input.project || !input.doc)) {
         throw new Error(`mutating action ${action.name} requires both project and doc`);
       }
-      return toMcpResult(await runEasyeda(buildCallArgs(action.name, input)));
+      const execution = await runEasyeda(buildCallArgs(action.name, input));
+      const fast = Object.values(FAST_ACTIONS).includes(action.name);
+      return toMcpResult(fast ? compactFastResult(execution) : execution, { compact: fast, structuredErrors: fast });
     }
     throw new Error(`unknown tool: ${name}`);
   }

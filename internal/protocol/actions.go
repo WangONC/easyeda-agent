@@ -42,6 +42,16 @@ const GateRouting = "routing"
 
 func AllActions() []ActionSpec {
 	return []ActionSpec{
+		{Name: "board.snapshot_compact", Domain: DomainPcb, Phase: 1, NeedsWindow: true,
+			Description: "Fast manual PCB routing snapshot; structured geometry only, no DRC or reload. Requires pcb.fast_manual.v0.1.",
+			Inputs:      []string{"document_uuid", "project_uuid", "nets[] optional", "bbox [minX,minY,maxX,maxY] optional (mil)", "layers[] optional", "include {components,pads,traces,vias,fills} optional"}, Outputs: []string{"board_revision", "geometry_hash", "scope", "components[]", "pads[]", "traces[]", "vias[]", "fills[]", "telemetry"}},
+		{Name: "route.preflight", Domain: DomainPcb, Phase: 1, NeedsWindow: true,
+			Description: "Pure Go checks of explicit caller geometry; never chooses paths/layers/vias or invokes native DRC.",
+			Inputs:      []string{"document_uuid", "project_uuid", "base_revision", "routes[{net,layer,width,points:[[x,y],...]}]", "vias[{net,x,y,diameter,hole,from_layer,to_layer}]", "delete_ids[] optional", "protected_nets[] optional", "clearance_profile {clearance,min_width,min_hole,min_diameter,min_annulus} in mil"}, Outputs: []string{"ok", "board_revision", "plan_hash", "affected_bbox", "touched_nets", "conflicts", "telemetry"}},
+		{Name: "route.apply_batch", Domain: DomainPcb, Phase: 1, Mutates: true, NeedsWindow: true,
+			RequiresGate: GateRouting, InvalidatesStage: "post_route_checked",
+			Description: "Execute 1..512 explicit trace/via add/delete operations in ONE Connector action. Requires a matching successful preflight. Best-effort compensation; timeout is NOT cancellation.",
+			Inputs:      []string{"document_uuid", "project_uuid", "base_revision", "plan_hash", "client_transaction_id", "operations[{type:add_trace|add_via|delete_trace|delete_via, exact geometry or id}]"}, Outputs: []string{"status:complete|partial|stale|uncertain", "created_ids", "deleted_ids", "item_results", "failed_index", "revision_before", "revision_after", "readback_verified", "rollback_attempted", "rollback_complete", "warnings", "telemetry"}, VerifyWith: []string{"board.snapshot_compact"}},
 		{
 			Name:        "system.health",
 			Domain:      DomainSystem,

@@ -804,7 +804,27 @@ func postAction(cfg *appConfig, action, window string, payload any, timeout time
 	// --doc guard: pin the action (mutating OR read — see docGuardApplies) to
 	// the requested page first. Skipped for the guard's own navigation actions
 	// (docGuardExempt) so it never recurses.
-	if docGuardApplies(cfg.doc, action) {
+	if action == "board.snapshot_compact" || action == "route.preflight" || action == "route.apply_batch" {
+		// Pin at the Connector execution boundary without a navigation round trip.
+		var p map[string]any
+		data, e := json.Marshal(payload)
+		if e != nil {
+			return nil, e
+		}
+		if e = json.Unmarshal(data, &p); e != nil {
+			return nil, e
+		}
+		if p == nil {
+			p = map[string]any{}
+		}
+		if cfg.doc != "" {
+			if existing, ok := p["document_uuid"].(string); ok && existing != cfg.doc {
+				return nil, fmt.Errorf("--doc conflicts with document_uuid")
+			}
+			p["document_uuid"] = cfg.doc
+		}
+		payload = p
+	} else if docGuardApplies(cfg.doc, action) {
 		if err := ensureActiveDoc(cfg, window); err != nil {
 			return nil, err
 		}

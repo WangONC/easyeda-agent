@@ -114,6 +114,22 @@ func (a *auditWriter) Dir() string { return a.dir }
 // connector's response (or daemon-local error). started is the wall-clock
 // at which the daemon accepted the action.
 func fromResponse(started time.Time, req *protocol.Request, resp *protocol.Response) auditEntry {
+	if isFastAction(req.Action) && resp != nil && resp.Result["telemetry"] == nil {
+		if resp.Result == nil {
+			resp.Result = map[string]any{}
+		}
+		code := ""
+		if resp.Error != nil {
+			code = resp.Error.Code
+		}
+		b, _ := json.Marshal(req.Payload)
+		tm := map[string]any{"operation_id": req.ID, "operation_name": req.Action, "duration_ms": time.Since(started).Milliseconds(), "board_revision_before": req.Payload["base_revision"], "board_revision_after": nil, "request_bytes": len(b), "response_bytes": 0, "native_api_call_count": nil, "affected_nets_count": 0, "retry_count": 0, "error_code": code}
+		resp.Result["telemetry"] = tm
+		for i := 0; i < 4; i++ {
+			data, _ := json.Marshal(resp.Result)
+			tm["response_bytes"] = len(data)
+		}
+	}
 	e := auditEntry{
 		Timestamp:  started,
 		RequestID:  req.ID,

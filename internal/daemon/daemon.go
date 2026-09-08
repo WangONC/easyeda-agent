@@ -45,12 +45,13 @@ type Options struct {
 // connector WebSockets on /connect, and forwards typed actions on /action.
 // Artifact storage and audit logging come later.
 type Server struct {
-	opts     Options
-	hub      *hub
-	reqSeq   atomic.Uint64
-	log      io.Writer
-	audit    *auditWriter
-	autosave *autosaver // nil when Options.AutosaveDebounce <= 0
+	fastPlans fastPlans
+	opts      Options
+	hub       *hub
+	reqSeq    atomic.Uint64
+	log       io.Writer
+	audit     *auditWriter
+	autosave  *autosaver // nil when Options.AutosaveDebounce <= 0
 
 	// staleReads tracks per-window PCB mutations that have not been followed by
 	// a doc reload, so PCB reads can carry a staleRisk advisory (stalereads.go).

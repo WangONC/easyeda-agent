@@ -237,6 +237,14 @@ func (s *Server) handleAction(w http.ResponseWriter, r *http.Request) {
 	}
 	req.CreatedAt = time.Now().UTC()
 	req.WindowID = target.id()
+	if isFastAction(req.Action) {
+		if req.Payload == nil {
+			req.Payload = map[string]any{}
+		}
+		if _, exists := req.Payload["project_uuid"]; !exists {
+			req.Payload["project_uuid"] = target.snapshot().Context.ProjectUUID
+		}
+	}
 
 	// Workflow stage gate (issue #97): routing actions refuse until the
 	// project's persisted stage state authorizes them — enforced HERE, at the
@@ -320,7 +328,13 @@ func (s *Server) handleAction(w http.ResponseWriter, r *http.Request) {
 	// an IDLE gap, never in the middle of a batch (autosave.go). Deferred rather
 	// than released inline so no early return can leak the counter.
 	defer s.beginClientAction(req.WindowID)()
-	resp, err, _ := forwardWithAdaptiveRetry(ctx, req, target.dispatch, hooks)
+	forward := target.dispatch
+	if isFastAction(req.Action) {
+		forward = func(ctx context.Context, request protocol.Request) (*protocol.Response, error) {
+			return s.forwardFast(ctx, request, target.dispatch, target.snapshot().Capabilities)
+		}
+	}
+	resp, err, _ := forwardWithAdaptiveRetry(ctx, req, forward, hooks)
 	if err != nil {
 		// One timed-out FIFO action is not yet proof of a blocked queue — a light
 		// queued read that stays unanswered IS. Fire that probe now (never awaited)
@@ -335,6 +349,9 @@ func (s *Server) handleAction(w http.ResponseWriter, r *http.Request) {
 	}
 	// The connector echoes id/version/ok/result/context/artifacts but does not
 	// stamp createdAt; the daemon owns the wall-clock for forwarded responses.
+	if isFastAction(req.Action) && resp.Error != nil && resp.Error.Code == "FAST_DISPATCH_UNCERTAIN" {
+		s.armQueueProbe(target, &req, context.DeadlineExceeded)
+	}
 	if resp.CreatedAt.IsZero() {
 		resp.CreatedAt = time.Now().UTC()
 	}
@@ -350,6 +367,14 @@ func (s *Server) handleAction(w http.ResponseWriter, r *http.Request) {
 	s.persistArtifacts(resp, s.artifactDir(req.OutputDir))
 	// Catalog-driven stage invalidation: a successful placement/outline mutation
 	// clears stale downstream confirmations, whoever the client was.
+	if req.Action == "route.apply_batch" && !resp.OK && resp.Result["status"] != "stale" && resp.Result["status"] != nil && resp.Result["mutation_started"] != false {
+		// Partial/uncertain effects also invalidate downstream checks. Never autosave
+		// an uncertain in-flight write; preserve the existing stale-read warning.
+		possible := *resp
+		possible.OK = true
+		s.maybeInvalidateStage(&req, &possible)
+		s.staleReads.observe(&req, &possible)
+	}
 	s.maybeInvalidateStage(&req, resp)
 	// Stale-read state machine (SKILL iron rule 5): mark the window after a PCB
 	// mutation, clear on reload/pour-rebuild. The REFUSAL happens before dispatch
@@ -371,7 +396,7 @@ func (s *Server) handleAction(w http.ResponseWriter, r *http.Request) {
 	// After a successful content-changing action, arm a debounced autosave so the
 	// work reaches disk without the agent having to remember to save (no-op when
 	// autosave is disabled or the action doesn't mutate). See autosave.go.
-	if resp.OK {
+	if resp.OK || (req.Action == "route.apply_batch" && resp.Result["status"] == "partial" && resp.Result["mutation_started"] == true) {
 		s.maybeAutosave(&req)
 	}
 	writeJSON(w, http.StatusOK, resp)

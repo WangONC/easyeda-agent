@@ -1,3 +1,5 @@
+import { fastPath } from './fast-path';
+import { fastSnapshot, fastApply } from './fast-path-native';
 /**
  * Typed-action dispatch. Each action maps to exactly one (occasionally a small
  * cluster of) `eda.*` call(s), serializes the result to plain JSON, and returns
@@ -11631,6 +11633,8 @@ const debugExecJs: Handler = async (payload) => {
 // ─── Registry & dispatch ─────────────────────────────────────────────
 
 const HANDLERS: Record<string, Handler> = {
+	'board.snapshot_compact': fastSnapshot,
+	'route.apply_batch': fastApply,
 	'project.current': projectCurrent,
 	'document.current': documentCurrent,
 	'document.open': documentOpen,
@@ -11789,8 +11793,13 @@ export async function runAction(
 		throw new ActionError(ErrorCodes.EDA_API_UNAVAILABLE, 'The eda object is not available in this context.');
 	}
 
-	const result = await handler(asPayload(payload));
-	if (!result.context) {
+	// Conservatively fence legacy actions, including abandoned handlers that settle late.
+	// Saving and the bypass context read do not mutate observed geometry.
+	const finish = action === 'board.snapshot_compact' || action === 'route.apply_batch' || action === 'document.current' || action === 'pcb.save'
+		? undefined : fastPath.legacyBegin();
+	let result: ActionResult;
+	try { result = await handler(asPayload(payload)); } finally { finish?.(); }
+	if (!result.context && action !== 'route.apply_batch' && action !== 'board.snapshot_compact') {
 		result.context = await readResponseContext();
 	}
 	return result;

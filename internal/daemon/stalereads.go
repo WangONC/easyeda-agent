@@ -102,8 +102,12 @@ var staleViewOnlyActions = map[string]bool{
 // (memory: snapshot-blank-vs-stale-foreground). Refusing it would hand the
 // caller a next-step command that does not fix its problem — and this gate's
 // whole contract is that its message names a next step that works.
+// Fast geometry reads remain advisory-only. They never clear native connectivity
+// stale-state and never claim pour/DRC freshness (see docs/fast-manual-pcb.md).
 var staleBlockExemptReads = map[string]bool{
-	"pcb.snapshot": true,
+	"board.snapshot_compact": true,
+	"route.preflight":        true,
+	"pcb.snapshot":           true,
 }
 
 // pcbStaleMarks reports whether a successful request should mark the window's

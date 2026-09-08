@@ -17,17 +17,42 @@ export function nativePort(): NativePort {
   async read(): Promise<Observation> {
    const components = await call(() => eda.pcb_PrimitiveComponent.getAll());
    const pads = await call(() => eda.pcb_PrimitivePad.getAll());
-   const expected = new Map<string, { component: string; net: string }>();
-   for (const c of components) for (const p of c.getState_Pads() ?? []) expected.set(p.primitiveId, { component: c.getState_PrimitiveId(), net: p.net });
+   // getState_Pads IDs are footprint-local on Host 3.2.186 (e.g. e12),
+   // while bulk Pad IDs are instance-qualified (component ID + e12).
+   // Never key declarations by local ID: repeated footprints share those IDs.
+   const expected = components.flatMap(c => (c.getState_Pads() ?? []).map(p => ({
+    component: c.getState_PrimitiveId(), local: p.primitiveId, net: p.net,
+   })));
+   const localCounts = new Map<string, number>();
+   for (const p of expected) localCounts.set(p.local, (localCounts.get(p.local) ?? 0) + 1);
    const padMap = new Map(pads.map(p => [p.getState_PrimitiveId(), p]));
+   function resolve(ref: typeof expected[number]): string | undefined {
+    // Also accept SDKs returning an already-qualified declaration. Match only
+    // exact IDs and ownership, never suffix-only or net-only guesses.
+    const matches = [ref.component + ref.local, ref.local].filter(id => {
+     const p = padMap.get(id);
+     if (!p || p.getState_Net() !== ref.net) return false;
+     const owner = 'getState_ParentComponentPrimitiveId' in p
+      ? (p as IPCB_PrimitiveComponentPad).getState_ParentComponentPrimitiveId() : undefined;
+     if (owner && owner !== ref.component) return false;
+     return id === ref.component + ref.local || owner === ref.component
+      || localCounts.get(id) === 1;
+    });
+    return matches.length === 1 ? matches[0] : undefined;
+   }
    // Independent-pad getAll may omit COMPONENT_PAD. Read once per distinct net,
    // never getAllPinsByPrimitiveId per component. Verify the declared IDs below.
-   const missingNets = new Set([...expected].filter(([id]) => !padMap.has(id)).map(([, p]) => p.net));
+   const missingNets = new Set(expected.filter(p => !resolve(p)).map(p => p.net));
    for (const net of missingNets) {
     const items = await call(() => eda.pcb_Net.getAllPrimitivesByNet(net, ['ComponentPad' as EPCB_PrimitiveType]));
     for (const item of items) {
-     if (expected.has(item.getState_PrimitiveId()) && 'getState_Pad' in item) padMap.set(item.getState_PrimitiveId(), item as IPCB_PrimitivePad);
+     if ('getState_Pad' in item) padMap.set(item.getState_PrimitiveId(), item as IPCB_PrimitivePad);
     }
+   }
+   const owners = new Map<string, string>();
+   for (const p of expected) {
+    const id = resolve(p);
+    if (id) owners.set(id, p.component);
    }
    const lines = await call(() => eda.pcb_PrimitiveLine.getAll());
    const arcs = await call(() => eda.pcb_PrimitiveArc.getAll());
@@ -58,7 +83,7 @@ export function nativePort(): NativePort {
      const supported = !(p.getState_SpecialPad()?.length) && shape && ['ELLIPSE', 'RECT', 'OVAL', 'ROUNDRECT'].includes(String(shape[0])) && w > 0 && h > 0 && Number.isFinite(dx + dy);
      return { id: p.getState_PrimitiveId(), kind: 'pad', net: p.getState_Net(), layer: Number(p.getState_Layer()), x, y,
       bbox: supported ? [x - dx, y - dy, x + dx, y + dy] as Box : undefined, unsupported: !supported,
-      locked: p.getState_PrimitiveLock(), component_id: expected.get(p.getState_PrimitiveId())?.component };
+      locked: p.getState_PrimitiveLock(), component_id: owners.get(p.getState_PrimitiveId()) };
     }),
     traces: lines.map(l => ({ id: l.getState_PrimitiveId(), kind: 'trace', net: l.getState_Net(), layer: Number(l.getState_Layer()), points: [[l.getState_StartX(), l.getState_StartY()], [l.getState_EndX(), l.getState_EndY()]] as Point[], width: l.getState_LineWidth(), locked: l.getState_PrimitiveLock() })),
     vias: vias.map(v => ({ id: v.getState_PrimitiveId(), kind: 'via', layer: 12, net: v.getState_Net(), x: v.getState_X(), y: v.getState_Y(), diameter: v.getState_Diameter(), hole: v.getState_HoleDiameter(), locked: v.getState_PrimitiveLock() })),
@@ -77,7 +102,7 @@ export function nativePort(): NativePort {
     warnings: ['Observable geometry only; native plane/connectivity indexes may be stale. No reload or DRC is performed.'],
    };
    for (const c of components) if (!Array.isArray(c.getState_Pads())) result.pads.push({ id: `${c.getState_PrimitiveId()}:pads-unavailable`, kind: 'pad', layer: 12, component_id: c.getState_PrimitiveId(), unsupported: true });
-   for (const [id, p] of expected) if (!padMap.has(id)) result.pads.push({ id, kind: 'pad', net: p.net, layer: 12, component_id: p.component, unsupported: true });
+   for (const p of expected) if (!resolve(p)) result.pads.push({ id: `${p.component}:missing-pad:${p.local}`, kind: 'pad', net: p.net, layer: 12, component_id: p.component, unsupported: true });
    // Unsupported copper is visible and causes preflight to fail closed on its layer.
    for (const a of arcs) result.traces.push({ id: a.getState_PrimitiveId(), kind: 'arc', net: a.getState_Net(), layer: Number(a.getState_Layer()), points: [[a.getState_StartX(), a.getState_StartY()], [a.getState_EndX(), a.getState_EndY()]], width: a.getState_LineWidth(), unsupported: true });
    for (const p of polys) result.traces.push({ id: p.getState_PrimitiveId(), kind: 'polyline', net: p.getState_Net(), layer: Number(p.getState_Layer()), unsupported: true });

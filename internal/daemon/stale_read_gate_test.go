@@ -213,7 +213,7 @@ func TestStaleReadGate_DocReloadItselfIsNeverBlocked(t *testing.T) {
 	s, _ := gateServer(t)
 	gateMark(s, "pcb.clear_routing", "w1", nil)
 
-	for _, step := range []string{"document.current", "document.open", "pcb.save", "debug.exec_js"} {
+	for _, step := range []string{"document.current", "schematic.pages.list", "pcb.documents.list", "document.open", "pcb.save", "debug.exec_js"} {
 		if resp := s.checkStaleRead(gateReq(step, "w1", "ceshi")); resp != nil {
 			t.Fatalf("`doc reload` step %s must never be gated (would deadlock the remedy), got %+v", step, resp.Error)
 		}
@@ -414,5 +414,26 @@ func TestStaleReadRefusalIsTimestampFree(t *testing.T) {
 	b, _ := staleReadRefusal("pcb.line.list", "pcb.via.create", "ceshi")
 	if a != b {
 		t.Errorf("refusal text must be deterministic:\n%s\nvs\n%s", a, b)
+	}
+}
+
+func TestReloadMetadataDoesNotClearRealStaleGeometry(t *testing.T) {
+	s, _ := gateServer(t)
+	gateMark(s, "pcb.outline.set", "w1", nil)
+	if r := s.checkStaleRead(gateReq("pcb.documents.list", "w1", "P")); r != nil {
+		t.Fatal(r.Error)
+	}
+	runStale(s.staleReads, "pcb.documents.list", "w1", true, nil)
+	if r := s.checkStaleRead(gateReq("pcb.components.list", "w1", "P")); r == nil || r.Error.Code != "STALE_READ" {
+		t.Fatal("metadata cleared stale geometry")
+	}
+	gateMark(s, "debug.exec_js", "w1", map[string]any{"code": `return await eda.dmt_EditorControl.closeDocument("tab")`})
+	if r := s.checkStaleRead(gateReq("pcb.components.list", "w1", "P")); r != nil {
+		t.Fatal("fresh read blocked", r.Error)
+	}
+	// Equivalent freshness-state regression: another write makes old read state stale.
+	gateMark(s, "pcb.outline.set", "w1", nil)
+	if r := s.checkStaleRead(gateReq("pcb.components.list", "w1", "P")); r == nil || r.Error.Code != "STALE_READ" {
+		t.Fatal("later mutation failed to re-arm protection")
 	}
 }

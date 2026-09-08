@@ -82,9 +82,28 @@ export function buildCallArgs(action, input = {}) {
 }
 
 export function buildWorkflowArgs(input) {
+  const allowed = ['operation','project','doc','reconcile','minScore','maxCrossings','confirmation','note','resetAll','resetFrom','profile','tier','parts','empty'];
+  for (const key of Object.keys(input)) if (!allowed.includes(key)) throw new Error(`unsupported workflow argument: ${key}`);
   if (!input.project) throw new Error('project is required for workflow operations');
+  if (['advance','confirm','set_assembly','confirm_tier'].includes(input.operation) && !input.doc) throw new Error('doc is required for workflow acceptance operations');
+  if (input.minScore !== undefined && (!Number.isInteger(input.minScore) || input.minScore < 0 || input.minScore > 100)) throw new Error('minScore must be 0..100');
+  if (input.maxCrossings !== undefined && (!Number.isInteger(input.maxCrossings) || input.maxCrossings < -1)) throw new Error('maxCrossings must be >= -1');
   const args = ['--project', input.project];
   if (input.doc) args.push('--doc', input.doc);
+  if (input.operation === 'set_assembly') {
+    if (!['hand-solder','reflow'].includes(input.profile)) throw new Error('profile must be hand-solder or reflow');
+    return [...args, 'pcb', 'stage', 'set-assembly', '--profile', input.profile];
+  }
+  if (input.operation === 'confirm_tier') {
+    if (!Number.isInteger(input.tier) || input.tier < 1 || input.tier > 4) throw new Error('tier must be 1..4');
+    if (input.parts !== undefined && (!Array.isArray(input.parts) || input.parts.some(p => typeof p !== 'string' || !p.trim() || p.includes(',')))) throw new Error('parts must contain individual designators');
+    if (input.empty && input.parts?.length) throw new Error('empty and parts are mutually exclusive');
+    args.push('pcb','stage','confirm-tier',String(input.tier));
+    for (const part of input.parts || []) args.push('--parts',part);
+    if (input.empty === true) args.push('--empty');
+    if (input.note) args.push('--note',input.note);
+    return args;
+  }
   args.push('workflow', input.operation);
   switch (input.operation) {
     case 'init':
@@ -143,4 +162,10 @@ export function toMcpResult(execution, options = {}) {
     result.structuredContent = value;
   }
   return result;
+}
+
+export function buildReloadArgs(input) {
+  for(const key of Object.keys(input)) if(!['project','doc'].includes(key)) throw new Error(`unsupported reload argument: ${key}`);
+  if(!input.project || !input.doc) throw new Error('reload requires project and doc');
+  return ['--project',input.project,'doc','reload',input.doc,'--json'];
 }

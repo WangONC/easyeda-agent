@@ -1,8 +1,8 @@
 # easyeda-agent MCP
 
-Local stdio MCP adapter over the existing `easyeda` CLI/daemon. It exposes 11
+Local stdio MCP adapter over the existing `easyeda` CLI/daemon. It exposes 15
 tools: connection health, action discovery, one tool for each of the seven safe
-action domains, circuit blocks, and the guarded workflow state machine. The
+action domains, circuit blocks, three Fast Path tools, document reload, and the guarded workflow state machine. The
 arbitrary-JavaScript debug domain is deliberately not exposed.
 
 ```bash
@@ -29,6 +29,19 @@ After registration, restart the MCP client so it discovers the new server. Run
 `easyeda_health` first, then use `easyeda_actions` to select the exact typed
 action. The Skill's inspect-before-mutate, save, reload, DRC, and workflow-gate
 rules continue to apply to MCP calls.
+
+## Essential PCB workflow parity
+
+See [the capability matrix and workflow contract](../docs/essential-mcp-parity.md).
+`easyeda_workflow` now supports `set_assembly` and `confirm_tier`, mapped to the
+existing Go CLI. `advance` returns compact command results plus authoritative
+workflow status; check `routeAllowed`, not just command success. Acceptance
+operations require project and doc. No force option is exposed.
+
+`easyeda_document_reload` exposes the existing save/close/reopen recovery command.
+Its CLI internals, verified Host recovery and first batch acceptance are documented
+in the linked report. Project creation and first schematic-container creation
+are not implemented; an existing project/schematic remains the starting point.
 
 ## DeepSeek Harness (DSH) 集成
 

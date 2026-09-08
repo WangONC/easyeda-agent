@@ -1,0 +1,374 @@
+{
+  "id": "req_153",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-09-08T16:24:41.9334822Z",
+  "ok": true,
+  "result": {
+    "board_revision": "mtstssno-ok9bqkom3eh:234",
+    "components": [
+      {
+        "designator": "R1",
+        "id": "4b2abcae601237e9",
+        "kind": "component",
+        "layer": 1,
+        "x": 485.2159999999995,
+        "y": -483.9533999999992
+      },
+      {
+        "designator": "R4",
+        "id": "4c6ef6fba19578fb",
+        "kind": "component",
+        "layer": 1,
+        "x": 485.2159999999995,
+        "y": -225.85839999999934
+      },
+      {
+        "designator": "R2",
+        "id": "7d3749ac15a8a3e3",
+        "kind": "component",
+        "layer": 1,
+        "x": 485.2159999999995,
+        "y": -381.2603999999998
+      },
+      {
+        "designator": "H2",
+        "id": "83fd60a94ced0019",
+        "kind": "component",
+        "layer": 1,
+        "x": 766.4319999999998,
+        "y": -483.95339999999874
+      },
+      {
+        "designator": "R3",
+        "id": "d42c5028da590c1c",
+        "kind": "component",
+        "layer": 1,
+        "x": 485.2159999999995,
+        "y": -303.5594000000001
+      },
+      {
+        "designator": "H1",
+        "id": "ea978d55bd99800d",
+        "kind": "component",
+        "layer": 1,
+        "x": 204,
+        "y": -483.9534
+      }
+    ],
+    "copper_layers": [
+      1,
+      2
+    ],
+    "fills": [],
+    "geometry_hash": "c95686eb452943a03f1283d4982721fd191f35acff3ab04dda7620f0ab999878",
+    "pads": [
+      {
+        "bbox": [
+          499,
+          -501,
+          530.8,
+          -467
+        ],
+        "id": "4b2abcae601237e9e7",
+        "kind": "pad",
+        "layer": 1,
+        "net": "FP_OUT1",
+        "x": 514.9,
+        "y": -484
+      },
+      {
+        "bbox": [
+          439.70000000000005,
+          -501,
+          471.5,
+          -467
+        ],
+        "id": "4b2abcae601237e9e8",
+        "kind": "pad",
+        "layer": 1,
+        "net": "FP_IN1",
+        "x": 455.6,
+        "y": -484
+      },
+      {
+        "bbox": [
+          499,
+          -242.9,
+          530.8,
+          -208.9
+        ],
+        "id": "4c6ef6fba19578fbe7",
+        "kind": "pad",
+        "layer": 1,
+        "net": "FP_OUT4",
+        "x": 514.9,
+        "y": -225.9
+      },
+      {
+        "bbox": [
+          439.70000000000005,
+          -242.9,
+          471.5,
+          -208.9
+        ],
+        "id": "4c6ef6fba19578fbe8",
+        "kind": "pad",
+        "layer": 1,
+        "net": "FP_IN4",
+        "x": 455.6,
+        "y": -225.9
+      },
+      {
+        "bbox": [
+          499,
+          -398.3,
+          530.8,
+          -364.3
+        ],
+        "id": "7d3749ac15a8a3e3e7",
+        "kind": "pad",
+        "layer": 1,
+        "net": "FP_OUT2",
+        "x": 514.9,
+        "y": -381.3
+      },
+      {
+        "bbox": [
+          439.70000000000005,
+          -398.3,
+          471.5,
+          -364.3
+        ],
+        "id": "7d3749ac15a8a3e3e8",
+        "kind": "pad",
+        "layer": 1,
+        "net": "FP_IN2",
+        "x": 455.6,
+        "y": -381.3
+      },
+      {
+        "bbox": [
+          582.9499999999999,
+          -517.45,
+          649.85,
+          -450.55
+        ],
+        "id": "83fd60a94ced0019e12",
+        "kind": "pad",
+        "layer": 12,
+        "net": "FP_OUT1",
+        "x": 616.4,
+        "y": -484
+      },
+      {
+        "bbox": [
+          682.9499999999999,
+          -517.45,
+          749.85,
+          -450.55
+        ],
+        "id": "83fd60a94ced0019e13",
+        "kind": "pad",
+        "layer": 12,
+        "net": "FP_OUT2",
+        "x": 716.4,
+        "y": -484
+      },
+      {
+        "bbox": [
+          782.9499999999999,
+          -517.45,
+          849.85,
+          -450.55
+        ],
+        "id": "83fd60a94ced0019e14",
+        "kind": "pad",
+        "layer": 12,
+        "net": "FP_OUT3",
+        "x": 816.4,
+        "y": -484
+      },
+      {
+        "bbox": [
+          882.9499999999999,
+          -517.45,
+          949.85,
+          -450.55
+        ],
+        "id": "83fd60a94ced0019e15",
+        "kind": "pad",
+        "layer": 12,
+        "net": "FP_OUT4",
+        "x": 916.4,
+        "y": -484
+      },
+      {
+        "bbox": [
+          499,
+          -320.6,
+          530.8,
+          -286.6
+        ],
+        "id": "d42c5028da590c1ce7",
+        "kind": "pad",
+        "layer": 1,
+        "net": "FP_OUT3",
+        "x": 514.9,
+        "y": -303.6
+      },
+      {
+        "bbox": [
+          439.70000000000005,
+          -320.6,
+          471.5,
+          -286.6
+        ],
+        "id": "d42c5028da590c1ce8",
+        "kind": "pad",
+        "layer": 1,
+        "net": "FP_IN3",
+        "x": 455.6,
+        "y": -303.6
+      },
+      {
+        "component_id": "83fd60a94ced0019",
+        "id": "e12",
+        "kind": "pad",
+        "layer": 12,
+        "net": "FP_OUT1",
+        "unsupported": true
+      },
+      {
+        "component_id": "83fd60a94ced0019",
+        "id": "e13",
+        "kind": "pad",
+        "layer": 12,
+        "net": "FP_OUT2",
+        "unsupported": true
+      },
+      {
+        "component_id": "83fd60a94ced0019",
+        "id": "e14",
+        "kind": "pad",
+        "layer": 12,
+        "net": "FP_OUT3",
+        "unsupported": true
+      },
+      {
+        "component_id": "83fd60a94ced0019",
+        "id": "e15",
+        "kind": "pad",
+        "layer": 12,
+        "net": "FP_OUT4",
+        "unsupported": true
+      },
+      {
+        "component_id": "4c6ef6fba19578fb",
+        "id": "e7",
+        "kind": "pad",
+        "layer": 12,
+        "net": "FP_OUT4",
+        "unsupported": true
+      },
+      {
+        "component_id": "4c6ef6fba19578fb",
+        "id": "e8",
+        "kind": "pad",
+        "layer": 12,
+        "net": "FP_IN4",
+        "unsupported": true
+      },
+      {
+        "bbox": [
+          20.549999999999997,
+          -517.45,
+          87.45,
+          -450.55
+        ],
+        "id": "ea978d55bd99800de12",
+        "kind": "pad",
+        "layer": 12,
+        "net": "FP_IN1",
+        "x": 54,
+        "y": -484
+      },
+      {
+        "bbox": [
+          120.55,
+          -517.45,
+          187.45,
+          -450.55
+        ],
+        "id": "ea978d55bd99800de13",
+        "kind": "pad",
+        "layer": 12,
+        "net": "FP_IN2",
+        "x": 154,
+        "y": -484
+      },
+      {
+        "bbox": [
+          220.55,
+          -517.45,
+          287.45,
+          -450.55
+        ],
+        "id": "ea978d55bd99800de14",
+        "kind": "pad",
+        "layer": 12,
+        "net": "FP_IN3",
+        "x": 254,
+        "y": -484
+      },
+      {
+        "bbox": [
+          320.55,
+          -517.45,
+          387.45,
+          -450.55
+        ],
+        "id": "ea978d55bd99800de15",
+        "kind": "pad",
+        "layer": 12,
+        "net": "FP_IN4",
+        "x": 354,
+        "y": -484
+      }
+    ],
+    "rule_profile": {
+      "clearance": 11.810999999952754,
+      "min_annulus": 6.003999999975983,
+      "min_diameter": 24.015799999903933,
+      "min_hole": 12.007799999951967,
+      "min_width": 4.99999999998
+    },
+    "scope": {},
+    "telemetry": {
+      "affected_nets_count": 0,
+      "board_revision_after": "mtstssno-ok9bqkom3eh:234",
+      "board_revision_before": "mtstssno-ok9bqkom3eh:234",
+      "duration_ms": 23,
+      "error_code": "",
+      "native_api_call_count": 20,
+      "operation_id": "req_153",
+      "operation_name": "board.snapshot_compact",
+      "request_bytes": 86,
+      "response_bytes": 4221,
+      "retry_count": 0
+    },
+    "traces": [],
+    "vias": [],
+    "warnings": [
+      "Observable geometry only; native plane/connectivity indexes may be stale. No reload or DRC is performed."
+    ]
+  },
+  "context": {
+    "projectUuid": "5b64534ff102440684a9f558494c5abc",
+    "documentUuid": "29f9e2cced590eba",
+    "documentType": "pcb",
+    "tabId": "29f9e2cced590eba@5b64534ff102440684a9f558494c5abc"
+  },
+  "seq": 122,
+  "seqAbandoned": 0
+}

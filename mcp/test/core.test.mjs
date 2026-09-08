@@ -33,8 +33,8 @@ test('filterActions applies domain, mutation, and text filters', () => {
 test('workflow and blocks arguments are shell-free arrays', () => {
   assert.deepEqual(buildWorkflowArgs({ project: 'P', doc: 'PCB1', operation: 'status', reconcile: true }),
     ['--project', 'P', '--doc', 'PCB1', 'workflow', 'status', '--json', '--reconcile']);
-  assert.deepEqual(buildWorkflowArgs({ project: 'P', operation: 'confirm', confirmation: 'layout', note: 'reviewed' }),
-    ['--project', 'P', 'workflow', 'confirm', 'layout', '--note', 'reviewed']);
+  assert.deepEqual(buildWorkflowArgs({ project: 'P', doc: 'PCB1', operation: 'confirm', confirmation: 'layout', note: 'reviewed' }),
+    ['--project', 'P', '--doc', 'PCB1', 'workflow', 'confirm', 'layout', '--note', 'reviewed']);
   assert.throws(() => buildWorkflowArgs({ project: 'P', operation: 'reset' }), /reset requires/);
   assert.deepEqual(buildBlocksArgs({ operation: 'search', query: 'usb serial' }), ['blocks', 'search', 'usb serial']);
 });

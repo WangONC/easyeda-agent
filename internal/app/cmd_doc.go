@@ -220,10 +220,14 @@ document afterward and reports it as "activeRestored", so the ★ does not drift
 				}
 			}
 			out := map[string]any{
-				"reloaded":       target,
-				"documentType":   docType,
-				"saved":          true,
-				"activeRestored": restored,
+				"reloaded":        target,
+				"reloadAccepted":  true,
+				"reloadCompleted": true,
+				"fresh":           true,
+				"freshness":       "identity-and-readback-verified",
+				"documentType":    docType,
+				"saved":           true,
+				"activeRestored":  restored,
 			}
 			if jsonOut {
 				return writeJSON(stdout, out)
@@ -251,7 +255,7 @@ document afterward and reports it as "activeRestored", so the ★ does not drift
 // sub-call is pinned to the resolved windowId, so a second window appearing or a
 // single-window auto-target racing mid-command can't break it. Returns the
 // resolved windowId so a caller (e.g. `doc switch`) can pin its own follow-ups.
-// PCB-listing failures are tolerated (a project may have no PCB).
+// An empty PCB list is valid; a failed enumeration is not proof of absence.
 func discoverDocs(cfg *appConfig, window string) (docs []openableDoc, activeUUID, resolvedWindow string, err error) {
 	resolvedWindow, err = resolveTargetWindow(cfg, window)
 	if err != nil {
@@ -279,8 +283,13 @@ func discoverDocs(cfg *appConfig, window string) (docs []openableDoc, activeUUID
 		})
 	}
 
-	// PCBs are optional — a schematic-only project legitimately has none.
-	if pcbs, perr := requestAction(cfg, "pcb.documents.list", resolvedWindow, nil); perr == nil {
+	// A schematic-only project returns an empty successful list. Never turn
+	// STALE_READ, transport or permission errors into "document not found".
+	pcbs, perr := requestAction(cfg, "pcb.documents.list", resolvedWindow, nil)
+	if perr != nil {
+		return nil, activeUUID, resolvedWindow, fmt.Errorf("enumerate PCB documents: %w", perr)
+	}
+	{
 		for _, p := range mapsField(pcbs.Result, "pcbs") {
 			docs = append(docs, openableDoc{
 				UUID:   strField(p, "uuid"),
@@ -407,6 +416,10 @@ func reloadDocumentByUUID(cfg *appConfig, win, target string) (string, error) {
 		}
 	}
 	docType := cur.Context.DocumentType
+	projectUUID := cur.Context.ProjectUUID
+	if projectUUID == "" || (docType != "pcb" && docType != "schematic") {
+		return docType, fmt.Errorf("reload requires authoritative project identity and document type")
+	}
 	saveAction := "schematic.save"
 	if docType == "pcb" {
 		saveAction = "pcb.save"
@@ -427,6 +440,18 @@ func reloadDocumentByUUID(cfg *appConfig, win, target string) (string, error) {
 	for {
 		cur, err = requestAction(cfg, "document.current", win, nil)
 		if err == nil && cur.Context != nil && cur.Context.DocumentUUID == target {
+			if cur.Context.ProjectUUID != projectUUID || cur.Context.DocumentType != docType || cur.Context.TabID == "" {
+				return docType, fmt.Errorf("RELOAD_IDENTITY_CHANGED: expected project=%s document=%s type=%s, got %+v", projectUUID, target, docType, cur.Context)
+			}
+			// Identity alone is insufficient: verify a real engine read after reopen.
+			// A STALE_READ here is a synchronization failure, never an empty document.
+			readback, rerr := requestAction(cfg, settleProbeAction(docType), win, nil)
+			if rerr != nil {
+				return docType, fmt.Errorf("RELOAD_READBACK_FAILED: %w", rerr)
+			}
+			if readback.Context == nil || readback.Context.DocumentUUID != target || readback.Context.ProjectUUID != projectUUID || readback.Context.DocumentType != docType {
+				return docType, fmt.Errorf("RELOAD_IDENTITY_CHANGED: readback no longer belongs to project=%s document=%s type=%s", projectUUID, target, docType)
+			}
 			return docType, nil
 		}
 		if time.Now().After(deadline) {

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { runWorkflow } from './workflow.mjs';
 
 import { FAST_ACTIONS, fastTools, fastInput, compactFastResult } from './fast-path.mjs';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -9,8 +10,8 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import {
   buildBlocksArgs,
+  buildReloadArgs,
   buildCallArgs,
-  buildWorkflowArgs,
   DOMAIN_NAMES,
   filterActions,
   runEasyeda,
@@ -26,7 +27,7 @@ const actions = catalogExecution.result.filter((action) => DOMAIN_NAMES.includes
 const byName = new Map(actions.map((action) => [action.name, action]));
 
 const server = new Server(
-  { name: 'easyeda-agent-mcp', version: '0.18.4' },
+  { name: 'easyeda-agent-mcp', version: '0.18.5' },
   {
     capabilities: { tools: {} },
     instructions: [
@@ -87,6 +88,12 @@ function domainTool(domain) {
 }
 
 const tools = [
+  {
+    name:'easyeda_document_reload',
+    description:'Save, close and reopen the named document using the existing Go CLI recovery command; refresh stale native state. Does not rebuild pours or route. Requires explicit project/doc. Existing CLI owns save/reopen and recovery audit.',
+    inputSchema:{type:'object',properties:{project:{type:'string'},doc:{type:'string'}},required:['project','doc'],additionalProperties:false},
+    annotations:{readOnlyHint:false,destructiveHint:false,idempotentHint:false,openWorldHint:false},
+  },
   ...fastTools().filter(tool => byName.has(FAST_ACTIONS[tool.name])),
   {
     name: 'easyeda_health',
@@ -130,15 +137,19 @@ const tools = [
   {
     name: 'easyeda_workflow',
     title: 'EasyEDA guarded workflow',
-    description: 'Inspect or advance the persisted project design-flow state machine.',
+    description: 'Go-authoritative PCB workflow. Set assembly first; review/confirm tiers 1..4; advance runs the existing layout-lint gate (default score >=60, crossings <=8); confirm layout, set real outline via easyeda_pcb, confirm outline, advance again. Read state.routeAllowed/status.routeAllowed before routing. Confirmations record an authorized review, never automatic approval. No force bypass. Assembly and outline changes invalidate downstream state.',
     inputSchema: {
       type: 'object',
       properties: {
-        operation: { type: 'string', enum: ['init', 'status', 'advance', 'confirm', 'reset'] },
+        operation: { type: 'string', enum: ['init', 'status', 'advance', 'confirm', 'reset', 'set_assembly', 'confirm_tier'] },
         project: { type: 'string' },
         doc: { type: 'string' },
+        profile: { type: 'string', enum: ['hand-solder','reflow'], description: 'Required for set_assembly; uses existing CLI defaults. Invalidates placement and later confirmations.' },
+        tier: { type: 'integer', minimum: 1, maximum: 4, description: 'For confirm_tier, in order: 1 mechanical, 2 edge connectors, 3 main IC/RF, 4 remaining satellites.' },
+        parts: { type: 'array', items: {type:'string'}, description: 'Reviewed designators for confirm_tier. Tier 4 may omit to claim remaining parts.' },
+        empty: { type: 'boolean', description: 'For confirm_tier: explicitly reviewed empty category, mutually exclusive with parts.' },
         reconcile: { type: 'boolean', description: 'For status: reconcile persisted state with the live document.' },
-        minScore: { type: 'integer', minimum: 0, maximum: 100, description: 'For advance: minimum routability score.' },
+        minScore: { type: 'integer', minimum: 0, maximum: 100, description: 'For advance: existing layout-lint threshold, default 60. Gate also rejects shorts, overlap, off-board, tight gaps and blocked solder access. Never lower thresholds just to unlock routing.' },
         maxCrossings: { type: 'integer', minimum: -1, description: 'For advance: maximum ratline crossings; -1 is unlimited.' },
         confirmation: { type: 'string', enum: ['layout', 'outline'], description: 'Required for confirm.' },
         note: { type: 'string', description: 'Human review note recorded by confirm.' },
@@ -157,6 +168,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools }));
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: input = {} } = request.params;
   try {
+    if (name === 'easyeda_document_reload') return toMcpResult(await runEasyeda(buildReloadArgs(input)),{compact:true,structuredErrors:true});
     if (name === 'easyeda_health') {
       return toMcpResult(await runEasyeda(['daemon', 'health'], 30_000));
     }
@@ -168,7 +180,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       return toMcpResult(await runEasyeda(buildBlocksArgs(input), 30_000));
     }
     if (name === 'easyeda_workflow') {
-      return toMcpResult(await runEasyeda(buildWorkflowArgs(input)));
+      return toMcpResult(await runWorkflow(input), {compact:true, structuredErrors:true});
     }
     if (FAST_ACTIONS[name]) {
       if (!byName.has(FAST_ACTIONS[name])) throw new Error("CLI upgrade required for Fast Path V0.1");

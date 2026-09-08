@@ -2,6 +2,8 @@ package fastpath
 
 import (
 	"encoding/json"
+	"math"
+	"os"
 	"strings"
 	"testing"
 )
@@ -172,5 +174,98 @@ func TestLiveProfileAndExplicitCoordinates(t *testing.T) {
 	}
 	if e = ExplicitViaCoordinates(map[string]any{"vias": []any{map[string]any{"x": 0}}}, "vias"); e == nil {
 		t.Fatal("implicit coordinate accepted")
+	}
+}
+
+// This is the actual pre-fix 1.4.4 Host response. Connector tests independently
+// verify that normalization preserves these 16 boxes and supplies ownership.
+func TestHostPadIdentityClearance(t *testing.T) {
+	raw, err := os.ReadFile("testdata/host-pad-identity.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var capture struct {
+		Result Snapshot `json:"result"`
+	}
+	if err := json.Unmarshal(raw, &capture); err != nil {
+		t.Fatal(err)
+	}
+	original := capture.Result
+	plan := Plan{Base: original.Revision, Profile: original.RuleProfile,
+		Routes: []Route{{Net: "PROBE", Layer: 1, Width: 6, Points: []Point{{0, -600}, {1000, -600}}}}}
+	before, err := Preflight(original, plan)
+	if err != nil || before.OK {
+		t.Fatalf("captured failure not reproduced: %+v %v", before, err)
+	}
+	found := false
+	for _, c := range before.Conflicts {
+		if c.Type == "unsupported_obstacle" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("expected phantom unsupported obstacle")
+	}
+	normalized := original
+	normalized.Pads = nil
+	for _, pad := range original.Pads {
+		if pad.BBox == nil {
+			continue
+		} // expected Connector output, not a production filter
+		for _, component := range original.Components {
+			if strings.HasPrefix(pad.ID, component.ID) {
+				pad.ComponentID = component.ID
+			}
+		}
+		normalized.Pads = append(normalized.Pads, pad)
+	}
+	if len(normalized.Pads) != 16 {
+		t.Fatal("Host fixture changed")
+	}
+	for _, pad := range normalized.Pads {
+		t.Run(pad.ID, func(t *testing.T) {
+			board := normalized
+			board.Pads = []Primitive{pad}
+			compact, err := Filter(board, Scope{Nets: []string{pad.Net}, Layers: []int{1}, Include: map[string]bool{"pads": true, "components": true}})
+			if err != nil || len(compact.Pads) != 1 || len(compact.Components) != 1 || compact.Pads[0].BBox == nil || compact.Pads[0].Unsupported {
+				t.Fatalf("incomplete compact: %+v %v", compact, err)
+			}
+			serialized, _ := json.Marshal(compact)
+			var roundTrip Snapshot
+			if err := json.Unmarshal(serialized, &roundTrip); err != nil {
+				t.Fatal(err)
+			}
+			for _, layer := range []int{1, 2} {
+				q := plan
+				q.Routes = []Route{{Net: "PROBE", Layer: layer, Width: 6, Points: []Point{{pad.BBox[0] - 30, pad.Y}, {pad.BBox[2] + 30, pad.Y}}}}
+				checked, err := Preflight(roundTrip, q)
+				wantConflict := pad.Layer == 12 || pad.Layer == layer
+				if err != nil || checked.OK == wantConflict {
+					t.Fatalf("crossing layer %d: %+v %v", layer, checked, err)
+				}
+				if wantConflict && (len(checked.Conflicts) != 1 || checked.Conflicts[0].Type != "trace_pad" || checked.Conflicts[0].Obstacle != pad.ID) {
+					t.Fatalf("not real clearance: %+v", checked)
+				}
+				y := pad.BBox[3] + 3 + plan.Profile.Clearance + 1
+				q.Routes[0].Points = []Point{{pad.BBox[0] - 30, y}, {pad.BBox[2] + 30, y}}
+				checked, err = Preflight(roundTrip, q)
+				if err != nil || !checked.OK {
+					t.Fatalf("legal bypass: %+v %v", checked, err)
+				}
+				if wantConflict {
+					y -= 2
+					q.Routes[0].Points = []Point{{pad.BBox[0] - 30, y}, {pad.BBox[2] + 30, y}}
+					checked, err = Preflight(roundTrip, q)
+					if err != nil || checked.OK || math.Abs(checked.Conflicts[0].Actual-(plan.Profile.Clearance-1)) > 1e-5 {
+						t.Fatalf("clearance near boundary: %+v %v", checked, err)
+					}
+				}
+			}
+			roundTrip.Pads[0].Unsupported = true
+			checked, err := Preflight(roundTrip, plan)
+			if err != nil || checked.OK || checked.Conflicts[0].Type != "unsupported_obstacle" {
+				t.Fatalf("unknown must fail closed: %+v %v", checked, err)
+			}
+		})
 	}
 }

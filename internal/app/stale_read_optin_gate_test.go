@@ -312,11 +312,16 @@ func TestPcbClearVerifiedKeepsRemainingCountThroughTheGate(t *testing.T) {
 			d.mu.Lock()
 			d.calls = append(d.calls, gateFakeCall{Action: probe.Action})
 			d.mu.Unlock()
-			fmt.Fprint(w, `{"ok":true,"result":{},"context":{"documentUuid":"doc1","documentType":"pcb","tabId":"tab1"}}`)
+			fmt.Fprint(w, `{"ok":true,"result":{},"context":{"projectUuid":"project1","documentUuid":"doc1","documentType":"pcb","tabId":"tab1"}}`)
 			return
 		}
 		r.Body = io.NopCloser(strings.NewReader(string(body)))
-		d.handle(w, r)
+		recorder := httptest.NewRecorder()
+		d.handle(recorder, r)
+		var response map[string]any
+		_ = json.Unmarshal(recorder.Body.Bytes(), &response)
+		response["context"] = map[string]any{"projectUuid": "project1", "documentUuid": "doc1", "documentType": "pcb", "tabId": "tab1"}
+		_ = json.NewEncoder(w).Encode(response)
 	})
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)

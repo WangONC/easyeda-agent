@@ -126,7 +126,10 @@ func pcbStaleMarks(req *protocol.Request) bool {
 // same engine state (so it earns the advisory) — `pcb clear --dry-run` on an
 // un-reloaded board is exactly the miscount that opened issue #112.
 func pcbStaleRead(req *protocol.Request) bool {
-	return docTypeForAction(req.Action) == "pcb" && !requestMutates(req)
+	// Document inventory calls dmt_Pcb.getAllPcbsInfo, not a PCB engine index.
+	// It must remain readable to locate the document that needs reloading. This
+	// metadata read neither clears the stale mark nor authorizes geometry reads.
+	return req.Action != "pcb.documents.list" && docTypeForAction(req.Action) == "pcb" && !requestMutates(req)
 }
 
 // pcbStaleClears reports whether a successful request resets the stale flag.

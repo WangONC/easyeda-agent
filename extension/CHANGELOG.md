@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [1.4.5] — 2026-09-09
+
+### Fixed
+
+- Fast manual PCB snapshots now reconcile component-local Pad IDs with native instance IDs without overwriting sibling footprint declarations. Real geometry and component ownership are retained; missing, ambiguous and unsupported geometry still fail closed. Fixes the false e12–e15/e7–e8 obstacles observed in FASTPATH_SMOKE_01. No routing or clearance rules changed.
+
 ## [1.4.3] — 2026-09-08
 
 ### Added

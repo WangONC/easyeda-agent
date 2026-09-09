@@ -5,6 +5,68 @@
 
 ---
 
+## Routing Engineering Guidelines
+
+以下是工程意图明确后的默认工作方法，不是新的 DRC、评分器或硬 gate。决策优先级：
+**电气功能 / topology → SI / PI / return path / timing / current path →
+manufacturing / mechanical / package escape → routing group strategy → geometry consistency / craftsmanship**。
+低优先级偏好不得为“更漂亮”损害高优先级目标。这个顺序用于可行方案间的取舍，
+不覆盖已确认的安全、制造硬约束或机械锁定；这些仍按
+[布局约定](pcb-layout-conventions.md)处理。元件旋转/丝印朝向约定不等于走线角度规则。
+本节不授权换用自动布线；严格手工任务沿用 [Fast Path](fast-manual-pcb.md) 和
+[RevB contract](revb-agent-contract.md) 的批处理、门禁与验证节奏。下文 primitive 示例是能力说明，不是逐网事务策略。
+
+### Group Before Net
+
+DDR、FIFO、并行 bus、差分接口及其它明显成组的网络，默认先形成组级策略：
+corridor、preferred layer set、escape direction、成员 ordering、via strategy，
+以及需要时的 tuning region，再处理单网。宜把组的路径资源一起考虑，
+而不是默认每网独立找一条合法路径；组策略不要求每个成员具有完全相同的 layer sequence。
+
+### Ordinary Routing Geometry
+
+没有特殊几何目的的普通信号，宜采用简单、一致的几何，通常优先水平、垂直和 45° 斜线。
+这不是 DRC 硬规则或 SI 定律。BGA/fine-pitch、连接器 pin-field escape、RF/天线/受控几何、
+差分、正式 length tuning/serpentine、大电流/power copper、polygon/fill/局部异形铜、
+机械避让及其它有工程目的的几何均可有合理例外；不要为视觉上的 45° 牺牲高优先级目标。
+
+### Intentional Layer / Via Strategy
+
+换层和 signal via 宜服务于明确的实际换层、escape、corridor、reference strategy 或 intentional branch。
+短距离 A→B→A、反复 layer ping-pong 和历史修改留下的 via 宜重新审视其目的，
+而不是按固定最大 via 数裁决；保留有真实工程作用的结构。
+
+### Coupled Structures as Objects
+
+差分对、byte lane、equal-length group 及其它共享约束的网络组，宜作为耦合结构考虑。
+差分对优先按 **common corridor → paired geometry → intentional transitions → residual skew** 处理，
+使用现有 pair helper 展开明确意图。P/N 最终长度相等不自动证明整体几何合适；仍需结合参考、耦合及转换区域。
+
+### Tuning Is Intentional Geometry
+
+宜按 **主体 routing → measurement → tuning target → designated corridor → 正式 tuning helper** 完成，
+再通过既有 preflight/apply/readback 和测量核对结果；不要在普通 routing 中为凑长度随手堆折返。
+正式 serpentine/meander 本身可能有大量 segment、方向反复和非单调路径；这些事实不能单独判质量，
+宜结合目标、pitch/amplitude、空间、耦合及实际增加长度判断，长度不同也不自动意味着需要 tuning。
+
+### Routing Ends With Cleanup
+
+All Nets Connected 不等于 Routing 完成。最终 DRC 前宜做一次 Routing Cleanup 复核：
+过程残留、可能无目的的 via/tail、重复或重叠同网铜、same-net loop、局部碎折线、
+无理由 layer hopping、组内明显离群成员及差分对不一致。先核对设计意图，再决定是否修改；
+这是一轮工程复核，不是自动 detector 或新硬 gate，也不意味着发现这些形态就应删除。
+
+### Telemetry: scope follows the edit
+
+**Report scope should match mutation scope.** 需要统计时，单网/小批修改优先用
+`pcb.report` 的 `telemetry:true,nets:[...]`；组完成后查看该组，阶段结束再看 board summary，
+不默认每改一根线就重复整板报告。复用当前 project/document identity；telemetry 独立调用，
+不与 profile/path 等测量选项混用，也不替代 authoritative readback 或既有验证。
+长度、line/arc 组成、orientation、via 和 layer usage 只是事实，宜结合网络角色和设计 intent 解读。
+单个角度、via 数、长度或层使用方式都不足以判错；方向桶只覆盖直线，arc 不参与。
+铜长是平面内 trace+arc 中心线长度，不含 via 垂直段、封装内部长度或传播延迟；
+`routedNetCount` 仅表示正铜长，不表示连通完成。不要从这些统计推断工具未提供的缺陷结论。
+
 ### 关键网与叠层
 
 `pcb route-critical --spec <S0.json> --dry-run` 先检查真实铜层数与关键网方案。

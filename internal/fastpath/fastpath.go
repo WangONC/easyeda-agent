@@ -17,37 +17,48 @@ type Box [4]float64
 
 // Primitive is an observation, not a native EasyEDA object. Layer 12 means all copper.
 type Primitive struct {
-	ID          string  `json:"id"`
-	Kind        string  `json:"kind"`
-	Net         string  `json:"net,omitempty"`
-	Layer       int     `json:"layer,omitempty"`
-	Points      []Point `json:"points,omitempty"`
-	Width       float64 `json:"width,omitempty"`
-	X           float64 `json:"x,omitempty"`
-	Y           float64 `json:"y,omitempty"`
-	Diameter    float64 `json:"diameter,omitempty"`
-	Hole        float64 `json:"hole,omitempty"`
-	BBox        *Box    `json:"bbox,omitempty"`
-	Locked      bool    `json:"locked,omitempty"`
-	Unsupported bool    `json:"unsupported,omitempty"`
-	Designator  string  `json:"designator,omitempty"`
-	Rotation    float64 `json:"rotation,omitempty"`
-	ComponentID string  `json:"component_id,omitempty"`
+	RoutingBlocked  *bool     `json:"routing_blocked,omitempty"`
+	RuleTypes       []int     `json:"rule_types,omitempty"`
+	ArcLength       float64   `json:"arc_length,omitempty"`
+	Rings           [][]Point `json:"rings,omitempty"`
+	ProjectionError float64   `json:"projection_error,omitempty"`
+	Coverage        string    `json:"coverage,omitempty"`
+	ID              string    `json:"id"`
+	Kind            string    `json:"kind"`
+	Net             string    `json:"net,omitempty"`
+	Layer           int       `json:"layer,omitempty"`
+	Points          []Point   `json:"points,omitempty"`
+	Width           float64   `json:"width,omitempty"`
+	X               float64   `json:"x,omitempty"`
+	Y               float64   `json:"y,omitempty"`
+	Diameter        float64   `json:"diameter,omitempty"`
+	Hole            float64   `json:"hole,omitempty"`
+	BBox            *Box      `json:"bbox,omitempty"`
+	Locked          bool      `json:"locked,omitempty"`
+	Unsupported     bool      `json:"unsupported,omitempty"`
+	Designator      string    `json:"designator,omitempty"`
+	Rotation        float64   `json:"rotation,omitempty"`
+	ComponentID     string    `json:"component_id,omitempty"`
 }
 type Snapshot struct {
-	RuleProfile  *Rules          `json:"rule_profile,omitempty"`
-	Outline      map[string]any  `json:"outline_fingerprint_input,omitempty"`
-	Revision     string          `json:"board_revision"`
-	Components   []Primitive     `json:"components"`
-	Pads         []Primitive     `json:"pads"`
-	Traces       []Primitive     `json:"traces"`
-	Vias         []Primitive     `json:"vias"`
-	Fills        []Primitive     `json:"fills"`
-	Layers       []int           `json:"copper_layers,omitempty"`
-	Rules        json.RawMessage `json:"rules,omitempty"`
-	GeometryHash string          `json:"geometry_hash"`
-	Scope        Scope           `json:"scope"`
-	Warnings     []string        `json:"warnings,omitempty"`
+	ObservationHash string           `json:"observation_hash,omitempty"`
+	PhysicalStackup json.RawMessage  `json:"physical_stackup,omitempty"`
+	StackupHash     string           `json:"stackup_hash,omitempty"`
+	RulesHash       string           `json:"rules_hash,omitempty"`
+	Coverage        GeometryCoverage `json:"coverage"`
+	RuleProfile     *Rules           `json:"rule_profile,omitempty"`
+	Outline         map[string]any   `json:"outline_fingerprint_input,omitempty"`
+	Revision        string           `json:"board_revision"`
+	Components      []Primitive      `json:"components"`
+	Pads            []Primitive      `json:"pads"`
+	Traces          []Primitive      `json:"traces"`
+	Vias            []Primitive      `json:"vias"`
+	Fills           []Primitive      `json:"fills"`
+	Layers          []int            `json:"copper_layers,omitempty"`
+	Rules           json.RawMessage  `json:"rules,omitempty"`
+	GeometryHash    string           `json:"geometry_hash"`
+	Scope           Scope            `json:"scope"`
+	Warnings        []string         `json:"warnings,omitempty"`
 }
 type Scope struct {
 	Nets    []string        `json:"nets,omitempty"`
@@ -147,6 +158,13 @@ func ValidBox(b *Box) bool {
 	return b == nil || (finite(b[0]) && finite(b[1]) && finite(b[2]) && finite(b[3]) && b[0] <= b[2] && b[1] <= b[3])
 }
 func Bounds(p Primitive) Box {
+	p.Width += 2 * p.ProjectionError
+	if len(p.Rings) > 0 {
+		p.Points = nil
+		for _, ring := range p.Rings {
+			p.Points = append(p.Points, ring...)
+		}
+	}
 	if p.BBox != nil {
 		return *p.BBox
 	}
@@ -175,6 +193,8 @@ func Filter(s Snapshot, scope Scope) (Snapshot, error) {
 	}
 	out := s
 	out.Scope = scope
+	out.StackupHash, out.RulesHash = ProfileTokens(s)
+	out.PhysicalStackup = nil
 	out.RuleProfile = LiveProfile(s.Rules)
 	out.Rules = nil
 	out.Outline = nil
@@ -211,6 +231,7 @@ func Filter(s Snapshot, scope Scope) (Snapshot, error) {
 		}
 		sort.Slice(*g.dst, func(i, j int) bool { return (*g.dst)[i].ID < (*g.dst)[j].ID })
 	}
+	out.Coverage = coverage(out)
 	out.GeometryHash = Hash([]any{out.Components, out.Pads, out.Traces, out.Vias, out.Fills})
 	return out, nil
 }
@@ -232,7 +253,7 @@ func ValidateOperations(ops []Operation) error {
 				}
 			}
 		case "add_via":
-			if o.Net == "" || !finite(o.X) || !finite(o.Y) || !finite(o.Diameter) || !finite(o.Hole) || o.Hole <= 0 || o.Diameter <= o.Hole || !((o.From == 1 && o.To == 2) || (o.From == 2 && o.To == 1)) || o.Layer != 0 || o.Width != 0 || len(o.Points) != 0 || o.ID != "" {
+			if o.Net == "" || !finite(o.X) || !finite(o.Y) || !finite(o.Diameter) || !finite(o.Hole) || o.Hole <= 0 || o.Diameter <= o.Hole || (o.From <= 0 || o.To <= 0 || o.From == o.To || o.From == 12 || o.To == 12) || o.Layer != 0 || o.Width != 0 || len(o.Points) != 0 || o.ID != "" {
 				return bad()
 			}
 		case "delete_trace", "delete_via":
@@ -278,6 +299,19 @@ func centerLine(p Primitive) (Point, Point, float64) {
 	return q, q, p.Diameter / 2
 }
 func clearance(a, b Primitive) float64 {
+	if len(b.Rings) > 0 {
+		return polygonClearance(a, b)
+	}
+	if b.Kind == "arc" && len(b.Points) >= 2 {
+		d := math.Inf(1)
+		for i := 1; i < len(b.Points); i++ {
+			segment := b
+			segment.Kind = "trace"
+			segment.Points = []Point{b.Points[i-1], b.Points[i]}
+			d = math.Min(d, clearance(a, segment)-b.ProjectionError)
+		}
+		return d
+	}
 	a1, a2, r := centerLine(a)
 	if b.Kind == "trace" || b.Kind == "via" {
 		b1, b2, rb := centerLine(b)
@@ -315,13 +349,22 @@ func Preflight(s Snapshot, p Plan) (Check, error) {
 	obstacles := append(append(append(append([]Primitive{}, s.Traces...), s.Pads...), s.Vias...), s.Fills...)
 	for i := range obstacles {
 		o := &obstacles[i]
+		if len(o.Rings) > 0 && (!validRings(o.Rings) || !finite(o.ProjectionError) || o.ProjectionError < 0) {
+			o.Unsupported = true
+		}
+		if o.Kind == "arc" && (len(o.Points) < 2 || o.Width <= 0 || !finite(o.ProjectionError) || o.ProjectionError < 0) {
+			o.Unsupported = true
+		}
+		if o.Kind == "board_edge" && !validRings(o.Rings) {
+			o.Unsupported = true
+		}
 		if o.Kind == "trace" && (len(o.Points) != 2 || o.Width <= 0) {
 			o.Unsupported = true
 		}
 		if o.Kind == "via" && o.Diameter <= 0 {
 			o.Unsupported = true
 		}
-		if (o.Kind == "pad" || o.Kind == "fill") && (o.BBox == nil || !ValidBox(o.BBox)) {
+		if (o.Kind == "pad" || o.Kind == "fill") && len(o.Rings) == 0 && (o.BBox == nil || !ValidBox(o.BBox)) {
 			o.Unsupported = true
 		}
 	}
@@ -400,7 +443,7 @@ func Preflight(s Snapshot, p Plan) (Check, error) {
 				addConflict(i, o, "width_rule", rule.MinWidth, op.Width)
 			}
 		} else {
-			if !has(s.Layers, 1) || !has(s.Layers, 2) {
+			if !has(s.Layers, 1) || !has(s.Layers, 2) || !has(s.Layers, op.From) || !has(s.Layers, op.To) {
 				addConflict(i, o, "invalid_layer", 0, 0)
 			}
 			if op.Hole < rule.MinHole {
@@ -419,6 +462,9 @@ func Preflight(s Snapshot, p Plan) (Check, error) {
 			}
 			if b.Unsupported {
 				addConflict(i, b, "unsupported_obstacle", rule.Clearance, 0)
+				continue
+			}
+			if b.Kind == "region" && b.RoutingBlocked != nil && !*b.RoutingBlocked {
 				continue
 			}
 			d := clearance(o, b)

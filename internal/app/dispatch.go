@@ -155,6 +155,7 @@ type actionContext struct {
 // the persisted file (the daemon fills Path after decoding the connector's
 // inlineBase64). Mirrors protocol.Artifact without importing it here.
 type artifactRef struct {
+	Kind     string `json:"kind,omitempty"`
 	Path     string `json:"path,omitempty"`
 	FileName string `json:"fileName,omitempty"`
 	MimeType string `json:"mimeType,omitempty"`
@@ -804,7 +805,7 @@ func postAction(cfg *appConfig, action, window string, payload any, timeout time
 	// --doc guard: pin the action (mutating OR read — see docGuardApplies) to
 	// the requested page first. Skipped for the guard's own navigation actions
 	// (docGuardExempt) so it never recurses.
-	if action == "board.snapshot_compact" || action == "route.preflight" || action == "route.apply_batch" {
+	if action == "board.snapshot_compact" || action == "route.preflight" || action == "route.apply_batch" || action == "route.tuning_plan" || action == "route.pair_plan" || action == "pcb.routing_profile" {
 		// Pin at the Connector execution boundary without a navigation round trip.
 		var p map[string]any
 		data, e := json.Marshal(payload)

@@ -42,7 +42,7 @@ test('stdio MCP initializes, lists tools, and invokes offline discovery', async 
     assert.equal(allActions.isError, false);
     assert.ok(!allActions.structuredContent.actions.some((action) => action.domain === 'debug'));
 
-    for(const name of ['board.new_pcb','pcb.import_changes','document.open','schematic.page.create']) assert.ok(allActions.structuredContent.actions.some(a=>a.name===name));
+    for(const name of ['board.new_pcb','pcb.import_changes','document.open','schematic.page.create','route.tuning_plan','route.pair_plan','pcb.routing_profile','pcb.plane.refresh','pcb.drc.compare','pcb.manufacturing.export','project.create','project.open','project.list','schematic.create']) assert.ok(allActions.structuredContent.actions.some(a=>a.name===name));
     const discovered = await client.callTool({
       name: 'easyeda_actions',
       arguments: { domain: 'schematic', search: 'check', mutates: false },

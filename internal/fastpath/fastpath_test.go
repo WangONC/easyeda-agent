@@ -118,7 +118,7 @@ func TestRevisionPlanBinding(t *testing.T) {
 	}
 }
 func TestExplicitOperationsRejectInvalid(t *testing.T) {
-	for _, op := range []Operation{{Type: "move_component"}, {Type: "add_via", Net: "N", Hole: 12, Diameter: 24, From: 1, To: 15}, {Type: "add_trace", Net: "N", Layer: 1, Width: 6, Points: []Point{{1, 1}, {1, 1}}}} {
+	for _, op := range []Operation{{Type: "move_component"}, {Type: "add_via", Net: "N", Hole: 12, Diameter: 24, From: 1, To: 12}, {Type: "add_trace", Net: "N", Layer: 1, Width: 6, Points: []Point{{1, 1}, {1, 1}}}} {
 		if ValidateOperations([]Operation{op}) == nil {
 			t.Fatal(op)
 		}

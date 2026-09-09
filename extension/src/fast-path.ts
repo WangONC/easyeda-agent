@@ -5,11 +5,12 @@ export type Box = [number, number, number, number];
 export interface Primitive {
  id: string; kind: string; net?: string; layer?: number; points?: Point[]; width?: number;
  x?: number; y?: number; diameter?: number; hole?: number; bbox?: Box; locked?: boolean;
+ routing_blocked?: boolean; rule_types?: number[]; arc_length?: number; rings?: Point[][]; projection_error?: number; coverage?: 'supported'|'conservative'|'unsupported';
  unsupported?: boolean; designator?: string; rotation?: number; component_id?: string;
 }
 export interface Observation {
  components: Primitive[]; pads: Primitive[]; traces: Primitive[]; vias: Primitive[]; fills: Primitive[];
- copper_layers: number[]; rules?: unknown; warnings?: string[]; outline_fingerprint_input?: Record<string, unknown>; revision_geometry?: unknown;
+ copper_layers: number[]; physical_stackup?: unknown; rules?: unknown; warnings?: string[]; outline_fingerprint_input?: Record<string, unknown>; revision_geometry?: unknown;
 }
 export interface Operation {
  type: 'add_trace' | 'add_via' | 'delete_trace' | 'delete_via'; id?: string; net?: string;
@@ -38,7 +39,7 @@ function validOperations(value: unknown): asserts value is Operation[] {
   if (o.type === 'add_trace') {
    if (!o.net || !finite(o.width) || o.width! <= 0 || !Number.isInteger(o.layer) || !Array.isArray(o.points) || o.points.length !== 2 || o.points.some(p => !Array.isArray(p) || p.length !== 2 || p.some(n => !finite(n))) || canonical(o.points[0]) === canonical(o.points[1])) failure('INVALID_TRACE');
   } else if (o.type === 'add_via') {
-   if (!o.net || !finite(o.x ?? 0) || !finite(o.y ?? 0) || !finite(o.diameter) || !finite(o.hole) || o.hole! <= 0 || o.diameter! <= o.hole! || !((o.from_layer === 1 && o.to_layer === 2) || (o.from_layer === 2 && o.to_layer === 1))) failure('INVALID_THROUGH_VIA');
+   if (!o.net || !finite(o.x ?? 0) || !finite(o.y ?? 0) || !finite(o.diameter) || !finite(o.hole) || o.hole! <= 0 || o.diameter! <= o.hole! || (!Number.isInteger(o.from_layer) || !Number.isInteger(o.to_layer) || o.from_layer!<=0 || o.to_layer!<=0 || o.from_layer===o.to_layer || o.from_layer===12 || o.to_layer===12)) failure('INVALID_THROUGH_VIA');
   } else if (o.type === 'delete_trace' || o.type === 'delete_via') {
    if (!o.id || ids.has(o.id)) failure('INVALID_DELETE'); ids.add(o.id);
   } else failure('INVALID_OPERATION_TYPE');
@@ -117,6 +118,7 @@ export class FastPath {
    for (const o of operations) {
     if (o.type.startsWith('delete')) { const old = byID.get(o.id!); if (!old || old.locked || old.kind !== o.type.slice(7) || (old.kind === 'trace' && !before.data.copper_layers.includes(old.layer!))) failure('PROTECTED_OR_INVALID_DELETE'); }
     else if (o.type === 'add_trace' && !before.data.copper_layers.includes(o.layer!)) failure('INVALID_COPPER_LAYER');
+    else if (o.type === 'add_via' && (!before.data.copper_layers.includes(o.from_layer!) || !before.data.copper_layers.includes(o.to_layer!) || !before.data.copper_layers.includes(1) || !before.data.copper_layers.includes(2))) failure('INVALID_COPPER_LAYER');
    }
    // Recheck identity before EVERY write. Still not an atomic GUI transaction.
    this.epoch++;

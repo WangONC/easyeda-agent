@@ -24,13 +24,13 @@ type fastPlans struct {
 }
 
 func isFastAction(a string) bool {
-	return a == "board.snapshot_compact" || a == "route.preflight" || a == "route.apply_batch"
+	return a == "board.snapshot_compact" || a == "route.preflight" || a == "route.apply_batch" || a == "route.tuning_plan" || a == "route.pair_plan" || a == "pcb.routing_profile"
 }
 
 type fastDispatch func(context.Context, protocol.Request) (*protocol.Response, error)
 
 // The existing dispatch pipeline owns routing gates, FIFO, audit, health and autosave.
-// Only these three actions substitute a bounded Go computation around one WS action.
+// Fast reads and deterministic helpers reuse one authoritative WS snapshot.
 func (s *Server) forwardFast(ctx context.Context, req protocol.Request, forward fastDispatch, caps []string) (resp *protocol.Response, err error) {
 	started := req.CreatedAt
 	if started.IsZero() {
@@ -198,9 +198,49 @@ func (s *Server) forwardFast(ctx context.Context, req protocol.Request, forward 
 	if e := fastpath.Decode(resp.Result, &snapshot); e != nil {
 		return reject("BAD_SNAPSHOT", e.Error())
 	}
+	// Content identity is separate from the conservative legacy action epoch.
+	// Read-only legacy actions may advance board_revision without changing PCB.
+	observation := map[string]any{}
+	for k, v := range resp.Result {
+		if k != "board_revision" && k != "native_api_call_count" {
+			observation[k] = v
+		}
+	}
+	snapshot.ObservationHash = fastpath.Hash(observation)
 	observedRevision = snapshot.Revision
 	if snapshot.Revision == "" {
 		return reject("BAD_SNAPSHOT", "Connector omitted board_revision")
+	}
+	if req.Action == "pcb.routing_profile" {
+		value, e := profileOperation(snapshot, project, doc, req.Payload)
+		if e != nil {
+			return reject("PROFILE_REJECTED", e.Error())
+		}
+		resp.Result = value
+		return resp, nil
+	}
+	if req.Action == "route.preflight" && req.Payload["profile_id"] != nil {
+		id, ok := req.Payload["profile_id"].(string)
+		if !ok || id == "" {
+			return reject("PROFILE_REJECTED", "profile_id must be a nonempty string")
+		}
+		p, e := loadRoutingProfile(project, doc, id)
+		if e != nil {
+			return reject("PROFILE_REJECTED", e.Error())
+		}
+		state, reason := p.EvidenceState(snapshot)
+		if !fastpath.ProfileUsable(state) {
+			return reject("PROFILE_REJECTED", "Selected profile is "+state+": "+reason)
+		}
+		var routes []fastpath.Route
+		if e = fastpath.Decode(req.Payload["routes"], &routes); e != nil {
+			return reject("PROFILE_REJECTED", e.Error())
+		}
+		for _, r := range routes {
+			if e = p.CheckRoute(r); e != nil {
+				return reject("PROFILE_REJECTED", e.Error())
+			}
+		}
 	}
 	if req.Action == "board.snapshot_compact" {
 		var scope fastpath.Scope
@@ -213,6 +253,38 @@ func (s *Server) forwardFast(ctx context.Context, req protocol.Request, forward 
 		}
 		resp.Result = map[string]any{}
 		_ = fastpath.Decode(compact, &resp.Result)
+		return resp, nil
+	}
+	if req.Action == "route.tuning_plan" || req.Action == "route.pair_plan" {
+		var value any
+		var e error
+		if req.Action == "route.tuning_plan" {
+			var q fastpath.TuningRequest
+			if e = fastpath.Decode(req.Payload, &q); e == nil {
+				value, e = fastpath.Tune(snapshot, q)
+			}
+		} else {
+			var q fastpath.PairRequest
+			if e = fastpath.Decode(req.Payload, &q); e == nil {
+				value, e = fastpath.Pair(snapshot, q)
+			}
+		}
+		if e != nil {
+			return reject("PLAN_REJECTED", e.Error())
+		}
+		resp.Result = map[string]any{}
+		_ = fastpath.Decode(value, &resp.Result)
+		var explicit fastpath.Plan
+		if e = fastpath.Decode(resp.Result["plan"], &explicit); e != nil {
+			return reject("PLAN_REJECTED", e.Error())
+		}
+		profileID, e := checkHelperProfile(snapshot, project, doc, req.Action, req.Payload, explicit)
+		if e != nil {
+			return reject("PROFILE_REJECTED", e.Error())
+		}
+		if profileID != "" {
+			resp.Result["profile_id"] = profileID
+		}
 		return resp, nil
 	}
 	// Reuse stored workflow fingerprints using the same projection as CLI route gates.

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { authoringResult } from './authoring-result.mjs';
 import { runWorkflow } from './workflow.mjs';
 
 import { FAST_ACTIONS, fastTools, fastInput, compactFastResult } from './fast-path.mjs';
@@ -193,12 +194,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       if (!action || action.domain !== domain) {
         throw new Error(`action ${input.action || '(missing)'} does not belong to domain ${domain}`);
       }
-      if (action.mutates && (!input.project || !input.doc)) {
+      const bootstrap = ['project.create','project.open','schematic.create'].includes(action.name);
+      if (bootstrap && !input.window) throw new Error('bootstrap requires an explicit window and payload identity guard');
+      if (action.mutates && !bootstrap && (!input.project || !input.doc)) {
         throw new Error(`mutating action ${action.name} requires both project and doc`);
       }
-      const execution = await runEasyeda(buildCallArgs(action.name, input));
+      const execution = authoringResult(action.name, await runEasyeda(buildCallArgs(action.name, input)));
       const fast = Object.values(FAST_ACTIONS).includes(action.name);
-      return toMcpResult(fast ? compactFastResult(execution) : execution, { compact: fast, structuredErrors: fast });
+      return toMcpResult(fast ? compactFastResult(execution) : execution, { compact: fast || bootstrap, structuredErrors: true });
     }
     throw new Error(`unknown tool: ${name}`);
   }

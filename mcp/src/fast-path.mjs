@@ -17,7 +17,7 @@ const operation = { oneOf: [
 ] };
 const props = {
  'board.snapshot_compact': { nets: strings, bbox: { type:'array',items:number,minItems:4,maxItems:4 }, layers: {type:'array',items:{type:'integer'}}, include: {type:'object',properties:Object.fromEntries(['components','pads','traces','vias','fills'].map(k=>[k,{type:'boolean'}])),additionalProperties:false} },
- 'route.preflight': { base_revision: string, routes:{type:'array',items:route}, vias:{type:'array',items:via}, delete_ids:strings, protected_nets:strings, clearance_profile:{type:'object',properties:Object.fromEntries(['clearance','min_width','min_hole','min_diameter','min_annulus'].map(k=>[k,number])),required:['clearance','min_width','min_hole','min_diameter','min_annulus'],additionalProperties:false} },
+ 'route.preflight': { base_revision: string, profile_id: {...string,description:'Explicit reviewed stackup-bound routing profile; must be MANUFACTURER_VERIFIED (reviewed evidence bound to observable rules/layers) or separately accepted HOST_VERIFIED, and match route layer/width. Host physical getters unavailable on EDA 3.2 do not invalidate manufacturer evidence.'}, routes:{type:'array',items:route}, vias:{type:'array',items:via}, delete_ids:strings, protected_nets:strings, clearance_profile:{type:'object',properties:Object.fromEntries(['clearance','min_width','min_hole','min_diameter','min_annulus'].map(k=>[k,number])),required:['clearance','min_width','min_hole','min_diameter','min_annulus'],additionalProperties:false} },
  'route.apply_batch': { base_revision:string, plan_hash:string, client_transaction_id:{...string,maxLength:160}, operations:{type:'array',items:operation,minItems:1,maxItems:512} },
 };
 export function fastTools() {

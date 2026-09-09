@@ -1,3 +1,7 @@
+import { manufacturingExport } from './manufacturing';
+import { refreshPlanes, logicalPlaneId } from './plane-lifecycle';
+import { projectList, projectCreate, projectOpen, schematicCreate } from './lifecycle';
+import { readPourGeometry } from './pour-readback';
 import { fastPath } from './fast-path';
 import { fastSnapshot, fastApply } from './fast-path-native';
 /**
@@ -1516,7 +1520,7 @@ export const schematicComponentModify: Handler = async (payload) => {
 				},
 				warnings: [
 					`修改已提交,但回读校验组件 "${primitiveId}" 失败(重试一次仍失败);`
-					+ '画布状态未经逐字段验证,请用 schematic.component.get 复核(issue #151)。',
+					+ '画布状态未经逐字段验证,请用 schematic.components.list 复核(issue #151)。',
 				],
 			};
 		}
@@ -6815,7 +6819,7 @@ function resolveLayerId(spec: unknown, layers: Array<IPCB_LayerItem>): number {
 		`could not resolve layer "${String(spec)}" — pass a numeric id, top|bottom, or a layer name from pcb.layers.list`);
 }
 
-const pcbLayersList: Handler = async () => {
+const pcbLayersList: Handler = async (payload) => {
 	// Ensure the PCB tab is the foreground/active document before reading
 	// getCurrentLayer — a null currentLayer in the issue (#40) traced to the PCB
 	// not being the active tab, so the sync getCurrentLayer returned undefined.
@@ -6855,7 +6859,16 @@ const pcbLayersList: Handler = async () => {
 			.map(l => ({ id: l.id, name: l.name }));
 	}
 
-	return { result: { layers, currentLayer, visibleLayers, copperLayerCount, count: layers.length } };
+	let physical: unknown = undefined, physicalError: string | undefined, rules: unknown = undefined, physicalInventory:unknown;
+    if (payload.include_physical === true) {
+      try { physical=eda.pcb_Layer.getCurrentPhysicalStackingConfiguration(); if(!physical) physicalError='native physical stackup unavailable'; } catch(e) {physicalError=describeThrown(e)}
+      if(payload.include_physical_inventory===true){
+       try {const all=await eda.pcb_Layer.getAllPhysicalStackingConfigurations();physicalInventory=JSON.stringify(all).length<=128*1024&&all.length<=16?all:{status:'too_large',count:all.length};}
+       catch(e){physicalInventory={status:'unavailable',reason:describeThrown(e)}}
+      }
+      rules=await eda.pcb_Drc.getCurrentRuleConfiguration();
+    }
+    return { result: { layers, currentLayer, visibleLayers, copperLayerCount, count: layers.length, ...(payload.include_physical===true?{physical:physical??null,physical_error:physicalError,physical_inventory:physicalInventory,rules}: {}) } };
 };
 
 // pcb.layers.set_current — switch the active/edit layer (#40 acceptance #1/#4).
@@ -8045,22 +8058,29 @@ const pcbNetsList: Handler = async () => {
  * rather than failing the whole report. The pcb_Drc.* reads may require the PCB
  * to be the active/foreground tab (same constraint as pcb.drc.check).
  */
-const pcbReport: Handler = async () => {
-	const result: Record<string, unknown> = {};
+const pcbReport: Handler = async (payload) => {
+    const selected = (key:string): string[] | undefined => {
+      const value=payload[key];if(value===undefined)return undefined;
+      if(!Array.isArray(value)||value.length>256||!value.every(n=>typeof n==='string'&&n.length>0))throw new ActionError('INVALID_PAYLOAD', `${key} must be an array of names`);
+      return value as string[];
+    };
+    const scoped=['nets','pairs','groups'].some(k=>payload[k]!==undefined);
+    const netFilter=selected('nets')??(scoped?[]:undefined), pairFilter=selected('pairs')??(scoped?[]:undefined), groupFilter=selected('groups')??(scoped?[]:undefined);
+	const result: Record<string, unknown> = {measurement_semantics:'total_copper_length; endpoint path is unresolved without explicit path',units:'mil'};
 
 	// Per-net length, cached so the differential/equal-length views reuse it.
 	const lengthOf = new Map<string, number | null>();
 	const len = async (net: string): Promise<number | null> => {
 		if (lengthOf.has(net)) return lengthOf.get(net) ?? null;
 		let l: number | null = null;
-		try { l = (await eda.pcb_Net.getNetLength(net)) ?? null; }
+		try { const raw=await eda.pcb_Net.getNetLength(net); l=typeof raw==='number'&&Number.isFinite(raw)&&raw>=0?raw:null; }
 		catch { /* per-net length best-effort */ }
 		lengthOf.set(net, l);
 		return l;
 	};
 
 	try {
-		const names = (await eda.pcb_Net.getAllNetsName()) ?? [];
+		const names = netFilter ?? (await eda.pcb_Net.getAllNetsName()) ?? [];
 		const nets: Array<{ net: string; length: number | null }> = [];
 		for (const net of names) nets.push({ net, length: await len(net) });
 		result.nets = nets;
@@ -8071,7 +8091,7 @@ const pcbReport: Handler = async () => {
 	}
 
 	try {
-		const classes = (await eda.pcb_Drc.getAllNetClasses()) ?? [];
+		const classes = scoped ? [] : (await eda.pcb_Drc.getAllNetClasses()) ?? [];
 		result.netClasses = await Promise.all(classes.map(async (c) => {
 			let total = 0, measured = 0;
 			for (const n of c.nets ?? []) { const l = await len(n); if (typeof l === 'number') { total += l; measured++; } }
@@ -8088,7 +8108,7 @@ const pcbReport: Handler = async () => {
 		const pairs = (Array.isArray(pairsRaw) ? pairsRaw : Object.values(pairsRaw ?? {}))
 			.filter((p): p is { name: string; positiveNet: string; negativeNet: string } =>
 				!!p && typeof p === 'object' && 'positiveNet' in p && 'negativeNet' in p);
-		result.differentialPairs = await Promise.all(pairs.map(async (p) => {
+		result.differentialPairs = await Promise.all(pairs.filter(p=>!pairFilter||pairFilter.includes(p.name)).map(async (p) => {
 			const lp = await len(p.positiveNet);
 			const ln = await len(p.negativeNet);
 			const skew = (typeof lp === 'number' && typeof ln === 'number') ? Math.abs(lp - ln) : null;
@@ -8099,12 +8119,13 @@ const pcbReport: Handler = async () => {
 
 	try {
 		const groups = (await eda.pcb_Drc.getAllEqualLengthNetGroups()) ?? [];
-		result.equalLengthNetGroups = await Promise.all(groups.map(async (g) => {
+		result.equalLengthNetGroups = await Promise.all(groups.filter(g=>!groupFilter||groupFilter.includes(g.name)).map(async (g) => {
 			const members: Array<{ net: string; length: number | null }> = [];
 			const vals: Array<number> = [];
 			for (const n of g.nets ?? []) { const l = await len(n); members.push({ net: n, length: l }); if (typeof l === 'number') vals.push(l); }
-			const spread = vals.length ? Math.max(...vals) - Math.min(...vals) : null;
-			return { name: g.name, members, spread };
+			const complete=members.length>0&&vals.length===members.length;
+            const spread = complete ? Math.max(...vals) - Math.min(...vals) : null;
+			return { name: g.name, members, spread, completeness:complete?'complete':'unresolved',unresolved_reason:complete?null:'one or more member lengths unavailable' };
 		}));
 	}
 	catch (err) { result.equalLengthNetGroupsError = describeThrown(err); }
@@ -10468,6 +10489,7 @@ const pcbPourList: Handler = async (payload) => {
 		throw edaError(err, 'Failed to list copper pours.');
 	}
 	const list = (pours ?? []).map(p => ({
+        logical_id: logicalPlaneId(p),
 		primitiveId: p.getState_PrimitiveId(),
 		net: p.getState_Net(),
 		layer: p.getState_Layer(),
@@ -10477,7 +10499,8 @@ const pcbPourList: Handler = async (payload) => {
 		lineWidth: p.getState_LineWidth(),
 		locked: p.getState_PrimitiveLock(),
 	}));
-	return { result: { pours: list, count: list.length } };
+	const geometry = payload.include_geometry === true ? await readPourGeometry(pours ?? [], optionalNumber(payload, 'geometry_limit') ?? 16) : undefined;
+	return { result: { pours: list, count: list.length, ...(geometry ? { geometry } : {}) } };
 };
 
 const pcbPourDelete: Handler = async (payload) => {
@@ -10498,6 +10521,7 @@ const pcbPourDelete: Handler = async (payload) => {
 };
 
 const pcbPourRebuild: Handler = async (payload) => {
+ if (payload.logical_ids !== undefined) return { result: await refreshPlanes(payload) };
 	const net = optionalString(payload, 'net');
 	let pours;
 	try {
@@ -11633,6 +11657,10 @@ const debugExecJs: Handler = async (payload) => {
 // ─── Registry & dispatch ─────────────────────────────────────────────
 
 const HANDLERS: Record<string, Handler> = {
+ 'project.list': projectList,
+ 'project.create': projectCreate,
+ 'project.open': projectOpen,
+ 'schematic.create': schematicCreate,
 	'board.snapshot_compact': fastSnapshot,
 	'route.apply_batch': fastApply,
 	'project.current': projectCurrent,
@@ -11713,6 +11741,7 @@ const HANDLERS: Record<string, Handler> = {
 	'pcb.silk.label_pads': pcbSilkLabelPads,
 	'pcb.nets.list': pcbNetsList,
 	'pcb.report': pcbReport,
+ 'pcb.manufacturing.export': payload => manufacturingExport(payload,blobToArtifact),
 	'pcb.constraint.list': pcbConstraintList,
 	'pcb.differential_pair.create': pcbDiffPairCreate,
 	'pcb.differential_pair.delete': pcbDiffPairDelete,

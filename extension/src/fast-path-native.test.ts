@@ -16,7 +16,7 @@ function mockEDA() {
   pcb_Net:{getAllPrimitivesByNet:async(net:string,types:string[])=>{netReads++;assert.deepEqual(types,['ComponentPad']);return Array.from({length:32},(_,i)=>i).filter(i=>`N${i%2}`===net).map(pad)}},
   pcb_PrimitiveLine:{getAll:async()=>lines,create:async(net:string,layer:number,x1:number,y1:number,x2:number,y2:number,width:number)=>{const key=`l${++id}`;const p={getState_PrimitiveId:()=>key,getState_Net:()=>net,getState_Layer:()=>layer,getState_StartX:()=>x1,getState_StartY:()=>y1,getState_EndX:()=>x2,getState_EndY:()=>y2,getState_LineWidth:()=>width,getState_PrimitiveLock:()=>false};lines.push(p);return p;},delete:async(ids:string[])=>{for(const id of ids){const i=lines.findIndex(p=>p.getState_PrimitiveId()===id);if(i>=0)lines.splice(i,1)}return true}},
   pcb_PrimitiveVia:{getAll:async()=>vias,create:async(net:string,x:number,y:number,hole:number,diameter:number)=>{const key=`v${++id}`;const p={getState_PrimitiveId:()=>key,getState_Net:()=>net,getState_X:()=>x,getState_Y:()=>y,getState_HoleDiameter:()=>hole,getState_Diameter:()=>diameter,getState_PrimitiveLock:()=>false};vias.push(p);return p;},delete:async()=>true},
-  pcb_PrimitiveArc:{getAll:async()=>[]},pcb_PrimitiveFill:{getAll:async()=>[]},pcb_PrimitivePour:{getAll:async()=>[]},pcb_PrimitiveRegion:{getAll:async()=>[]},pcb_PrimitivePolyline:{getAll:async()=>[]},
+  pcb_PrimitivePoured:{getAll:async()=>[]},pcb_PrimitiveArc:{getAll:async()=>[]},pcb_PrimitiveFill:{getAll:async()=>[]},pcb_PrimitivePour:{getAll:async()=>[]},pcb_PrimitiveRegion:{getAll:async()=>[]},pcb_PrimitivePolyline:{getAll:async()=>[]},
   pcb_Layer:{getAllLayers:async()=>[{id:1,type:'SIGNAL',layerStatus:1},{id:2,type:'SIGNAL',layerStatus:2},{id:15,type:'SIGNAL',layerStatus:0},{id:3,type:'SILKSCREEN',layerStatus:1}]},pcb_Drc:{getCurrentRuleConfiguration:async()=>({})},
  };
  (globalThis as unknown as {eda:unknown}).eda=api;
@@ -24,7 +24,7 @@ function mockEDA() {
 }
 test('native bulk snapshot covers 32 components through 2 net reads, no per-component calls',async()=>{
  const m=mockEDA();const n=nativePort();const f=new FastPath();const s=await f.snapshot(n,{project_uuid:'p',document_uuid:'d'});
- assert.equal((s.result!.pads as unknown[]).length,32);assert.deepEqual(m.counts(),{pinReads:0,netReads:2});assert.deepEqual(s.result!.copper_layers,[1,2]);assert.equal(n.calls,17);
+ assert.equal((s.result!.pads as unknown[]).length,32);assert.deepEqual(m.counts(),{pinReads:0,netReads:2});assert.deepEqual(s.result!.copper_layers,[1,2]);assert.equal(n.calls,19);
 });
 test('missing component pad is explicit unsupported evidence, never silent completeness',async()=>{
  const m=mockEDA();m.api.pcb_Net.getAllPrimitivesByNet=async()=>[];const data=await nativePort().read();assert.equal(data.pads.length,32);assert.ok(data.pads.every(p=>p.unsupported));
@@ -74,7 +74,7 @@ for (const netFallback of [false,true]) test(`Host repeated footprint-local IDs 
  for(const p of pads){assert.ok(!p.unsupported);assert.ok(p.bbox);assert.ok(p.component_id);assert.ok(p.id.startsWith(p.component_id!));
   const original=hostCapture.result.pads.find(x=>x.id===p.id)!;
   p.bbox!.forEach((v,i)=>assert.ok(Math.abs(v-original.bbox![i])<1e-9));}
- assert.equal(m.counts().pinReads,0);assert.equal(n.calls,netFallback?23:15);
+ assert.equal(m.counts().pinReads,0);assert.equal(n.calls,netFallback?25:17);
 });
 test('Host missing sibling is not satisfied by another footprint using the same local ID',async()=>{
  const {nativePads}=hostIdentityEDA();nativePads.splice(nativePads.findIndex(p=>p.getState_PrimitiveId()==='83fd60a94ced0019e12'),1);

@@ -41,7 +41,7 @@ type ActionSpec struct {
 const GateRouting = "routing"
 
 func AllActions() []ActionSpec {
-	return []ActionSpec{
+	return append(closureActions(), []ActionSpec{
 		{Name: "board.snapshot_compact", Domain: DomainPcb, Phase: 1, NeedsWindow: true,
 			Description: "Fast manual PCB routing snapshot; structured geometry only, no DRC or reload. Requires pcb.fast_manual.v0.1.",
 			Inputs:      []string{"document_uuid", "project_uuid", "nets[] optional", "bbox [minX,minY,maxX,maxY] optional (mil)", "layers[] optional", "include {components,pads,traces,vias,fills} optional"}, Outputs: []string{"board_revision", "geometry_hash", "scope", "components[]", "pads[]", "traces[]", "vias[]", "fills[]", "telemetry"}},
@@ -244,7 +244,7 @@ func AllActions() []ActionSpec {
 			Description: "Place a device/component from library identity at coordinates. `uuid` must be a device-library uuid (from schematic.library.search), NOT a placed-instance id from schematic.components.list — an instance uuid hangs the EasyEDA API. Two backfills run right after create, both best-effort (placement never fails because a backfill did): supplierId → the device's real LCSC C-number instead of the platform default `<MPN>.1` (#157), and otherProperty VALUES (Value/Tolerance/Voltage Rating/Datasheet/…) which create copies as empty keys (#186) — reported as `supplierIdBackfilled` / `otherPropertyBackfilled`. Projected-state keys (Designator/Name/Supplier Part/…) are never written and identity fields are re-asserted in the same call, because a whole-otherProperty write re-projects them from the library record.",
 			Inputs:      []string{"libraryUuid", "uuid (device-library uuid, not an instance id)", "x", "y", "rotation optional", "mirror optional"},
 			Outputs:     []string{"primitive id", "component state"},
-			VerifyWith:  []string{"schematic.component.get"},
+			VerifyWith:  []string{"schematic.components.list"},
 		},
 		{
 			Name:        "schematic.component.modify",
@@ -255,7 +255,7 @@ func AllActions() []ActionSpec {
 			Description: "Modify component position, designator, name, BOM flags, or custom properties. customAttributes is a compatibility alias for the EasyEDA SDK otherProperty field; unknown patch keys are rejected up front (the SDK silently drops them). Property patches are merged with existing values and verified by readback with tiered semantics (#151): all applied = ok; PARTIAL application = ok with result.{partial,applied,alreadySet,notApplied,addedKeys,propertiesBefore} + warnings — the applied subset stays on canvas and autosaves; the `sch modify` subcommand and playbook replay treat partial as a failure, but raw `easyeda call` users must check result.partial/notApplied themselves. A pure-property patch where nothing provably applied is an error (canvas unchanged). Replaying propertiesBefore restores overwritten values only; keys newly added by the call (addedKeys) cannot be removed via modify.",
 			Inputs:      []string{"primitiveId", "patch"},
 			Outputs:     []string{"component state"},
-			VerifyWith:  []string{"schematic.component.get"},
+			VerifyWith:  []string{"schematic.components.list"},
 		},
 		{
 			Name:         "schematic.component.delete",
@@ -290,7 +290,7 @@ func AllActions() []ActionSpec {
 			Description: "Create a schematic wire polyline.",
 			Inputs:      []string{"points", "net optional", "style optional"},
 			Outputs:     []string{"primitive id", "wire state"},
-			VerifyWith:  []string{"schematic.primitive.get"},
+			VerifyWith:  []string{"schematic.read"},
 		},
 		{
 			Name:        "schematic.group.move",
@@ -810,6 +810,7 @@ func AllActions() []ActionSpec {
 			Phase:       2,
 			NeedsWindow: true,
 			Description: "Read-only PCB design report driven by per-net copper length: every net's routed length, each net class's aggregate length, differential-pair P/N lengths + skew (|lenP-lenN|), and equal-length-group per-net lengths + spread (max-min). Pure read — no DRC run. pcb_Drc.* reads may require the PCB to be the active/foreground tab.",
+			Inputs:      []string{"nets optional name array", "pairs optional name array", "groups optional name array", "geometry optional boolean", "project_uuid/document_uuid required for geometry", "paths optional [{net,ids,start,end}]", "profile_id optional", "reference_net optional", "tolerance_mil optional (geometry report)"},
 			Outputs:     []string{"nets[].net", "nets[].length", "netClasses[].name", "netClasses[].totalLength", "differentialPairs[].skew", "equalLengthNetGroups[].spread"},
 		},
 		// ─── PCB length constraints (#176) ────────────────────────────────
@@ -1325,7 +1326,7 @@ func AllActions() []ActionSpec {
 			Phase:       2,
 			NeedsWindow: true,
 			Description: "List copper pours (铺铜) on the active PCB, optionally filtered by net. Read-only.",
-			Inputs:      []string{"net optional"},
+			Inputs:      []string{"net optional", "include_geometry optional boolean (bounded native filled-copper evidence; freshness unverified)", "geometry_limit optional 1..64, default 16"},
 			Outputs:     []string{"pours[].primitiveId", "pours[].net", "pours[].layer", "pours[].pourName", "pours[].priority", "pours[].lineWidth", "pours[].locked", "count"},
 		},
 		{
@@ -1348,8 +1349,8 @@ func AllActions() []ActionSpec {
 			Mutates:          true,
 			NeedsWindow:      true,
 			Description:      "Re-pour (recompute poured copper) for all pour regions on the active PCB, optionally filtered by net. Run after moving components/routing so the pour reflows around the new obstacles (rebuildCopperRegion per pour).",
-			Inputs:           []string{"net optional"},
-			Outputs:          []string{"pours", "rebuilt"},
+			Inputs:           []string{"net optional (legacy)", "logical_ids optional 1..64 handles (explicit refresh)", "project_uuid and document_uuid required with logical_ids"},
+			Outputs:          []string{"pours", "rebuilt", "logical refresh: status,item_results,requested_scope,actual_scope,freshness,revision (null until fresh snapshot)"},
 			InvalidatesStage: "post_route_checked",
 		},
 		{
@@ -1486,5 +1487,5 @@ func AllActions() []ActionSpec {
 			Inputs:       []string{"code"},
 			Outputs:      []string{"value"},
 		},
-	}
+	}...)
 }

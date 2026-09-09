@@ -2,6 +2,49 @@
 
 ## [Unreleased]
 
+## [1.4.9] — 2026-09-09
+
+### Fixed
+
+- Distinguish documented pour-only regions from routing keepouts in compact geometry; unknown region rules remain unsupported.
+
+### Added
+
+- Opt-in bounded native physical-stackup configuration inventory for diagnosing unavailable current configuration. No inferred stackup or solver.
+
+Closure acceptance build; not a RevB readiness declaration.
+
+## [1.4.8] — 2026-09-09
+
+### Added
+
+- Bounded native arc/polygon/poured-copper projection with holes, explicit coverage and physical stackup observation. Internal poured units are verified only for Host 3.2.186; unknown geometry remains fail closed.
+- Scoped native length report and reviewed-profile manufacturing File export (Gerber including drill, BOM, PnP); returned files require Go manifest validation.
+- Through-via physical span remains all copper while explicit signal entry/exit can use active inner copper layers.
+
+### Fixed
+
+- Stop logical plane rebuild after document drift; reject nonexistent board before schematic container creation.
+
+This is a Closure acceptance build, not a RevB readiness declaration.
+
+## [1.4.7] — 2026-09-09
+
+### Added
+
+- Native project list/create/open and first schematic container creation with UUID readback and activation-scoped no-replay receipts.
+- Logical-handle pour refresh through existing rebuild action, with per-item failure and native-ID re-resolution. Freshness and connectivity remain explicitly unproven pending authoritative readback.
+
+## [1.4.6] — 2026-09-09
+
+### Added
+
+- Opt-in bounded native poured-copper evidence through `pcb.pour.list` (`include_geometry`, `geometry_limit`). Preserves native sources without asserting freshness or clearance coverage. Closure feasibility build; not RevB readiness acceptance.
+
+### Fixed
+
+- Schematic modify recovery guidance now points to the registered `schematic.components.list` action.
+
 ## [1.4.5] — 2026-09-09
 
 ### Fixed

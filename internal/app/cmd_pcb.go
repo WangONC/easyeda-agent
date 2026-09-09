@@ -974,14 +974,17 @@ curves are approximated by line segments. Reports whether all components fall in
 	// ── report / drc-rules (read-only PCB analysis) ────────────────────────
 	// pcb.report (per-net length + net-class/diff-pair/equal-length views),
 	// pcb.drc.rules (the design-rule config without running a check).
-	pcb.AddCommand(&cobra.Command{
+	var reportPayload string
+	reportCommand := &cobra.Command{
 		Use:   "report",
 		Short: "Read-only design report: per-net length, net-class totals, diff-pair skew, equal-length spread",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return dispatch(cfg, "pcb.report", window, nil, stdout, stderr)
+			return pcbReportScoped(cfg, window, reportPayload, stdout, stderr)
 		},
-	})
+	}
+	reportCommand.Flags().StringVar(&reportPayload, "payload", "{}", "Scoped report filters and optional explicit geometry path")
+	pcb.AddCommand(reportCommand)
 	pcb.AddCommand(&cobra.Command{
 		Use:   "drc-rules",
 		Short: "Read the active PCB's DRC rule configuration without running a check",

@@ -66,6 +66,113 @@
 | 设计流程 | 从**客户口吻需求**到成品的门控主脊(S0–S6 + P0–P10),里程碑确认,存盘检查点 |
 | 产物 | BOM(补 LCSC C 号)、网表、导出、原生截图、审计日志、录制→回放 |
 
+## 面向自主 Agent 的 PCB Fast Path
+
+`easyeda-agent` 的 PCB 能力已经从“逐条调用 EDA primitive”扩展为面向自主 AI Agent 的
+**规划 → 预检 → 批量执行 → 回读 → 测量**闭环。
+
+核心分工是：
+
+- **AI Agent 负责工程决策**：器件布局、网络分组、routing corridor、层选择、过孔位置、
+  差分/等长策略以及是否需要 tuning；
+- **easyeda-agent 负责确定性执行与测量**：读取紧凑板级状态、批量预检、一次写入多条网络、
+  revision/readback 校验、DRC 对比和低成本 routing telemetry；
+- **Skill 提供工程工作方法与弱规范**，但不把 45°、过孔数量等经验规则硬编码成 DRC 或质量评分。
+
+### Fast Path 批量布线
+
+PCB routing 不再要求 Agent 为每条线临时生成 JavaScript / Python checker。
+
+典型闭环：
+
+```text
+board.snapshot_compact
+        ↓
+route.preflight
+        ↓
+route.apply_batch
+        ↓
+readback / pcb.report
+```
+
+Agent 可以一次规划并提交一组相关网络，Fast Path 负责：
+
+- revision / stale-state 防护；
+- 线、圆弧、过孔及多层几何预检；
+- 碰撞与规则检查；
+- 批量确定性写入；
+- primitive 级回读与 receipt；
+- 失败时 fail-closed，不把未知状态冒充成功。
+
+真实 Host 验收中，一批 **8 个网络 / 21 个 routing primitives**
+通过 4 个核心 round trips 完成，`apply_batch` 实际写入约 **204 ms**，
+无需一次性 routing JS 或独立 checker 脚本。
+
+> 204 ms 是批量几何写入时间，不代表 AI 在 204 ms 内完成了 8 条网络的工程规划。
+
+### 高速与受约束布线
+
+现有能力还包括：
+
+- stackup / routing-rule 绑定的 reviewed routing profile；
+- EasyEDA 3.2 下支持制造商来源的 `MANUFACTURER_VERIFIED` profile；
+- routing rule 改变后 profile 自动进入 `STALE`，旧 profile 不可继续用于 preflight；
+- differential-pair geometry helper；
+- bounded length-tuning helper；
+- copper length、pair skew、equal-length group spread 与可证明 endpoint path 测量；
+- branch 无法可靠判定时明确返回 unresolved，而不是猜测。
+
+EasyEDA 3.2 当前无法通过官方 API 读取完整 physical stackup，因此不会冒充
+`HOST_VERIFIED`；未来 Host API 提供可靠 getter 后可增加独立 cross-check。
+
+### Routing Telemetry
+
+`pcb.report` 支持低成本、只读的 routing telemetry。
+
+它可以按整板或指定网络返回：
+
+- line / arc 铜长；
+- line / arc / via 数量；
+- 网络与 segment 长度分布；
+- 直线方向分布；
+- 各铜层使用量；
+- routed / unrouted 网络计数。
+
+Telemetry **只报告客观几何事实，不给 GOOD/BAD、质量评分或“违规”结论**。
+
+修改单网或小批网络时可以只查询对应 nets，避免每次修改都重新分析整板。
+
+### Plane、DRC 与制造输出
+
+同时补齐：
+
+- logical plane refresh 与 primitive ID remap；
+- native DRC baseline / delta comparison；
+- Project → first schematic → PCB 的生命周期入口；
+- Gerber / Drill / BOM / PnP 制造导出；
+- PTH / NPTH 结构验证；
+- 文件与制造成员 SHA256 manifest。
+
+这些能力用于提供可验证的 EDA 执行闭环，但不等价于 SI / PI / DFM /
+thermal / RF 的最终工程签核。
+
+### 可配置能力边界
+
+可通过环境变量从 Agent 可用能力中移除指定 action：
+
+```text
+EASYEDA_DISABLED_ACTIONS=pcb.import_autoroute
+```
+
+被禁用的 action：
+
+- 不出现在 action catalog；
+- 不进入 MCP action enum；
+- 直接 typed CLI 调用同样会在访问 daemon / Host 前返回 `CAPABILITY_DISABLED`。
+
+例如在“禁止自动布线”的 benchmark 中，可以直接禁用 autoroute import，
+而不是只依赖 Prompt 要求 Agent 自觉避免使用。
+
 ### 特色:电路块库(一次贡献,永久收益)
 
 **固定模块的外设电路可以直接照抄。** ESP32 自动下载电路、CH340 USB 烧录、按键去抖、

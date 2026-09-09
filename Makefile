@@ -1,6 +1,9 @@
 .PHONY: help test mcp-test fmt actions api-index build install dev-build daemon dev eext eext-fresh connector lint-test blocks-audit layout-calibrate release release-check release-build release-script-test release-smoke skill-check publish-skill publish-skill-hub skillhub-check replay demo-replay replay-sch replay-pcb
 
 DIST := dist
+LOCAL_BIN := bin/easyeda.exe
+TEST_BIN := .easyeda/tmp-builds/easyeda.exe
+BUILD_VERSION ?= $(shell node -p "require('./extension/extension.json').version")
 
 # Bare `make` prints the cheatsheet below.
 .DEFAULT_GOAL := help
@@ -20,7 +23,7 @@ test: ## go test ./...
 
 mcp-test: build ## install MCP deps and run unit + stdio protocol tests
 	npm --prefix mcp ci --ignore-scripts
-	EASYEDA_BIN="$(CURDIR)/bin/easyeda" npm --prefix mcp test
+	EASYEDA_BIN="$(CURDIR)/$(LOCAL_BIN)" npm --prefix mcp test
 
 # Rule-trust harness for the schematic linter: orientation-table consistency
 # (orientation.json derives to its frozenTable; matches the connector) +
@@ -71,27 +74,25 @@ DEV_LDFLAGS := -X 'github.com/zhoushoujianwork/easyeda-agent/internal/version.Ve
 # Where `make install` drops the binary (matches install.sh's default).
 PREFIX ?= /usr/local
 
-build: ## build bin/easyeda (version-stamped via git describe; embeds block library)
-	go build -ldflags "$(DEV_LDFLAGS)" -o bin/easyeda ./cmd/easyeda
+build: ## build formal bin/easyeda.exe (version from Connector manifest)
+	go build -ldflags "-X github.com/zhoushoujianwork/easyeda-agent/internal/version.Version=$(BUILD_VERSION)" -o $(LOCAL_BIN) ./cmd/easyeda
 
 install: build ## build + install to $(PREFIX)/bin (default /usr/local/bin; may need sudo)
 	@mkdir -p "$(PREFIX)/bin" 2>/dev/null || true
-	@if install -m 0755 bin/easyeda "$(PREFIX)/bin/easyeda" 2>/dev/null; then \
-		printf '✅ installed → %s/bin/easyeda  (%s)\n' "$(PREFIX)" "$(DEV_VERSION)"; \
+	@if install -m 0755 $(LOCAL_BIN) "$(PREFIX)/bin/easyeda" 2>/dev/null; then \
+		printf '✅ installed → %s/bin/easyeda  (%s)\n' "$(PREFIX)" "$(BUILD_VERSION)"; \
 	else \
 		echo "  $(PREFIX)/bin not writable — retrying with sudo…"; \
-		sudo install -m 0755 bin/easyeda "$(PREFIX)/bin/easyeda" && \
-		printf '✅ installed → %s/bin/easyeda  (%s)\n' "$(PREFIX)" "$(DEV_VERSION)"; \
+		sudo install -m 0755 $(LOCAL_BIN) "$(PREFIX)/bin/easyeda" && \
+		printf '✅ installed → %s/bin/easyeda  (%s)\n' "$(PREFIX)" "$(BUILD_VERSION)"; \
 	fi
 
-dev-build: ## (air hook) version-stamped build to bin + best-effort refresh of the PATH CLI
-	@go build -ldflags "$(DEV_LDFLAGS)" -o bin/easyeda ./cmd/easyeda
-	@install -m 0755 bin/easyeda "$(PREFIX)/bin/easyeda" 2>/dev/null \
-		&& printf '  ↻ PATH CLI refreshed → %s/bin/easyeda (%s)\n' "$(PREFIX)" "$(DEV_VERSION)" \
-		|| printf '  ⚠ PATH CLI NOT refreshed (%s/bin not writable) — run `make install` once with sudo\n' "$(PREFIX)"
+dev-build: ## temporary development build; never replaces formal bin or PATH
+	@mkdir -p .easyeda/tmp-builds
+	@go build -ldflags "$(DEV_LDFLAGS)" -o $(TEST_BIN) ./cmd/easyeda
 
-daemon: ## one-shot daemon (no reload) — prefer `make dev`
-	go run ./cmd/easyeda daemon
+daemon: ## start the formal repository binary
+	./$(LOCAL_BIN) daemon start --auto-update-skill=false
 
 # Live-reload the daemon for development (.air.toml): rebuilds + restarts on any
 # .go change; the connector auto-reconnects (it retries 60832 with backoff). Keep

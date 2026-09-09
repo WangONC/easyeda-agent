@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { easyedaBinary } from '../src/core.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import os from 'node:os';
@@ -11,13 +12,13 @@ const packageDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '.
 const serverPath = process.env.EASYEDA_MCP_SERVER || path.join(packageDir, 'src', 'server.mjs');
 
 test('stdio MCP initializes, lists tools, and invokes offline discovery', async () => {
-  assert.ok(process.env.EASYEDA_BIN, 'EASYEDA_BIN must point to the local CLI for integration tests');
+  const cliBinary = easyedaBinary();
   const stateDir = await mkdtemp(path.join(os.tmpdir(),'easyeda-mcp-parity-'));
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [serverPath],
     cwd: packageDir,
-    env: { ...process.env, EASYEDA_BIN: process.env.EASYEDA_BIN, EASYEDA_WORKFLOW_DIR:stateDir },
+    env: { ...process.env, EASYEDA_BIN: cliBinary, EASYEDA_WORKFLOW_DIR:stateDir },
   });
   const client = new Client({ name: 'easyeda-agent-mcp-test', version: '1.0.0' });
 
@@ -27,6 +28,12 @@ test('stdio MCP initializes, lists tools, and invokes offline discovery', async 
     assert.equal(listed.tools.length, 15);
     assert.ok(listed.tools.some((tool) => tool.name === 'easyeda_pcb'));
     assert.ok(!listed.tools.some((tool) => tool.name === 'easyeda_debug'));
+    const tuningSchema = listed.tools.find(t=>t.name==='easyeda_pcb').inputSchema.allOf[0].then.properties.payload;
+    assert.deepEqual(tuningSchema.properties.corner.enum,['line_45','line_90','arc_90']);
+    assert.deepEqual(tuningSchema.properties.side.enum,['single','bilateral']);
+    assert.ok(tuningSchema.required.includes('target_mode'));
+    for(const key of ['style','radius','min_radius','pitch','max_amplitude','target_added_length']) assert.equal(tuningSchema.properties[key],undefined);
+
 
     const workflow = listed.tools.find(t=>t.name==='easyeda_workflow');
     assert.ok(workflow.inputSchema.properties.operation.enum.includes('set_assembly'));
@@ -41,6 +48,8 @@ test('stdio MCP initializes, lists tools, and invokes offline discovery', async 
     });
     assert.equal(allActions.isError, false);
     assert.ok(!allActions.structuredContent.actions.some((action) => action.domain === 'debug'));
+    assert.match(allActions.structuredContent.actions.find(a=>a.name==='project.create').description,/Personal\/Root: omit team_uuid and folder_uuid/);
+    assert.match(allActions.structuredContent.actions.find(a=>a.name==='project.current').description,/personal owner/);
     assert.ok(allActions.structuredContent.actions.find(a=>a.name === 'pcb.report').inputs.some(i=>i.startsWith('telemetry optional boolean')));
 
     for(const name of ['board.new_pcb','pcb.import_changes','document.open','schematic.page.create','route.tuning_plan','route.pair_plan','pcb.routing_profile','pcb.plane.refresh','pcb.drc.compare','pcb.manufacturing.export','project.create','project.open','project.list','schematic.create']) assert.ok(allActions.structuredContent.actions.some(a=>a.name===name));

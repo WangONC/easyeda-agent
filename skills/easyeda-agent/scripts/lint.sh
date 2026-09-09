@@ -44,10 +44,10 @@ SNAP="$STORE/snapshot.json"
 if [ -n "${EASYEDA_BIN:-}" ]; then
   BIN="$(command -v "$EASYEDA_BIN" 2>/dev/null || true)"
   [ -n "$BIN" ] && [ -x "$BIN" ] || { echo "EASYEDA_BIN is not an executable: $EASYEDA_BIN" >&2; exit 1; }
+elif [ -f "$ROOT/go.mod" ] && [ -d "$ROOT/cmd/easyeda" ] && [ -x "$ROOT/bin/easyeda.exe" ]; then
+  BIN="$ROOT/bin/easyeda.exe"
 elif BIN="$(command -v easyeda 2>/dev/null)" && [ -x "$BIN" ]; then
   :
-elif [ -f "$ROOT/go.mod" ] && [ -d "$ROOT/cmd/easyeda" ] && [ -x "$ROOT/bin/easyeda" ]; then
-  BIN="$ROOT/bin/easyeda"
 else
   echo "easyeda CLI not found: install it on PATH or set EASYEDA_BIN=/absolute/path/to/easyeda (repository development: make build)." >&2
   exit 1

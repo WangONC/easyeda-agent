@@ -9,6 +9,10 @@ func HelperOperations(p Plan) ([]Operation, error) {
 		ops = append(ops, Operation{Type: "delete_trace", ID: id})
 	}
 	for _, r := range p.Routes {
+		if r.ArcAngle != 0 {
+			ops = append(ops, Operation{Type: "add_arc", Net: r.Net, Layer: r.Layer, Width: r.Width, Points: r.Points, ArcAngle: r.ArcAngle})
+			continue
+		}
 		for i := 1; i < len(r.Points); i++ {
 			ops = append(ops, Operation{Type: "add_trace", Net: r.Net, Layer: r.Layer, Width: r.Width, Points: []Point{r.Points[i-1], r.Points[i]}})
 		}

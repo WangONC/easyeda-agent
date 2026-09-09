@@ -8,10 +8,11 @@ const number = { type: 'number' };
 const string = { type: 'string', minLength: 1 };
 const strings = { type: 'array', items: string };
 const point = { type: 'array', items: number, minItems: 2, maxItems: 2 };
-const route = { type: 'object', properties: { net: string, layer: { type: 'integer' }, width: number, points: { type: 'array', items: point, minItems: 2 } }, required: ['net','layer','width','points'], additionalProperties: false };
+const route = { type: 'object', properties: { net: string, layer: { type: 'integer' }, width: number, arc_angle: {type:'number',enum:[-90,90],description:'Optional signed quarter-circle; exactly two endpoints.'}, points: { type: 'array', items: point, minItems: 2 } }, required: ['net','layer','width','points'], additionalProperties: false };
 const via = { type: 'object', properties: { net: string, x: number, y: number, diameter: number, hole: number, from_layer: { type: 'integer' }, to_layer: { type: 'integer' } }, required: ['net','x','y','diameter','hole','from_layer','to_layer'], additionalProperties: false };
 const operation = { oneOf: [
  { ...route, properties: { ...route.properties, type: { const: 'add_trace' }, points: { type: 'array', items: point, minItems: 2, maxItems: 2 } }, required: ['type', ...route.required] },
+ { ...route, properties: {...route.properties,type:{const:'add_arc'},points:{type:'array',items:point,minItems:2,maxItems:2}},required:['type','arc_angle',...route.required] },
  { ...via, properties: { ...via.properties, type: { const: 'add_via' } }, required: ['type', ...via.required] },
  { type: 'object', properties: { type: { enum: ['delete_trace','delete_via'] }, id: string }, required: ['type','id'], additionalProperties: false },
 ] };
@@ -22,7 +23,7 @@ const props = {
 };
 export function fastTools() {
  return Object.entries(FAST_ACTIONS).map(([name, action]) => ({ name,
-  description: `${action}: strict manual geometry in mil. Requires an active PCB UUID, upgraded Connector, and routing gate for writes. Never chooses or repairs a route. Preflight operation order is delete_ids, route segments, then vias. Uncertain means stop and inspect; timeout is not cancellation.`,
+  description: `${action}: strict manual geometry in mil. Requires an active PCB UUID, upgraded Connector, and routing gate for writes. Never chooses or repairs a route. Preflight operation order is delete_ids, explicit route lines/arcs, then vias. Uncertain means stop and inspect; timeout is not cancellation.`,
   inputSchema:{type:'object',properties:{project:string,doc:{...string,description:'Active PCB document UUID (not name). No navigation occurs.'},window:string,...props[action]}, required:['project','doc',...(action==='route.preflight'?['base_revision']:action==='route.apply_batch'?['base_revision','plan_hash','client_transaction_id','operations']:[])],additionalProperties:false},
   annotations:{readOnlyHint:action!=='route.apply_batch',destructiveHint:action==='route.apply_batch',idempotentHint:false,openWorldHint:false},
  }));

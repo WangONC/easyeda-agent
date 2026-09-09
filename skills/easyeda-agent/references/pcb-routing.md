@@ -364,3 +364,18 @@ subset; `--dry-run` prints the per-corner plan. Save after placing; delete via
 > net-class rules (`createNetClass`/`overwriteNetRules`, @beta — so the native DRC
 > enforces per-class width) + diff-pair/equal-length **definitions** (read side is
 > in `pcb.report`).
+
+
+### EasyEDA 等长设置（1.4.11）
+
+正式 `route.tuning_plan` 优先使用 `target_mode:specified_length` 和最终
+`target_length`，配合选定 `span_id`、固定 `corridor`、`corner:line_45|line_90|arc_90`、
+`side:single|bilateral`、`spacing_w`、`min_amplitude_h`（mil）。工具读取当前网络平面
+铜长后求解增量；它不是端点路径/时延求解器。单边 corridor 应明确唯一摆动方向；双边
+从有向 span 的左法向开始交替。W 是中心线间距，H 是最小振幅。
+
+默认链：目标工程判断 → tuning plan → preflight → apply → reload/readback → report
+复测，检查实际 residual 与返回 tolerance。`arc_90` 使用真实 Arc；不手算半径或逐点拼
+蛇形。`follow_rule` 在无法证明唯一权威目标时明确拒绝，此时先完成工程判断再指定长度，
+不猜规则上下界。旧 rectangular/rounded、radius/pitch 等仅兼容内部旧调用，不作为新的
+Agent 正式参数。不要实现或请求其它 CAD 产品的 tuning pattern。

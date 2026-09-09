@@ -1,6 +1,10 @@
 /// <reference types="@jlceda/pro-api-types" />
 import { ActionError, type ActionResult } from './protocol';
 import { canonical } from './fast-path';
+import { settleSchematic } from './lifecycle-settle';
+const initializingProjects = new Set<string>();
+const schematicWrites = new Set<string>();
+function settle(project:string,uuid?:string) { return settleSchematic({current:async()=> (await eda.dmt_Project.getCurrentProjectInfo())?.uuid??'',inventory:()=>eda.dmt_Schematic.getAllSchematicsInfo(),wait:ms=>new Promise(resolve=>setTimeout(resolve,ms))},project,uuid); }
 
 // Activation-scoped receipts prevent blind replay after queue timeout. Old
 // session tokens are rejected after reload; there is no cross-session exactly-once.
@@ -28,6 +32,7 @@ async function once(p: Record<string, unknown>, kind: string, operation: () => P
  const entry: {signature:string;result?:ActionResult} = {signature}; receipts.set(key,entry);
  try { await guard(p); entry.result = await operation(); }
  catch (e) { entry.result = {result:{status:'uncertain',session_token:session,reason:String(e),warnings:['Native create may have executed. Inspect project/schematic inventory; no automatic replay.']}}; }
+ if(entry.result?.result)entry.result.result.client_transaction_id=key;
  return entry.result;
 }
 
@@ -41,6 +46,7 @@ export async function projectCreate(p: Record<string, unknown>): Promise<ActionR
  return once(p,'project.create',async()=>{
   const uuid = await eda.dmt_Project.createProject(name,undefined,typeof p.team_uuid==='string'?p.team_uuid:undefined,typeof p.folder_uuid==='string'?p.folder_uuid:undefined);
   if (!uuid) return {result:{status:'uncertain',reason:'Native create returned no UUID',session_token:session}};
+  initializingProjects.add(uuid);
   let info: IDMT_BriefProjectItem | undefined;
   try { info=await eda.dmt_Project.getProjectInfo(uuid); } catch (e) { return {result:{status:"uncertain",project_uuid:uuid,reason:String(e),session_token:session}}; }
   return {result:{status:info?.uuid===uuid?'complete':'uncertain',project_uuid:uuid,project:info,session_token:session,opened:false}};
@@ -54,7 +60,10 @@ export async function projectOpen(p: Record<string, unknown>): Promise<ActionRes
  if(!(await eda.dmt_Project.getProjectInfo(uuid)))throw new ActionError('PROJECT_NOT_FOUND','Target UUID is not readable');
  const accepted=await eda.dmt_Project.openProject(uuid);
  const current=await eda.dmt_Project.getCurrentProjectInfo();
- return {result:{status:accepted&&current?.uuid===uuid?'complete':'uncertain',opened:accepted,project_uuid:current?.uuid,expected_project_uuid:uuid}};
+ const awaitingInitialization=initializingProjects.has(uuid);
+ const initial=accepted&&current?.uuid===uuid&&awaitingInitialization ? await settle(uuid) : undefined;
+ if(initial)initializingProjects.delete(uuid);
+ return {result:{initial_schematic:initial,initial_schematic_state:initial?'verified':awaitingInitialization?'unknown':'not_requested',status:accepted&&current?.uuid===uuid?'complete':'uncertain',opened:accepted,project_uuid:current?.uuid,expected_project_uuid:uuid}};
 }
 export async function schematicCreate(p: Record<string, unknown>): Promise<ActionResult> {
  text(p,'expected_project_uuid');
@@ -64,11 +73,28 @@ export async function schematicCreate(p: Record<string, unknown>): Promise<Actio
    const board=await eda.dmt_Board.getBoardInfo(p.board_name);
    if(!board)return {result:{status:'failed',mutation_started:false,reason:'Requested board does not exist; no schematic created'}};
   }
-  const uuid=await eda.dmt_Schematic.createSchematic(typeof p.board_name==='string'?p.board_name:undefined);
-  if(!uuid)return {result:{status:'uncertain',reason:'Native create returned no schematic UUID'}};
-  let info: IDMT_SchematicItem | undefined;
-  try { info=await eda.dmt_Schematic.getSchematicInfo(uuid); } catch(e) { return {result:{status:"uncertain",schematic_uuid:uuid,reason:String(e)}}; }
-  const current=await eda.dmt_Project.getCurrentProjectInfo();
-  return {result:{status:info?.uuid===uuid&&info.parentProjectUuid===p.expected_project_uuid&&current?.uuid===p.expected_project_uuid?'complete':'uncertain',schematic_uuid:uuid,project_uuid:current?.uuid,pages:info?.page??[],opened:false}};
+  const project=p.expected_project_uuid as string;
+  if(schematicWrites.has(project))throw new ActionError('AUTHORING_BUSY','Schematic initialization still running; no replay');
+  schematicWrites.add(project);
+  try {
+   // First-container semantics apply when no explicit existing board is selected.
+   if(p.board_name===undefined) {
+    const existing=await settle(project);
+    if(existing)return {result:{status:'complete',verified:true,reused:true,schematic_uuid:existing.uuid,project_uuid:project,pages:existing.page??[],opened:false}};
+    if(initializingProjects.has(project))return {result:{status:'uncertain',mutation_started:false,reason:'HOST_INITIALIZATION_UNRESOLVED',project_uuid:project}};
+    // An empty read alone is not proof of absence. Require an explicit native
+    // project tree with a data array and no schematic/page before creating.
+    const tree=await eda.dmt_Project.getCurrentProjectInfo();
+    if(tree?.uuid!==project || !Array.isArray(tree.data) || tree.data.length!==0)return {result:{status:'uncertain',mutation_started:false,reason:'SCHEMATIC_ABSENCE_UNPROVEN',project_uuid:project}};
+   }
+   const uuid=await eda.dmt_Schematic.createSchematic(typeof p.board_name==='string'?p.board_name:undefined);
+   if(!uuid)return {result:{status:'uncertain',reason:'Native create returned no schematic UUID'}};
+   let info: IDMT_SchematicItem | undefined;
+   try {info=await eda.dmt_Schematic.getSchematicInfo(uuid);} catch { /* reconcile exact returned UUID */ }
+   if(info?.uuid!==uuid||info.parentProjectUuid!==project)info=await settle(project,uuid) as IDMT_SchematicItem|undefined;
+   const current=await eda.dmt_Project.getCurrentProjectInfo();
+   const verified=info?.uuid===uuid&&info.parentProjectUuid===project&&current?.uuid===project;
+   return {result:{status:verified?'complete':'uncertain',verified,reused:false,schematic_uuid:uuid,project_uuid:current?.uuid,pages:info?.page??[],opened:false}};
+  } finally {schematicWrites.delete(project);}
  });
 }

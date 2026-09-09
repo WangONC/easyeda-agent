@@ -810,6 +810,14 @@ func postAction(cfg *appConfig, action, window string, payload any, timeout time
 		return nil, err
 	}
 
+	if action == "project.create" {
+		prepared, err := prepareProjectCreate(cfg, window, payload)
+		if err != nil {
+			return nil, err
+		}
+		payload = prepared
+	}
+
 	// --doc guard: pin the action (mutating OR read — see docGuardApplies) to
 	// the requested page first. Skipped for the guard's own navigation actions
 	// (docGuardExempt) so it never recurses.

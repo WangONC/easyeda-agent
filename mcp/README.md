@@ -7,15 +7,19 @@ arbitrary-JavaScript debug domain is deliberately not exposed.
 
 ```bash
 npm ci --ignore-scripts
-EASYEDA_BIN=/absolute/path/to/easyeda npm test
-EASYEDA_BIN=/absolute/path/to/easyeda npm start
+npm test # defaults to ../bin/easyeda.exe
+npm start # same formal binary
 ```
+
+The default resolves from this repository, not PATH. Test builds belong only in
+`.easyeda/tmp-builds/`; explicitly override EASYEDA_BIN only during a bounded test,
+then restore the formal binary and remove stopped test executables.
 
 Codex registration:
 
 ```bash
 codex mcp add easyeda-agent \
-  --env EASYEDA_BIN=/absolute/path/to/easyeda \
+  --env EASYEDA_BIN=/absolute/path/to/easyeda-agent/bin/easyeda.exe \
   -- node /absolute/path/to/mcp/src/server.mjs
 ```
 

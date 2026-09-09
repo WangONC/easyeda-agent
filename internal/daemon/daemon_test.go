@@ -23,6 +23,9 @@ func TestHealthHandler(t *testing.T) {
 		t.Fatalf("expected 200, got %d", rec.Code)
 	}
 
+	if rec.Header().Get("Access-Control-Allow-Origin") != "*" {
+		t.Fatal("Host About health read requires CORS")
+	}
 	var body health
 	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
 		t.Fatalf("decode health body: %v", err)

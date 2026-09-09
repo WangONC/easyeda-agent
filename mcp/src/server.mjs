@@ -76,6 +76,24 @@ function domainTool(domain) {
         },
         ...commonRouteProperties,
       },
+      ...(domain === 'pcb' ? {allOf: [{
+        if: {properties: {action: {const: 'route.tuning_plan'}}, required: ['action']},
+        then: {properties: {payload: {
+          type: 'object',
+          properties: {
+            base_revision: {type:'string'}, net:{type:'string'}, span_id:{type:'string'},
+            corridor:{type:'array',items:{type:'number'},minItems:4,maxItems:4},
+            target_mode:{enum:['follow_rule','specified_length']}, target_length:{type:'number',exclusiveMinimum:0},
+            corner:{enum:['line_45','line_90','arc_90']}, side:{enum:['single','bilateral']},
+            spacing_w:{type:'number',exclusiveMinimum:0,description:'Centerline spacing W, mil.'},
+            min_amplitude_h:{type:'number',exclusiveMinimum:0,description:'Minimum excursion H, mil.'},
+            profile_id:{type:'string'}, project_uuid:{type:'string'}, document_uuid:{type:'string'},
+          },
+          required:['base_revision','net','span_id','corridor','target_mode','corner','side','spacing_w','min_amplitude_h'],
+          additionalProperties:false,
+          allOf:[{if:{properties:{target_mode:{const:'specified_length'}}},then:{required:['target_length']}}],
+        }}, required:['payload']},
+      }]} : {}),
       required: ['action'],
       additionalProperties: false,
     },
@@ -195,7 +213,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         throw new Error(`action ${input.action || '(missing)'} does not belong to domain ${domain}`);
       }
       const bootstrap = ['project.create','project.open','schematic.create'].includes(action.name);
-      if (bootstrap && !input.window) throw new Error('bootstrap requires an explicit window and payload identity guard');
+      if (bootstrap && action.name !== 'project.create' && !input.window) throw new Error('bootstrap requires an explicit window and payload identity guard');
       if (action.mutates && !bootstrap && (!input.project || !input.doc)) {
         throw new Error(`mutating action ${action.name} requires both project and doc`);
       }

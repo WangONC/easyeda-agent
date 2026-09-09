@@ -1,6 +1,18 @@
+## [1.4.11]
+
+- Bound initial schematic settlement and reuse; reconcile created UUIDs after transient detail-read failure without replay.
+- Add explicit quarter-circle Fast Path writes and strict arc readback/compensation for rounded tuning.
+
 # Changelog
 
 ## [Unreleased]
+
+## [1.4.10] — 2026-09-09
+
+### Fixed
+
+- About checks the current document's live daemon registration rather than trusting activation-local transport state. Stale, unavailable and other-document states are explicit; checks time out without reconnecting.
+- Requires the matching daemon health CORS update for the Host read-only HTTP check.
 
 ## [1.4.9] — 2026-09-09
 
@@ -2821,3 +2833,7 @@ All real-machine verified on the ESP32 regression board; each `easyeda pcb …` 
 ## [1.4.0]
 
 - 1.4 schematic connectivity data flow baseline.
+
+- GUI line45 acceptance: trace readback now accepts only bounded IEEE-754
+  arithmetic roundoff (8 ULP scale, capped at 1e-9mil); real coordinate drift
+  remains uncertain. Arc lattice/readback tolerance is unchanged.

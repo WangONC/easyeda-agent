@@ -9,7 +9,7 @@ const enabled=process.env.EASYEDA_HOST_READBACK==='1';
 // contact or mutate the user's current Host. No temporary routing/checker script.
 test('real Host MCP compact snapshot and scoped report',{skip:!enabled},async()=>{
  const project=process.env.EASYEDA_HOST_PROJECT,doc=process.env.EASYEDA_HOST_DOCUMENT;
- assert.ok(project&&doc&&process.env.EASYEDA_BIN,'explicit fixture identity and CLI required');
+ assert.ok(project&&doc,'explicit fixture identity required; CLI defaults to bin/easyeda.exe');
  const server=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../src/server.mjs');
  const client=new Client({name:'closure-host-readback',version:'1.0.0'});
  const transport=new StdioClientTransport({command:process.execPath,args:[server],env:{...process.env}});

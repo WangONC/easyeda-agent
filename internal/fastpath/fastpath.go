@@ -67,10 +67,11 @@ type Scope struct {
 	Include map[string]bool `json:"include,omitempty"`
 }
 type Route struct {
-	Net    string  `json:"net"`
-	Layer  int     `json:"layer"`
-	Width  float64 `json:"width"`
-	Points []Point `json:"points"`
+	ArcAngle float64 `json:"arc_angle,omitempty"`
+	Net      string  `json:"net"`
+	Layer    int     `json:"layer"`
+	Width    float64 `json:"width"`
+	Points   []Point `json:"points"`
 }
 type Via struct {
 	Net      string  `json:"net"`
@@ -82,6 +83,7 @@ type Via struct {
 	To       int     `json:"to_layer"`
 }
 type Operation struct {
+	ArcAngle float64 `json:"arc_angle,omitempty"`
 	Type     string  `json:"type"`
 	ID       string  `json:"id,omitempty"`
 	Net      string  `json:"net,omitempty"`
@@ -242,9 +244,15 @@ func ValidateOperations(ops []Operation) error {
 	ids := map[string]bool{}
 	for i, o := range ops {
 		bad := func() error { return fmt.Errorf("invalid explicit operation %d (%s)", i, o.Type) }
+		if (o.Type != "add_arc" && o.ArcAngle != 0) || (o.Type == "add_arc" && (!finite(o.ArcAngle) || math.Abs(o.ArcAngle) != 90)) {
+			return bad()
+		}
 		switch o.Type {
-		case "add_trace":
+		case "add_trace", "add_arc":
 			if o.Net == "" || o.Layer <= 0 || !finite(o.Width) || o.Width <= 0 || len(o.Points) != 2 || o.Points[0] == o.Points[1] || o.ID != "" || o.Diameter != 0 || o.Hole != 0 || o.From != 0 || o.To != 0 || o.X != 0 || o.Y != 0 {
+				return bad()
+			}
+			if o.Type == "add_arc" && arcPrimitive(o).Unsupported {
 				return bad()
 			}
 			for _, p := range o.Points {
@@ -268,6 +276,9 @@ func ValidateOperations(ops []Operation) error {
 	return nil
 }
 func OperationPrimitive(o Operation) Primitive {
+	if o.Type == "add_arc" {
+		return arcPrimitive(o)
+	}
 	if o.Type == "add_trace" {
 		return Primitive{Kind: "trace", Net: o.Net, Layer: o.Layer, Width: o.Width, Points: o.Points}
 	}
@@ -292,6 +303,9 @@ func segDist(a, b, c, d Point) float64 {
 	return math.Min(math.Min(pointSeg(a, c, d), pointSeg(b, c, d)), math.Min(pointSeg(c, a, b), pointSeg(d, a, b)))
 }
 func centerLine(p Primitive) (Point, Point, float64) {
+	if p.Kind == "arc" && len(p.Points) >= 2 {
+		return p.Points[0], p.Points[len(p.Points)-1], p.Width / 2
+	}
 	if p.Kind == "trace" && len(p.Points) == 2 {
 		return p.Points[0], p.Points[1], p.Width / 2
 	}
@@ -299,6 +313,17 @@ func centerLine(p Primitive) (Point, Point, float64) {
 	return q, q, p.Diameter / 2
 }
 func clearance(a, b Primitive) float64 {
+	if a.Kind == "arc" {
+		d := math.Inf(1)
+		for i := 1; i < len(a.Points); i++ {
+			seg := a
+			seg.Kind = "trace"
+			seg.Points = []Point{a.Points[i-1], a.Points[i]}
+			d = math.Min(d, clearance(seg, b)-a.ProjectionError)
+		}
+		return d
+	}
+
 	if len(b.Rings) > 0 {
 		return polygonClearance(a, b)
 	}
@@ -382,6 +407,13 @@ func Preflight(s Snapshot, p Plan) (Check, error) {
 		c.Operations = append(c.Operations, Operation{Type: "delete_" + o.Kind, ID: id})
 	}
 	for _, r := range p.Routes {
+		if r.ArcAngle != 0 {
+			if len(r.Points) != 2 {
+				return c, fmt.Errorf("arc requires exactly two endpoints")
+			}
+			c.Operations = append(c.Operations, Operation{Type: "add_arc", Net: r.Net, Layer: r.Layer, Width: r.Width, Points: r.Points, ArcAngle: r.ArcAngle})
+			continue
+		}
 		if len(r.Points) < 2 {
 			return c, fmt.Errorf("route requires >=2 points")
 		}
@@ -435,7 +467,7 @@ func Preflight(s Snapshot, p Plan) (Check, error) {
 		if has(p.ProtectedNets, o.Net) {
 			addConflict(i, o, "protected_net", 0, 0)
 		}
-		if op.Type == "add_trace" {
+		if op.Type == "add_trace" || op.Type == "add_arc" {
 			if !has(s.Layers, op.Layer) {
 				addConflict(i, o, "invalid_layer", 0, 0)
 			}

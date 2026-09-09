@@ -1,3 +1,4 @@
+import { arcPoints } from './compact-polygon';
 import { ActionError, type ActionResult } from './protocol';
 
 export type Point = [number, number];
@@ -5,7 +6,7 @@ export type Box = [number, number, number, number];
 export interface Primitive {
  id: string; kind: string; net?: string; layer?: number; points?: Point[]; width?: number;
  x?: number; y?: number; diameter?: number; hole?: number; bbox?: Box; locked?: boolean;
- routing_blocked?: boolean; rule_types?: number[]; arc_length?: number; rings?: Point[][]; projection_error?: number; coverage?: 'supported'|'conservative'|'unsupported';
+ routing_blocked?: boolean; rule_types?: number[]; arc_length?: number; arc_angle?: number; rings?: Point[][]; projection_error?: number; coverage?: 'supported'|'conservative'|'unsupported';
  unsupported?: boolean; designator?: string; rotation?: number; component_id?: string;
 }
 export interface Observation {
@@ -13,9 +14,9 @@ export interface Observation {
  copper_layers: number[]; physical_stackup?: unknown; rules?: unknown; warnings?: string[]; outline_fingerprint_input?: Record<string, unknown>; revision_geometry?: unknown;
 }
 export interface Operation {
- type: 'add_trace' | 'add_via' | 'delete_trace' | 'delete_via'; id?: string; net?: string;
+ type: 'add_arc' | 'add_trace' | 'add_via' | 'delete_trace' | 'delete_via'; id?: string; net?: string;
  layer?: number; points?: Point[]; width?: number; x?: number; y?: number; diameter?: number;
- hole?: number; from_layer?: number; to_layer?: number;
+ arc_angle?: number; hole?: number; from_layer?: number; to_layer?: number;
 }
 export interface NativePort {
  context(): Promise<{ projectUuid: string; documentUuid: string; documentType: string; tabId?: string }>;
@@ -36,7 +37,9 @@ function validOperations(value: unknown): asserts value is Operation[] {
  const ids = new Set<string>();
  for (const o of value as Operation[]) {
   if (!o || typeof o !== 'object') failure('INVALID_OPERATIONS');
-  if (o.type === 'add_trace') {
+  if (o.type !== 'add_arc' && o.arc_angle !== undefined) failure('INVALID_ARC');
+  if (o.type === 'add_arc' && (Math.abs(o.arc_angle!) !== 90 || !arcPoints(o.points?.[0] ?? [NaN,NaN],o.points?.[1] ?? [NaN,NaN],o.arc_angle!))) failure('INVALID_ARC');
+  if (o.type === 'add_trace' || o.type === 'add_arc') {
    if (!o.net || !finite(o.width) || o.width! <= 0 || !Number.isInteger(o.layer) || !Array.isArray(o.points) || o.points.length !== 2 || o.points.some(p => !Array.isArray(p) || p.length !== 2 || p.some(n => !finite(n))) || canonical(o.points[0]) === canonical(o.points[1])) failure('INVALID_TRACE');
   } else if (o.type === 'add_via') {
    if (!o.net || !finite(o.x ?? 0) || !finite(o.y ?? 0) || !finite(o.diameter) || !finite(o.hole) || o.hole! <= 0 || o.diameter! <= o.hole! || (!Number.isInteger(o.from_layer) || !Number.isInteger(o.to_layer) || o.from_layer!<=0 || o.to_layer!<=0 || o.from_layer===o.to_layer || o.from_layer===12 || o.to_layer===12)) failure('INVALID_THROUGH_VIA');
@@ -117,7 +120,7 @@ export class FastPath {
    const byID = new Map([...before.data.traces, ...before.data.vias].map(o => [o.id, o]));
    for (const o of operations) {
     if (o.type.startsWith('delete')) { const old = byID.get(o.id!); if (!old || old.locked || old.kind !== o.type.slice(7) || (old.kind === 'trace' && !before.data.copper_layers.includes(old.layer!))) failure('PROTECTED_OR_INVALID_DELETE'); }
-    else if (o.type === 'add_trace' && !before.data.copper_layers.includes(o.layer!)) failure('INVALID_COPPER_LAYER');
+    else if ((o.type === 'add_trace' || o.type === 'add_arc') && !before.data.copper_layers.includes(o.layer!)) failure('INVALID_COPPER_LAYER');
     else if (o.type === 'add_via' && (!before.data.copper_layers.includes(o.from_layer!) || !before.data.copper_layers.includes(o.to_layer!) || !before.data.copper_layers.includes(1) || !before.data.copper_layers.includes(2))) failure('INVALID_COPPER_LAYER');
    }
    // Recheck identity before EVERY write. Still not an atomic GUI transaction.
@@ -185,7 +188,21 @@ export class FastPath {
 }
 export function matchesOperation(p: Primitive | undefined, o: Operation): boolean {
  if (!p || p.net !== o.net) return false;
- if (o.type === 'add_trace') return p.kind === 'trace' && p.layer === o.layer && p.width === o.width && canonical(p.points) === canonical(o.points);
+ if (o.type === 'add_arc') {
+  const expected=arcPoints(o.points![0],o.points![1],o.arc_angle!);
+  const close=(a:number,b:number)=>Math.abs(a-b)<=1e-5;
+  return p.kind==='arc' && p.layer===o.layer && close(p.width??NaN,o.width!) && close(p.arc_angle??NaN,o.arc_angle!) && !!expected && !!p.points && p.points.length===expected.length && p.points.every((pt,i)=>close(pt[0],expected[i][0])&&close(pt[1],expected[i][1]));
+ }
+ if (o.type === 'add_trace') {
+  // Native decimal/unit arithmetic can return the adjacent IEEE-754 value
+  // (Host line45: 94.97056274847712 -> 94.97056274847711). Compare only a
+  // bounded machine-roundoff envelope, not geometric/CAD snapping tolerance.
+  const sameFloat = (a:number,b:number) => Number.isFinite(a) && Number.isFinite(b)
+   && Math.abs(a-b) <= Math.min(1e-9, 8*Number.EPSILON*Math.max(1,Math.abs(a),Math.abs(b)));
+  return p.kind === 'trace' && p.layer === o.layer && p.width === o.width
+   && !!p.points && !!o.points && p.points.length === o.points.length
+   && p.points.every((pt,i)=>sameFloat(pt[0],o.points![i][0])&&sameFloat(pt[1],o.points![i][1]));
+ }
  return p.kind === 'via' && (p.x ?? 0) === (o.x ?? 0) && (p.y ?? 0) === (o.y ?? 0) && p.diameter === o.diameter && p.hole === o.hole;
 }
 export const fastPath = new FastPath();

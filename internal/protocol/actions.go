@@ -73,7 +73,7 @@ func AllActions() []ActionSpec {
 			Domain:      DomainProject,
 			Phase:       1,
 			NeedsWindow: true,
-			Description: "Read current EasyEDA project information.",
+			Description: "Read current EasyEDA project information. teamUuid may identify the personal owner; it is not evidence of a real team or a default for project.create.team_uuid.",
 			Outputs:     []string{"project uuid", "project name", "team/workspace context"},
 		},
 		{

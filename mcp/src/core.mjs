@@ -1,5 +1,6 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { fileURLToPath } from 'node:url';
 
 const execFileAsync = promisify(execFile);
 
@@ -14,7 +15,7 @@ export const DOMAIN_NAMES = [
 ];
 
 export function easyedaBinary() {
-  return process.env.EASYEDA_BIN || 'easyeda';
+  return process.env.EASYEDA_BIN || fileURLToPath(new URL('../../bin/easyeda.exe', import.meta.url));
 }
 
 export async function runEasyeda(args, timeoutMs = 300_000) {

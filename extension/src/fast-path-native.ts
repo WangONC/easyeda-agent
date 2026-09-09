@@ -113,7 +113,7 @@ export function nativePort(): NativePort {
    // Unsupported copper is visible and causes preflight to fail closed on its layer.
    for (const a of arcs) {
     const points=arcPoints([a.getState_StartX(),a.getState_StartY()],[a.getState_EndX(),a.getState_EndY()],a.getState_ArcAngle());
-    result.traces.push({id:a.getState_PrimitiveId(),kind:'arc',net:a.getState_Net(),layer:Number(a.getState_Layer()),points,arc_length:points?Math.hypot(a.getState_EndX()-a.getState_StartX(),a.getState_EndY()-a.getState_StartY())/2/Math.abs(Math.sin(a.getState_ArcAngle()*Math.PI/360))*Math.abs(a.getState_ArcAngle()*Math.PI/180):undefined,width:a.getState_LineWidth(),projection_error:projectionError,unsupported:!points,coverage:points?'conservative':'unsupported'});
+    result.traces.push({id:a.getState_PrimitiveId(),kind:'arc',arc_angle:a.getState_ArcAngle(),net:a.getState_Net(),layer:Number(a.getState_Layer()),points,arc_length:points?Math.hypot(a.getState_EndX()-a.getState_StartX(),a.getState_EndY()-a.getState_StartY())/2/Math.abs(Math.sin(a.getState_ArcAngle()*Math.PI/360))*Math.abs(a.getState_ArcAngle()*Math.PI/180):undefined,width:a.getState_LineWidth(),projection_error:projectionError,unsupported:!points,coverage:points?'conservative':'unsupported'});
    }
    for (const p of polys) {
     if(Number(p.getState_Layer())===11) {
@@ -135,13 +135,15 @@ export function nativePort(): NativePort {
    return result;
   },
   async create(o: Operation) {
-   const p = o.type === 'add_trace'
+   const p = o.type === 'add_arc'
+    ? await call(() => eda.pcb_PrimitiveArc.create(o.net!,o.layer! as TPCB_LayersOfLine,o.points![0][0],o.points![0][1],o.points![1][0],o.points![1][1],o.arc_angle!,o.width!))
+    : o.type === 'add_trace'
     ? await call(() => eda.pcb_PrimitiveLine.create(o.net!, o.layer! as TPCB_LayersOfLine, o.points![0][0], o.points![0][1], o.points![1][0], o.points![1][1], o.width!))
     : await call(() => eda.pcb_PrimitiveVia.create(o.net!, o.x ?? 0, o.y ?? 0, o.hole!, o.diameter!));
    return p?.getState_PrimitiveId();
   },
   async remove(kind: string, id: string) {
-   return kind === 'trace' ? call(() => eda.pcb_PrimitiveLine.delete([id])) : call(() => eda.pcb_PrimitiveVia.delete([id]));
+   return kind === 'arc' ? call(() => eda.pcb_PrimitiveArc.delete([id])) : kind === 'trace' ? call(() => eda.pcb_PrimitiveLine.delete([id])) : call(() => eda.pcb_PrimitiveVia.delete([id]));
   },
  };
  async function call<T>(f: () => T | Promise<T>): Promise<T> { port.calls++; return f(); }

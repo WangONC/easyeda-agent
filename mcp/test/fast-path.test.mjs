@@ -18,3 +18,11 @@ test('Fast errors retain machine-readable structuredContent and compact JSON tex
  const r=toMcpResult({ok:false,error:{status:'uncertain',created_ids:['a'],readback_verified:false}},{compact:true,structuredErrors:true});
  assert.equal(r.isError,true);assert.equal(r.structuredContent.status,'uncertain');assert.equal(r.content[0].text.includes('\n'),false);
 });
+
+test('quarter arc plans and explicit arc writes are in existing Fast Path schemas',()=>{
+ const schemas=fastTools();const pre=schemas.find(t=>t.name==='easyeda_route_preflight').inputSchema;
+ assert.deepEqual(pre.properties.routes.items.properties.arc_angle.enum,[-90,90]);
+ const apply=schemas.find(t=>t.name==='easyeda_route_apply_batch').inputSchema;
+ const arc=apply.properties.operations.items.oneOf.find(o=>o.properties.type.const==='add_arc');
+ assert.ok(arc.required.includes('arc_angle'));assert.equal(arc.properties.points.maxItems,2);
+});

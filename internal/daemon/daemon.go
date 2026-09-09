@@ -178,6 +178,8 @@ type health struct {
 func (s *Server) routes(port int) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		// About uses the Host HTTP API; permit only this read-only public health response.
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		if r.Method != http.MethodGet {
 			w.Header().Set("Allow", http.MethodGet)
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)

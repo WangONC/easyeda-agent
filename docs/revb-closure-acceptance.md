@@ -1,3 +1,7 @@
+> Historical acceptance record: temporary executable names below are evidence only,
+> not runnable defaults. Current CLI/MCP/daemon entry is `bin/easyeda.exe` (1.4.11);
+> future temporary builds belong in `.easyeda/tmp-builds/` and are removed after acceptance.
+
 # RevB Minimal Closure acceptance — 2026-09-09
 
 ## Executive result: REVB READY / MCP FEATURE FREEZE

@@ -330,7 +330,7 @@ typed action、审计、workflow gate 或官方 `eda.*` API;任意 JavaScript �
 ```bash
 npm --prefix mcp ci --ignore-scripts
 codex mcp add easyeda-agent \
-  --env EASYEDA_BIN="$(command -v easyeda)" \
+  --env EASYEDA_BIN="$(pwd)/bin/easyeda.exe" \
   -- node "$(pwd)/mcp/src/server.mjs"
 ```
 
@@ -496,3 +496,22 @@ API。整个自动化层都建立在这个开放的插件平台之上——没�
 感谢每一颗 star。
 
 [![Star History Chart](https://api.star-history.com/svg?repos=zhoushoujianwork/easyeda-agent&type=Date)](https://www.star-history.com/#zhoushoujianwork/easyeda-agent&Date)
+
+
+### 本地正式构建入口
+
+Windows 工作区统一使用 `bin/easyeda.exe`，当前正式版本 `1.4.11`。
+MCP 的 `EASYEDA_BIN` 应设置为该文件的绝对路径；未设置时仓库 MCP 与 stdio 测试
+也默认解析此路径，不从 PATH 查找旧 CLI。修改 MCP 配置后重启 MCP/新开会话。
+
+```powershell
+go build -ldflags "-X github.com/zhoushoujianwork/easyeda-agent/internal/version.Version=1.4.11" -o bin/easyeda.exe ./cmd/easyeda
+.\bin\easyeda.exe daemon start --auto-update-skill=false
+.\bin\easyeda.exe health
+```
+
+`bin/` 只保留正式 `easyeda.exe`。测试/验收构建一律放 `.easyeda/tmp-builds/`
+（`make dev-build` / air 使用此目录），验收结束、进程停止后清理其中测试 executable。
+切换前核对旧 daemon ExecutablePath；正式 binary 接管后核对 health/version/进程路径，
+再删除旧 executable。不得删除 `.easyeda/runtime/` 验收证据、源码或制造输出。
+测试 daemon 停止后恢复正式 daemon；开发构建不再覆盖全局 PATH CLI。

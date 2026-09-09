@@ -1,3 +1,9 @@
+> Current workspace entry: `bin/easyeda.exe` (formal 1.4.11). MCP/tests use this
+> exact binary by default. Temporary development builds use `.easyeda/tmp-builds/`
+> and are cleaned after acceptance; air no longer overwrites bin or the PATH CLI.
+> Historical development recipes below do not authorize replacing the formal
+> binary with a temporary version. Restore/verify the formal daemon after testing.
+
 # Dev Environment & Debug Playbook
 
 How to stand up a working loop against **EasyEDA Pro** and iterate on the
@@ -62,8 +68,8 @@ easyeda project info --project <name>   # first typed action round-trip
 ```bash
 make dev                 # air live-reload; leave running in a terminal
 # or one-shot:
-./bin/easyeda daemon start &
-./bin/easyeda daemon health   # status=found; windows[] empty until a connector attaches
+./bin/easyeda.exe daemon start &
+./bin/easyeda.exe daemon health   # status=found; windows[] empty until a connector attaches
 ```
 
 The daemon listens on `127.0.0.1:60832-60841` (`0xEDA0`-`0xEDA9`) and speaks the handshake in
@@ -234,7 +240,7 @@ lands at IndexedDB key `<uuid>|dist/index.js`. Mind that offset.
   pgrep -fl "easyeda daemon"          # >1 line = orphans fighting
   lsof -iTCP:60832 -sTCP:LISTEN -n    # which PID owns the port
   pkill -f "easyeda daemon"; sleep 2  # kill all, then start ONE clean:
-  nohup ./bin/easyeda daemon start > /tmp/easyeda-daemon.log 2>&1 &
+  nohup ./bin/easyeda.exe daemon start > /tmp/easyeda-daemon.log 2>&1 &
   ```
   Then reload the editor page so the connector re-handshakes. (If you run the
   daemon under `make dev`/air, prefer letting air own it — but after a messy

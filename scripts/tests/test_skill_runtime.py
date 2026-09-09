@@ -127,13 +127,18 @@ else:
         (self.root / "go.mod").write_text("module fixture\n")
         (self.root / "cmd/easyeda").mkdir(parents=True)
         (self.root / "bin").mkdir()
-        fallback = self.root / "bin/easyeda"
+        fallback = self.root / "bin/easyeda.exe"
         shutil.copyfile(self.binary, fallback)
         fallback.chmod(0o755)
         env = {**os.environ, "PATH": "/usr/bin:/bin"}
         env.pop("EASYEDA_BIN", None)
         result = self.run_lint(env)
         self.assertIn(f"run: {fallback} daemon", result.stderr)
+        # A repository's formal CLI takes precedence over an older PATH CLI.
+        env["PATH"] = f"{self.binary.parent}:/usr/bin:/bin"
+        result = self.run_lint(env)
+        self.assertIn(f"run: {fallback} daemon", result.stderr)
+        env["PATH"] = "/usr/bin:/bin"
         (self.root / "go.mod").unlink()
         result = self.run_lint(env)
         self.assertIn("easyeda CLI not found", result.stderr)

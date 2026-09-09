@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import {buildWorkflowArgs,toMcpResult,easyedaBinary,buildReloadArgs} from '../src/core.mjs';
 import {runWorkflow} from '../src/workflow.mjs';
@@ -29,4 +30,11 @@ test('explicit CLI path is preserved',()=>{
 test('reload is a fixed CLI recovery operation, not an arbitrary script',()=>{
  assert.deepEqual(buildReloadArgs(scope),['--project','P','doc','reload','PCB','--json']);
  assert.throws(()=>buildReloadArgs({...scope,code:'anything'}),/unsupported/);
+});
+
+test('default CLI is the repository formal binary, never PATH or a test build',()=>{
+ const previous=process.env.EASYEDA_BIN;
+ try { delete process.env.EASYEDA_BIN; assert.equal(easyedaBinary(),fileURLToPath(new URL('../../bin/easyeda.exe',import.meta.url)));
+ process.env.EASYEDA_BIN=''; assert.equal(easyedaBinary(),fileURLToPath(new URL('../../bin/easyeda.exe',import.meta.url)));
+ } finally {if(previous===undefined)delete process.env.EASYEDA_BIN;else process.env.EASYEDA_BIN=previous;}
 });

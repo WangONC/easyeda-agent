@@ -87,7 +87,7 @@ DSH 的 skill-filesystem 提供者扫描根：`<projectRoot>/.dsh/skills`、
         args:
           - <repo>/mcp/src/server.mjs
         env:
-          EASYEDA_BIN: /usr/local/bin/easyeda
+          EASYEDA_BIN: /absolute/path/to/easyeda-agent/bin/easyeda.exe
 ```
 
 生效后模型看到 `mcp__easyeda__easyeda_health`、`mcp__easyeda__easyeda_schematic`

@@ -3,6 +3,25 @@
 This contract governs engineering intent and call cadence. It does not grant new
 Host capabilities, override workflow gates, or declare the closure pass accepted.
 
+## Project creation scope
+
+Select the destination from user intent, not the currently open project's owner.
+For Personal / Root, omit both `team_uuid` and `folder_uuid` from `project.create`.
+`project.current.teamUuid` can be the personal owner UUID; do not copy it into
+creation arguments. Only supply a verified real team UUID for an explicitly
+requested Team destination; preserve an explicitly selected folder unchanged.
+On EDA 3.2, `project.list({})` can return `[]` even with existing Personal projects.
+Use its session token; the empty list is not evidence that Personal creation needs
+`team_uuid`. Read-only inventory may use an independently known owner UUID, but
+that does not make it a valid team-creation parameter.
+
+Personal payload: `{name, expected_project_uuid, session_token, client_transaction_id}`.
+Create once, verify the returned UUID, save existing edited pages before opening,
+check `project.current`, then enumerate/open the first schematic page. A first
+empty list while the new project is still opening is not proof of absence: make
+a bounded readiness/readback check before creating another container. Save/reload and recheck project/page identity. For uncertain creation,
+reconcile first; never change scope or issue another create as an automatic retry.
+
 ## Engineering responsibility
 
 The Agent explicitly chooses topology, placement intent, route path/corridor,

@@ -259,10 +259,7 @@ func (s *Server) forwardFast(ctx context.Context, req protocol.Request, forward 
 		var value any
 		var e error
 		if req.Action == "route.tuning_plan" {
-			var q fastpath.TuningRequest
-			if e = fastpath.Decode(req.Payload, &q); e == nil {
-				value, e = fastpath.Tune(snapshot, q)
-			}
+			value, e = fastpath.TunePayload(snapshot, req.Payload)
 		} else {
 			var q fastpath.PairRequest
 			if e = fastpath.Decode(req.Payload, &q); e == nil {

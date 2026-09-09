@@ -1,6 +1,7 @@
+import { arcPoints } from './compact-polygon';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { FastPath, type NativePort, type Observation, type Operation, type Primitive } from './fast-path';
+import { matchesOperation, FastPath, type NativePort, type Observation, type Operation, type Primitive } from './fast-path';
 import { ActionQueue } from './action-queue';
 
 function mock() {
@@ -49,11 +50,14 @@ test('partial boundary failure can fully compensate; rollback failure remains in
   const r=(await f.apply(n,p)).result!;assert.equal(r.status,'partial');assert.equal(r.rollback_attempted,true);assert.equal(r.rollback_complete,!breakRollback);assert.equal(state.traces.length,breakRollback?1:0);
  }
 });
-test('native hang + queue abandon never permits duplicate or a later primitive; deadline includes queue time',async()=>{
+test('native hang + queue abandon never permits duplicate or a later primitive; deadline includes queue time',async(t)=>{
+ const realNow=Date.now;let clockOffset=0;t.mock.method(Date,'now',()=>realNow()+clockOffset);
  const f=new FastPath(),{n,state}=mock(),p=await request(f,n);const create=n.create;let release!:()=>void;n.create=async o=>{await new Promise<void>(r=>{release=r});return create(o)};
- const q=new ActionQueue({graceMs:0,fallbackTimeoutMs:10});const deadline=Date.now()+10;
- const out=await q.submit({id:'hang',timeoutMs:10,run:()=>f.apply(n,{...p,expires_at_ms:deadline})});assert.equal(out.status,'abandoned');
- const dup=(await f.apply(n,p)).result!;assert.equal(dup.status,'uncertain');assert.equal(dup.duplicate,true);release();await new Promise(r=>setTimeout(r,10));assert.equal(state.traces.length,1);assert.equal(state.vias.length,0);
+ const q=new ActionQueue({graceMs:0,fallbackTimeoutMs:10});const deadline=Date.now()+60000;
+ const pending={...p,expires_at_ms:deadline};
+ let batch!:ReturnType<FastPath['apply']>;
+ const out=await q.submit({id:'hang',timeoutMs:10,run:()=>batch=f.apply(n,pending)});assert.equal(out.status,'abandoned');
+ const dup=(await f.apply(n,p)).result!;assert.equal(dup.status,'uncertain');assert.equal(dup.duplicate,true);clockOffset=60001;release();await batch;assert.equal(state.traces.length,1);assert.equal(state.vias.length,0);
  const result=(await f.apply(n,p)).result!;assert.equal(result.status,'uncertain');assert.equal(result.readback_verified,false);
  await assert.rejects(()=>f.apply(n,{...p,client_transaction_id:'expired',expires_at_ms:Date.now()-1}),/BATCH_EXPIRED/);
 });
@@ -63,4 +67,41 @@ test('readback mismatch is uncertain; no false success',async()=>{
 test('document guard and invalid layer refuse before mutating',async()=>{
  const f=new FastPath(),{n,state}=mock();await assert.rejects(()=>f.snapshot(n,{...scope,document_uuid:'other'}),/DOCUMENT_GUARD/);
  const p=await request(f,n);await assert.rejects(()=>f.apply(n,{...p,dryRun:true}),/INVALID_DRY_RUN/);const r=(await f.apply(n,{...p,operations:[{...operations[0],layer:3}]})).result!;assert.equal(r.status,'partial');assert.equal(state.traces.length,0);
+});
+
+test('explicit quarter arc batch validates native readback, signed sweep and compensation',async()=>{
+ const op:Operation={type:'add_arc',net:'N',layer:1,width:6,points:[[0,0],[20,20]],arc_angle:90};
+ for(const corrupt of [false,true]){
+  const f=new FastPath(),{n,state}=mock();n.create=async o=>{state.traces.push({id:'arc',kind:'arc',net:o.net,layer:o.layer,width:o.width,arc_angle:corrupt?-90:o.arc_angle,points:arcPoints(o.points![0],o.points![1],o.arc_angle!)});return 'arc'};
+  const p=await request(f,n,`arc-${corrupt}`);p.operations=[op];const r=(await f.apply(n,p)).result!;assert.equal(r.status,corrupt?'uncertain':'complete');assert.equal(r.readback_verified,!corrupt);
+ }
+ const f=new FastPath(),{n,state}=mock();let calls=0;let removed='';n.create=async()=>{if(++calls===2)throw Error('native failed');state.traces.push({id:'arc',kind:'arc',net:'N'});return 'arc'};n.remove=async(kind)=>{removed=kind;state.traces.splice(0);return true};
+ const p=await request(f,n,'arc-rollback');p.operations=[op,operations[0]];const r=(await f.apply(n,p)).result!;assert.equal(r.status,'uncertain');assert.equal(removed,'arc');assert.equal(state.traces.length,0);
+});
+
+test('EDA 3.2 rounded getter lattice never widens explicit arc readback matching',()=>{
+ const op:Operation={type:'add_arc',net:'N',layer:1,width:6,arc_angle:-90,points:[[200,548.5066385686536],[206,554.5066385686536]]};
+ const quantized=op.points!.map(p=>p.map(v=>Math.round(v*10+1e-10)/10) as [number,number]);
+ const observed:Primitive={id:'native',kind:'arc',net:'N',layer:1,width:6,arc_angle:-90,points:arcPoints(quantized[0],quantized[1],-90)};
+ assert.equal(matchesOperation(observed,op),false);
+ assert.equal(matchesOperation(observed,{...op,points:quantized}),true);
+ assert.equal(matchesOperation({...observed,arc_angle:90},{...op,points:quantized}),false);
+});
+
+
+test('Host line45 IEEE roundoff verifies, actual coordinate changes remain uncertain',async()=>{
+ const op:Operation={type:'add_trace',net:'N',layer:1,width:6,points:[[100,60],[108.48528137423857,94.97056274847712]]};
+ const p:Primitive={id:'native',kind:'trace',net:'N',layer:1,width:6,points:[[100,60],[108.48528137423857,94.97056274847711]]};
+ assert.equal(matchesOperation(p,op),true);
+ for(const delta of [1e-8,1e-5,0.1]) assert.equal(matchesOperation({...p,points:[[100,60],[op.points![1][0],op.points![1][1]+delta]]},op),false);
+ assert.equal(matchesOperation({...p,net:'OTHER'},op),false);
+ assert.equal(matchesOperation({...p,layer:2},op),false);
+ for(const drift of [0,1e-5]) {
+  const f=new FastPath(),{n,state}=mock();const original=n.create;
+  n.create=async o=>{const id=await original(o);state.traces[0].points=[[100,60],[108.48528137423857,94.97056274847711+drift]];return id};
+  const requestPayload=await request(f,n);requestPayload.operations=[op];
+  const r=(await f.apply(n,requestPayload)).result!;
+  assert.equal(r.status,drift===0?'complete':'uncertain');
+  assert.equal(r.readback_verified,drift===0);
+ }
 });

@@ -13,10 +13,14 @@
 import * as extensionConfig from '../extension.json';
 import {
 	getConnectionStatus,
+resolvePorts,
 	reconnect as transportReconnect,
 	start as transportStart,
 	stop as transportStop,
 } from './transport';
+
+import { readAboutConnection } from './about-status';
+import { readResponseContext } from './eda-context';
 
 const STORAGE_KEY_AUTO_CONNECT = 'autoConnectEnabled';
 
@@ -70,23 +74,17 @@ export async function toggleAutoConnect(): Promise<void> {
 /**
  * Show the About dialog with the current connection status (menu item).
  */
-export function about(): void {
-	const status = getConnectionStatus();
-	let statusLine: string;
-	if (status.connected) {
-		const portInfo = `Connected (port ${status.port})`;
-		const windowInfo = status.windowId ? `\nWindow ID: ${status.windowId}` : '\nWindow ID: (not registered)';
-		statusLine = `${portInfo}${windowInfo}`;
-	}
-	else if (status.connecting) {
-		statusLine = 'Connecting...';
-	}
-	else {
-		statusLine = 'Disconnected';
-	}
-
-	eda.sys_Dialog.showInformationMessage(
-		`EasyEDA Agent Connector v${extensionConfig.version}\n${statusLine}`,
-		'About',
-	);
+export async function about(): Promise<void> {
+ const status = getConnectionStatus();
+ let configured: unknown;
+ try { configured = eda.sys_Storage.getExtensionUserConfig('daemonPorts'); } catch { /* default port */ }
+ const port = status.port ?? resolvePorts(configured, null)[0];
+ const statusLine = await readAboutConnection(status, readResponseContext, async () => {
+  const response = await eda.sys_ClientUrl.request(`http://127.0.0.1:${port}/health`, 'GET');
+  if (!response.ok) throw new Error(`health HTTP ${response.status}`);
+  return response.json();
+ }, port);
+ eda.sys_Dialog.showInformationMessage(
+  `EasyEDA Agent Connector v${extensionConfig.version}\n${statusLine}`, 'About',
+ );
 }

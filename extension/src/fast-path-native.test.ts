@@ -116,3 +116,10 @@ test('ambiguous exact/local IDs and repeated missing declarations remain explici
  const original=base[0];Object.assign(m.api.pcb_PrimitivePad,{getAll:async()=>[original,{...original,getState_PrimitiveId:()=> 'c0p0'}]});
  s=await nativePort().read();assert.ok(s.pads.some(p=>p.id==='c0:missing-pad:p0'&&p.unsupported));
 });
+
+test('native quarter arc uses exact official create arguments and arc deletion',async()=>{
+ const m=mockEDA();let args:unknown[]=[];let deleted:unknown;
+ Object.assign(m.api.pcb_PrimitiveArc,{create:async(...v:unknown[])=>{args=v;return {getState_PrimitiveId:()=> 'native-arc'}},delete:async(ids:string[])=>{deleted=ids;return true}});
+ const n=nativePort();const id=await n.create({type:'add_arc',net:'N',layer:1,width:6,points:[[1,2],[11,12]],arc_angle:-90});
+ assert.equal(id,'native-arc');assert.deepEqual(args,['N',1,1,2,11,12,-90,6]);assert.equal(await n.remove('arc',id!),true);assert.deepEqual(deleted,['native-arc']);
+});

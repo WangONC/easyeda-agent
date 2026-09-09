@@ -1,3 +1,7 @@
+> Historical acceptance record: temporary executable names below are evidence only,
+> not runnable defaults. Current CLI/MCP/daemon entry is `bin/easyeda.exe` (1.4.11);
+> future temporary builds belong in `.easyeda/tmp-builds/` and are removed after acceptance.
+
 # Fast Manual PCB V0.1 contract
 
 Implementation and Agent-facing contract: [Fast Manual PCB](../skills/easyeda-agent/references/fast-manual-pcb.md).

@@ -1,3 +1,25 @@
+## [1.4.15]
+
+- Reuse placement library-property projection during schematic replacement; verify staged and final property readback before reporting complete/verified.
+- Restate target properties atomically with carried fields; explicit keepProperties retains its existing semantics, including empty values.
+- Real Host acceptance on Connector 1.4.15 confirms replacement Value=10kΩ immediately and after save/reload with correct source identity. The earlier same-version installation had not activated the patched bundle.
+
+## [1.4.14]
+
+- Use official extension user-config persistence for source receipts, bound to project/page/primitive and verified library/instance references; EDA 3.2 custom-attribute readback remained empty in Host tests.
+- Expose persistence scope honestly: save/reload is supported; clearing plugin configuration or moving machines requires native identity reconciliation.
+
+## [1.4.13]
+
+- Write source values through the exact native Attribute after EDA 3.2 component.modify creates only an empty key; verify full readback.
+- Exclude a library candidate only when its detail positively proves a different source name; missing/ambiguous evidence still fails closed.
+
+## [1.4.12]
+
+- Persist and verify native component source identity across save/reload; recover generic library candidates by exact name and native footprint evidence.
+- Stage and verify replacements before removing originals; explicit partial/uncertain recovery and activation-scoped duplicate protection.
+- Mark authoritative Connector identity reads so CLI does not repeat legacy debug probes.
+
 ## [1.4.11]
 
 - Bound initial schematic settlement and reuse; reconcile created UUIDs after transient detail-read failure without replay.

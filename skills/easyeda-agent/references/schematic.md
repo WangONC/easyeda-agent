@@ -132,3 +132,11 @@ EasyEDA 3.2.186 的实测仍会挂起，手动 UI 能放标签不代表扩展 AP
 再按电气语义选择受支持的 netport/netflag，或由用户在 UI 放置标签后回读验证。
 升级到支持该接口的宿主后仍须探测，不能只凭版本号宣称已修复。
 历史实测详见仓库 `docs/dev-environment.md` 的 Native net-label compatibility。
+
+### Library identity and replacement
+
+正式放置通过官方 `sys_Storage` 保存 source receipt，以 project/page/primitive 为键，绑定库 device/symbol/footprint 与原生实例引用。save/reload 后用 `includeDeviceIdentity` 重新验证。库关联或实例绑定变化会 fail closed。receipt 属于当前扩展配置，清除配置或迁移机器不能假定仍存在；缺失时需官方来源重新证明，否则拒绝替换。
+
+Replace 先核验旧件来源，再创建并验证新件，最后删除旧件并恢复位号/关联键。`partial` / `uncertain` 不是成功；先对账结果中的旧件/新件 ID，不重发。`client_transaction_id` 只在当前 Connector activation 内去重，reload 后不提供 exactly-once。新版 Connector 自行完成身份读取，CLI 不再触发 legacy debug 查询。
+
+Replace 默认沿用目标库属性回填，并在删除旧件前及最终完成前回读核验；关键 Value 不一致不得返回 complete/verified=true。只有显式 keepProperties=true 才保留旧自定义属性（含空值）。部署后的 Host 版本必须实际变化并确认加载，不能用同版本包的导入成功代替运行时验收。

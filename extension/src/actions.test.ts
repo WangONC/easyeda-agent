@@ -489,40 +489,29 @@ import { schematicComponentModify, schematicComponentPlace, schematicPinSetNoCon
  *  create() returns a placeholder-designator component; modify() records its
  *  args and returns the post-assignment component. Returns the call log. */
 function installEdaStub(placeholderDesignator = 'R?') {
-	const calls: { modify: Array<{ id: string; patch: any }> } = { modify: [] };
-	(globalThis as any).eda = {
-		sch_PrimitiveComponent: {
-			create: async () => mockComponent({ Designator: placeholderDesignator, PrimitiveId: 'p1' }),
-			modify: async (id: string, patch: any) => {
-				calls.modify.push({ id, patch });
-				return mockComponent({ Designator: patch.designator, PrimitiveId: id });
-			},
-		},
-	};
-	return calls;
+ const calls:{modify:Array<{id:string;patch:any}>}={modify:[]};
+ const storage=new Map<string,unknown>();
+ let state:any={Designator:placeholderDesignator,PrimitiveId:'p1',OtherProperty:{}};
+ (globalThis as any).eda={
+  dmt_Project:{getCurrentProjectInfo:async()=>({uuid:'project'})},dmt_SelectControl:{getCurrentDocumentInfo:async()=>({uuid:'page'})},
+  sys_Storage:{getExtensionUserConfig:(k:string)=>storage.get(k),setExtensionUserConfig:async(k:string,v:unknown)=>{storage.set(k,v);return true;}},
+  lib_Device:{get:async(uuid:string,libraryUuid:string)=>({uuid,libraryUuid,association:{symbol:{uuid:'b'.repeat(32),libraryUuid}},subPartNames:['part.1']})},
+  sch_PrimitiveComponent:{
+   create:async()=>mockComponent(state),get:async()=>mockComponent(state),
+   modify:async(id:string,patch:any)=>{calls.modify.push({id,patch});for(const [key,value]of Object.entries(patch))state[key[0].toUpperCase()+key.slice(1)]=value;return mockComponent(state);}
+  }
+ };
+ return calls;
 }
-
-test('place with designator: assigns atomically and returns final designator (issue #68)', async () => {
-	const calls = installEdaStub('R?');
-	const res: any = await schematicComponentPlace({
-		libraryUuid: 'LIB-A', uuid: 'DEV-A', x: 100, y: 200, designator: 'R12',
-	});
-	assert.equal(calls.modify.length, 1);
-	assert.equal(calls.modify[0].id, 'p1');
-	assert.deepEqual(calls.modify[0].patch, { designator: 'R12' });
-	assert.equal(res.result.primitiveId, 'p1');
-	assert.equal((res.result.component as any).designator, 'R12');
-	delete (globalThis as any).eda;
+test('place with designator preserves it while persisting source identity',async()=>{
+ const calls=installEdaStub('R?');
+ try {const r:any=await schematicComponentPlace({libraryUuid:'LIB-A',uuid:'a'.repeat(32),x:100,y:200,designator:'R12'});
+ assert.equal(calls.modify.length,1);assert.deepEqual(calls.modify[0].patch,{designator:'R12'});assert.equal(r.result.component.designator,'R12');assert.equal(r.result.sourceIdentity.verified,true);
+ }finally{delete (globalThis as any).eda;}
 });
-
-test('place without designator: no modify call, keeps placeholder (issue #68)', async () => {
-	const calls = installEdaStub('C?');
-	const res: any = await schematicComponentPlace({
-		libraryUuid: 'LIB-A', uuid: 'DEV-A', x: 100, y: 200,
-	});
-	assert.equal(calls.modify.length, 0);
-	assert.equal((res.result.component as any).designator, 'C?');
-	delete (globalThis as any).eda;
+test('place without designator preserves placeholder while persisting source identity',async()=>{
+ const calls=installEdaStub('C?');
+ try {const r:any=await schematicComponentPlace({libraryUuid:'LIB-A',uuid:'a'.repeat(32),x:100,y:200});assert.equal(calls.modify.length,0);assert.equal(r.result.component.designator,'C?');assert.equal(r.result.sourceIdentity.verified,true);}finally{delete (globalThis as any).eda;}
 });
 
 // ─── schematic.component.modify 自定义属性兼容与回读校验 ───────────────
@@ -2533,6 +2522,7 @@ test('device identity: schematic empty source API falls back to the official cur
 test('device identity: stable exact device name is allowed only when the instance has no MPN', async () => {
 	const mock = instanceIdentityEda(); mock.state.ManufacturerId = '';
 	delete mock.hit.manufacturerId; mock.hit.name = 'AMS1117-3.3_C6186'; delete mock.detail.property.manufacturerId;
+	mock.lib_Device.search=async()=>[mock.hit];
 	const part = await readInstanceIdentity(mock);
 	assert.equal(part.device.uuid, identityDevice);
 });
@@ -2676,4 +2666,12 @@ test('resolve_lcsc: batch cache retains distinct project-name fallbacks for the 
 		]);
 	}
 	finally { delete (globalThis as any).eda; }
+});
+
+test('generic device keeps exact source name when LCSC returns a different named device',async()=>{
+ const mock=instanceIdentityEda();mock.state.ManufacturerId='';mock.state.Component.name='Generic Connector';
+ const generic={...mock.hit,uuid:'1'.repeat(32),name:'Generic Connector',manufacturerId:''};
+ const detail={...mock.detail,uuid:generic.uuid,name:'Generic Connector',property:{supplierId:'C6186'}};
+ mock.lib_Device.search=async()=>[generic];mock.lib_Device.get=async(id:string)=>id===generic.uuid?detail:mock.detail;
+ assert.equal((await readInstanceIdentity(mock)).device.uuid,generic.uuid);
 });

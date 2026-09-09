@@ -274,7 +274,7 @@ func hydrateSchematicIdentityCompatibility(cfg *appConfig, action, window string
 	ids := map[string]bool{}
 	for _, item := range rows {
 		c, ok := item.(map[string]any)
-		if ok && needsSchematicIdentityCompat(c) {
+		if ok && c["deviceIdentityResolver"] != "connector-source-v1" && needsSchematicIdentityCompat(c) {
 			needing = append(needing, c)
 			ids[schematicIdentityString(c, "supplierId")] = true
 		}

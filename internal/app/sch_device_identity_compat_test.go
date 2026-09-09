@@ -314,3 +314,21 @@ func TestSchematicIdentityCompatDoesNotProbeHealthyOrUnrequestedReads(t *testing
 		})
 	}
 }
+
+func TestConnectorSourceIdentityNeverRunsDebugFallback(t *testing.T) {
+	c, _ := identityCompatFixture()
+	c["deviceIdentityResolver"] = "connector-source-v1"
+	cfg, daemon, cleanup := newBlockApplyTestDaemon(t, func(call blockApplyTestCall) string {
+		if call.Action != "schematic.components.list" {
+			t.Fatalf("unexpected compatibility action: %s", call.Action)
+		}
+		return identityCompatEnvelope(map[string]any{"components": []any{c}}, "page")
+	})
+	defer cleanup()
+	if _, err := requestAction(cfg, "schematic.components.list", "w1", map[string]any{"includeDeviceIdentity": true}); err != nil {
+		t.Fatal(err)
+	}
+	if len(daemon.snapshot()) != 1 {
+		t.Fatal("identity read must not probe debug")
+	}
+}

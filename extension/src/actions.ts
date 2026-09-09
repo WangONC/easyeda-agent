@@ -1,8 +1,9 @@
+import { SOURCE_KEY, sourceAsset, sourceReceipt, resolveSource, sourceStorageKey } from './component-source';
 import { manufacturingExport } from './manufacturing';
 import { refreshPlanes, logicalPlaneId } from './plane-lifecycle';
 import { projectList, projectCreate, projectOpen, schematicCreate } from './lifecycle';
 import { readPourGeometry } from './pour-readback';
-import { fastPath } from './fast-path';
+import { fastPath, canonical } from './fast-path';
 import { fastSnapshot, fastApply } from './fast-path-native';
 /**
  * Typed-action dispatch. Each action maps to exactly one (occasionally a small
@@ -1017,6 +1018,7 @@ export const schematicComponentsList: Handler = async (payload) => {
 	for (const component of components) {
 		const record = serializeComponent(component);
 		if (includeDeviceIdentity && record.componentType === 'part') {
+			record.deviceIdentityResolver='connector-source-v1';
 			const rawDevice = record.device as Record<string, unknown> | undefined;
 			const rawUuid = typeof rawDevice?.uuid === 'string' ? rawDevice.uuid : '';
 			// A valid library uuid is already authoritative; only resolve the
@@ -1278,6 +1280,26 @@ async function backfillSupplierId(
 	};
 }
 
+async function persistComponentSource(component: SchComponent, device: unknown): Promise<SchComponent> {
+ const context=await readResponseContext();
+ const key=sourceStorageKey(context.projectUuid??'',context.documentUuid??'',component.getState_PrimitiveId());
+ const value=sourceReceipt(serializeComponent(component),device);
+ if(value.length>8192)throw Error('Source receipt exceeds size bound');
+ if(!await eda.sys_Storage.setExtensionUserConfig(key,value)||eda.sys_Storage.getExtensionUserConfig(key)!==value)throw Error('Source receipt persistence not verified; component exists, do not replay');
+ const fresh=await eda.sch_PrimitiveComponent.get(component.getState_PrimitiveId());
+ const after=await readResponseContext();
+ if(!fresh||after.projectUuid!==context.projectUuid||after.documentUuid!==context.documentUuid||sourceReceipt(serializeComponent(fresh),device)!==value)throw Error('Source receipt instance binding not verified');
+ return fresh;
+}
+async function readComponentSource(snapshot:Record<string,unknown>){
+ const context=await readResponseContext();
+ if(!context.projectUuid||!context.documentUuid||!snapshot.primitiveId||!eda.sys_Storage?.getExtensionUserConfig)return undefined;
+ const key=sourceStorageKey(context.projectUuid,context.documentUuid,snapshot.primitiveId);
+ const value=eda.sys_Storage.getExtensionUserConfig(key);
+ if(value===undefined)return undefined;
+ return resolveSource({...snapshot,otherProperty:{[SOURCE_KEY]:value}},(id,lib)=>eda.lib_Device.get(id,lib));
+}
+
 export const schematicComponentPlace: Handler = async (payload) => {
 	const libraryUuid = requireString(payload, 'libraryUuid');
 	const uuid = requireString(payload, 'uuid');
@@ -1289,6 +1311,9 @@ export const schematicComponentPlace: Handler = async (payload) => {
 	const addIntoBom = optionalBoolean(payload, 'addIntoBom');
 	const addIntoPcb = optionalBoolean(payload, 'addIntoPcb');
 	const designator = optionalString(payload, 'designator');
+	const sourceDevice=await eda.lib_Device.get(uuid,libraryUuid);
+	const checkedSource=sourceAsset(sourceDevice);
+	if(checkedSource.uuid!==uuid||checkedSource.libraryUuid!==libraryUuid)throw new ActionError(ErrorCodes.INVALID_STATE,'Placement source identity mismatch');
 
 	let component;
 	try {
@@ -1343,11 +1368,15 @@ export const schematicComponentPlace: Handler = async (payload) => {
 	const attrs = await backfillOtherProperty(component, { libraryUuid, uuid });
 	component = attrs.component;
 
+	try { component=await persistComponentSource(component,sourceDevice); } catch(e) {
+	 return {result:{primitiveId:component.getState_PrimitiveId(),component:serializeComponent(component),status:'partial',verified:false,reason:String(e)},warnings:['Placement exists; source identity unverified. Do not replay.']};
+	}
 	const warnings = [backfill.warning, attrs.warning].filter((w): w is string => Boolean(w));
 	return {
 		result: {
 			primitiveId: component.getState_PrimitiveId(),
 			component: serializeComponent(component),
+			sourceIdentity:{uuid,libraryUuid,storage:'host-extension-user-config',verified:true},
 			...(backfill.backfilled ? { supplierIdBackfilled: backfill.backfilled } : {}),
 			...(attrs.filled?.length ? { otherPropertyBackfilled: attrs.filled.sort() } : {}),
 		},
@@ -5567,7 +5596,7 @@ async function resolveInstanceFootprintDevice(
 		reason: `${reason}; ${context}; instance/library UUID domains require native META.source plus exact LCSC/model and official asset-library evidence`,
 		...(candidates.length ? { candidates: candidates.slice(0, 5) } : {}),
 	});
-	if (!/^C\d+$/.test(supplierId) || !instanceFp.libraryUuid || (!mpn && !sourceName)) {
+	if (!instanceFp.libraryUuid || (!mpn && !sourceName)) {
 		return failure('incomplete identity evidence for 16-hex instance footprint');
 	}
 	const inventory = await getNativeFootprints();
@@ -5578,9 +5607,11 @@ async function resolveInstanceFootprintDevice(
 	let raw: Array<Record<string, unknown>>;
 	try {
 		// Without allowMultiMatch=true the API may hide an equally valid device.
-		const queried = await eda.lib_Device.getByLcscIds([supplierId], undefined, true);
+		const queried = /^C\d+$/.test(supplierId)?await eda.lib_Device.getByLcscIds([supplierId], undefined, true):[];
 		if (!Array.isArray(queried)) return failure('complete LCSC candidate inventory unavailable');
 		raw = queried as unknown as Array<Record<string, unknown>>;
+		if(!mpn&&sourceName){const named=await eda.lib_Device.search(sourceName);if(!Array.isArray(named))return failure('Exact-name candidate inventory unavailable');raw=[...raw,...named as unknown as Array<Record<string,unknown>>];}
+		if(raw.length>128)return failure('Candidate inventory exceeds bound');
 	} catch (err) {
 		return failure(`complete LCSC candidate query failed: ${describeThrown(err)}`);
 	}
@@ -5609,6 +5640,10 @@ async function resolveInstanceFootprintDevice(
 			continue;
 		}
 		const property = identityRecord(detail.property);
+		// A complete, explicitly different model/name is negative evidence, not
+		// an unknown candidate. Missing evidence still prevents resolution below.
+		const detailName=stableIdentityName(detail.name)||stableIdentityName(property.name);
+		if(!mpn&&detailName&&detailName!==sourceName)continue;
 		const associationFp = readDeviceFootprint({ association: detail.association });
 		if (detail.uuid !== hit.uuid || detail.libraryUuid !== hit.libraryUuid
 			|| !libraryIdentityUuid(associationFp.uuid) || !associationFp.libraryUuid
@@ -5617,7 +5652,7 @@ async function resolveInstanceFootprintDevice(
 			unresolvedEvidence.push(`device.get ${hit.uuid} identity/footprint association is missing or conflicts with the search candidate`);
 			continue;
 		}
-		if (property.supplierId !== supplierId || (mpn
+		if ((/^C\d+$/.test(supplierId)&&property.supplierId !== supplierId) || (mpn
 			? property.manufacturerId !== mpn
 			: (stableIdentityName(detail.name) !== sourceName && stableIdentityName(property.name) !== sourceName))) {
 			unresolvedEvidence.push(`device.get ${hit.uuid} lacks matching exact LCSC and model/name evidence`);
@@ -5661,6 +5696,7 @@ async function resolvePlacedDevice(
 	snapshot: Record<string, unknown>,
 	getNativeFootprints: () => Promise<NativeFootprintInventory> = loadNativeFootprintInventory,
 ): Promise<DeviceResolution> {
+	try { const saved=await readComponentSource(snapshot);if(saved)return {device:saved}; } catch(e) {return {reason:String(e)};}
 	const instanceFp = readDeviceFootprint(snapshot);
 	if (instanceIdentityUuid(identityRecord(snapshot.device).uuid) && instanceIdentityUuid(instanceFp.uuid)) {
 		return resolveInstanceFootprintDevice(snapshot, getNativeFootprints);
@@ -5830,15 +5866,15 @@ const schematicComponentResolveLcsc: Handler = async (payload) => {
  * programmatic equivalent of the 器件标准化 panel's「使用推荐器件」button, which
  * has no extension API of its own (the panel only exposes an open-tab enum).
  *
- * WHY delete-then-create: the official API has NO rebind-device primitive —
+ * The official API requires a new instance: the official API has NO rebind-device primitive —
  * `sch_PrimitiveComponent.modify` cannot change the placed instance's device
  * binding (no libraryUuid/uuid in its property table, no setState_Device).
  * So this follows the rebind template minus the `lib_Device.modify` step:
  *   1. capture the original state + pin table,
  *   2. resolve BOTH device identities (old for rollback, new from
  *      lcsc / deviceUuid / query),
- *   3. delete the old instance,
- *   4. create the new device at the same x/y/rotation/mirror/BOM flags,
+ *   3. stage the new device and verify persisted source + pins,
+ *   4. only then delete the old instance,
  *   5. modify to restore designator + uniqueId (kept so sch↔PCB import-changes
  *      UPDATES the footprint instead of delete+add).
  *
@@ -5847,10 +5883,12 @@ const schematicComponentResolveLcsc: Handler = async (payload) => {
  * would defeat the replacement. otherProperty is only restored with
  * keepProperties=true (old custom attrs may describe the old part).
  *
- * Any failure after the delete rolls back by re-creating the ORIGINAL device
- * with its full state (including part-identity fields).
+ * Unknown creates retain the original and stop. Recovery requires confirmed
+ * exact-ID cleanup and the previously verified original library source.
  */
-const schematicComponentReplace: Handler = async (payload) => {
+const schematicComponentReplaceImpl: Handler = async (payload) => {
+	const expectedContext=await readResponseContext();
+	const guard=async()=>{const c=await readResponseContext();if(c.projectUuid!==expectedContext.projectUuid||c.documentUuid!==expectedContext.documentUuid)throw new ActionError(ErrorCodes.INVALID_STATE,'Document changed during replacement');};
 	const primitiveId = requireString(payload, 'primitiveId');
 	const lcsc = optionalString(payload, 'lcsc');
 	const explicitUuid = optionalString(payload, 'deviceUuid');
@@ -5874,6 +5912,7 @@ const schematicComponentReplace: Handler = async (payload) => {
 	// any canvas change.
 	const oldDevice = await resolvePlacedDeviceIdentity(snapshot);
 	const oldPins = await readPinSnapshots(primitiveId);
+	const oldSource=await eda.lib_Device.get(oldDevice.uuid,oldDevice.libraryUuid);sourceAsset(oldSource);
 
 	// Resolve the NEW device identity.
 	let target: { uuid: string; libraryUuid: string; name?: string };
@@ -5931,7 +5970,10 @@ const schematicComponentReplace: Handler = async (payload) => {
 		}
 		target = match.item;
 	}
-	if (target.uuid === oldDevice.uuid) {
+	const targetSource=await eda.lib_Device.get(target.uuid,target.libraryUuid);
+	const checkedTarget=sourceAsset(targetSource);
+	if(checkedTarget.uuid!==target.uuid||checkedTarget.libraryUuid!==target.libraryUuid)throw new ActionError(ErrorCodes.INVALID_STATE,'Target library identity mismatch');
+	if (target.uuid === oldDevice.uuid && target.libraryUuid === oldDevice.libraryUuid) {
 		throw new ActionError(
 			ErrorCodes.INVALID_STATE,
 			`Target device is the SAME as the placed one (${target.uuid}) — nothing to replace. Use schematic.component.modify for property-only changes.`,
@@ -5946,11 +5988,12 @@ const schematicComponentReplace: Handler = async (payload) => {
 	const addIntoBom = typeof snapshot.addIntoBom === 'boolean' ? snapshot.addIntoBom : undefined;
 	const addIntoPcb = typeof snapshot.addIntoPcb === 'boolean' ? snapshot.addIntoPcb : undefined;
 	// Identity-preserving props for the NEW device: designator + uniqueId only.
+	const carried=cleanOtherProperty(snapshot.otherProperty as Record<string,unknown>);if(carried)delete carried[SOURCE_KEY];
 	const carryProps = {
 		...(typeof snapshot.designator === 'string' ? { designator: snapshot.designator } : {}),
 		...(typeof snapshot.uniqueId === 'string' ? { uniqueId: snapshot.uniqueId } : {}),
-		...(keepProperties && cleanOtherProperty(snapshot.otherProperty as Record<string, unknown> | undefined)
-			? { otherProperty: cleanOtherProperty(snapshot.otherProperty as Record<string, unknown> | undefined) }
+		...(keepProperties && carried
+			? { otherProperty: carried }
 			: {}),
 	};
 	// Full restore props for ROLLBACK (the original part keeps its identity).
@@ -5965,54 +6008,76 @@ const schematicComponentReplace: Handler = async (payload) => {
 			: {}),
 	};
 
-	const place = async (dev: DeviceRef, props: Record<string, unknown>): Promise<SchComponent | undefined> => {
-		let c = await eda.sch_PrimitiveComponent.create(
-			{ libraryUuid: dev.libraryUuid, uuid: dev.uuid },
-			x, y, undefined, rotation, mirror, addIntoBom, addIntoPcb,
-		);
-		if (c && Object.keys(props).length) {
-			// Prefer modify's returned primitive: serializing the create-time object
-			// echoes PRE-restore state (live-verified: designator read back "C?"
-			// while the canvas already showed the restored value).
-			try {
-				const m = await eda.sch_PrimitiveComponent.modify(c.getState_PrimitiveId(), props);
-				if (m) c = m;
-			}
-			catch { /* best-effort restore */ }
+	// Stage and prove the replacement while the original remains untouched.
+	// Unknown native create outcomes never trigger replay or a rollback copy.
+	let created:SchComponent|undefined;
+	let stagedId:string|undefined;
+	let replacementProperties: Record<string, SchematicPropertyValue> = {};
+	const verifyReplacementProperties = (component: SchComponent, expected: Record<string, SchematicPropertyValue>) => {
+		const actual = (serializeComponent(component).otherProperty ?? {}) as Record<string, SchematicPropertyValue>;
+		for (const [key, value] of Object.entries(expected)) {
+			if (!propertyApplied(actual, key, value)) throw Error(`Replacement property ${key} readback mismatch`);
 		}
-		// #157: carry the device's real LCSC C-number onto the instance.
-		if (c) c = (await backfillSupplierId(c, dev)).component;
-		return c ?? undefined;
 	};
-
-	// Step 3: delete the old instance.
 	try {
-		await eda.sch_PrimitiveComponent.delete(primitiveId);
+	 await guard();
+	 created=await eda.sch_PrimitiveComponent.create({uuid:target.uuid,libraryUuid:target.libraryUuid},x,y,undefined,rotation,mirror,addIntoBom,addIntoPcb)??undefined;
+	 if(!created)return {result:{status:'uncertain',verified:false,previousPrimitiveId:primitiveId,originalPreserved:true,reason:'Native create returned no primitive'},warnings:['Original retained. Reconcile inventory; do not replay create.']};
+	 stagedId=created.getState_PrimitiveId();
+	 created=(await backfillSupplierId(created,target)).component;
+	 // Reuse place-time projection; native create copies property keys with blank values.
+	 const currentProperties = cleanOtherProperty(serializeComponent(created).otherProperty as Record<string, unknown>) ?? {};
+	 const libraryProperties = (targetSource?.property?.otherProperty ?? {}) as Record<string, unknown>;
+	 replacementProperties = planOtherPropertyBackfill(currentProperties, libraryProperties, { onlyExistingKeys: true }).merged as Record<string, SchematicPropertyValue>;
+	 // Value is semantic even if the Host unexpectedly omitted its key.
+	 const sourceValue = libraryProperties.Value;
+	 if (sourceValue !== undefined && sourceValue !== null && sourceValue !== '') replacementProperties.Value = sourceValue as SchematicPropertyValue;
+	 created=(await backfillOtherProperty(created,target)).component;
+	 created=await persistComponentSource(created,targetSource);
+	 verifyReplacementProperties(created, replacementProperties);
+	 if(!await readPinSnapshots(stagedId))throw Error('Replacement pins unavailable');
+	} catch(e) {
+	 let cleaned=false;
+	 if(stagedId)try {await guard();await eda.sch_PrimitiveComponent.delete(stagedId);cleaned=!await eda.sch_PrimitiveComponent.get(stagedId);}catch{/* keep unknown */}
+	 return {result:{status:cleaned?'partial':'uncertain',verified:false,previousPrimitiveId:primitiveId,createdPrimitiveId:stagedId,originalPreserved:true,rollbackAttempted:!!stagedId,rollbackComplete:cleaned,reason:String(e)},warnings:['Original retained. Reconcile any unconfirmed staged component; no replay.']};
 	}
-	catch (err) {
-		throw edaError(err, `Failed to delete the old instance "${primitiveId}" (canvas unchanged).`);
-	}
-
-	// Step 4 + 5: place the new device and carry identity over.
-	let created: SchComponent | undefined;
-	let placeError: unknown;
 	try {
-		created = await place({ libraryUuid: target.libraryUuid, uuid: target.uuid }, carryProps);
-	}
-	catch (err) { placeError = err; }
-	if (!created) {
-		// Roll back: re-create the ORIGINAL device with its full state.
-		let restored = false;
-		try { restored = Boolean(await place(oldDevice, rollbackProps)); }
-		catch { /* fall through to the structured error */ }
-		const rollbackNote = restored
-			? 'rolled back — the original component was re-created (with a NEW primitiveId; verify wires)'
-			: 'ROLLBACK FAILED — the original component is GONE; re-place it manually';
-		if (placeError) throw edaError(placeError, `Failed to place the replacement device (${rollbackNote}).`);
-		throw new ActionError(
-			ErrorCodes.EDA_CALL_FAILED,
-			`Placing the replacement device returned no primitive (${rollbackNote}).`,
-		);
+	 await guard();
+	 await eda.sch_PrimitiveComponent.delete(primitiveId);
+	 if(await eda.sch_PrimitiveComponent.get(primitiveId))throw Error('Original deletion not confirmed');
+	 // Native modify can reset omitted otherProperty values. Restate the projected
+	 // target values atomically with the carried fields; only explicit preservation wins.
+	 const expectedProperties = { ...replacementProperties, ...(keepProperties ? carried : {}) };
+	 const m=await eda.sch_PrimitiveComponent.modify(stagedId!, {
+		...carryProps,
+		supplierId: created.getState_SupplierId(),
+		otherProperty: expectedProperties,
+	 });
+	 if(!m)throw Error('Replacement properties not confirmed');
+	 created=await persistComponentSource(m,targetSource);
+	 verifyReplacementProperties(created, expectedProperties);
+	 const after=serializeComponent(created);
+	 for(const [key,value] of Object.entries(carryProps))if(key!=='otherProperty'&&after[key]!==value)throw Error(`Replacement ${key} not preserved`);
+	} catch(e) {
+	 // Recovery only after both exact IDs have been reconciled. Never recreate
+	 // over an unknown delete or while a replacement may still be present.
+	 let original:SchComponent|undefined;let complete=false;
+	 try {
+	  await guard();
+	  original=await eda.sch_PrimitiveComponent.get(primitiveId)??undefined;
+	  await eda.sch_PrimitiveComponent.delete(stagedId!);
+	  if(await eda.sch_PrimitiveComponent.get(stagedId!))throw Error('Staged cleanup not confirmed');
+	  if(!original){
+	   original=await eda.sch_PrimitiveComponent.create({uuid:oldDevice.uuid,libraryUuid:oldDevice.libraryUuid},x,y,typeof snapshot.subPartName==='string'?snapshot.subPartName:undefined,rotation,mirror,addIntoBom,addIntoPcb)??undefined;
+	   if(!original)throw Error('Recovery create unverified; no replay');
+	   const restored=await eda.sch_PrimitiveComponent.modify(original.getState_PrimitiveId(),rollbackProps);
+	   if(!restored)throw Error('Recovery properties unverified');
+	   original=await persistComponentSource(restored,oldSource);
+	  }
+	  const restoredState=serializeComponent(original);
+	  complete=Object.entries(rollbackProps).every(([k,v])=>k==='otherProperty'||restoredState[k]===v);
+	 }catch{/* retain uncertain, never replay recovery */}
+	 return {result:{status:complete?'partial':'uncertain',verified:false,previousPrimitiveId:primitiveId,primitiveId:original?.getState_PrimitiveId(),component:original?serializeComponent(original):undefined,rollbackAttempted:true,rollbackComplete:complete,reason:String(e)},warnings:['Replace failed. Inspect recovery identity and pins; do not replay.']};
 	}
 
 	const newId = created.getState_PrimitiveId();
@@ -6045,6 +6110,7 @@ const schematicComponentReplace: Handler = async (payload) => {
 
 	return {
 		result: {
+			status:'complete',verified:true,
 			primitiveId: newId,
 			previousPrimitiveId: primitiveId,
 			previousDevice: { uuid: oldDevice.uuid, libraryUuid: oldDevice.libraryUuid, resolvedVia: oldDevice.via, ...(oldName ? { name: oldName } : {}) },
@@ -6054,6 +6120,25 @@ const schematicComponentReplace: Handler = async (payload) => {
 		},
 		warnings,
 	};
+};
+
+// Activation-scoped duplicate protection; reload is not exactly-once persistence.
+const replaceReceipts=new Map<string,{signature:string;result?:ActionResult;error?:unknown}>();
+const schematicComponentReplace:Handler=async(payload)=>{
+ const ctx=await readResponseContext();
+ if(!ctx.projectUuid||!ctx.documentUuid)throw new ActionError(ErrorCodes.INVALID_STATE,'Replace requires known project/document identity');
+ const transaction=optionalString(payload,'client_transaction_id');
+ if(transaction&&transaction.length>160)throw new ActionError(ErrorCodes.INVALID_STATE,'Transaction ID too long');
+ const signature=canonical(payload),key=canonical([ctx.projectUuid,ctx.documentUuid,transaction??payload]);
+ const previous=replaceReceipts.get(key);
+ if(previous){
+  if(previous.signature!==signature)throw new ActionError(ErrorCodes.INVALID_STATE,'TRANSACTION_ID_REUSED');
+  if(previous.error)throw previous.error;
+  return previous.result?{...previous.result,result:{...previous.result.result,duplicate:true}}:{result:{status:'uncertain',verified:false,duplicate:true},warnings:['Original replacement in flight; no replay.']};
+ }
+ if(replaceReceipts.size>=256)throw new ActionError(ErrorCodes.INVALID_STATE,'Replacement receipt capacity reached; reconcile before reconnect');
+ const entry:{signature:string;result?:ActionResult;error?:unknown}={signature};replaceReceipts.set(key,entry);
+ try{return entry.result=await schematicComponentReplaceImpl(payload);}catch(e){entry.error=e;throw e;}
 };
 
 // ─── Composite: pin → wire → netflag/netport in one call ────────────

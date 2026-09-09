@@ -66,22 +66,23 @@
 | 设计流程 | 从**客户口吻需求**到成品的门控主脊(S0–S6 + P0–P10),里程碑确认,存盘检查点 |
 | 产物 | BOM(补 LCSC C 号)、网表、导出、原生截图、审计日志、录制→回放 |
 
-## 面向自主 Agent 的 PCB Fast Path
+## 面向自主智能体的 PCB 快速执行通路
 
-`easyeda-agent` 的 PCB 能力已经从“逐条调用 EDA primitive”扩展为面向自主 AI Agent 的
+`easyeda-agent` 的 PCB 能力已经从“逐条调用 EDA 图元接口”扩展为面向自主智能体的
 **规划 → 预检 → 批量执行 → 回读 → 测量**闭环。
 
 核心分工是：
 
-- **AI Agent 负责工程决策**：器件布局、网络分组、routing corridor、层选择、过孔位置、
-  差分/等长策略以及是否需要 tuning；
+- **智能体负责工程决策**：器件布局、网络分组、布线走廊、层选择、过孔位置、
+  差分与等长策略，以及是否需要调长；
 - **easyeda-agent 负责确定性执行与测量**：读取紧凑板级状态、批量预检、一次写入多条网络、
-  revision/readback 校验、DRC 对比和低成本 routing telemetry；
-- **Skill 提供工程工作方法与弱规范**，但不把 45°、过孔数量等经验规则硬编码成 DRC 或质量评分。
+  修订版本与回读校验、设计规则检查差异比较，以及低成本布线遥测；
+- **技能负责工程工作方法与推荐性规范**，但不把 45°、过孔数量等经验惯例硬编码成
+  设计规则检查或质量评分。
 
-### Fast Path 批量布线
+### 批量快速布线
 
-PCB routing 不再要求 Agent 为每条线临时生成 JavaScript / Python checker。
+PCB 布线不再要求智能体为每条线路临时生成 JavaScript 或 Python 检查脚本。
 
 典型闭环：
 
@@ -92,86 +93,120 @@ route.preflight
         ↓
 route.apply_batch
         ↓
-readback / pcb.report
+回读 / pcb.report
 ```
 
-Agent 可以一次规划并提交一组相关网络，Fast Path 负责：
+智能体可以一次规划并提交一组相关网络，快速执行通路负责：
 
-- revision / stale-state 防护；
-- 线、圆弧、过孔及多层几何预检；
+- 修订版本与陈旧状态防护；
+- 直线、圆弧、过孔及多层几何预检；
 - 碰撞与规则检查；
 - 批量确定性写入；
-- primitive 级回读与 receipt；
-- 失败时 fail-closed，不把未知状态冒充成功。
+- 图元级回读与执行回执；
+- 无法证明成功时按失败处理，不把未知状态冒充成功。
 
-真实 Host 验收中，一批 **8 个网络 / 21 个 routing primitives**
-通过 4 个核心 round trips 完成，`apply_batch` 实际写入约 **204 ms**，
-无需一次性 routing JS 或独立 checker 脚本。
+真实 EasyEDA 宿主验收中，一批 **8 个网络 / 21 个布线图元**
+通过 4 次核心往返调用完成，`apply_batch` 实际写入约 **204 ms**，
+无需一次性布线脚本或独立检查脚本。
 
-> 204 ms 是批量几何写入时间，不代表 AI 在 204 ms 内完成了 8 条网络的工程规划。
+> 204 ms 是批量几何写入时间，不代表智能体在 204 ms 内完成了 8 条网络的工程规划。
 
 ### 高速与受约束布线
 
 现有能力还包括：
 
-- stackup / routing-rule 绑定的 reviewed routing profile；
-- EasyEDA 3.2 下支持制造商来源的 `MANUFACTURER_VERIFIED` profile；
-- routing rule 改变后 profile 自动进入 `STALE`，旧 profile 不可继续用于 preflight；
-- differential-pair geometry helper；
-- bounded length-tuning helper；
-- copper length、pair skew、equal-length group spread 与可证明 endpoint path 测量；
-- branch 无法可靠判定时明确返回 unresolved，而不是猜测。
+- 与叠层和布线规则绑定的经审阅布线配置档；
+- EasyEDA 3.2 下支持基于制造商资料的 `MANUFACTURER_VERIFIED` 配置档；
+- 布线规则改变后配置档自动进入 `STALE` 状态，旧配置档不能继续用于预检；
+- 差分对几何辅助器；
+- 有边界的等长与蛇形调长辅助器：在智能体指定的调长走廊内生成确定性调长几何，
+  不负责自动寻路；
+- 铜长、差分对长度偏差、等长组离散量以及可证明端点路径测量；
+- 存在分支且无法可靠判定端点路径时明确返回未解析状态，而不是猜测。
 
-EasyEDA 3.2 当前无法通过官方 API 读取完整 physical stackup，因此不会冒充
-`HOST_VERIFIED`；未来 Host API 提供可靠 getter 后可增加独立 cross-check。
+调长遵循：
 
-### Routing Telemetry
+```text
+主体布线
+→ 长度测量
+→ 确定调长目标
+→ 指定调长区域
+→ 生成蛇形 / 等长几何
+→ 预检
+→ 批量写入
+→ 回读测量
+```
 
-`pcb.report` 支持低成本、只读的 routing telemetry。
+正式蛇形线可能天然具有大量短线段、方向反复和非单调路径，
+这些几何事实本身不代表质量有问题；应由智能体结合目标长度、蛇形间距、幅度、
+可用空间和耦合关系作工程判断。
+
+EasyEDA 3.2 当前无法通过官方接口读取完整物理叠层，因此不会冒充
+`HOST_VERIFIED`。现阶段可使用基于制造商资料并与当前规则绑定的配置档；
+未来宿主提供可靠物理叠层读取接口后，再增加独立交叉核验。
+
+### 布线遥测
+
+`pcb.report` 支持低成本、只读的布线遥测。
 
 它可以按整板或指定网络返回：
 
-- line / arc 铜长；
-- line / arc / via 数量；
-- 网络与 segment 长度分布；
+- 直线与圆弧铜长；
+- 直线、圆弧和过孔数量；
+- 网络与线段长度分布；
 - 直线方向分布；
 - 各铜层使用量；
-- routed / unrouted 网络计数。
+- 存在正铜长和零铜长的网络数量。
 
-Telemetry **只报告客观几何事实，不给 GOOD/BAD、质量评分或“违规”结论**。
+布线遥测**只报告客观几何事实，不给出优劣判断、质量评分或“违规”结论**。
 
-修改单网或小批网络时可以只查询对应 nets，避免每次修改都重新分析整板。
+例如：
 
-### Plane、DRC 与制造输出
+- 某网络使用多少过孔；
+- 铜主要分布在哪些层；
+- 直线方向集中在哪些角度；
+- 一条网络中直线铜和圆弧铜各占多少；
+
+这些都只是测量结果。是否合理，需要结合该网络是普通数字信号、差分对、射频馈线、
+蛇形调长、大电流路径还是其它特殊结构，由智能体自行判断。
+
+修改单网或小批网络时可以只查询对应网络，避免每次修改都重新分析整板。
+
+原则是：
+
+> **报告范围应与修改范围匹配。**
+
+### 平面、设计规则检查与制造输出
 
 同时补齐：
 
-- logical plane refresh 与 primitive ID remap；
-- native DRC baseline / delta comparison；
-- Project → first schematic → PCB 的生命周期入口；
-- Gerber / Drill / BOM / PnP 制造导出；
-- PTH / NPTH 结构验证；
-- 文件与制造成员 SHA256 manifest。
+- 逻辑平面刷新与图元编号重映射；
+- 原生设计规则检查基线与差异比较；
+- 项目 → 首张原理图 → PCB 的完整生命周期入口；
+- Gerber、钻孔、物料清单和贴片坐标制造导出；
+- 金属化通孔与非金属化通孔结构验证；
+- 文件及制造成员的 SHA256 校验清单。
 
-这些能力用于提供可验证的 EDA 执行闭环，但不等价于 SI / PI / DFM /
-thermal / RF 的最终工程签核。
+这些能力用于提供可验证的 EDA 执行闭环，但不等价于信号完整性、电源完整性、
+可制造性、热设计或射频性能的最终工程签核。
 
 ### 可配置能力边界
 
-可通过环境变量从 Agent 可用能力中移除指定 action：
+可通过环境变量从智能体可用能力中移除指定动作：
 
 ```text
 EASYEDA_DISABLED_ACTIONS=pcb.import_autoroute
 ```
 
-被禁用的 action：
+被禁用的动作：
 
-- 不出现在 action catalog；
-- 不进入 MCP action enum；
-- 直接 typed CLI 调用同样会在访问 daemon / Host 前返回 `CAPABILITY_DISABLED`。
+- 不出现在动作目录；
+- 不进入 MCP 动作枚举；
+- 直接通过有类型命令行调用时，也会在访问本地服务或 EasyEDA 宿主前返回
+  `CAPABILITY_DISABLED`。
 
-例如在“禁止自动布线”的 benchmark 中，可以直接禁用 autoroute import，
-而不是只依赖 Prompt 要求 Agent 自觉避免使用。
+例如在“禁止自动布线”的基准测试中，可以直接禁用自动布线结果导入能力，
+而不是只依赖提示词要求智能体自行避免使用。
 
 ### 特色:电路块库(一次贡献,永久收益)
 

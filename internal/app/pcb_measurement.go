@@ -141,6 +141,14 @@ func pcbReportScoped(cfg *appConfig, window, payload string, stdout, stderr io.W
 	if e := json.Unmarshal([]byte(payload), &p); e != nil {
 		return e
 	}
+	if value, exists := p["telemetry"]; exists {
+		if _, ok := value.(bool); !ok {
+			return fmt.Errorf("telemetry must be boolean")
+		}
+	}
+	if p["telemetry"] == true {
+		return pcbRoutingTelemetry(cfg, window, p, stdout, stderr)
+	}
 	if p["geometry"] != true && p["profile_id"] == nil {
 		return dispatch(cfg, "pcb.report", window, p, stdout, stderr)
 	}

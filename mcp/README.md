@@ -71,3 +71,48 @@ direct CLI calls return `CAPABILITY_DISABLED` with `action` and
 `source=EASYEDA_DISABLED_ACTIONS`. To restrict shell CLI calls, ensure that the
 corresponding `easyeda` process inherits the same variable. This process setting
 is not a security boundary for processes that do not inherit it.
+
+### Optional routing telemetry
+
+Use the existing `easyeda_pcb` action `pcb.report` with payload
+`{"telemetry":true,"project_uuid":"PROJECT_UUID","document_uuid":"PCB_UUID"}`;
+add `"nets":["NET1","NET2"]` for net scope. CLI equivalent:
+`easyeda --project PROJECT_UUID --doc PCB_UUID pcb report --payload '{"telemetry":true}'`.
+Without `telemetry:true`, the existing report is unchanged. The telemetry response
+contains only `result.routingTelemetry`: board scope returns `summary` and
+`netLengthDistribution`, never all net rows; explicit nets return `nets[]` only.
+An explicit empty nets array returns no rows. Duplicate names are deduplicated;
+missing names fail with `UNKNOWN_NET`. Other report measurement options cannot be
+combined with telemetry in this first version (explicit error, never ignored).
+
+Lengths are mil: totalCopperLength and net length are the PCB in-plane trace + arc
+centerline length, excluding via barrel vertical length, package/internal length,
+pad/pour area and unverified propagation delay. `lineCount` counts straight primitives; `traceCount` remains its compatibility alias.
+`lineLength` sums their centerline lengths; `arcCount` and `arcLength` count arcs
+and sum the existing verified arc lengths. `totalCopperLength = lineLength + arcLength`;
+`viaCount` counts via primitives. Each polyline leg is one length-distribution
+sample, each arc contributes its existing verified arc length as one sample.
+Zero-length legs remain in the distribution but not the orientation histogram.
+Distributions include `count,min,median,p90,max`: sorted nearest-rank
+`ceil(p*N)` (1-based), with null extrema/percentiles for empty data. Board net
+length distribution includes only nets with routed length > 0. Board netCount,
+routedNetCount and unroutedNetCount expose all known nets, including zero-length
+nets. With no routed nets the distribution count is zero and all percentiles are
+null. Unassigned copper contributes to board totals but has no named-net sample.
+
+Orientation is atan2 modulo 180 degrees, with twelve circular bins centered at
+0,15,...,165 degrees. Each bin covers [centerDeg-7.5,centerDeg+7.5) modulo 180
+and reports centerDeg, count and length. The zero bin combines [172.5,180) and
+[0,7.5). Its length totals cover lineLength only. Arcs and zero-length segments are excluded.
+`layerUsage` reports native copper layer IDs only; its `traceLength` and
+`traceCount` include both straight and arc primitives. Unknown trace geometry or
+missing copper-layer metadata prevents a fabricated complete measurement.
+
+The Go implementation uses one bulk `pcb.nets.list` and one
+`board.snapshot_compact` (traces/vias only), plus existing document guards.
+It does not invoke the native report's per-net length queries. All aggregation
+is local; no score, angle rule, route judgement, DRC or PCB mutation is performed.
+
+Area inventory counts are not emitted: this telemetry snapshot requests fills:false.
+Its current data contains no fill/polygon/pour inventory; projected pour fragments
+are not assumed to be one native primitive each. No extra area read is added.

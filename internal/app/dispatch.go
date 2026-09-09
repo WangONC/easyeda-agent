@@ -14,6 +14,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/zhoushoujianwork/easyeda-agent/internal/protocol"
 )
 
 const (
@@ -795,6 +797,12 @@ func stripArtifactNesting(p string) string {
 // postAction is the shared HTTP core: find a live daemon, POST the typed action,
 // and return the raw response body.
 func postAction(cfg *appConfig, action, window string, payload any, timeout time.Duration) ([]byte, error) {
+	if protocol.ActionDisabled(action) {
+		return json.Marshal(map[string]any{"ok": false, "error": map[string]any{
+			"code": "CAPABILITY_DISABLED", "message": "action disabled by process configuration",
+			"action": action, "source": protocol.DisabledActionsEnv,
+		}})
+	}
 	// dry-run 纯计算铁律 (ADR-0004 Decision 4): while the process-wide dry-run
 	// flag is set, a Mutates=true action is refused HERE — before any network
 	// traffic — so no dry-run path can ever write the canvas.

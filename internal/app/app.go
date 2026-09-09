@@ -177,7 +177,7 @@ func newActionsCmd(stdout, _ io.Writer) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			enc := json.NewEncoder(stdout)
 			enc.SetIndent("", "  ")
-			return enc.Encode(protocol.AllActions())
+			return enc.Encode(protocol.AvailableActions())
 		},
 	}
 }

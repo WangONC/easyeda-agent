@@ -78,3 +78,23 @@ test('stdio MCP initializes, lists tools, and invokes offline discovery', async 
     await rm(stateDir,{recursive:true,force:true});
   }
 });
+
+test('stdio catalog inherits exact action disabling from CLI environment', async () => {
+  const transport = new StdioClientTransport({
+    command: process.execPath, args: [serverPath], cwd: packageDir,
+    env: { ...process.env, EASYEDA_DISABLED_ACTIONS: ' pcb.import_autoroute, pcb.report,pcb.import_autoroute, , ' },
+  });
+  const client = new Client({name:'disabled-actions-test',version:'1.0.0'});
+  try {
+    await client.connect(transport);
+    const listed = await client.listTools();
+    const actions = listed.tools.find(t=>t.name==='easyeda_pcb').inputSchema.properties.action.enum;
+    for (const disabled of ['pcb.import_autoroute','pcb.report']) assert.ok(!actions.includes(disabled));
+    assert.ok(actions.includes('pcb.import_changes'));
+    const discovered = await client.callTool({name:'easyeda_actions',arguments:{}});
+    assert.equal(discovered.isError,false);
+    for (const disabled of ['pcb.import_autoroute','pcb.report']) assert.ok(!discovered.structuredContent.actions.some(a=>a.name===disabled));
+    const searched = await client.callTool({name:'easyeda_actions',arguments:{search:'pcb.import_autoroute'}});
+    assert.deepEqual(searched.structuredContent.actions,[]);
+  } finally { await client.close(); }
+});

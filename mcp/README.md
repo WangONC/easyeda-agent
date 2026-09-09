@@ -52,3 +52,22 @@ DSH 原生支持 skill 与 MCP client 两种形态，本仓库两者都已具备
 `src/server.mjs`）即可，工具以 `mcp__easyeda__easyeda_*` 命名。注意 in-box
 插件无需 pnpm 安装（fallback 从 dsh 安装目录解析），profile 里误装旧版会遮蔽
 fallback。
+
+## Disable selected actions
+
+Set the MCP server environment, for example:
+
+```json
+"env": {
+  "EASYEDA_DISABLED_ACTIONS": "pcb.import_autoroute"
+}
+```
+
+Restart MCP after changing this value. Names are comma-separated, trimmed, exact
+full action names; empty entries are ignored and duplicates removed. Unset or
+empty means no actions are disabled. No wildcards or regex are supported.
+Disabled actions are omitted from CLI/MCP discovery and domain action enums;
+direct CLI calls return `CAPABILITY_DISABLED` with `action` and
+`source=EASYEDA_DISABLED_ACTIONS`. To restrict shell CLI calls, ensure that the
+corresponding `easyeda` process inherits the same variable. This process setting
+is not a security boundary for processes that do not inherit it.

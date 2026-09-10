@@ -55,7 +55,7 @@ export const componentModify: NativeAction={mode:'V2_NATIVE',scope:'DESIGN_CONTE
  }
  return c.verify();
 }};
-async function verifyDrcReport(raw:unknown):Promise<Observation> {
+export async function verifyDrcReport(raw:unknown):Promise<Observation> {
  if(!Array.isArray(raw)) return {changed:null,verification:unavailable(),evidence:raw};
  const group=(v:unknown):boolean=>!!v && typeof v==='object' && typeof (v as {name?:unknown}).name==='string' && Array.isArray((v as {list?:unknown}).list);
  if(!raw.every(group)) return {changed:null,verification:unavailable(),evidence:raw};
@@ -778,3 +778,27 @@ export function netflagCreate(serialize:(component:unknown)=>unknown):NativeActi
   });return c.verify();
  }};
 }
+
+export const groupAddNets:NativeAction={mode:'V2_NATIVE',scope:'DESIGN_CONTENT',validate:p=>{declaredReadFields('pcb.equal_length_group.add_nets')(p);if(!Array.isArray(p.nets)||!p.nets.length)throw Error('V2_MISSING_NETS');},run:async c=>{
+ const name=c.request.input.name as string,nets=c.request.input.nets as string[];
+ const pull=async()=>nativeNamedList(await eda.pcb_Drc.getAllEqualLengthNetGroups());
+ const before=await pull(),old=before.find(g=>g.name===name);if(!old||!Array.isArray(old.nets))throw Error('V2_GROUP_NOT_FOUND');
+ const initial=[...old.nets],added=nets.filter(n=>!initial.includes(n));
+ if(!added.length)return observed({name,nets:initial,added:[],alreadyMembers:nets,verified:true},['fresh_exact_group_membership'],false);
+ const available=array(await eda.pcb_Net.getAllNetsName());if(!added.every(n=>available.includes(n)))throw Error('V2_NET_NOT_FOUND');
+ c.prepare(async()=>{
+  const all=await pull(),after=all.find(g=>g.name===name);
+  if(!after||!Array.isArray(after.nets)||!initial.every(n=>after.nets.includes(n))||after.nets.some(n=>!initial.includes(n)&&!added.includes(n))||JSON.stringify(all.filter(g=>g.name!==name))!==JSON.stringify(before.filter(g=>g.name!==name)))return {changed:null,verification:unavailable()};
+  const landed=added.filter(n=>after.nets.includes(n)),notApplied=added.filter(n=>!after.nets.includes(n));
+  return {value:{name,nets:after.nets,added:landed,verified:!notApplied.length,...(notApplied.length?{partial:true,notApplied}:{})},changed:landed.length>0,verification:{verdict:!notApplied.length?'satisfied':landed.length?'partial':'unchanged',checked:['fresh_membership','unrelated_groups','complete_requested_nets'],complete:true,required:added.length,satisfied:landed.length,residual:notApplied.length}};
+ });
+ await c.effect(async()=>{const fresh=(await pull()).find(g=>g.name===name);if(!fresh||JSON.stringify(fresh.nets)!==JSON.stringify(initial))throw Error('V2_GROUP_DRIFT');await eda.pcb_Drc.addNetToEqualLengthNetGroup(name,added);});
+ return c.verify();
+}};
+
+export function fastRead(action:string):NativeAction{return read(async c=>{
+ const t=c.request.target_ref,p=c.request.input;
+ if(p.project_uuid!==undefined&&p.project_uuid!==t.project_uuid||p.document_uuid!==undefined&&p.document_uuid!==t.document_uuid)throw Error('V2_TARGET_MISMATCH');
+ const snapshot=await fastPath.snapshotData(nativePort(),{project_uuid:t.project_uuid,document_uuid:t.document_uuid});
+ return {fast_observation:'v2',snapshot:snapshot.data};
+},declaredReadFields(action));}

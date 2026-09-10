@@ -1,0 +1,180 @@
+package drc
+
+import (
+	"math"
+	"regexp"
+	"sort"
+	"strings"
+)
+
+// Violation is one flattened DRC violation row.
+type Violation struct {
+	Rule     string   `json:"rule"`               // error class, e.g. "Clearance Error"
+	ObjType  string   `json:"objType,omitempty"`  // e.g. "Track to Track", "SMD Pad"
+	RuleName string   `json:"ruleName,omitempty"` // rule that fired, e.g. "copperThickness1oz"
+	Net      string   `json:"net,omitempty"`
+	X        *float64 `json:"x,omitempty"` // mil (leaf pos ×10)
+	Y        *float64 `json:"y,omitempty"` // mil
+	Layer    string   `json:"layer,omitempty"`
+	Objs     []string `json:"objs,omitempty"` // primitiveIds involved
+	Message  string   `json:"message,omitempty"`
+	Index    string   `json:"globalIndex,omitempty"`
+}
+
+// Report is the `pcb drc --json` output shape.
+type Report struct {
+	Passed     bool           `json:"passed"`
+	Total      int            `json:"total"`
+	Counts     map[string]int `json:"counts"`
+	Violations []Violation    `json:"violations"`
+	Binding    map[string]any `json:"binding,omitempty"` // Netlist-Error board-binding diagnostic, passed through
+}
+
+// suffixNetRe extracts the net name from an object suffix like "(+3V3): C2_2".
+var suffixNetRe = regexp.MustCompile(`^\((.+?)\)`)
+
+// Flatten converts a raw pcb.drc.check result map into the flat report.
+func Flatten(result map[string]any) Report {
+	report := Report{
+		Passed: result["passed"] == true,
+		Counts: map[string]int{},
+		// Empty slice (not nil) so the JSON is always an array.
+		Violations: []Violation{},
+	}
+	if b, ok := result["binding"].(map[string]any); ok {
+		report.Binding = b
+	}
+	collectDrcLeaves(result["violations"], &report.Violations)
+
+	// Stable order: by error class, then net, then index — diff-friendly output.
+	sort.SliceStable(report.Violations, func(i, j int) bool {
+		a, b := report.Violations[i], report.Violations[j]
+		if a.Rule != b.Rule {
+			return a.Rule < b.Rule
+		}
+		if a.Net != b.Net {
+			return a.Net < b.Net
+		}
+		return a.Index < b.Index
+	})
+	for _, v := range report.Violations {
+		report.Counts[v.Rule]++
+	}
+	report.Total = len(report.Violations)
+	return report
+}
+
+// collectDrcLeaves walks the nested group tree ({count,list,name,…} at every
+// level) and appends one row per violation leaf. A leaf is any node carrying
+// errorType + explanation; everything else recurses through maps and arrays,
+// which keeps the walk robust to the panel's varying nesting depth.
+func collectDrcLeaves(node any, out *[]Violation) {
+	switch n := node.(type) {
+	case []any:
+		for _, item := range n {
+			collectDrcLeaves(item, out)
+		}
+	case map[string]any:
+		_, hasErrType := n["errorType"]
+		_, hasExplanation := n["explanation"]
+		if hasErrType && hasExplanation {
+			*out = append(*out, flattenDrcLeaf(n))
+			return
+		}
+		collectDrcLeaves(n["list"], out)
+	}
+}
+
+// flattenDrcLeaf projects one violation leaf into a flat row.
+func flattenDrcLeaf(leaf map[string]any) Violation {
+	v := Violation{
+		Rule:     asString(leaf["errorType"]),
+		ObjType:  asString(leaf["errorObjType"]),
+		RuleName: asString(leaf["ruleName"]),
+		Layer:    asString(leaf["layer"]),
+		Index:    asString(leaf["globalIndex"]),
+	}
+
+	explanation, _ := leaf["explanation"].(map[string]any)
+	var errData map[string]any
+	if explanation != nil {
+		errData, _ = explanation["errData"].(map[string]any)
+	}
+
+	// Net: leaf.net → errData.net → "(NET)" prefix of an object suffix.
+	v.Net = asString(leaf["net"])
+	if v.Net == "" && errData != nil {
+		v.Net = asString(errData["net"])
+	}
+	obj1Suffix := objSuffix(leaf, "obj1")
+	obj2Suffix := objSuffix(leaf, "obj2")
+	if v.Net == "" {
+		for _, suffix := range []string{obj1Suffix, obj2Suffix} {
+			if m := suffixNetRe.FindStringSubmatch(suffix); m != nil {
+				v.Net = m[1]
+				break
+			}
+		}
+	}
+
+	// Coordinates: leaf pos {x,y} in mil/10 → mil (A5).
+	if pos, ok := leaf["pos"].(map[string]any); ok {
+		if x, okX := asFloatOK(pos["x"]); okX {
+			if y, okY := asFloatOK(pos["y"]); okY {
+				xm, ym := round2(x*10), round2(y*10)
+				v.X, v.Y = &xm, &ym
+			}
+		}
+	}
+
+	// Involved primitive ids.
+	if objs, ok := leaf["objs"].([]any); ok {
+		for _, o := range objs {
+			if id := asString(o); id != "" {
+				v.Objs = append(v.Objs, id)
+			}
+		}
+	}
+
+	// Message: the explanation template with {obj1}/{obj2} bound to the real
+	// object suffixes and the remaining {placeholders} filled from param.
+	if explanation != nil {
+		msg := asString(explanation["str"])
+		fill := map[string]string{"obj1": obj1Suffix, "obj2": obj2Suffix}
+		if param, ok := explanation["param"].(map[string]any); ok {
+			for k, val := range param {
+				if _, bound := fill[k]; bound && fill[k] != "" {
+					continue // real object suffix beats the generic param label
+				}
+				fill[k] = asString(val)
+			}
+		}
+		for k, val := range fill {
+			if val != "" {
+				msg = strings.ReplaceAll(msg, "{"+k+"}", val)
+			}
+		}
+		v.Message = msg
+	}
+	return v
+}
+
+// objSuffix reads leaf.<key>.suffix ("(+3V3): C2_2"), tolerating absence.
+func objSuffix(leaf map[string]any, key string) string {
+	if obj, ok := leaf[key].(map[string]any); ok {
+		return asString(obj["suffix"])
+	}
+	return ""
+}
+
+func asString(v any) string { s, _ := v.(string); return s }
+func asFloatOK(v any) (float64, bool) {
+	switch n := v.(type) {
+	case float64:
+		return n, true
+	case int:
+		return float64(n), true
+	}
+	return 0, false
+}
+func round2(v float64) float64 { return math.Round(v*100) / 100 }

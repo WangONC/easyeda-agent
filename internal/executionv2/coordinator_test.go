@@ -26,6 +26,7 @@ func TestFinalizer(t *testing.T) {
 		{"no op", evidence(r, "satisfied", false, 1, 0), Succeeded},
 		{"no effect", evidence(r, "unchanged", false, 0, 1), NotApplied},
 		{"partial", evidence(r, "partial", true, 1, 1), Partial},
+		{"settled known changed scope with zero achieved items", evidence(r, "partial", true, 0, 2), Partial},
 		{"unavailable", evidence(r, "unavailable", true, 0, 1), Unknown},
 	}
 	for _, tt := range tests {

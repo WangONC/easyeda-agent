@@ -31,7 +31,7 @@ export function canonical(v: unknown): string {
  return JSON.stringify(v);
 }
 function failure(code: string): never { throw new ActionError(code, code); }
-function validOperations(value: unknown): asserts value is Operation[] {
+export function validOperations(value: unknown): asserts value is Operation[] {
  if (!Array.isArray(value) || value.length < 1 || value.length > 512) failure('INVALID_OPERATIONS');
  const finite = (n: unknown) => typeof n === 'number' && Number.isFinite(n) && Math.abs(n) < 1e8;
  const ids = new Set<string>();

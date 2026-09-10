@@ -22,7 +22,11 @@ func newV2Cmd(out io.Writer) *cobra.Command {
 	root.AddCommand(&cobra.Command{Use: "catalog", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, args []string) error {
 		list := []map[string]any{}
 		for _, a := range protocol.AllActions() {
-			item := map[string]any{"name": a.Name, "domain": a.Domain, "mode": "NOT_MIGRATED"}
+			item := map[string]any{"name": a.Name, "domain": a.Domain, "mode": "NOT_MIGRATED", "description": a.Description, "inputs": a.Inputs, "outputs": a.Outputs, "mutates": a.Mutates}
+			if a.V2Disposition != nil {
+				item["mode"] = a.V2Disposition.Mode
+				item["reason"] = a.V2Disposition.Reason
+			}
 			if a.V2 != nil {
 				item["mode"] = "V2_NATIVE"
 				item["v2"] = a.V2

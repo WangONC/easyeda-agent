@@ -97,6 +97,23 @@ func TestV2HTTPWebSocketReceiptAndDuplicate(t *testing.T) {
 	case <-ctx.Done():
 		t.Fatal(ctx.Err())
 	}
+	// Drop the first release at the simulated Connector. Reconcile must resend
+	// only resolved release authority, not dispatch or a mutation/readback replay.
+	recovered, err := http.Post(server.URL+"/v2/operation?id=op&view=reconcile", "application/json", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	recovered.Body.Close()
+	if recovered.StatusCode != http.StatusOK {
+		t.Fatal(recovered.StatusCode)
+	}
+	var repeated map[string]any
+	if err = wsjson.Read(ctx, ws, &repeated); err != nil {
+		t.Fatal(err)
+	}
+	if repeated["type"] != "v2_release" || repeated["digest"] != dispatched.Digest {
+		t.Fatal(repeated)
+	}
 	// Same operation is answered from the daemon receipt, not another WS dispatch.
 	response, e := http.Post(server.URL+"/v2/operations", "application/json", bytes.NewReader(body))
 	if e != nil {
@@ -120,7 +137,7 @@ func TestV2LegacyEndpointsAndUnmigratedAreClosed(t *testing.T) {
 			t.Fatal(path, w.Code)
 		}
 	}
-	req := executionv2.Request{Protocol: executionv2.Version, Action: "route.apply_batch", ActionRevision: "1", Schema: "x", RequestID: "r", OperationID: "op", Target: executionv2.Target{Scope: "HOME", Session: "s", Activation: "a"}, Input: map[string]any{}, BudgetMS: 100}
+	req := executionv2.Request{Protocol: executionv2.Version, Action: "unknown.action", ActionRevision: "1", Schema: "x", RequestID: "r", OperationID: "op", Target: executionv2.Target{Scope: "HOME", Session: "s", Activation: "a"}, Input: map[string]any{}, BudgetMS: 100}
 	if _, e := s.v2.Submit(context.Background(), req); e == nil || !strings.Contains(e.Error(), "NOT_MIGRATED") {
 		t.Fatal(e)
 	}

@@ -2,29 +2,41 @@
   "baseline": "a583bf731d946d2d39f1223e078d711bd41710d5",
   "counts": {
     "Total": 151,
-    "V2_NATIVE": 81,
-    "NOT_MIGRATED": 70,
-    "RETIRED_UNSUPPORTED": 0,
+    "V2_NATIVE": 144,
+    "NOT_MIGRATED": 0,
+    "RETIRED": 0,
+    "UNSUPPORTED": 7,
+    "LEGACY_RUNTIME": 0,
     "levels": {
       "1": {
         "total": 33,
-        "migrated": 33
+        "migrated": 33,
+        "unsupported": 0,
+        "retired": 0
       },
       "2": {
         "total": 46,
-        "migrated": 46
+        "migrated": 46,
+        "unsupported": 0,
+        "retired": 0
       },
       "3": {
         "total": 47,
-        "migrated": 2
+        "migrated": 45,
+        "unsupported": 2,
+        "retired": 0
       },
       "4": {
         "total": 21,
-        "migrated": 0
+        "migrated": 18,
+        "unsupported": 3,
+        "retired": 0
       },
       "5": {
         "total": 4,
-        "migrated": 0
+        "migrated": 2,
+        "unsupported": 2,
+        "retired": 0
       }
     }
   },
@@ -39,6 +51,9 @@
         "name"
       ],
       "baseline_description": "Copy a Board (its schematic + PCB) into a new Board; returns the new board name.",
+      "baseline_outputs": [
+        "boardName"
+      ],
       "baseline_source": "internal/protocol/actions.go:958",
       "v2": {
         "effect_scope": "PROJECT_TOPOLOGY",
@@ -61,6 +76,9 @@
         "pcbUuid optional"
       ],
       "baseline_description": "Create a Board binding a schematic and/or a PCB into one group (组合). Pass schematicUuid and/or pcbUuid; returns the new board name.",
+      "baseline_outputs": [
+        "boardName"
+      ],
       "baseline_source": "internal/protocol/actions.go:926",
       "v2": {
         "effect_scope": "PROJECT_TOPOLOGY",
@@ -81,6 +99,10 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "Read the current Board (its bound schematic + PCB).",
+      "baseline_outputs": [
+        "linked",
+        "board"
+      ],
       "baseline_source": "internal/protocol/actions.go:918",
       "v2": {
         "effect_scope": "NONE",
@@ -100,6 +122,9 @@
         "name"
       ],
       "baseline_description": "Delete a Board by name (无 undo). Removes the schematic↔PCB grouping and its documents.",
+      "baseline_outputs": [
+        "ok"
+      ],
       "baseline_source": "internal/protocol/actions.go:969",
       "v2": {
         "effect_scope": "PROJECT_TOPOLOGY",
@@ -121,6 +146,9 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "List all Boards (板子) in the current project. A Board binds one schematic + one PCB into a group — this is how schematic and PCB are kept together (and what import_changes follows).",
+      "baseline_outputs": [
+        "boards (name + schematic + pcb)"
+      ],
       "baseline_source": "internal/protocol/actions.go:910",
       "v2": {
         "effect_scope": "NONE",
@@ -134,21 +162,39 @@
       "action": "board.new_pcb",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "schematicUuid optional (default = current board's schematic)",
         "name optional (rename the new board)"
       ],
       "baseline_description": "Create a NEW board (板) containing a fresh empty PCB page, bound to a schematic — the 新建PCB / 原理图转PCB flow. Unlike board.create (which only links existing docs), this mints a real new PCB you can switch to and import-changes into. Runs the required 2-step SDK sequence (createBoard shell → createPcb into it) with rollback. Defaults the schematic to the current board's if omitted.",
-      "baseline_source": "internal/protocol/actions.go:937"
+      "baseline_outputs": [
+        "boardName",
+        "pcbName",
+        "pcbUuid",
+        "schematicUuid"
+      ],
+      "baseline_source": "internal/protocol/actions.go:937",
+      "v2": {
+        "effect_scope": "PROJECT_TOPOLOGY",
+        "input": {
+          "force": "boolean",
+          "name": "string",
+          "schematic": "string",
+          "schematicUuid": "string"
+        },
+        "revision": "1",
+        "schema": "dee8edb91a4ec4c08300c3a6bef1d76ee3776a00dc1a5c57d1280031dee02b62",
+        "target": "PROJECT"
+      }
     },
     {
       "action": "board.rebind",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "schematicUuid",
         "pcbUuid optional",
@@ -156,7 +202,25 @@
         "force optional"
       ],
       "baseline_description": "Repair a stale/orphaned Board binding (e.g. after a rebuild-from-empty PCB left the Board pointing at a deleted schematic, crashing board.list and faking a DRC Netlist Error): deletes the old Board (by name, else the current one) and re-creates it bound to the given schematic (+ PCB), restoring the original name and rolling back on failure. A schematic can belong to only ONE Board — pass force to move one already bound elsewhere.",
-      "baseline_source": "internal/protocol/actions.go:980"
+      "baseline_outputs": [
+        "boardName",
+        "schematicUuid",
+        "pcbUuid",
+        "replaced (old binding or null)"
+      ],
+      "baseline_source": "internal/protocol/actions.go:980",
+      "v2": {
+        "effect_scope": "PROJECT_TOPOLOGY",
+        "input": {
+          "force": "boolean",
+          "name": "string",
+          "pcbUuid": "string",
+          "schematicUuid": "!string"
+        },
+        "revision": "1",
+        "schema": "c232db0fb65779711da6a295da39a88a227a5caaa21a3f3e4af165700e6e64aa",
+        "target": "PROJECT"
+      }
     },
     {
       "action": "board.rename",
@@ -169,6 +233,9 @@
         "newName"
       ],
       "baseline_description": "Rename a Board (板子) by its current name.",
+      "baseline_outputs": [
+        "ok"
+      ],
       "baseline_source": "internal/protocol/actions.go:948",
       "v2": {
         "effect_scope": "PROJECT_TOPOLOGY",
@@ -187,8 +254,8 @@
       "action": "board.snapshot_compact",
       "level": 3,
       "classification": "F",
-      "mode": "NOT_MIGRATED",
-      "reason": "Fast 业务引擎保留；正式 action 的 V2 revision/receipt/controlled-effect 接线尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "document_uuid",
         "project_uuid",
@@ -198,18 +265,46 @@
         "include {components,pads,traces,vias,fills} optional"
       ],
       "baseline_description": "Fast manual PCB routing snapshot; structured geometry only, no DRC or reload. Requires pcb.fast_manual.v0.1.",
-      "baseline_source": "internal/protocol/actions.go:45"
+      "baseline_outputs": [
+        "board_revision",
+        "geometry_hash",
+        "scope",
+        "components[]",
+        "pads[]",
+        "traces[]",
+        "vias[]",
+        "fills[]",
+        "telemetry"
+      ],
+      "baseline_source": "internal/protocol/actions.go:45",
+      "v2": {
+        "effect_scope": "NONE",
+        "input": {
+          "bbox": "array",
+          "document_uuid": "string",
+          "include": "object",
+          "layers": "array",
+          "nets": "string[]",
+          "project_uuid": "string"
+        },
+        "revision": "1",
+        "schema": "6202592821edd4896ae1e5c02396b2536731441689dfa9136438c48d460f4835",
+        "target": "pcb"
+      }
     },
     {
       "action": "debug.exec_js",
       "level": 5,
       "classification": "L",
-      "mode": "NOT_MIGRATED",
-      "reason": "实验/特殊路径尚未定义并实现 V2-native completion contract。",
+      "mode": "UNSUPPORTED",
+      "reason": "Arbitrary AsyncFunction receives the full eda object; effect scope, spawned asynchronous work, target ownership and semantic postconditions cannot be bounded by the typed execution contract.",
       "baseline_inputs": [
         "code"
       ],
       "baseline_description": "Run raw eda.* JavaScript in the connector. Escape hatch for operations without a typed action; confirmation-gated, not for normal workflows.",
+      "baseline_outputs": [
+        "value"
+      ],
       "baseline_source": "internal/protocol/actions.go:1479"
     },
     {
@@ -220,6 +315,11 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "Read active editor document and schematic page context.",
+      "baseline_outputs": [
+        "document uuid",
+        "document type",
+        "tab id"
+      ],
       "baseline_source": "internal/protocol/actions.go:79",
       "v2": {
         "diagnostic": true,
@@ -240,6 +340,9 @@
         "uuid"
       ],
       "baseline_description": "Open any document (schematic page or PCB) by UUID and activate its editor tab. A generalization of schematic.page.open that works for all document types.",
+      "baseline_outputs": [
+        "tab id"
+      ],
       "baseline_source": "internal/protocol/actions.go:87",
       "v2": {
         "effect_scope": "NAVIGATION_SELECTION",
@@ -266,6 +369,12 @@
         "scope/libraryUuid optional"
       ],
       "baseline_description": "Create a single Device library record that binds an existing Symbol, optional Footprint and optional 3D model, plus BOM properties; immediately read back the association for verification.",
+      "baseline_outputs": [
+        "uuid",
+        "libraryUuid",
+        "verified",
+        "device"
+      ],
       "baseline_source": "internal/protocol/actions.go:483",
       "v2": {
         "effect_scope": "LIBRARY_ASSET",
@@ -297,6 +406,13 @@
         "expectedName"
       ],
       "baseline_description": "Delete one exact Device library record after UUID+library+expectedName preflight, then verify it no longer exists.",
+      "baseline_outputs": [
+        "uuid",
+        "libraryUuid",
+        "name",
+        "deleted",
+        "verified"
+      ],
       "baseline_source": "internal/protocol/actions.go:503",
       "v2": {
         "effect_scope": "LIBRARY_ASSET",
@@ -321,6 +437,9 @@
         "libraryUuid optional"
       ],
       "baseline_description": "Read a Device library record and its Symbol/Footprint/3D association by UUID.",
+      "baseline_outputs": [
+        "device"
+      ],
       "baseline_source": "internal/protocol/actions.go:494",
       "v2": {
         "effect_scope": "NONE",
@@ -346,6 +465,14 @@
         "model3D {uuid,libraryUuid} OR clear=true"
       ],
       "baseline_description": "Bind, replace, or clear a 3D model on an existing Device via lib_Device.modify and exact association readback.",
+      "baseline_outputs": [
+        "uuid",
+        "libraryUuid",
+        "model3D",
+        "cleared",
+        "verified",
+        "device"
+      ],
       "baseline_source": "internal/protocol/actions.go:514",
       "v2": {
         "effect_scope": "LIBRARY_ASSET",
@@ -365,8 +492,8 @@
       "action": "library.footprint.build",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "uuid",
         "libraryUuid",
@@ -374,7 +501,26 @@
         "lines[] {layer,startX,startY,endX,endY,width}"
       ],
       "baseline_description": "Open an existing footprint library asset and author deterministic pad/line geometry from a JSON spec. Units are PCB/footprint mil. Validates the entire spec before mutation, verifies created primitive IDs by readback, and returns structured partial+rollback state instead of throwing after mutation begins.",
-      "baseline_source": "internal/protocol/actions.go:417"
+      "baseline_outputs": [
+        "tabId",
+        "created.pads",
+        "created.lines",
+        "verified",
+        "partial/rollback on failure"
+      ],
+      "baseline_source": "internal/protocol/actions.go:417",
+      "v2": {
+        "effect_scope": "LIBRARY_ASSET",
+        "input": {
+          "libraryUuid": "!string",
+          "lines": "array",
+          "pads": "array",
+          "uuid": "!string"
+        },
+        "revision": "1",
+        "schema": "7ef6ab61b795060dba377117f1f5bfacaa3706b078a7df8d47b944e6cfd1df9b",
+        "target": "LIBRARY"
+      }
     },
     {
       "action": "library.footprint.copy",
@@ -390,6 +536,14 @@
         "classification optional"
       ],
       "baseline_description": "Copy an existing footprint losslessly into a writable library under the EA_AGENT namespace and verify the new asset by readback.",
+      "baseline_outputs": [
+        "uuid",
+        "libraryUuid",
+        "name",
+        "source",
+        "verified",
+        "footprint"
+      ],
       "baseline_source": "internal/protocol/actions.go:395",
       "v2": {
         "effect_scope": "LIBRARY_ASSET",
@@ -420,6 +574,12 @@
         "description optional"
       ],
       "baseline_description": "Create an empty footprint library asset in the personal library by default (or project/explicit library) and immediately verify it with lib_Footprint.get. This creates the asset record; geometry authoring is a separate step.",
+      "baseline_outputs": [
+        "uuid",
+        "libraryUuid",
+        "verified",
+        "footprint"
+      ],
       "baseline_source": "internal/protocol/actions.go:375",
       "v2": {
         "effect_scope": "LIBRARY_ASSET",
@@ -447,6 +607,13 @@
         "expectedName"
       ],
       "baseline_description": "Delete one exact footprint library asset after UUID+library+expectedName preflight, then verify it no longer exists.",
+      "baseline_outputs": [
+        "uuid",
+        "libraryUuid",
+        "name",
+        "deleted",
+        "verified"
+      ],
       "baseline_source": "internal/protocol/actions.go:406",
       "v2": {
         "effect_scope": "LIBRARY_ASSET",
@@ -471,6 +638,9 @@
         "libraryUuid optional"
       ],
       "baseline_description": "Read a footprint library asset by UUID.",
+      "baseline_outputs": [
+        "footprint"
+      ],
       "baseline_source": "internal/protocol/actions.go:386",
       "v2": {
         "effect_scope": "NONE",
@@ -491,6 +661,12 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "List EasyEDA libraries and identify the writable personal/project library UUIDs used by library asset authoring.",
+      "baseline_outputs": [
+        "libraries",
+        "personalLibraryUuid",
+        "projectLibraryUuid",
+        "systemLibraryUuid"
+      ],
       "baseline_source": "internal/protocol/actions.go:367",
       "v2": {
         "effect_scope": "NONE",
@@ -514,6 +690,14 @@
         "classification optional"
       ],
       "baseline_description": "Copy an existing 3D model into a writable library under the EA_AGENT namespace and verify it by readback.",
+      "baseline_outputs": [
+        "uuid",
+        "libraryUuid",
+        "name",
+        "source",
+        "model",
+        "verified"
+      ],
       "baseline_source": "internal/protocol/actions.go:482",
       "v2": {
         "effect_scope": "LIBRARY_ASSET",
@@ -547,6 +731,15 @@
         "description optional"
       ],
       "baseline_description": "Import a STEP/3D file into a writable library, apply the EA_AGENT namespace, and verify metadata by readback.",
+      "baseline_outputs": [
+        "uuid",
+        "uuids",
+        "libraryUuid",
+        "name",
+        "model",
+        "verified",
+        "partial on metadata failure"
+      ],
       "baseline_source": "internal/protocol/actions.go:468",
       "v2": {
         "effect_scope": "LIBRARY_ASSET",
@@ -578,6 +771,13 @@
         "expectedName"
       ],
       "baseline_description": "Delete one exact 3D model after UUID+library+expectedName preflight and verify absence.",
+      "baseline_outputs": [
+        "uuid",
+        "libraryUuid",
+        "name",
+        "deleted",
+        "verified"
+      ],
       "baseline_source": "internal/protocol/actions.go:480",
       "v2": {
         "effect_scope": "LIBRARY_ASSET",
@@ -602,6 +802,9 @@
         "libraryUuid optional"
       ],
       "baseline_description": "Read a 3D model library asset by UUID.",
+      "baseline_outputs": [
+        "model"
+      ],
       "baseline_source": "internal/protocol/actions.go:479",
       "v2": {
         "effect_scope": "NONE",
@@ -627,6 +830,10 @@
         "limit optional 1..100"
       ],
       "baseline_description": "Search existing 3D models by keyword, optionally within one exact library.",
+      "baseline_outputs": [
+        "models",
+        "count"
+      ],
       "baseline_source": "internal/protocol/actions.go:481",
       "v2": {
         "effect_scope": "NONE",
@@ -645,8 +852,8 @@
       "action": "library.symbol.build",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "uuid",
         "libraryUuid",
@@ -655,7 +862,28 @@
         "circles[] optional {centerX,centerY,radius,lineWidth?}"
       ],
       "baseline_description": "Open an empty symbol asset and author a polygon outline plus deterministic pins, save, and verify every created primitive by readback.",
-      "baseline_source": "internal/protocol/actions.go:447"
+      "baseline_outputs": [
+        "tabId",
+        "created.pins",
+        "created.outline",
+        "created.circles",
+        "verified",
+        "partial on failure"
+      ],
+      "baseline_source": "internal/protocol/actions.go:447",
+      "v2": {
+        "effect_scope": "LIBRARY_ASSET",
+        "input": {
+          "circles": "array",
+          "libraryUuid": "!string",
+          "outline": "!array",
+          "pins": "!array",
+          "uuid": "!string"
+        },
+        "revision": "1",
+        "schema": "74249d301d97c7820a0c160f164a35beb5fb98e03b4ed7ed3b8ec780f84ab6b0",
+        "target": "LIBRARY"
+      }
     },
     {
       "action": "library.symbol.create",
@@ -672,6 +900,12 @@
         "description optional"
       ],
       "baseline_description": "Create an empty symbol library asset and immediately verify it with lib_Symbol.get. symbolType is the official ELIB_SymbolType numeric value.",
+      "baseline_outputs": [
+        "uuid",
+        "libraryUuid",
+        "verified",
+        "symbol"
+      ],
       "baseline_source": "internal/protocol/actions.go:427",
       "v2": {
         "effect_scope": "LIBRARY_ASSET",
@@ -700,6 +934,13 @@
         "expectedName"
       ],
       "baseline_description": "Delete one exact symbol library asset after UUID+library+expectedName preflight, then verify it no longer exists.",
+      "baseline_outputs": [
+        "uuid",
+        "libraryUuid",
+        "name",
+        "deleted",
+        "verified"
+      ],
       "baseline_source": "internal/protocol/actions.go:457",
       "v2": {
         "effect_scope": "LIBRARY_ASSET",
@@ -724,6 +965,9 @@
         "libraryUuid optional"
       ],
       "baseline_description": "Read a symbol library asset by UUID.",
+      "baseline_outputs": [
+        "symbol"
+      ],
       "baseline_source": "internal/protocol/actions.go:438",
       "v2": {
         "effect_scope": "NONE",
@@ -740,8 +984,8 @@
       "action": "pcb.add_component",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "libraryUuid",
         "uuid",
@@ -754,27 +998,70 @@
         "nets optional (object padNumber→net)"
       ],
       "baseline_description": "Place a footprint on the PCB and CONNECT it — the WORKING way to add ONE part to an existing board, since pcb.import_changes no-ops for API-added parts (#20). Creates the footprint (device {libraryUuid, uuid}) at x,y on a copper layer, links it to its schematic twin (uniqueId + designator), assigns each pad's net from the supplied `nets` map (padNumber→net) via pad-net writes, then recomputes ratlines. Net→pad assignment is what actually wires it (importChanges normally does that). Get `nets` (and the twin's uniqueId) from `sch read` — the netlist is only readable while the schematic is active, so the caller passes it. Workflow: place+wire the part in the schematic → `sch read` for its pin nets + uniqueId → `pcb add-component` with those nets.",
-      "baseline_source": "internal/protocol/actions.go:1015"
+      "baseline_outputs": [
+        "primitiveId",
+        "designator",
+        "uniqueId",
+        "padCount",
+        "assignedNets",
+        "unmatchedPads"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1015",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "designator": "string",
+          "device": "object",
+          "layer": "number",
+          "libraryUuid": "string",
+          "nets": "object",
+          "rotation": "number",
+          "uniqueId": "string",
+          "uuid": "string",
+          "x": "!number",
+          "y": "!number"
+        },
+        "revision": "1",
+        "schema": "18b025994ef38591621ebe1b9aa91698225262bd969009500f0c2e504a404404",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.align",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "mode",
         "primitiveIds optional"
       ],
       "baseline_description": "Align components by an edge or center. mode = left|right|top|bottom|centerX|centerY (top/bottom are y-up: top = larger y). Aligns to the group extent. Operates on the current selection unless primitiveIds is given.",
-      "baseline_source": "internal/protocol/actions.go:1081"
+      "baseline_outputs": [
+        "moved[].primitiveId",
+        "moved[].designator",
+        "moved[].from",
+        "moved[].to",
+        "count"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1081",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "mode": "!string",
+          "primitiveIds": "string|array"
+        },
+        "revision": "1",
+        "schema": "791d0a3a19fa76a1d693ed6db37467b876036934d2a10f15896dace8f6941aa7",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.beautify",
       "level": 5,
       "classification": "L",
-      "mode": "NOT_MIGRATED",
-      "reason": "实验/特殊路径尚未定义并实现 V2-native completion contract。",
+      "mode": "UNSUPPORTED",
+      "reason": "Experimental engine rewrites routing with internal DRC retries, rollback and pour rebuild; its native effects and compensation residuals are not bounded by a verifiable public operation contract. Dry-run and mutation share this formal action; it is not advertised as a partially migrated success surface.",
       "baseline_inputs": [
         "scope (all|selected, default all)",
         "net optional (single) OR nets optional ([]string — beautify only these nets)",
@@ -789,6 +1076,18 @@
         "dryRun optional (default false)"
       ],
       "baseline_description": "Beautify already-routed copper tracks (走线美化): round sharp corners into arcs on the ACTIVE PCB — the routing-aesthetics post-process. Groups connected same-net/same-layer segments into polylines, fillets each interior corner (radius = max(width)*cornerRadiusRatio), then deletes the originals and creates the trimmed lines + arcs. Diff-pair/equal-length nets get concentric-arc protection (best-effort; falls back to straight if the diff-pair/equal-length API is absent on this build). Deleting+recreating tracks makes same-net pour bonding stale, so it runs a DRC binary-search repair (shrinks or straightens violating corners) then rebuilds copper pours. `dryRun` computes the plan WITHOUT mutating — safe to preview on any board. Copper layers only (TOP/BOTTOM/inner); never touches silkscreen/outline. Algorithm absorbed from Easy_EDA_PCB_Beautify (m-RNA, Apache-2.0). PCB must be the active/foreground tab. Save at a known-good checkpoint after.",
+      "baseline_outputs": [
+        "scope",
+        "dryRun",
+        "tracksConsidered",
+        "paths",
+        "cornersRounded",
+        "linesCreated",
+        "arcsCreated",
+        "protectedGroups",
+        "drcRounds",
+        "pourRebuilt"
+      ],
       "baseline_source": "internal/protocol/actions.go:1356"
     },
     {
@@ -799,6 +1098,11 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "Read the current Board (schematic+PCB linkage) and current PCB info — the prerequisite context for pcb.import_changes.",
+      "baseline_outputs": [
+        "linked",
+        "board",
+        "pcb"
+      ],
       "baseline_source": "internal/protocol/actions.go:899",
       "v2": {
         "effect_scope": "NONE",
@@ -812,50 +1116,103 @@
       "action": "pcb.clear_routing",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "UNSUPPORTED",
+      "reason": "Native alpha clearRouting(net|connection) consumes implicit UI selection without an API that enumerates the exact destructive connection scope; the all branch also includes non-routing outline geometry. No complete target/residual contract for the full published action. Use native pcb.route.rip_up or pcb.route.delete.",
       "baseline_inputs": [
         "type optional (all|net|connection, default all)"
       ],
       "baseline_description": "Clear routing via the native eda.pcb_Document.clearRouting('all'|'net'|'connection'). NOTE: @alpha — may be undefined on the current build (like autoRouting); prefer pcb.route.rip_up for a reliable, outline-safe rip-up. Unlike rip_up this does NOT protect unlocked board-outline lines, so lock the outline first.",
+      "baseline_outputs": [
+        "cleared",
+        "type"
+      ],
       "baseline_source": "internal/protocol/actions.go:1297"
     },
     {
       "action": "pcb.component.attrs_backfill",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "overwrite optional (default false)"
       ],
       "baseline_description": "Fill the EMPTY otherProperty values the platform's sch→PCB import leaves on PCB components (it copies top-level identity fields but creates the attribute KEYS with empty VALUES — Value/Voltage Rating/Tolerance/Datasheet/… all \"\" — blanking the 器件标准化 panel's PCB columns). Source of truth is the DEVICE-LIBRARY record resolved by each part's LCSC C-number (getByLcscIds; the C-number survives import thanks to the #157 backfill) — NOT the schematic, whose instance values are also empty after save/reload (live-verified). Runs entirely PCB-foreground. Merge: by default only empty/missing keys are filled (hand-edited PCB values win); overwrite=true forces the library values. Parts without a C-number are skipped and reported. Orchestrated by `easyeda pcb sync-attrs` and auto-run after `pcb import-changes`.",
-      "baseline_source": "internal/protocol/actions.go:991"
+      "baseline_outputs": [
+        "updatedCount",
+        "partsWithLcsc",
+        "updated[].designator",
+        "updated[].lcsc",
+        "updated[].filledKeys",
+        "unresolvedDesignators",
+        "noLcscDesignators"
+      ],
+      "baseline_source": "internal/protocol/actions.go:991",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "overwrite": "boolean"
+        },
+        "revision": "1",
+        "schema": "3dd2e21a373be0d12c13344a6cbfe667a8a39429473e4782deae04452fc4e3c5",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.component.delete",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "primitiveIds"
       ],
       "baseline_description": "Delete PCB component primitives. No programmatic undo — snapshot before/after via the audit log.",
-      "baseline_source": "internal/protocol/actions.go:1052"
+      "baseline_outputs": [
+        "deleted"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1052",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "primitiveIds": "!string|array"
+        },
+        "revision": "1",
+        "schema": "c953f613191e0713420d077e62f92d88fa76a0c898ff39588cc68e932cfbb0b1",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.component.lock",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "primitiveIds (string or string[])",
         "locked optional (default true)"
       ],
       "baseline_description": "Batch lock/unlock PCB components by primitiveIds (issue #174). Dedicated write path (setState_PrimitiveLock + done(), the pattern pcb.track.lock proved) plus a FRESH readback verification, because pcb.component.modify's lock write can be silently dropped by the platform while reporting success. Idempotent: components already in the desired state are counted in alreadyInState, not re-written. Partial application per #151: some-applied returns ok with a structured notApplied list; a full no-op (nothing applied, nothing already in state) errors instead of faking success.",
-      "baseline_source": "internal/protocol/actions.go:1040"
+      "baseline_outputs": [
+        "locked",
+        "requested",
+        "applied",
+        "alreadyInState",
+        "notApplied",
+        "missing",
+        "verified"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1040",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "locked": "boolean",
+          "primitiveIds": "!string|array"
+        },
+        "revision": "1",
+        "schema": "4bde6d0a696d47e895bcb4214548ead449e8de4a921fe95482fc8776ee82bff4",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.component.modify",
@@ -868,6 +1225,14 @@
         "patch"
       ],
       "baseline_description": "Lay out a component on the active PCB: move (x/y), rotate, flip layer (top/bottom), lock, or set designator/BOM flags. Pull a fresh primitiveId first (no programmatic undo). #174 hardening: patch keys are validated against the real modify() contract (unknown keys hard-error — the platform silently ignores them and fakes success), locked/lock alias onto the official primitiveLock key, and every write is verified against a fresh readback (result carries verified + applied/notApplied; a dropped lock write is retried via the setState_PrimitiveLock+done() path). Partial application follows #151: once the canvas changed the action returns ok with notApplied; only a full no-op errors.",
+      "baseline_outputs": [
+        "component state",
+        "verified",
+        "applied",
+        "notApplied",
+        "unverified",
+        "lockFallback"
+      ],
       "baseline_source": "internal/protocol/actions.go:1028",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -884,8 +1249,8 @@
       "action": "pcb.components.arrange",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "mode optional (cluster|grid, default cluster)",
         "primitiveIds optional",
@@ -894,7 +1259,28 @@
         "cols optional"
       ],
       "baseline_description": "Coarse auto-layout SEED: cluster by shared local nets (mode=cluster) or pack a flat grid (mode=grid), grid-packing each cluster into a tidy block with gutters; skips locked components. Mechanical first pass only — apply the placement priorities in pcb-layout-conventions.md afterward.",
-      "baseline_source": "internal/protocol/actions.go:1129"
+      "baseline_outputs": [
+        "mode",
+        "groups",
+        "moved[].primitiveId",
+        "moved[].from",
+        "moved[].to",
+        "count"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1129",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "cols": "number",
+          "gutter": "number",
+          "mode": "string",
+          "pitch": "number",
+          "primitiveIds": "string|array"
+        },
+        "revision": "1",
+        "schema": "904d62e14532df7e8a859faed63c2781d8e9b409c8b0309b36fed2a9d956445e",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.components.list",
@@ -908,6 +1294,17 @@
         "includePads optional"
       ],
       "baseline_description": "List placed footprints/components on the active PCB, with layer, coordinates, rotation, lock, optional bbox (rendered extent, for overlap/spacing reasoning), and optional pads.",
+      "baseline_outputs": [
+        "components[].primitiveId",
+        "components[].designator",
+        "components[].layer",
+        "components[].x",
+        "components[].y",
+        "components[].rotation",
+        "components[].bbox",
+        "components[].pads",
+        "count"
+      ],
       "baseline_source": "internal/protocol/actions.go:664",
       "v2": {
         "effect_scope": "NONE",
@@ -925,15 +1322,32 @@
       "action": "pcb.components.move",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "dx",
         "dy",
         "primitiveIds optional"
       ],
       "baseline_description": "Translate components by a relative (dx, dy) offset — nudge a group without recomputing absolute coordinates. Operates on the current selection unless primitiveIds is given.",
-      "baseline_source": "internal/protocol/actions.go:1117"
+      "baseline_outputs": [
+        "moved[].primitiveId",
+        "moved[].from",
+        "moved[].to",
+        "count"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1117",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "dx": "!number",
+          "dy": "!number",
+          "primitiveIds": "string|array"
+        },
+        "revision": "1",
+        "schema": "59ed0c75b0fad90f5b9d953d09bc5c14065351662b8719d8a7bae354021dc952",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.constraint.list",
@@ -943,6 +1357,11 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "List the active PCB's length constraints: differential pairs (name + positive/negative net) and equal-length net groups (name + member nets). Pure read. For measured skew/spread use pcb.report instead — this one is the constraint inventory, not the measurement.",
+      "baseline_outputs": [
+        "differentialPairs[]",
+        "equalLengthGroups[]",
+        "count"
+      ],
       "baseline_source": "internal/protocol/actions.go:821",
       "v2": {
         "effect_scope": "NONE",
@@ -964,6 +1383,14 @@
         "negativeNet"
       ],
       "baseline_description": "Create a differential pair constraint binding two nets (e.g. USB_DP/USB_DM), so EasyEDA's DRC checks them as a pair and pcb.report can measure their skew. Idempotent: re-creating the SAME name on the SAME nets reports alreadyExists; a name clash on different nets is refused. Net names are pre-validated against the board — a pair pointing at a non-existent net is refused before anything is written.",
+      "baseline_outputs": [
+        "name",
+        "positiveNet",
+        "negativeNet",
+        "created",
+        "alreadyExists",
+        "verified"
+      ],
       "baseline_source": "internal/protocol/actions.go:829",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -987,6 +1414,12 @@
         "name"
       ],
       "baseline_description": "Delete a differential pair constraint by name. Deleting a name that does not exist is reported as notFound with a warning (not an error), so cleanup scripts are replayable.",
+      "baseline_outputs": [
+        "name",
+        "deleted",
+        "notFound",
+        "verified"
+      ],
       "baseline_source": "internal/protocol/actions.go:840",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -1011,6 +1444,12 @@
         "newName"
       ],
       "baseline_description": "Rename a differential pair constraint. The platform exposes renaming as the only modify operation on a pair — to change which nets it binds, delete and re-create it.",
+      "baseline_outputs": [
+        "name",
+        "previousName",
+        "renamed",
+        "verified"
+      ],
       "baseline_source": "internal/protocol/actions.go:851",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -1029,14 +1468,31 @@
       "action": "pcb.distribute",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "axis",
         "primitiveIds optional"
       ],
       "baseline_description": "Evenly space component centers along an axis. axis = x|y. Keeps the two extreme components fixed and distributes the rest between them. Operates on the current selection unless primitiveIds is given.",
-      "baseline_source": "internal/protocol/actions.go:1093"
+      "baseline_outputs": [
+        "moved[].primitiveId",
+        "moved[].designator",
+        "moved[].from",
+        "moved[].to",
+        "count"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1093",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "axis": "!string",
+          "primitiveIds": "string|array"
+        },
+        "revision": "1",
+        "schema": "142cdbd4ab0f8ea8b2de54322e36f8763f38ac99402ef6670a05a3f3b1778617",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.documents.list",
@@ -1046,6 +1502,12 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "List all PCB documents in the current project. Returns uuid + name for each board; pass uuid to document.open to switch to that PCB.",
+      "baseline_outputs": [
+        "pcbs[].uuid",
+        "pcbs[].name",
+        "pcbs[].parentProjectUuid",
+        "count"
+      ],
       "baseline_source": "internal/protocol/actions.go:656",
       "v2": {
         "effect_scope": "NONE",
@@ -1065,6 +1527,10 @@
         "strict optional"
       ],
       "baseline_description": "Run PCB DRC, normalized to {passed, violations}; violations are grouped by error type then net. Requires the PCB to be the active/foreground document.",
+      "baseline_outputs": [
+        "passed",
+        "violations"
+      ],
       "baseline_source": "internal/protocol/actions.go:1141",
       "v2": {
         "effect_scope": "NATIVE_RECOMPUTE",
@@ -1080,8 +1546,8 @@
       "action": "pcb.drc.compare",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "project_uuid",
         "document_uuid",
@@ -1089,7 +1555,29 @@
         "baseline_id optional"
       ],
       "baseline_description": "Explicit whole-board native DRC and compact baseline comparison. No incremental DRC engine; missing stable anchors or incompatible context yields comparable:false. Full report retained as artifact.",
-      "baseline_source": "internal/protocol/actions_closure.go:6"
+      "baseline_outputs": [
+        "drc_id",
+        "revision",
+        "comparable",
+        "new",
+        "cleared",
+        "persistent",
+        "counts",
+        "detailed_artifact"
+      ],
+      "baseline_source": "internal/protocol/actions_closure.go:6",
+      "v2": {
+        "effect_scope": "NATIVE_RECOMPUTE",
+        "input": {
+          "baseline_id": "string",
+          "document_uuid": "string",
+          "project_uuid": "string",
+          "run_native": "!boolean"
+        },
+        "revision": "1",
+        "schema": "f2d66645520930bbfc0235295e9610382140751a2b7d54b6072e87bfb0870138",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.drc.rules",
@@ -1099,6 +1587,9 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "Read the active PCB's DRC rule configuration (clearances, track widths, via sizes, …) WITHOUT running a check — inspect what pcb.drc.check enforces, or feed real rule values into layout-lint / design-flow gates. Requires the PCB to be the active/foreground document.",
+      "baseline_outputs": [
+        "rules"
+      ],
       "baseline_source": "internal/protocol/actions.go:1150",
       "v2": {
         "effect_scope": "NONE",
@@ -1112,14 +1603,33 @@
       "action": "pcb.equal_length_group.add_nets",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "name",
         "nets[]"
       ],
       "baseline_description": "Add nets to an existing equal-length group. Nets already in the group are skipped (reported as alreadyMembers). If some nets land and others don't, returns partial + notApplied rather than throwing — the canvas already changed for the ones that landed.",
-      "baseline_source": "internal/protocol/actions.go:873"
+      "baseline_outputs": [
+        "name",
+        "nets",
+        "added",
+        "alreadyMembers",
+        "partial",
+        "notApplied",
+        "verified"
+      ],
+      "baseline_source": "internal/protocol/actions.go:873",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "name": "!string",
+          "nets": "!string[]"
+        },
+        "revision": "1",
+        "schema": "2e433356cd7902f883c6cb5d4c93d21214f018dabcf7acb49c09fabcc42d71a4",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.equal_length_group.create",
@@ -1132,6 +1642,13 @@
         "nets[]"
       ],
       "baseline_description": "Create an equal-length net group (e.g. a parallel bus whose nets must match in routed length), so pcb.report can measure the group's spread (max-min). Needs at least 2 nets. Idempotent on identical membership; a name clash with different nets is refused (use pcb.equal_length_group.add_nets to extend an existing group). Net names are pre-validated against the board.",
+      "baseline_outputs": [
+        "name",
+        "nets",
+        "created",
+        "alreadyExists",
+        "verified"
+      ],
       "baseline_source": "internal/protocol/actions.go:862",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -1154,6 +1671,12 @@
         "name"
       ],
       "baseline_description": "Delete an equal-length net group by name. Deleting a name that does not exist is reported as notFound with a warning (not an error).",
+      "baseline_outputs": [
+        "name",
+        "deleted",
+        "notFound",
+        "verified"
+      ],
       "baseline_source": "internal/protocol/actions.go:884",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -1170,14 +1693,31 @@
       "action": "pcb.export.dsn",
       "level": 3,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "fileName optional",
         "injectKeepout optional (default true)"
       ],
       "baseline_description": "Export the active PCB as a Specctra DSN file (eda.pcb_ManufactureData.getDsnFile) — the input an external autorouter (Freerouting / easyeda-pcb-router) consumes. Read-only. Returns null if the PCB is empty or has no nets (run pcb.import_changes first). By DEFAULT it injects keep-out regions (禁止区域) into the DSN — getDsnFile DROPS pcb_PrimitiveRegion, so a raw export has 0 keepout and the router would route under the antenna; the injected DSN reports keepouts=N. Pass injectKeepout=false for the raw export. The autoroute round-trip: export.dsn → route externally → import_autoroute the SES.",
-      "baseline_source": "internal/protocol/actions.go:1198"
+      "baseline_outputs": [
+        "artifact id",
+        "file path",
+        "file name",
+        "size",
+        "keepouts (injected count)"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1198",
+      "v2": {
+        "effect_scope": "UI_NATIVE",
+        "input": {
+          "fileName": "string",
+          "injectKeepout": "boolean"
+        },
+        "revision": "1",
+        "schema": "839c7a7752278270f6f1a249a5350a16811d0a7958b933b4a63076e2ea50a911",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.fill.create",
@@ -1194,6 +1734,12 @@
         "locked optional"
       ],
       "baseline_description": "Create a net-bound filled region (填充区域 / 异形大块铜) from a closed polygon of points (mil, y-up) on a layer (TOP=1, BOTTOM=2), bound to a net. fillMode = solid (default) | mesh | inner. Builds the IPCB_Polygon internally — pass raw points. This is STATIC copper (does NOT reflow) — distinct from pcb.pour.create (覆铜, reflows around obstacles) and pcb.region.create (keep-out, no net). Use for a power-plane patch / RF ground / thermal copper of an arbitrary shape. SPECIAL CASE: layer=MULTI(12) makes the fill a 挖槽/board CUTOUT (removes board material; the manufacturing output emits it as a BoardCutout object) — no net needed; the `pcb slot` CLI wraps this. NOTE: fillMode is fire-and-forget — EasyEDA's getState_FillMode always reads back solid(0) regardless of input (platform limit, verified via modify too), so prefer solid; net/layer/geometry persist and read back correctly.",
+      "baseline_outputs": [
+        "primitiveId",
+        "net",
+        "layer",
+        "fillMode"
+      ],
       "baseline_source": "internal/protocol/actions.go:1408",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -1214,13 +1760,26 @@
       "action": "pcb.fill.delete",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "primitiveIds (string or string[])"
       ],
       "baseline_description": "Delete net-bound filled regions (填充区域) by primitiveId (string or string[]). Recreate with pcb.fill.create.",
-      "baseline_source": "internal/protocol/actions.go:1429"
+      "baseline_outputs": [
+        "deleted",
+        "primitiveIds"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1429",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "primitiveIds": "!string|array"
+        },
+        "revision": "1",
+        "schema": "c953f613191e0713420d077e62f92d88fa76a0c898ff39588cc68e932cfbb0b1",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.fill.list",
@@ -1234,6 +1793,16 @@
         "includeBBox optional (default false)"
       ],
       "baseline_description": "List net-bound filled regions (填充区域) on the active PCB, optionally filtered by layer and/or net. includeBBox adds each fill's rendered extent (per-fill getPrimitivesBBox; null on failure) — feeds the `pcb check` via-bond rule (is this track↔via junction covered by a bond fill?). Read-only.",
+      "baseline_outputs": [
+        "fills[].primitiveId",
+        "fills[].net",
+        "fills[].layer",
+        "fills[].fillMode",
+        "fills[].lineWidth",
+        "fills[].locked",
+        "fills[].bbox (includeBBox)",
+        "count"
+      ],
       "baseline_source": "internal/protocol/actions.go:1420",
       "v2": {
         "effect_scope": "NONE",
@@ -1251,41 +1820,68 @@
       "action": "pcb.grid_snap",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "grid",
         "primitiveIds optional"
       ],
       "baseline_description": "Snap component anchors to a grid: round x/y to the nearest multiple of grid (in PCB data units, mil-scale). Operates on the current selection unless primitiveIds is given.",
-      "baseline_source": "internal/protocol/actions.go:1105"
+      "baseline_outputs": [
+        "snapped[].primitiveId",
+        "snapped[].from",
+        "snapped[].to",
+        "grid",
+        "count"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1105",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "grid": "!number",
+          "primitiveIds": "string|array"
+        },
+        "revision": "1",
+        "schema": "7ac59b12af27f487660f0d38a39946141fd519538653cbecdef1411c5d61fca7",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.import_autoroute",
       "level": 3,
       "classification": "L",
-      "mode": "NOT_MIGRATED",
-      "reason": "实验/特殊路径尚未定义并实现 V2-native completion contract。",
+      "mode": "UNSUPPORTED",
+      "reason": "Opaque SES/JSON import returns only boolean; no complete imported primitive identity/mapping or bounded residual report. Native ratline refresh is a separate effect. A trustworthy parser plus exact requested-versus-native mapping is required before qualification.",
       "baseline_inputs": [
         "fileBase64",
         "format optional (ses|json, default ses)",
         "fileName optional"
       ],
       "baseline_description": "Import a routed-result file from an external autorouter into the active PCB: format='ses' (Specctra Session, default; eda.pcb_Document.importAutoRouteSesFile) or 'json' (eda.pcb_Document.importAutoRouteJsonFile). File passed as base64 (fileBase64). The write side of the DSN→route→SES round-trip; recomputes ratlines after. Both APIs are @beta.",
+      "baseline_outputs": [
+        "imported",
+        "format"
+      ],
       "baseline_source": "internal/protocol/actions.go:1207"
     },
     {
       "action": "pcb.import_changes",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "UNSUPPORTED",
+      "reason": "The documented Host import promise may settle when its confirmation dialog opens, before delayed component materialization. The dialog has no operation-bound identity and no native settlement/complete schematic-to-PCB mapping receipt. Count stabilization cannot prove completion or release ownership; full import requires Host qualification of a trustworthy lifecycle and mapping contract.",
       "baseline_inputs": [
         "schematicUuid optional",
         "ensureBoard optional (default true)",
         "recomputeRatline optional (default true)"
       ],
       "baseline_description": "Sync the schematic netlist/components into the active PCB (从原理图导入变更) — how components first arrive on the board. Ensures a Board links the schematic and PCB first, then recomputes ratlines. ⚠️ LIMITATION (verified #20): eda.pcb_Document.importChanges does NOT add components placed via the API (schematic.component.place) to an EXISTING PCB — even though the new part is in the canvas AND the manufacture netlist with a designator + footprint, importChanges returns true but the PCB count is unchanged (default or explicit schematicUuid; no annotate/refresh/updatePcb API exists to force it). It works for the initial board population; incrementally adding a part via the API then importing is a platform no-op — **to add a single part to an existing PCB use pcb.add_component instead** (places + connects it directly).",
+      "baseline_outputs": [
+        "imported",
+        "createdBoard",
+        "board",
+        "reason"
+      ],
       "baseline_source": "internal/protocol/actions.go:1002"
     },
     {
@@ -1296,6 +1892,13 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "List all layers of the active PCB (id, name, type, color, visibility, lock), plus the current layer and copper-layer count. Activates the PCB tab first so `currentLayer` reads back reliably (#40); when there's no current layer it also returns `visibleLayers` as display-state evidence.",
+      "baseline_outputs": [
+        "layers",
+        "currentLayer",
+        "visibleLayers",
+        "copperLayerCount",
+        "count"
+      ],
       "baseline_source": "internal/protocol/actions.go:673",
       "v2": {
         "effect_scope": "NONE",
@@ -1318,6 +1921,12 @@
         "layer (id|name|top|bottom|inner1)"
       ],
       "baseline_description": "Switch the active/edit layer of the PCB (eda.pcb_Layer.selectLayer). Accepts `layer` as a numeric id, a layer name (e.g. Inner1), or an alias top|bottom (top copper=1, bottom copper=2). Returns the resolved layer id + the read-back currentLayer. Use before drawing/editing on a specific layer, or with pcb.snapshot for side-specific QA.",
+      "baseline_outputs": [
+        "ok",
+        "requested",
+        "layer",
+        "currentLayer"
+      ],
       "baseline_source": "internal/protocol/actions.go:681",
       "v2": {
         "effect_scope": "NAVIGATION_SELECTION",
@@ -1342,6 +1951,12 @@
         "exclusive optional (bool, hide others when showing)"
       ],
       "baseline_description": "Show/hide/focus PCB layers for visual QA (eda.pcb_Layer.setLayerVisible/setLayerInvisible). Either pass a `preset` (top-only|bottom-only|copper-only|silk-only) to focus that set and hide the rest, or explicit `show`/`hide` arrays of layer specs (id|name|top|bottom). With `show` + `exclusive:true`, everything else is hidden. Pair with pcb.snapshot to capture a filtered view.",
+      "baseline_outputs": [
+        "preset",
+        "shown",
+        "hidden",
+        "layers"
+      ],
       "baseline_source": "internal/protocol/actions.go:692",
       "v2": {
         "effect_scope": "NAVIGATION_SELECTION",
@@ -1372,6 +1987,14 @@
         "net optional"
       ],
       "baseline_description": "Create a copper track (导线) on the active PCB: a line segment on a copper layer (TOP=1, BOTTOM=2; inner-copper ids are higher — read them from pcb.layers.list, id 3 is silkscreen not copper) with a width, optionally bound to a net. Coordinates are mil, y-up. create() is lenient — the action verifies a primitive came back. PCB autosave is on (debounced); save explicitly at checkpoints.",
+      "baseline_outputs": [
+        "primitiveId",
+        "net",
+        "layer",
+        "start",
+        "end",
+        "lineWidth"
+      ],
       "baseline_source": "internal/protocol/actions.go:1162",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -1400,6 +2023,18 @@
         "layer optional"
       ],
       "baseline_description": "List copper tracks (导线) on the active PCB, optionally filtered by net and/or layer. Read-only — use to inspect what is routed before rip-up/reroute.",
+      "baseline_outputs": [
+        "lines[].primitiveId",
+        "lines[].net",
+        "lines[].layer",
+        "lines[].startX",
+        "lines[].startY",
+        "lines[].endX",
+        "lines[].endY",
+        "lines[].lineWidth",
+        "lines[].locked",
+        "count"
+      ],
       "baseline_source": "internal/protocol/actions.go:1229",
       "v2": {
         "effect_scope": "NONE",
@@ -1416,8 +2051,8 @@
       "action": "pcb.manufacturing.export",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "project_uuid",
         "document_uuid",
@@ -1425,7 +2060,25 @@
         "verification_ids optional"
       ],
       "baseline_description": "Native Gerber archive including plated/nonplated drill plus BOM and PnP CSV. Explicit reviewed profile; File presence is unverified until CLI manifest inspects structure and revision. No CAM or ordering.",
-      "baseline_source": "internal/protocol/actions_closure.go:5"
+      "baseline_outputs": [
+        "manifest",
+        "status",
+        "artifacts",
+        "warnings"
+      ],
+      "baseline_source": "internal/protocol/actions_closure.go:5",
+      "v2": {
+        "effect_scope": "UI_NATIVE",
+        "input": {
+          "document_uuid": "string",
+          "profile": "!object",
+          "project_uuid": "string",
+          "verification_ids": "string[]"
+        },
+        "revision": "1",
+        "schema": "c59d80942a2dfce6b73813a237ec91ac0c299b51769c9b5905a1ca48dcfc97ff",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.nets.list",
@@ -1435,6 +2088,12 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "List all nets on the active PCB with name, length, and color.",
+      "baseline_outputs": [
+        "nets[].net",
+        "nets[].length",
+        "nets[].color",
+        "count"
+      ],
       "baseline_source": "internal/protocol/actions.go:799",
       "v2": {
         "effect_scope": "NONE",
@@ -1448,11 +2107,21 @@
       "action": "pcb.outline.clear",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [],
       "baseline_description": "Remove the current board outline (all primitives on the BOARD_OUTLINE layer).",
-      "baseline_source": "internal/protocol/actions.go:1467"
+      "baseline_outputs": [
+        "removed"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1467",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {},
+        "revision": "1",
+        "schema": "b46d6936e6090ab8f0c47f3c6dec058f5a984dea86db4374f76cbbeb370a4e64",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.outline.get",
@@ -1462,6 +2131,14 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "Read the current board outline: outline (polyline 类型=板框 count) + legacy segment/arc counts + bounding box (from the polyline's rendered extent) + the TRUE polygon `points` (#167: the polyline's CENTER-LINE vertices = the milled board edge; the bbox is the rendered extent and includes the outline's line width — measured 5 mil larger per side at 10 mil width). Single closed polyline only; multiple polylines / arcs degrade to bbox with outlineFormat unset (consumers fall back and mark themselves degraded).",
+      "baseline_outputs": [
+        "outline",
+        "segments",
+        "arcs",
+        "bbox",
+        "points",
+        "outlineFormat"
+      ],
       "baseline_source": "internal/protocol/actions.go:1459",
       "v2": {
         "effect_scope": "NONE",
@@ -1475,22 +2152,41 @@
       "action": "pcb.outline.set",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "points ([[x,y],...] mil)",
         "replace optional (default true)",
         "lineWidth optional (default 10)"
       ],
       "baseline_description": "Set the board outline from a closed polygon of points (mil, y-up). Creates ONE pcb_PrimitivePolyline (类型=板框) on the Board Outline Layer (11) — the REAL board-outline object, not loose lines. Loose pcb_PrimitiveLine on layer 11 are merely wires sitting there: EasyEDA does NOT treat them as the boundary — DRC ignores them for enclosure and the UI '清除布线 / clear routing' deletes them (observed: the whole outline vanished). The polyline is created LOCKED so layout/routing can't move or wipe it. Replaces any existing outline (polyline + legacy lines/arcs). The agent generates the points for the desired shape (rectangle/rounded-rect/circle/instrument); curves are approximated by segments. Reports outlineId + whether all components fall inside.",
-      "baseline_source": "internal/protocol/actions.go:1446"
+      "baseline_outputs": [
+        "outlineId",
+        "segments",
+        "zoomed",
+        "bbox",
+        "allInside",
+        "outside"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1446",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "lineWidth": "number",
+          "points": "!array",
+          "replace": "boolean"
+        },
+        "revision": "1",
+        "schema": "a5698248ff7c92b4ad9387a184bb622cbd4cddcca1992ef1ce6d66acd1fc0299",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.page.clear",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "only optional (subset of components,routing,copper,regions,silk — omit = all)",
         "preserveOutline optional (default true)",
@@ -1498,14 +2194,36 @@
         "dryRun optional (default false)"
       ],
       "baseline_description": "One-shot PCB reset — the symmetric counterpart of schematic.page.clear. Enumerates and deletes every board CONTENT primitive: components, copper routing (tracks/arcs/vias on copper layers), copper areas (pours/fills), keep-out/rule regions, and free silkscreen artwork (strings + graphic lines/arcs on silk layers 3/4 only — copper-layer text and mechanical/assembly artwork are preserved). pcb.component.delete only removes components and silently leaves routing/pours/regions/silk behind (the board looks empty in components.list while copper remains), so use this for a true board reset (generate → detect → clear → retry). PRESERVES locked primitives and the board outline (layer 11) by default — the outline is a layout prerequisite, mirroring how schematic.page.clear keeps the sheet/图框. Set includeLocked=true to also delete locked primitives (danger), preserveOutline=false to also delete the board outline. `only` narrows to a comma list / string[] subset of {components,routing,copper,regions,silk} (omit = all). No undo — dryRun reports the counts-by-type without deleting anything; a per-class batch-delete that returns false surfaces in `failed` + `warnings`.",
-      "baseline_source": "internal/protocol/actions.go:1065"
+      "baseline_outputs": [
+        "deleted (counts by primitive type)",
+        "total",
+        "deletedIds",
+        "scopes",
+        "skippedLocked",
+        "preserveOutline",
+        "includeLocked",
+        "dryRun"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1065",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "dryRun": "boolean",
+          "includeLocked": "boolean",
+          "only": "string|array",
+          "preserveOutline": "boolean"
+        },
+        "revision": "1",
+        "schema": "2601efd8afc01f0aa94e35d565824f685ae831346b36a07cab50aeb585db194d",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.plane.refresh",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "project_uuid",
         "document_uuid",
@@ -1513,7 +2231,29 @@
         "logical_ids"
       ],
       "baseline_description": "CLI composite: snapshot revision guard, native logical pour rebuild, authoritative snapshot. No incremental solver claim; connectivity unknown. Stops after uncertain outcome without replay.",
-      "baseline_source": "internal/protocol/actions_closure.go:7"
+      "baseline_outputs": [
+        "status",
+        "item_results",
+        "revision_before",
+        "revision_after",
+        "requested_scope",
+        "actual_scope",
+        "freshness",
+        "connectivity"
+      ],
+      "baseline_source": "internal/protocol/actions_closure.go:7",
+      "v2": {
+        "effect_scope": "NATIVE_RECOMPUTE",
+        "input": {
+          "base_revision": "!string",
+          "document_uuid": "string",
+          "logical_ids": "string[]",
+          "project_uuid": "string"
+        },
+        "revision": "1",
+        "schema": "f918cf9cf7e2ec41041df2795eb160ac6d25a2eedccc59759bdab8883f7b91d1",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.pour.create",
@@ -1531,6 +2271,13 @@
         "lineWidth optional"
       ],
       "baseline_description": "Create a copper pour (铺铜) from a closed polygon of points (mil, y-up) on a copper layer (TOP=1, BOTTOM=2; inner ids from pcb.layers.list), bound to a net (usually GND). fill = solid (default) | grid | grid45. Builds the IPCB_Polygon internally (pcb_MathPolygon.createPolygon) — pass raw points, NOT a polygon object — then rebuilds the poured copper. No PCB autorouter, but this gives real ground/power planes.",
+      "baseline_outputs": [
+        "primitiveId",
+        "net",
+        "layer",
+        "fill",
+        "poured"
+      ],
       "baseline_source": "internal/protocol/actions.go:1311",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -1552,13 +2299,26 @@
       "action": "pcb.pour.delete",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "primitiveIds (string or string[])"
       ],
       "baseline_description": "Delete copper pour regions by primitiveId (string or string[]). Removes the pour region; recreate with pcb.pour.create.",
-      "baseline_source": "internal/protocol/actions.go:1332"
+      "baseline_outputs": [
+        "deleted",
+        "primitiveIds"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1332",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "primitiveIds": "!string|array"
+        },
+        "revision": "1",
+        "schema": "c953f613191e0713420d077e62f92d88fa76a0c898ff39588cc68e932cfbb0b1",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.pour.list",
@@ -1572,6 +2332,16 @@
         "geometry_limit optional 1..64, default 16"
       ],
       "baseline_description": "List copper pours (铺铜) on the active PCB, optionally filtered by net. Read-only.",
+      "baseline_outputs": [
+        "pours[].primitiveId",
+        "pours[].net",
+        "pours[].layer",
+        "pours[].pourName",
+        "pours[].priority",
+        "pours[].lineWidth",
+        "pours[].locked",
+        "count"
+      ],
       "baseline_source": "internal/protocol/actions.go:1323",
       "v2": {
         "effect_scope": "NONE",
@@ -1589,15 +2359,32 @@
       "action": "pcb.pour.rebuild",
       "level": 3,
       "classification": "R",
-      "mode": "NOT_MIGRATED",
-      "reason": "该读取/检查/产物路径的结构化观测与 V2 executor 接线尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "net optional (legacy)",
         "logical_ids optional 1..64 handles (explicit refresh)",
         "project_uuid and document_uuid required with logical_ids"
       ],
       "baseline_description": "Re-pour (recompute poured copper) for all pour regions on the active PCB, optionally filtered by net. Run after moving components/routing so the pour reflows around the new obstacles (rebuildCopperRegion per pour).",
-      "baseline_source": "internal/protocol/actions.go:1345"
+      "baseline_outputs": [
+        "pours",
+        "rebuilt",
+        "logical refresh: status,item_results,requested_scope,actual_scope,freshness,revision (null until fresh snapshot)"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1345",
+      "v2": {
+        "effect_scope": "NATIVE_RECOMPUTE",
+        "input": {
+          "document_uuid": "string",
+          "logical_ids": "string[]",
+          "net": "string",
+          "project_uuid": "string"
+        },
+        "revision": "1",
+        "schema": "b3885a885339799ff8f1f4a6426600fa165d079a98eb2e2668d713682d2178db",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.region.create",
@@ -1614,6 +2401,13 @@
         "locked optional"
       ],
       "baseline_description": "Create a keep-out / rule region (禁止区域) from a closed polygon of points (mil, y-up) on a copper layer (TOP=1, BOTTOM=2; or MULTI for all). ruleType is a name or list — no-components(2) / no-wires(5) / no-fills(6) / no-pours(7) / no-inner-electrical(8) / follow-rule(9); default [no-components,no-wires,no-pours] = a hard keep-out (antenna/board-edge). Builds the IPCB_Polygon internally — pass raw points, NOT a polygon object. This is NOT net-bound copper (use pcb.pour.create for a ground/power plane). NOTE: `name` is fire-and-forget — EasyEDA's getState_RegionName never reads it back (platform limit, verified), so region.list shows null and the DSN keepout name falls back to region_keepout_N; geometry/layer/ruleType DO persist and read back.",
+      "baseline_outputs": [
+        "primitiveId",
+        "layer",
+        "ruleType",
+        "ruleTypeNames",
+        "regionName"
+      ],
       "baseline_source": "internal/protocol/actions.go:1372",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -1635,13 +2429,26 @@
       "action": "pcb.region.delete",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "primitiveIds (string or string[])"
       ],
       "baseline_description": "Delete keep-out / rule regions by primitiveId (string or string[]). Note pcb.delete (component delete) does NOT remove regions — use this. Recreate with pcb.region.create.",
-      "baseline_source": "internal/protocol/actions.go:1392"
+      "baseline_outputs": [
+        "deleted",
+        "primitiveIds"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1392",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "primitiveIds": "!string|array"
+        },
+        "revision": "1",
+        "schema": "c953f613191e0713420d077e62f92d88fa76a0c898ff39588cc68e932cfbb0b1",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.region.list",
@@ -1653,6 +2460,16 @@
         "layer optional"
       ],
       "baseline_description": "List keep-out / rule regions (禁止区域) on the active PCB, optionally filtered by layer. Read-only.",
+      "baseline_outputs": [
+        "regions[].primitiveId",
+        "regions[].layer",
+        "regions[].ruleType",
+        "regions[].ruleTypeNames",
+        "regions[].regionName",
+        "regions[].lineWidth",
+        "regions[].locked",
+        "count"
+      ],
       "baseline_source": "internal/protocol/actions.go:1383",
       "v2": {
         "effect_scope": "NONE",
@@ -1683,6 +2500,15 @@
         "tolerance_mil optional (geometry report)"
       ],
       "baseline_description": "Read-only PCB design report driven by per-net copper length: every net's routed length, each net class's aggregate length, differential-pair P/N lengths + skew (|lenP-lenN|), and equal-length-group per-net lengths + spread (max-min). Pure read — no DRC run. pcb_Drc.* reads may require the PCB to be the active/foreground tab.",
+      "baseline_outputs": [
+        "routingTelemetry optional: units, scope, board_revision, summary or nets[] with lineCount/lineLength/arcCount/arcLength/viaCount/totalCopperLength (lineLength+arcLength), netCount/routedNetCount/unroutedNetCount (board), positive-length-only netLengthDistribution, orientationHistogram {centerDeg,count,length} circular 15-degree bins covering lineLength only (arcs excluded), layerUsage; lengths are in-plane trace+arc centerlines, excluding via barrel/package/internal length and unverified delay",
+        "nets[].net",
+        "nets[].length",
+        "netClasses[].name",
+        "netClasses[].totalLength",
+        "differentialPairs[].skew",
+        "equalLengthNetGroups[].spread"
+      ],
       "baseline_source": "internal/protocol/actions.go:807",
       "v2": {
         "effect_scope": "NONE",
@@ -1708,33 +2534,67 @@
       "action": "pcb.route.delete",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "primitiveIds (string or string[])",
         "kind optional (via|track — refuse ids of another kind)"
       ],
       "baseline_description": "Surgically delete routing primitives (tracks/arcs/vias) by primitiveId — the precise fix rip_up can't do (rip_up is net-scoped: one bad via would force re-routing the whole net). Ids are classified against the live board; locked primitives are skipped, unknown ids reported as notFound (pull fresh ids from pcb.line.list / pcb.via.list / pcb drc --json objs). Optional kind ('via'|'track') refuses mismatched ids as a paste-guard. Each removed primitive's FULL before-state (net/layer/geometry) is echoed in `removed` so the audit log can recreate it.",
-      "baseline_source": "internal/protocol/actions.go:1272"
+      "baseline_outputs": [
+        "deleted{tracks,arcs,vias}{requested,ok}",
+        "removed[] (full before-state)",
+        "count",
+        "skippedLocked",
+        "notFound"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1272",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "ids": "string|string[]",
+          "kind": "string",
+          "primitiveIds": "string|string[]"
+        },
+        "revision": "1",
+        "schema": "02025dcf0c70bfbc813929c0d607c638235c32532efb8b82a149bc1543595c34",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.route.rip_up",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "net optional (string or string[]); omit = all"
       ],
       "baseline_description": "Rip up copper routing (delete tracks + arcs + vias) — reliable hand-rolled rip-up (getAll → filter → delete) on the stable primitive APIs. Pass net (string or string[]) to rip up only those nets; omit to rip up ALL routing. Deletes COPPER layers ONLY (TOP/BOTTOM/INNER) — never silkscreen/assembly/mechanical artwork, the board outline, or locked primitives. The iteration primitive: rip_up → re-route. delete() is a batch boolean, so results report requested counts + ok, not an assumed deleted count.",
-      "baseline_source": "internal/protocol/actions.go:1247"
+      "baseline_outputs": [
+        "nets",
+        "lines{requested,ok}",
+        "arcs{requested,ok}",
+        "vias{requested,ok}"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1247",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "net": "string|string[]",
+          "nets": "string|string[]"
+        },
+        "revision": "1",
+        "schema": "68f768ddb26ecf6455316809004a745189bf467c0479850fbec2853c43d0560a",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.route.via_hop",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "net",
         "fromX",
@@ -1751,14 +2611,46 @@
         "bondSize optional (default 20 mil)"
       ],
       "baseline_description": "Composite layer hop for one net: entry stub → via → hop-layer track → via → exit stub. Optional (default OFF) net-bound bond FILLs over the vias. track↔via registers as connected on its own (pro-api-sdk#31 was our misdiagnosis; the old 'floating' symptom was stale pour connectivity, cured by pour-rebuild), so bondFill is an opt-in extra copper option, not required for connectivity. Vias sit `stub` mil inside the endpoints (keeps them OFF pads — via-on-pad ≠ connected). Rolls back all created primitives on mid-sequence failure. Verify with pcb.drc.check.",
-      "baseline_source": "internal/protocol/actions.go:1285"
+      "baseline_outputs": [
+        "net",
+        "layer",
+        "hopLayer",
+        "vias[]{x,y}",
+        "trackIds",
+        "viaIds",
+        "fillIds",
+        "bonded",
+        "note"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1285",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "bondFill": "boolean",
+          "bondSize": "number",
+          "fromX": "!number",
+          "fromY": "!number",
+          "holeDiameter": "number",
+          "hopLayer": "number",
+          "layer": "number",
+          "lineWidth": "number",
+          "net": "!string",
+          "stub": "number",
+          "toX": "!number",
+          "toY": "!number",
+          "viaDiameter": "number"
+        },
+        "revision": "1",
+        "schema": "b009d3f925b45530dad73289d94f1514fa56191c3e74444cd89df657df3d1766",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.routing_profile",
       "level": 3,
       "classification": "F",
-      "mode": "NOT_MIGRATED",
-      "reason": "Fast 业务引擎保留；正式 action 的 V2 revision/receipt/controlled-effect 接线尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "project_uuid",
         "document_uuid",
@@ -1767,7 +2659,27 @@
         "profile for put"
       ],
       "baseline_description": "Read available Host context; record an immutable manufacturer-reviewed profile (evidence_basis:manufacturer, source_kind:manufacturer, evidence, reviewed, observed_layers_hash, rules_hash; stackup_hash computed from reviewed fields); validate against observable copper inventory/rules. Missing EDA 3.2 physical getter does not downgrade MANUFACTURER_VERIFIED; HOST_VERIFIED requires separate Host acceptance. No CAD mutation or impedance calculation. IDs are scoped to exact project/document.",
-      "baseline_source": "internal/protocol/actions_closure.go:8"
+      "baseline_outputs": [
+        "state",
+        "stackup_hash",
+        "rules_hash",
+        "board_revision",
+        "profile"
+      ],
+      "baseline_source": "internal/protocol/actions_closure.go:8",
+      "v2": {
+        "effect_scope": "NONE",
+        "input": {
+          "document_uuid": "string",
+          "operation": "!string",
+          "profile": "object",
+          "profile_id": "string",
+          "project_uuid": "string"
+        },
+        "revision": "1",
+        "schema": "aab3eaccd5e2ad6284965be8111ed1b1bf89d048c511e2318eb8cb717cf7c3b0",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.save",
@@ -1777,6 +2689,9 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "Save the active PCB document to disk (eda.pcb_Document.save). The PCB counterpart to schematic.save — PCB edits are in-memory until saved. Also the action the daemon's debounced autosave fires for a PCB window.",
+      "baseline_outputs": [
+        "saved"
+      ],
       "baseline_source": "internal/protocol/actions.go:1188",
       "v2": {
         "effect_scope": "SAVE",
@@ -1802,6 +2717,16 @@
         "rotation optional (deg, default 0)"
       ],
       "baseline_description": "Create a FREE silkscreen STRING (board marking / credit / note / logo text) at (x,y) with full config: layer (3=TOP_SILKSCREEN default, 4=BOTTOM_SILKSCREEN), fontSize (mil), lineWidth (stroke mil), rotation. Defaults font 40 / stroke 6 are legible + JLCPCB-safe — a small font (<~32 mil) with a thick stroke smears the glyphs together. Returns the new primitiveId + its rendered bbox (check it fits the board / clears parts). Use pcb.silk.set to reposition/restyle afterwards.",
+      "baseline_outputs": [
+        "primitiveId",
+        "layer",
+        "x",
+        "y",
+        "fontSize",
+        "lineWidth",
+        "rotation",
+        "bbox"
+      ],
       "baseline_source": "internal/protocol/actions.go:744",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -1823,8 +2748,8 @@
       "action": "pcb.silk.align",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "offset optional (base mil gap, default 15, ×spacing)",
         "spacing optional (coefficient, default 1.5 — scales label drift for assembly/solder room)",
@@ -1832,7 +2757,28 @@
         "refs optional ([designators]; others frozen)"
       ],
       "baseline_description": "POSITION-AWARE auto-placement of every component's DESIGNATOR (位号). For each part it ranks the 4 sides (up/down/left/right) by LOCAL FREE SPACE (corridor clearance to the nearest obstacle) + BOARD POSITION (edge parts get pulled inward, never off-board) + a crowd-axis bonus (labels pushed PERPENDICULAR to a tight neighbor stack — the ceshi C2/C1/R1/C3 fix), then places via a ladder (base offset → grow rings → diagonals) picking the lowest-cost slot. Obstacle set (the core fix): OTHER parts' PADS (a label over exposed copper is fab-clipped — this is why C1's label no longer lands on C2's pad), component bodies, keep-out regions (mechanical=hard, copper=soft), the board outline (containment — never off-board), and other/frozen silk labels. Most-constrained-first order so tight clusters claim gaps first. Rotation stays 0 (upright, keeps `pcb check` clean); BOTTOM parts → bottom silk + mirror (with a retry-without-mirror fallback). If a part is truly boxed-in (only a pad-collision / off-board slot exists) it is LEFT in place and REPORTED in unresolved rather than moved to a worse spot. `side` biases the default; `offset` = base gap; `refs` limits to specific parts (others are frozen obstacles). Designator = component-bound ATTRIBUTE via pcb_PrimitiveAttribute.getAllPrimitiveId + .modify.",
-      "baseline_source": "internal/protocol/actions.go:725"
+      "baseline_outputs": [
+        "aligned",
+        "warned (body-overlap)",
+        "unresolved (boxed-in/pad/off-board)",
+        "skipped",
+        "details",
+        "unresolvedDetails",
+        "skippedDetails"
+      ],
+      "baseline_source": "internal/protocol/actions.go:725",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "offset": "number",
+          "refs": "array",
+          "side": "string",
+          "spacing": "number"
+        },
+        "revision": "1",
+        "schema": "52999db1d751fe547cf4a8eb9093d4679356b3d3b22cc1ce5c36e438f190eeb6",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.silk.import_svg",
@@ -1851,6 +2797,16 @@
         "mirror optional (bool, default false — horizontal mirror; auto-true convention for bottom silk handled CLI-side)"
       ],
       "baseline_description": "Import an SVG (logo / artwork / brand mark) as a FILLED silkscreen primitive (eda.pcb_PrimitiveImage) — the typed path for placing a vector graphic on a PCB without debug.exec_js. The CLI (easyeda pcb silk-import-svg) parses the SVG, flattens every curve (Bézier/arc) to line segments, applies viewBox→mil scaling, and sends the resulting complex polygon (contours + even-odd holes, so a logo's counters punch through) here; the connector creates ONE image primitive on the silk layer and returns its primitiveId + rendered bbox. Placement: (x,y) is where the artwork's TOP-LEFT lands; layer 3=TOP_SILKSCREEN (default) / 4=BOTTOM_SILKSCREEN; rotation + horizontal mirror supported. Persists across doc reload + pcb save (probe-verified). Fill rule is even-odd; stroke-only art is not stroked (all geometry is filled). Use --dry-run (CLI-side, no editor call) to preview target bbox / contour count / min-feature before committing. Verify with pcb.silk.list + pcb check; follow the reload/read/check/save workflow.",
+      "baseline_outputs": [
+        "primitiveId",
+        "layer",
+        "x",
+        "y",
+        "rotation",
+        "mirror",
+        "contours",
+        "bbox"
+      ],
       "baseline_source": "internal/protocol/actions.go:788",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -1873,8 +2829,8 @@
       "action": "pcb.silk.label_pads",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "refs (required: []string — component designators to label, e.g. [J2, U1])",
         "content optional (pin-number|net-name|both, default both)",
@@ -1886,7 +2842,38 @@
         "exclude_nets optional ([]string — skip these net names, e.g. [GND])"
       ],
       "baseline_description": "Label component pads with pin numbers and/or net names. Flexible placement: X-axis align (all labels same X, Y=pin-Y, for vertical pin arrays) or Y-axis align (all labels same Y, X=pin-X, for horizontal pin arrays). Useful for large connectors (J2, U1, etc.).",
-      "baseline_source": "internal/protocol/actions.go:777"
+      "baseline_outputs": [
+        "created[].ref",
+        "created[].pin",
+        "created[].net",
+        "created[].primitiveId",
+        "created[].x",
+        "created[].y",
+        "created[].bbox",
+        "total",
+        "failed[].ref",
+        "failed[].pin",
+        "failed[].reason",
+        "side_chosen",
+        "align_axis_chosen"
+      ],
+      "baseline_source": "internal/protocol/actions.go:777",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "align_axis": "string",
+          "content": "string",
+          "exclude_nets": "string[]",
+          "fontSize": "number",
+          "layer": "number",
+          "lineWidth": "number",
+          "refs": "!string[]",
+          "side": "string"
+        },
+        "revision": "1",
+        "schema": "3429a6699a545d0ac58adbad5c9cfb65f632fc30172afffe18135af19a1f76cc",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.silk.list",
@@ -1896,6 +2883,18 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "List every SILKSCREEN TEXT primitive on the active PCB — component designator/value ATTRIBUTES (pcb_PrimitiveAttribute) plus free STRINGS (pcb_PrimitiveString) — each with its silk layer (3=TOP_SILKSCREEN, 4=BOTTOM_SILKSCREEN), mirror flag, text, position, and (for attributes) the parent component's id + side (TOP/BOTTOM). Feeds the `pcb check` silkscreen-orientation rule: top silk must read un-mirrored, bottom silk must be mirrored, and a designator's silk side must match its component's side — a mismatch is a flipped/back-side silkscreen (放反). Read-only.",
+      "baseline_outputs": [
+        "texts[].primitiveId",
+        "texts[].kind",
+        "texts[].text",
+        "texts[].layer",
+        "texts[].mirror",
+        "texts[].componentId",
+        "texts[].componentLayer",
+        "texts[].x",
+        "texts[].y",
+        "count"
+      ],
       "baseline_source": "internal/protocol/actions.go:736",
       "v2": {
         "effect_scope": "NONE",
@@ -1909,8 +2908,8 @@
       "action": "pcb.silk.netnames",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "zone_rect (required: {left, top, right, bottom} in mil)",
         "layer optional (3=TOP_SILKSCREEN default, 4=BOTTOM_SILKSCREEN)",
@@ -1920,14 +2919,40 @@
         "exclude_nets optional ([]string — skip these net names, e.g. [GND, +5V])"
       ],
       "baseline_description": "Auto-generate network-name silkscreen labels for nets with pads in a rectangular zone. Reads all nets on the PCB, filters those with pads in the zone, computes collision-free positions (avoiding pads + other silk), and creates free silkscreen STRINGs. Pair with pcb.silk.list to verify positions and pcb.snapshot for visual QA.",
-      "baseline_source": "internal/protocol/actions.go:766"
+      "baseline_outputs": [
+        "created[].net",
+        "created[].primitiveId",
+        "created[].x",
+        "created[].y",
+        "created[].fontSize",
+        "created[].lineWidth",
+        "created[].bbox",
+        "total",
+        "failed[].net",
+        "failed[].reason"
+      ],
+      "baseline_source": "internal/protocol/actions.go:766",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "align": "string",
+          "exclude_nets": "string[]",
+          "fontSize": "number",
+          "layer": "number",
+          "lineWidth": "number",
+          "zone_rect": "!object"
+        },
+        "revision": "1",
+        "schema": "992010628c2d5830959d41d6c1b91af5d3ad86e812edcb29c146b0bfdb65f931",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.silk.set",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "primitiveIds (string or [] , required)",
         "x optional (mil)",
@@ -1940,48 +2965,130 @@
         "ref optional (designator|board|outline|fill, default board)"
       ],
       "baseline_description": "Reconfigure existing silkscreen primitive(s) in ONE batch — designator/value ATTRIBUTES and free STRINGS alike. Provide primitiveIds ([] or one) + any of x/y/rotation/fontSize/lineWidth/text; only the given keys change. ALSO an ALIGN shortcut: pass `align` (center|mid = both axes, centerx|centery, left|right|top|bottom = edge-align) + `ref` (a component designator, \"board\"/\"outline\", or \"fill\"; default board) to position each silk relative to that reference bbox — computed from the silk's OWN bbox so its center/edge lands exactly on the reference (e.g. center the board credit, or align a label to a component's top). Uses the reliable .modify(id,props) (NOTE: setState_Rotation alone does NOT persist; a snapshot taken before a document reload shows the OLD orientation — judge by pcb.silk.list/pcb check, not a stale screenshot). The batch position/orientation/size/align adjuster; pair with pcb.silk.list (get ids) and pcb check (silkscreen-flipped).",
-      "baseline_source": "internal/protocol/actions.go:755"
+      "baseline_outputs": [
+        "align",
+        "count",
+        "results[].primitiveId",
+        "results[].ok",
+        "results[].x",
+        "results[].y"
+      ],
+      "baseline_source": "internal/protocol/actions.go:755",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "align": "string",
+          "fontSize": "number",
+          "ids": "string|array",
+          "lineWidth": "number",
+          "primitiveIds": "string|array",
+          "ref": "string",
+          "rotation": "number",
+          "text": "string",
+          "x": "number",
+          "y": "number"
+        },
+        "revision": "1",
+        "schema": "b5cf1741dbd9e5fe953501b88fcc995cfe5c0a33122c47b3cd7a53f3ab6db19f",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.snapshot",
       "level": 3,
       "classification": "R",
-      "mode": "NOT_MIGRATED",
-      "reason": "该读取/检查/产物路径的结构化观测与 V2 executor 接线尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "fit optional (default true)",
         "tabId optional",
         "previousSha256 optional (enables stale-frame detection + auto-retry)"
       ],
       "baseline_description": "Capture the active PCB canvas as a PNG artifact (eda.dmt_EditorControl.getCurrentRenderedAreaImage; fit-to-all by default, pass fit=false to keep viewport). The canvas-frame capture for the PCB (the schematic-side snapshot was removed — sch uses schematic.export.image). Returns a frame sha256 — pass it back via previousSha256 on the next snapshot and the connector detects a byte-identical (stale) frame, forces a redraw (ratline recompute + zoom-to-all) + retries once, and reports stale=true if it is still identical. WARNING: EasyEDA may return a STALE frame after API edits — judge layout/DRC by data (pcb list / pcb drc), screenshot for a human eyeball only.",
-      "baseline_source": "internal/protocol/actions.go:1219"
+      "baseline_outputs": [
+        "artifact id",
+        "file path",
+        "fitted",
+        "sha256",
+        "stale",
+        "staleRetry",
+        "capturedAt"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1219",
+      "v2": {
+        "effect_scope": "UI_NATIVE",
+        "input": {
+          "fit": "boolean",
+          "previousSha256": "string",
+          "tabId": "string"
+        },
+        "revision": "1",
+        "schema": "3294c14caccde6762781ba9a51bb839fc540ebea9bf7aa4ae722c66d0ec80a45",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.stackup.set",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "count optional (2|4|6|…)",
         "layers optional ([{id, type: signal|plane, name?}])"
       ],
       "baseline_description": "Configure the board stackup: set the copper layer count (`count` = 2|4|6|…|32, eda.pcb_Layer.setTheNumberOfCopperLayers) and/or set inner layers' type via `layers` ([{id, type: signal|plane, name?}] → modifyLayer; only INNER layers accept a type change). A PLANE (内电层) inner layer is the clean way to distribute GND + power on 4+ layer boards — each net gets a dedicated plane instead of two power nets fighting over one layer (the ceshi 2-layer pour-conflict that stranded 5 pads). Returns the new copperLayerCount + all layers. NOTE: changing layer count restructures the stackup — set it BEFORE routing/pouring inner layers.",
-      "baseline_source": "internal/protocol/actions.go:714"
+      "baseline_outputs": [
+        "copperLayerCount",
+        "setCount",
+        "modified",
+        "layers"
+      ],
+      "baseline_source": "internal/protocol/actions.go:714",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "count": "number",
+          "layers": "array"
+        },
+        "revision": "1",
+        "schema": "070a7586f5bf432b92eda563fcdfed837f749a6c0678b191fe1a16806387a2d4",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.track.lock",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "net optional (string or string[])",
         "primitiveIds optional (string[])",
         "locked optional (default true)"
       ],
       "baseline_description": "Lock (or unlock) copper routing primitives — tracks, arcs, vias — by net (string or string[]) and/or explicit primitiveIds (issue #127). The P7.0 critical-net flow routes power + diff pairs FIRST and locks them so a later auto-route / rip-up cannot destroy the hand-guaranteed copper (rip_up skips locked primitives). locked defaults true; pass locked=false to unlock. Refuses an empty filter (no implicit whole-board lock). Idempotent: primitives already in the desired state are counted, not re-written.",
-      "baseline_source": "internal/protocol/actions.go:1260"
+      "baseline_outputs": [
+        "locked",
+        "counts{lines,arcs,vias}",
+        "total",
+        "failures"
+      ],
+      "baseline_source": "internal/protocol/actions.go:1260",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "all": "boolean",
+          "includeFills": "boolean",
+          "locked": "boolean",
+          "net": "string|string[]",
+          "nets": "string|string[]",
+          "primitiveIds": "string[]"
+        },
+        "revision": "1",
+        "schema": "98cb6d9d79eb388970d27f184ee3a33d5374b7f888f2fa9a1caae1fd2c76b81e",
+        "target": "pcb"
+      }
     },
     {
       "action": "pcb.via.create",
@@ -1997,6 +3104,14 @@
         "net optional"
       ],
       "baseline_description": "Place a via (过孔) at (x,y) on the active PCB with a hole + outer diameter (mil), optionally bound to a net. Coordinates are mil, y-up. create() is lenient — the action verifies a primitive came back. PCB autosave is on (debounced); save explicitly at checkpoints.",
+      "baseline_outputs": [
+        "primitiveId",
+        "net",
+        "x",
+        "y",
+        "holeDiameter",
+        "diameter"
+      ],
       "baseline_source": "internal/protocol/actions.go:1175",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -2022,6 +3137,16 @@
         "net optional"
       ],
       "baseline_description": "List vias (过孔) on the active PCB, optionally filtered by net. Read-only.",
+      "baseline_outputs": [
+        "vias[].primitiveId",
+        "vias[].net",
+        "vias[].x",
+        "vias[].y",
+        "vias[].holeDiameter",
+        "vias[].diameter",
+        "vias[].locked",
+        "count"
+      ],
       "baseline_source": "internal/protocol/actions.go:1238",
       "v2": {
         "effect_scope": "NONE",
@@ -2043,6 +3168,12 @@
         "side (top|bottom)"
       ],
       "baseline_description": "Switch the PCB view to the top or bottom side for snapshots / human QA. Selects that side's copper as the current layer AND focuses the side's copper+silk layers so a following pcb.snapshot reflects that side (#40). NOTE: EasyEDA Pro has no native canvas flip/mirror-view API — this is a layer-focus approximation, not a physical board flip. For bottom silkscreen/copper visual QA, follow with pcb.snapshot (thread previousSha256 to defeat a stale frame).",
+      "baseline_outputs": [
+        "side",
+        "currentLayer",
+        "focusedLayers",
+        "note"
+      ],
       "baseline_source": "internal/protocol/actions.go:703",
       "v2": {
         "effect_scope": "NAVIGATION_SELECTION",
@@ -2058,8 +3189,8 @@
       "action": "project.create",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "name",
         "expected_project_uuid + session_token optional paired guards (Go acquires when omitted)",
@@ -2068,7 +3199,26 @@
         "folder_uuid optional"
       ],
       "baseline_description": "Create one native project and read back exact UUID. Personal/Root: omit team_uuid and folder_uuid. project.current.teamUuid can be a personal owner UUID, not a real team UUID; never infer create scope from it. Pass team_uuid only for an explicitly selected real team. CLI/MCP accepts name-only Personal creation: Go acquires current identity/session and a transaction ID without copying owner/team. Explicit guard/session requests remain supported; select window when multiple sessions exist. Never retries a native create; uncertain requires reconciliation.",
-      "baseline_source": "internal/protocol/actions_closure.go:12"
+      "baseline_outputs": [
+        "status:complete|uncertain",
+        "project_uuid",
+        "opened:false"
+      ],
+      "baseline_source": "internal/protocol/actions_closure.go:12",
+      "v2": {
+        "effect_scope": "PROJECT_TOPOLOGY",
+        "input": {
+          "client_transaction_id": "!string",
+          "expected_project_uuid": "string",
+          "folder_uuid": "string",
+          "name": "!string",
+          "session_token": "!string",
+          "team_uuid": "string"
+        },
+        "revision": "1",
+        "schema": "b36057186c32e8c1f40a428a1f9d7eec4eed33e19cc430fd82c420870798568c",
+        "target": "ANY"
+      }
     },
     {
       "action": "project.current",
@@ -2078,6 +3228,11 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "Read current EasyEDA project information. teamUuid may identify the personal owner; it is not evidence of a real team or a default for project.create.team_uuid.",
+      "baseline_outputs": [
+        "project uuid",
+        "project name",
+        "team/workspace context"
+      ],
       "baseline_source": "internal/protocol/actions.go:71",
       "v2": {
         "effect_scope": "NONE",
@@ -2099,6 +3254,12 @@
         "workspace_uuid optional"
       ],
       "baseline_description": "Enumerate UUIDs in explicit native project scope; not a global name search. On EDA 3.2 an omitted scope can return [] even when Personal projects exist; this does not require team_uuid for Personal creation. Returns Connector activation token for create de-duplication.",
+      "baseline_outputs": [
+        "project_uuids",
+        "scope",
+        "scope_complete",
+        "session_token"
+      ],
       "baseline_source": "internal/protocol/actions_closure.go:11",
       "v2": {
         "effect_scope": "NONE",
@@ -2116,22 +3277,38 @@
       "action": "project.open",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "project_uuid",
         "expected_project_uuid",
         "saved_current_project:true"
       ],
       "baseline_description": "Open exact project UUID and verify current identity. Explicit window and expected current project UUID required. Save all edited pages before switching.",
-      "baseline_source": "internal/protocol/actions_closure.go:13"
+      "baseline_outputs": [
+        "status:complete|uncertain",
+        "opened",
+        "project_uuid"
+      ],
+      "baseline_source": "internal/protocol/actions_closure.go:13",
+      "v2": {
+        "effect_scope": "NAVIGATION_SELECTION",
+        "input": {
+          "expected_project_uuid": "string",
+          "project_uuid": "!string",
+          "saved_current_project": "!boolean"
+        },
+        "revision": "1",
+        "schema": "9ebd87d681add9ea0ab2975ef9766702f19c8c59b178105547ce0097bab15c7e",
+        "target": "ANY"
+      }
     },
     {
       "action": "route.apply_batch",
       "level": 5,
       "classification": "F",
-      "mode": "NOT_MIGRATED",
-      "reason": "Fast 业务引擎保留；正式 action 的 V2 revision/receipt/controlled-effect 接线尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "document_uuid",
         "project_uuid",
@@ -2141,14 +3318,42 @@
         "operations[{type:add_trace|add_via|delete_trace|delete_via, exact geometry or id}]"
       ],
       "baseline_description": "Execute 1..512 explicit trace/via add/delete operations in ONE Connector action. Requires a matching successful preflight. Best-effort compensation; timeout is NOT cancellation.",
-      "baseline_source": "internal/protocol/actions.go:51"
+      "baseline_outputs": [
+        "status:complete|partial|stale|uncertain",
+        "created_ids",
+        "deleted_ids",
+        "item_results",
+        "failed_index",
+        "revision_before",
+        "revision_after",
+        "readback_verified",
+        "rollback_attempted",
+        "rollback_complete",
+        "warnings",
+        "telemetry"
+      ],
+      "baseline_source": "internal/protocol/actions.go:51",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "base_revision": "!string",
+          "client_transaction_id": "!string",
+          "document_uuid": "string",
+          "operations": "array",
+          "plan_hash": "!string",
+          "project_uuid": "string"
+        },
+        "revision": "1",
+        "schema": "47d848f46216499b867b2dc1545bf595d03d0a6f1e969a552d582d4ac3882f04",
+        "target": "pcb"
+      }
     },
     {
       "action": "route.pair_plan",
       "level": 3,
       "classification": "F",
-      "mode": "NOT_MIGRATED",
-      "reason": "Fast 业务引擎保留；正式 action 的 V2 revision/receipt/controlled-effect 接线尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "project_uuid",
         "document_uuid",
@@ -2163,14 +3368,41 @@
         "profile_id optional (verified differential width/gap)"
       ],
       "baseline_description": "Offset explicit P/N nets around caller centerline with straight miter corners, maximum 90-degree turns. Reject collapsing legs and gap violations; read-only, no obstacle search. Optional caller-specified endpoint transitions generate symmetric via/fanout geometry.",
-      "baseline_source": "internal/protocol/actions_closure.go:10"
+      "baseline_outputs": [
+        "plan",
+        "positive_length",
+        "negative_length",
+        "mismatch",
+        "minimum_gap",
+        "requires_preflight:true"
+      ],
+      "baseline_source": "internal/protocol/actions_closure.go:10",
+      "v2": {
+        "effect_scope": "NONE",
+        "input": {
+          "base_revision": "!string",
+          "centerline": "!array",
+          "document_uuid": "string",
+          "gap": "!number",
+          "layer": "!number",
+          "negative_net": "!string",
+          "positive_net": "!string",
+          "profile_id": "string",
+          "project_uuid": "string",
+          "transitions": "array",
+          "width": "!number"
+        },
+        "revision": "1",
+        "schema": "f98555ccb5297cbc0c0d4ce81e8336fc9ebb540005bdaa12208b404c4aee1113",
+        "target": "pcb"
+      }
     },
     {
       "action": "route.preflight",
       "level": 3,
       "classification": "F",
-      "mode": "NOT_MIGRATED",
-      "reason": "Fast 业务引擎保留；正式 action 的 V2 revision/receipt/controlled-effect 接线尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "document_uuid",
         "project_uuid",
@@ -2182,14 +3414,40 @@
         "clearance_profile {clearance,min_width,min_hole,min_diameter,min_annulus} in mil"
       ],
       "baseline_description": "Pure Go checks of explicit caller geometry; never chooses paths/layers/vias or invokes native DRC.",
-      "baseline_source": "internal/protocol/actions.go:48"
+      "baseline_outputs": [
+        "ok",
+        "board_revision",
+        "plan_hash",
+        "affected_bbox",
+        "touched_nets",
+        "conflicts",
+        "telemetry"
+      ],
+      "baseline_source": "internal/protocol/actions.go:48",
+      "v2": {
+        "effect_scope": "NONE",
+        "input": {
+          "base_revision": "!string",
+          "clearance_profile": "object",
+          "delete_ids": "string[]",
+          "document_uuid": "string",
+          "profile_id": "string",
+          "project_uuid": "string",
+          "protected_nets": "string[]",
+          "routes": "array",
+          "vias": "array"
+        },
+        "revision": "1",
+        "schema": "e1f72499e6fae7113d44b1ee5541bf22df569c21c2c0320c03a581b58c25857b",
+        "target": "pcb"
+      }
     },
     {
       "action": "route.tuning_plan",
       "level": 3,
       "classification": "F",
-      "mode": "NOT_MIGRATED",
-      "reason": "Fast 业务引擎保留；正式 action 的 V2 revision/receipt/controlled-effect 接线尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "project_uuid",
         "document_uuid",
@@ -2206,63 +3464,156 @@
         "profile_id optional (verified single-ended)"
       ],
       "baseline_description": "EasyEDA equal-length settings on a caller-selected straight span/fixed corridor. Final target is current planar net copper length plus solved added length (no via barrel/package delay). GUI corners line_45/line_90/arc_90; W centerline spacing, H minimum excursion. Single corridor must select one side; bilateral alternates. follow_rule fails closed until one authoritative target can be resolved. Read-only plan; preflight/apply/readback/remeasure remain mandatory. No path/layer/corridor search.",
-      "baseline_source": "internal/protocol/actions_closure.go:9"
+      "baseline_outputs": [
+        "plan",
+        "current_length",
+        "target_length",
+        "achieved_length",
+        "added_length",
+        "residual",
+        "length_tolerance",
+        "turns",
+        "capacity_added_length",
+        "corner",
+        "side",
+        "spacing_w",
+        "min_amplitude_h",
+        "actual_amplitude",
+        "requires_preflight:true"
+      ],
+      "baseline_source": "internal/protocol/actions_closure.go:9",
+      "v2": {
+        "effect_scope": "NONE",
+        "input": {
+          "base_revision": "!string",
+          "corner": "!string",
+          "corridor": "!array",
+          "document_uuid": "string",
+          "min_amplitude_h": "!number",
+          "net": "!string",
+          "profile_id": "string",
+          "project_uuid": "string",
+          "side": "!string",
+          "spacing_w": "!number",
+          "span_id": "!string",
+          "target_length": "number",
+          "target_mode": "!string"
+        },
+        "revision": "1",
+        "schema": "55a15d1e3266376e5534b4b2f1fae41bca7212ea2fa743d008ec5d808b1d60bd",
+        "target": "pcb"
+      }
     },
     {
       "action": "schematic.bridgeCheck",
       "level": 3,
       "classification": "R",
-      "mode": "NOT_MIGRATED",
-      "reason": "该读取/检查/产物路径的结构化观测与 V2 executor 接线尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "allPages optional"
       ],
       "baseline_description": "Tree-granularity net-vs-copper consistency gate (read-only). Groups every page wire into trees by shared vertices (union-find, connector side), then aggregates the netflag/netport net names anchored on each tree: >1 distinct net → BRIDGE (共线合并短路 — the blind spot of schematic.check's per-wire multi-net rule, which misses shorts spread across several merged wire primitives); 0 nets and no pin touch → ORPHAN stub. Complements schematic.check; run after bulk wiring or surgical edits.",
-      "baseline_source": "internal/protocol/actions.go:597"
+      "baseline_outputs": [
+        "passed",
+        "bridges",
+        "orphans",
+        "trees"
+      ],
+      "baseline_source": "internal/protocol/actions.go:597",
+      "v2": {
+        "effect_scope": "NONE",
+        "input": {
+          "allPages": "boolean"
+        },
+        "revision": "1",
+        "schema": "0e1f7c4aba7ad89c9d615e69555b8ea614c6b5c9bab5279e1af6a4d63b716426",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.check",
       "level": 3,
       "classification": "R",
-      "mode": "NOT_MIGRATED",
-      "reason": "该读取/检查/产物路径的结构化观测与 V2 executor 接线尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "allPages optional"
       ],
       "baseline_description": "Reconstructed per-item design check that the SDK's schematic DRC API cannot expose (eda.sch_Drc.check returns only an aggregate {count,type}) and that complements layout-lint (which only sees component bbox overlap). Computes findings geometrically from primitives. Rules: (1) floating pins — a pin is connected iff a wire touches its coordinate, NC-marked excluded, grouped by component as {designator, pins[]} (the exact input schematic.pin.set_no_connect takes); (2) wire-crossing — two wire segments cross in their interiors (routing tangle; shared endpoints/junctions excluded), reported with the intersection point; (3) wire-over-pin — a pin sits in a wire's interior (EasyEDA trims+connects there → unintended short); (4) polarity-convention-outlier — a C<digits>-designated 2-pin capacitor whose rail-side pin contradicts the same-page supermajority (#183 phase 1; WARN consistency hint, MLCC numbering arbitrary). Returns {passed, summary{floatingPins,wireCrossings,wireOverPins,…}, findings[]}.",
-      "baseline_source": "internal/protocol/actions.go:588"
+      "baseline_outputs": [
+        "passed",
+        "summary",
+        "findings"
+      ],
+      "baseline_source": "internal/protocol/actions.go:588",
+      "v2": {
+        "effect_scope": "NONE",
+        "input": {
+          "allPages": "boolean"
+        },
+        "revision": "1",
+        "schema": "0e1f7c4aba7ad89c9d615e69555b8ea614c6b5c9bab5279e1af6a4d63b716426",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.component.delete",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "primitiveIds"
       ],
       "baseline_description": "Delete schematic component primitives.",
-      "baseline_source": "internal/protocol/actions.go:260"
+      "baseline_outputs": [
+        "deleted"
+      ],
+      "baseline_source": "internal/protocol/actions.go:260",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "cascade": "boolean",
+          "primitiveIds": "!string|array"
+        },
+        "revision": "1",
+        "schema": "24c08db171448bbe819ec24a9e2a4230b849d3e63b16b4875559a573a6e820b2",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.component.modify",
       "level": 3,
       "classification": "S",
-      "mode": "NOT_MIGRATED",
-      "reason": "该 schematic 写入的 source identity/Host workaround 与 fresh verifier 尚未接入 V2。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "primitiveId",
         "patch"
       ],
       "baseline_description": "Modify component position, designator, name, BOM flags, or custom properties. customAttributes is a compatibility alias for the EasyEDA SDK otherProperty field; unknown patch keys are rejected up front (the SDK silently drops them). Property patches are merged with existing values and verified by readback with tiered semantics (#151): all applied = ok; PARTIAL application = ok with result.{partial,applied,alreadySet,notApplied,addedKeys,propertiesBefore} + warnings — the applied subset stays on canvas and autosaves; the `sch modify` subcommand and playbook replay treat partial as a failure, but raw `easyeda call` users must check result.partial/notApplied themselves. A pure-property patch where nothing provably applied is an error (canvas unchanged). Replaying propertiesBefore restores overwritten values only; keys newly added by the call (addedKeys) cannot be removed via modify.",
-      "baseline_source": "internal/protocol/actions.go:249"
+      "baseline_outputs": [
+        "component state"
+      ],
+      "baseline_source": "internal/protocol/actions.go:249",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "patch": "!object",
+          "primitiveId": "!string"
+        },
+        "revision": "1",
+        "schema": "6a869072994be74ddc0b8776521a12676fc873da164dcd2dae692a908364a3be",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.component.place",
       "level": 3,
       "classification": "S",
-      "mode": "NOT_MIGRATED",
-      "reason": "该 schematic 写入的 source identity/Host workaround 与 fresh verifier 尚未接入 V2。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "libraryUuid",
         "uuid (device-library uuid, not an instance id)",
@@ -2272,14 +3623,36 @@
         "mirror optional"
       ],
       "baseline_description": "Place a device/component from library identity at coordinates. `uuid` must be a device-library uuid (from schematic.library.search), NOT a placed-instance id from schematic.components.list — an instance uuid hangs the EasyEDA API. Two backfills run right after create, both best-effort (placement never fails because a backfill did): supplierId → the device's real LCSC C-number instead of the platform default `<MPN>.1` (#157), and otherProperty VALUES (Value/Tolerance/Voltage Rating/Datasheet/…) which create copies as empty keys (#186) — reported as `supplierIdBackfilled` / `otherPropertyBackfilled`. Projected-state keys (Designator/Name/Supplier Part/…) are never written and identity fields are re-asserted in the same call, because a whole-otherProperty write re-projects them from the library record.",
-      "baseline_source": "internal/protocol/actions.go:238"
+      "baseline_outputs": [
+        "primitive id",
+        "component state"
+      ],
+      "baseline_source": "internal/protocol/actions.go:238",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "addIntoBom": "boolean",
+          "addIntoPcb": "boolean",
+          "designator": "string",
+          "libraryUuid": "!string",
+          "mirror": "boolean",
+          "rotation": "number",
+          "subPartName": "string",
+          "uuid": "!string",
+          "x": "!number",
+          "y": "!number"
+        },
+        "revision": "1",
+        "schema": "76e6b46db1539ed7b87dcc08a3bc4d80f5a4c1a77730a29a42785e02229b3f8b",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.component.replace",
       "level": 5,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "primitiveId",
         "lcsc OR deviceUuid (+deviceLibraryUuid) OR query",
@@ -2287,27 +3660,68 @@
         "client_transaction_id optional (activation-scoped)"
       ],
       "baseline_description": "Replace using verified 32-character library source identity. Stage and verify the new device before deleting the original; preserve designator/uniqueId and report pinDiff. Placement source is persisted in official extension user config keyed by project/page/primitive and validated after reload against instance binding and current library associations. Unknown create outcomes retain the original and return uncertain; confirmed failures use checked cleanup/recovery, never blind replay. Optional client_transaction_id deduplicates within this Connector activation (not across reload). partial/unverified is not success.",
-      "baseline_source": "internal/protocol/actions.go:537"
+      "baseline_outputs": [
+        "primitiveId (new)",
+        "previousPrimitiveId",
+        "previousDevice",
+        "device",
+        "pinDiff {available,removed,added,moved,…counts}",
+        "component state"
+      ],
+      "baseline_source": "internal/protocol/actions.go:537",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "client_transaction_id": "string",
+          "deviceLibraryUuid": "string",
+          "deviceUuid": "string",
+          "keepProperties": "boolean",
+          "lcsc": "string",
+          "primitiveId": "!string",
+          "query": "string"
+        },
+        "revision": "1",
+        "schema": "9caaee0b17bbe2ddbe21297cfa5910551c25ddb26179b89898bb96898f12111d",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.component.resolve_lcsc",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "primitiveId optional (single part)",
         "apply optional (default false = dry-run report)"
       ],
       "baseline_description": "Batch-resolve every placed part on the ACTIVE page to its device's REAL LCSC C-number, deterministically (#158): exact-match chain only (instance C# → MPN equality → project-library name), the match's footprint must equal the instance's, and NOTHING is ever guessed — a bare lib_Device.search takes fragment-matched garbage (live: U.FL antenna socket resolved to a C1017 ferrite bead via r[0]) and lone hits with a different footprint are package-variant mismatches (SMBJ33A LS5.4 vs LS5.3), so both cases land in result.unresolved WITH candidates for a human call. apply=true writes resolved C-numbers back onto instances whose supplierId is not a real C# (the platform subPartName default, #157) — the one-command 166-part supplierId repair. Per-MPN+footprint cached; read-only unless apply. Page-lazy-load law: active page only — sweep pages via --page/doc switch.",
-      "baseline_source": "internal/protocol/actions.go:328"
+      "baseline_outputs": [
+        "total",
+        "resolvedCount",
+        "unresolvedCount",
+        "appliedCount (with apply)",
+        "items[].{designator,lcsc,via,footprint,previousSupplierId,applied}",
+        "unresolved[].{designator,mpn,footprint,reason,candidates}"
+      ],
+      "baseline_source": "internal/protocol/actions.go:328",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "apply": "boolean",
+          "primitiveId": "string"
+        },
+        "revision": "1",
+        "schema": "caef031387bc1800217b1c703bc653115cb3d89b782376dae1dbb87efba9ddb4",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.components.list",
       "level": 3,
       "classification": "R",
-      "mode": "NOT_MIGRATED",
-      "reason": "该读取/检查/产物路径的结构化观测与 V2 executor 接线尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "allPages optional (WARNING: non-active pages return shallow data — pins/bbox may be empty even when wired; switch to the page via document.switch for accurate data)",
         "includePins optional (adds pinsAvailable and pinsError on failure)",
@@ -2316,14 +3730,39 @@
         "includeConnectivitySummary optional (active page only, read-only)"
       ],
       "baseline_description": "Read-only list of components on the active schematic page. includeConnectivitySummary adds a fail-closed inventory of the page that was active when the request started (wires/buses/netflags/netports/netlabels/shortSymbols), even when allPages=true. includePins explicitly reports pinsAvailable=true for a successful pin-array read (including zero pins), or pinsAvailable=false + pinsError and no pins field when the pin read fails/is unavailable. includeBBox attaches each component's rendered extent {minX,minY,maxX,maxY} (used by `easyeda sch layout-lint` for overlap/spacing checks). NOTE: the component/symbol/footprint/uniqueId fields are placed-INSTANCE ids — they are NOT device-library uuids. Set includeDeviceIdentity=true to resolve each part's device field to a replayable 32-char library uuid; unresolved parts carry deviceIdentityError instead of being silently replayed.",
-      "baseline_source": "internal/protocol/actions.go:228"
+      "baseline_outputs": [
+        "component primitives",
+        "designator",
+        "name",
+        "pins",
+        "pinsAvailable",
+        "pinsError on pin-read failure",
+        "bbox",
+        "connectivitySummary {scope,wires,buses,netflags,netports,netlabels,shortSymbols}"
+      ],
+      "baseline_source": "internal/protocol/actions.go:228",
+      "v2": {
+        "effect_scope": "NAVIGATION_SELECTION",
+        "input": {
+          "allPages": "boolean",
+          "includeBBox": "boolean",
+          "includeConnectivitySummary": "boolean",
+          "includeDeviceIdentity": "boolean",
+          "includePins": "boolean",
+          "includeWires": "boolean",
+          "tagPages": "boolean"
+        },
+        "revision": "1",
+        "schema": "b67df81f72e1901be07945706f73bf6b5914ad75c0460a81765ffa4aaf7251b7",
+        "target": "PROJECT"
+      }
     },
     {
       "action": "schematic.create",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "expected_project_uuid",
         "session_token from project.list",
@@ -2331,41 +3770,96 @@
         "board_name optional"
       ],
       "baseline_description": "Create a first schematic container in the explicitly guarded current project; read back container UUID and actual pages. Use existing schematic.page.create if no page exists, then schematic.page.open.",
-      "baseline_source": "internal/protocol/actions_closure.go:14"
+      "baseline_outputs": [
+        "status:complete|uncertain",
+        "schematic_uuid",
+        "project_uuid",
+        "pages",
+        "opened:false"
+      ],
+      "baseline_source": "internal/protocol/actions_closure.go:14",
+      "v2": {
+        "effect_scope": "PROJECT_TOPOLOGY",
+        "input": {
+          "board_name": "string",
+          "client_transaction_id": "!string",
+          "expected_project_uuid": "!string",
+          "session_token": "!string"
+        },
+        "revision": "1",
+        "schema": "1476eb3c27452438d258ff62fd40ed32c0de84985253f86e4bf3b7b7b57d1b5d",
+        "target": "PROJECT"
+      }
     },
     {
       "action": "schematic.drc.check",
       "level": 3,
       "classification": "R",
-      "mode": "NOT_MIGRATED",
-      "reason": "该读取/检查/产物路径的结构化观测与 V2 executor 接线尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "strict",
         "includeVerboseError"
       ],
       "baseline_description": "Run schematic DRC and normalize the result into per-violation detail. Each violation carries {level, rule, message, primitiveIds, designators, x, y} (best-effort projection over the SDK shape, raw kept) plus a severity `summary` and a `fatal` count (error+fatal severities) for the design-flow S5 gate. `includeVerboseError` (default true) selects the detailed/array SDK overload. NOTE: the EDA schematic DRC API only returns an aggregate {count,type} (no per-item detail) — for the itemized findings the UI panel shows (which pins float, etc.), use schematic.check.",
-      "baseline_source": "internal/protocol/actions.go:579"
+      "baseline_outputs": [
+        "passed",
+        "fatal",
+        "summary",
+        "violations"
+      ],
+      "baseline_source": "internal/protocol/actions.go:579",
+      "v2": {
+        "effect_scope": "NATIVE_RECOMPUTE",
+        "input": {
+          "includeVerboseError": "boolean",
+          "strict": "boolean"
+        },
+        "revision": "1",
+        "schema": "b838bec7fd633f0369866d67c7586037a4c082575e22674c50b9164bc400c02a",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.export.bom",
       "level": 3,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "fileType",
         "template optional",
         "columns optional"
       ],
       "baseline_description": "Export schematic BOM as csv or xlsx artifact.",
-      "baseline_source": "internal/protocol/actions.go:643"
+      "baseline_outputs": [
+        "artifact id",
+        "file path",
+        "file type"
+      ],
+      "baseline_source": "internal/protocol/actions.go:643",
+      "v2": {
+        "effect_scope": "UI_NATIVE",
+        "input": {
+          "columns": "array",
+          "fileName": "string",
+          "fileType": "string",
+          "filterOptions": "object",
+          "property": "string[]",
+          "statistics": "string[]",
+          "template": "string"
+        },
+        "revision": "1",
+        "schema": "fff8a9b0fcfc6568d9433ab67c73ce2301613a8b9d5bc4e85052a70e61e065ba",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.export.image",
       "level": 3,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "format svg|png|pdf (default svg)",
         "primitiveIds optional (auto-selects them)",
@@ -2375,33 +3869,87 @@
         "lineWidth optional"
       ],
       "baseline_description": "Render the active schematic page — or ONLY the given primitives — to SVG/PNG/PDF (#166). The selection scope is the point: a whole-page snapshot of a dense sheet is unreadable, and `view region` + `snapshot --no-fit` is viewport-dependent (a backgrounded tab never repaints, so it silently returns the previous full-page frame). This renders the requested primitives directly — no viewport, no foreground requirement, no dialog — and SVG is vector, so zooming in costs nothing.",
-      "baseline_source": "internal/protocol/actions.go:633"
+      "baseline_outputs": [
+        "artifact id",
+        "file path",
+        "format",
+        "scope",
+        "selectedCount",
+        "bytes"
+      ],
+      "baseline_source": "internal/protocol/actions.go:633",
+      "v2": {
+        "effect_scope": "UI_NATIVE",
+        "input": {
+          "fileName": "string",
+          "format": "string",
+          "lineWidth": "string",
+          "primitiveIds": "string|string[]",
+          "scope": "string",
+          "theme": "string"
+        },
+        "revision": "1",
+        "schema": "cadab764f955663e6d9236645c704534fc86fdd149fa0dda3d30ab7a9b496f41",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.export.netlist",
       "level": 3,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "netlistType optional"
       ],
       "baseline_description": "Export schematic netlist as an artifact.",
-      "baseline_source": "internal/protocol/actions.go:624"
+      "baseline_outputs": [
+        "artifact id",
+        "file path",
+        "netlist type"
+      ],
+      "baseline_source": "internal/protocol/actions.go:624",
+      "v2": {
+        "effect_scope": "UI_NATIVE",
+        "input": {
+          "fileName": "string",
+          "netlistType": "string"
+        },
+        "revision": "1",
+        "schema": "e12fb896980b656480edc70ce3e19625f7d51859d3916548f2c7de7fcba962da",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.group.move",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "primitiveIds (string[], components and/or wires)",
         "dx",
         "dy"
       ],
       "baseline_description": "Translate a set of primitives (components AND wires, in any mix) together by (dx,dy) as a rigid assembly — a component + its surrounding stub wires + flags move as one unit, internal relative layout untouched. NOT backed by EasyEDA's native '组合' UI field — investigated 2026-07-07: that field has zero extension-API exposure (not a primitive type, no getter/setter, not in OtherProperty), so it can't be read, written, or driven programmatically. This is a stateless virtual group: pass the full member id list every call, nothing is remembered between calls. Components translate via a plain modify; wires have no modify-in-place so they are deleted and recreated at the shifted endpoints (net/color/width/lineType preserved) — a wire's returned primitiveId CHANGES, re-fetch fresh ids before any follow-up mutation.",
-      "baseline_source": "internal/protocol/actions.go:295"
+      "baseline_outputs": [
+        "movedComponents[]{primitiveId,designator,from,to}",
+        "movedWires[]{oldPrimitiveId,newPrimitiveId,net}",
+        "count",
+        "notFound"
+      ],
+      "baseline_source": "internal/protocol/actions.go:295",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "dx": "!number",
+          "dy": "!number",
+          "primitiveIds": "!string[]"
+        },
+        "revision": "1",
+        "schema": "b791c67c07c28c23e767ccc453d5ce24fbfa5fbd862ef93db0be9220f1f5265c",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.library.get_by_lcsc",
@@ -2413,6 +3961,16 @@
         "lcscIds (string or string[] of C-numbers)"
       ],
       "baseline_description": "Resolve one or more LCSC C-numbers (e.g. C6186) directly to device-library identity — libraryUuid + uuid ready for schematic.component.place — skipping free-text ranking. Use when you already know the exact part (from standard-parts.json or a BOM). Reports a notFound list for any C-number the library did not resolve.",
+      "baseline_outputs": [
+        "components[].lcsc",
+        "components[].libraryUuid",
+        "components[].uuid",
+        "components[].name",
+        "components[].value",
+        "components[].footprintName",
+        "components[].description",
+        "notFound"
+      ],
       "baseline_source": "internal/protocol/actions.go:358",
       "v2": {
         "effect_scope": "NONE",
@@ -2436,6 +3994,15 @@
         "libraryUuid optional"
       ],
       "baseline_description": "Search the EasyEDA device library by free-text query (MPN, value+package, or a name like 'ESP32-S3-WROOM-1'). Returns a relevance-ranked list (with score) of libraryUuid + uuid ready for schematic.component.place.",
+      "baseline_outputs": [
+        "components[].libraryUuid",
+        "components[].uuid",
+        "components[].name",
+        "components[].value",
+        "components[].footprintName",
+        "components[].lcsc",
+        "components[].description"
+      ],
       "baseline_source": "internal/protocol/actions.go:349",
       "v2": {
         "effect_scope": "NONE",
@@ -2464,6 +4031,10 @@
         "rotation optional"
       ],
       "baseline_description": "Create power, ground, analog ground, protective ground, net port, or short-circuit flag.",
+      "baseline_outputs": [
+        "primitive id",
+        "component state"
+      ],
       "baseline_source": "internal/protocol/actions.go:306",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -2484,14 +4055,31 @@
       "action": "schematic.page.clear",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "preserveSheet optional (default true)",
         "dryRun optional (default false)"
       ],
       "baseline_description": "Clear the ACTIVE schematic page: delete every page-level primitive — components, net flags/ports/labels (all are components), wires, buses, and graphics (arcs/circles/rectangles/polygons/text) — optionally preserving the sheet/title block (图框). schematic.component.delete only removes components and silently leaves wires/buses/graphics behind, so the page looks clean in components.list while residual primitives remain; use this for a true page reset (generate → detect → clear → retry). No undo — dryRun reports counts without deleting.",
-      "baseline_source": "internal/protocol/actions.go:206"
+      "baseline_outputs": [
+        "deleted (counts by primitive type)",
+        "total",
+        "deletedIds",
+        "preserveSheet",
+        "dryRun"
+      ],
+      "baseline_source": "internal/protocol/actions.go:206",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "dryRun": "boolean",
+          "preserveSheet": "boolean"
+        },
+        "revision": "1",
+        "schema": "6af138d0b6ceafabf9358653145a0196c086d37d19c06840f18783fef5e1163a",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.page.create",
@@ -2503,6 +4091,9 @@
         "schematicUuid"
       ],
       "baseline_description": "Create a new schematic page under a schematic document.",
+      "baseline_outputs": [
+        "pageUuid"
+      ],
       "baseline_source": "internal/protocol/actions.go:174",
       "v2": {
         "effect_scope": "PROJECT_TOPOLOGY",
@@ -2524,6 +4115,9 @@
         "pageUuid"
       ],
       "baseline_description": "Delete a schematic page (no undo).",
+      "baseline_outputs": [
+        "ok"
+      ],
       "baseline_source": "internal/protocol/actions.go:195",
       "v2": {
         "effect_scope": "PROJECT_TOPOLOGY",
@@ -2545,6 +4139,10 @@
         "schematicPageUuid"
       ],
       "baseline_description": "Open or activate a schematic page by uuid.",
+      "baseline_outputs": [
+        "tab id",
+        "current document"
+      ],
       "baseline_source": "internal/protocol/actions.go:141",
       "v2": {
         "effect_scope": "NAVIGATION_SELECTION",
@@ -2568,6 +4166,11 @@
         "name"
       ],
       "baseline_description": "Rename a schematic page. Verifies the new name landed in the page list (issue #55 platform-async cache); returns verified=false + warning if it hasn't synced yet.",
+      "baseline_outputs": [
+        "ok",
+        "verified",
+        "warning"
+      ],
       "baseline_source": "internal/protocol/actions.go:185",
       "v2": {
         "effect_scope": "PROJECT_TOPOLOGY",
@@ -2589,6 +4192,10 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "List schematic documents and schematic pages in the current project.",
+      "baseline_outputs": [
+        "schematic uuid list",
+        "schematic page uuid list"
+      ],
       "baseline_source": "internal/protocol/actions.go:133",
       "v2": {
         "effect_scope": "NONE",
@@ -2602,34 +4209,72 @@
       "action": "schematic.pin.disconnect",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "designator + pin, OR flagPrimitiveId, OR wirePrimitiveId (at least one)"
       ],
       "baseline_description": "Symmetric inverse of schematic.power.connect_pin — removes a pin's stub wire AND its netflag/netport/netlabel together. Fixes the orphan-stub trap: deleting only the flag (schematic.primitives.delete) leaves the wire dangling with an EasyEDA auto-named single-pin net ($3N…), which the old dangling-wire rule missed. Target by designator+pin, or by a known flagPrimitiveId/wirePrimitiveId (whatever connect_pin returned) — at least one locator required. Resolves ids via getAll()+local filter, not a per-id .get(id) (a just-created primitive can 404 on a direct .get()).",
-      "baseline_source": "internal/protocol/actions.go:559"
+      "baseline_outputs": [
+        "disconnected",
+        "pin",
+        "at{x,y}",
+        "deletedWires",
+        "deletedFlags"
+      ],
+      "baseline_source": "internal/protocol/actions.go:559",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "designator": "string",
+          "flagPrimitiveId": "string",
+          "pin": "string",
+          "pinX": "number",
+          "pinY": "number",
+          "wirePrimitiveId": "string"
+        },
+        "revision": "1",
+        "schema": "22a00d3b1e3a7c7bcca576d08b1f88836922f60f76496b0b610919138a1b3100",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.pin.set_no_connect",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "designator",
         "pins",
         "noConnected optional"
       ],
       "baseline_description": "Mark (or clear) a component pin's no-connect flag (非连接标识, the X marker) — tells DRC the pin is intentionally unconnected so it stops reporting 'un-connected pin'. Targets pins by designator + pin number; pass noConnected=false to clear. Resolves the live component instance, reads pins through component.getAllPins(), commits every staged pin state with pin.done(), then verifies fresh instance state instead of trusting the mutated handle.",
-      "baseline_source": "internal/protocol/actions.go:317"
+      "baseline_outputs": [
+        "designator",
+        "primitive id",
+        "pins[].noConnected",
+        "notApplied[]"
+      ],
+      "baseline_source": "internal/protocol/actions.go:317",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "designator": "!string",
+          "noConnected": "boolean",
+          "pins": "!array"
+        },
+        "revision": "1",
+        "schema": "d4a2d70de2cb6ae3c8e8b5af411c317d157bc9b86e9d9694657d8588e72c6f25",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.power.connect_pin",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "pinX",
         "pinY",
@@ -2640,59 +4285,129 @@
         "rotation optional"
       ],
       "baseline_description": "Composite: stub a wire out of a pin and place a netflag/netport at its far end in one call — structurally prevents the 'netflag overlaps pin' DRC fatal. `direction` is the VISUAL outward direction on the y-UP canvas: up moves the endpoint to a larger y, down to a smaller y. Direction/offset/rotation default from kind and can be overridden; flag orientation follows schematic-layout-conventions.md §3.5.",
-      "baseline_source": "internal/protocol/actions.go:548"
+      "baseline_outputs": [
+        "wire primitiveId",
+        "flag primitiveId",
+        "end point",
+        "rotation"
+      ],
+      "baseline_source": "internal/protocol/actions.go:548",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "direction": "string",
+          "kind": "!string",
+          "net": "!string",
+          "offset": "number",
+          "pinX": "!number",
+          "pinY": "!number",
+          "rotation": "number"
+        },
+        "revision": "1",
+        "schema": "9e56dafb00314ef3be651147be42859a4b22cf8612aee627ac09a02ee25b90a9",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.primitives.delete",
       "level": 3,
       "classification": "B",
-      "mode": "NOT_MIGRATED",
-      "reason": "Batch/item coverage、部分完成及残留对象的 V2 verification 尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "primitiveIds optional (string or string[]; default = current selection)"
       ],
       "baseline_description": "Delete schematic primitives of ANY type by id (components, net flags/ports/labels, wires, buses, graphics) — generalizes schematic.component.delete beyond components by routing each id to its owning sch_Primitive* class. Omit primitiveIds to delete the current selection (select first via schematic.select), enabling a 'select-all then delete' flow. No undo.",
-      "baseline_source": "internal/protocol/actions.go:272"
+      "baseline_outputs": [
+        "deleted (counts by primitive type)",
+        "total",
+        "notFound",
+        "deletedIds"
+      ],
+      "baseline_source": "internal/protocol/actions.go:272",
+      "v2": {
+        "effect_scope": "DESIGN_CONTENT",
+        "input": {
+          "primitiveIds": "string|array"
+        },
+        "revision": "1",
+        "schema": "546344c8ab6a477b9e4cf52b9625e4572623edbb634c97850942f53640310e66",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.read",
       "level": 3,
       "classification": "R",
-      "mode": "NOT_MIGRATED",
-      "reason": "该读取/检查/产物路径的结构化观测与 V2 executor 接线尚未迁移。",
+      "mode": "V2_NATIVE",
+      "reason": "",
       "baseline_inputs": [
         "allPages optional",
         "includeCheck optional (default true)"
       ],
       "baseline_description": "ONE-call semantic snapshot of the whole circuit — so the agent reads everything at once instead of stitching components.list + netlist + check. Returns: components[] (primitiveId — the MUTATION handle for select/modify/delete/replace/rebind — plus designator, type, name/value, uniqueId, footprint, supplierId=LCSC, x/y, pins[] each with its JSON-authoritative net), nets[] (net → connected {designator.pin} keys, degree, isGlobal power/ground flag), floatingPins[] (unconnected pins), and the geometric design check (same as schematic.check; pass includeCheck=false to skip for a faster read). Pin→net comes from the authoritative netlist (getNetlistFile), same source as schematic.check. WARNING: uniqueId (\"gge…\") is the sch↔PCB link key, NOT a primitiveId — feeding it to by-id mutations returns notFound (live incident: primitiveId used to be missing from this output, so agents grabbed uniqueId and every mutation failed).",
-      "baseline_source": "internal/protocol/actions.go:606"
+      "baseline_outputs": [
+        "components[].primitiveId (mutation handle)",
+        "components[]",
+        "componentCount",
+        "nets[]",
+        "netCount",
+        "floatingPins[]",
+        "floatingPinCount",
+        "check"
+      ],
+      "baseline_source": "internal/protocol/actions.go:606",
+      "v2": {
+        "effect_scope": "NONE",
+        "input": {
+          "allPages": "boolean",
+          "includeCheck": "boolean"
+        },
+        "revision": "1",
+        "schema": "2236e25bde2c18eb2f206af24176a7174cf973d2dc3fa13fdf83dcb5ba9f8f37",
+        "target": "schematic"
+      }
     },
     {
       "action": "schematic.rebind.footprint",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "UNSUPPORTED",
+      "reason": "System-library clone path depends on a DOM conflict-dialog observer that cannot bind its clicks or reused name-only clones to an operation and asset identity. Shared-library mutation plus destructive instance recreation cannot be qualified with the published full fallback contract without Host qualification. No partial in-place-only migration.",
       "baseline_inputs": [
         "primitiveId",
         "footprint (name) OR footprintUuid (+footprintLibraryUuid)",
         "scope optional (default project)"
       ],
       "baseline_description": "Swap a placed component's footprint via the five-step binding (lib_Device.modify → delete → create → restore) — modify alone cannot change a placed instance's footprint reference. Matches by footprint name (exact; same-name-multi or miss errors out — pass footprintUuid to bind directly). Resolves the placed part's REAL 32-char device uuid first (getState_Component().uuid is a 16-char placed-symbol id the library APIs reject) via LCSC→MPN→project-name. SYSTEM-library device records reject lib_Device.modify unconditionally, so those parts fall back to a personal-library CLONE (copy/reuse → bind the new footprint → re-place; result.mode='cloned-to-personal-library' + clonedDevice) — the clone's conflict dialogs (符号/封装另存为) are auto-confirmed via a MutationObserver clicker (timer polling is throttled in background tabs). Captures and restores designator/position/rotation/mirror/BOM flags/manufacturer/supplier/otherProperty; rolls back on failure. Re-placing mints a NEW primitiveId — wires may need re-drawing, so verify with sch drc/check.",
+      "baseline_outputs": [
+        "primitiveId (new)",
+        "previousPrimitiveId",
+        "footprint",
+        "device",
+        "component state"
+      ],
       "baseline_source": "internal/protocol/actions.go:515"
     },
     {
       "action": "schematic.rebind.symbol",
       "level": 4,
       "classification": "C",
-      "mode": "NOT_MIGRATED",
-      "reason": "多阶段业务、native settlement 与 scoped reconciliation 尚未迁移。",
+      "mode": "UNSUPPORTED",
+      "reason": "System-library clone path depends on a DOM conflict-dialog observer that cannot bind its clicks or reused name-only clones to an operation and asset identity. Shared-library mutation plus destructive instance recreation cannot be qualified with the published full fallback contract without Host qualification. No partial in-place-only migration.",
       "baseline_inputs": [
         "primitiveId",
         "symbol (name) OR symbolUuid (+symbolLibraryUuid)",
         "scope optional (default project)"
       ],
       "baseline_description": "Swap a placed component's symbol via the same five-step binding as schematic.rebind.footprint, including the personal-library clone fallback for read-only system-library devices and its dialog auto-confirm. Matches by symbol name (exact; pass symbolUuid to disambiguate). Captures and restores original state and rolls back on failure. Re-placing mints a NEW primitiveId — verify connectivity with sch drc/check.",
+      "baseline_outputs": [
+        "primitiveId (new)",
+        "previousPrimitiveId",
+        "symbol",
+        "device",
+        "component state"
+      ],
       "baseline_source": "internal/protocol/actions.go:526"
     },
     {
@@ -2706,6 +4421,9 @@
         "name"
       ],
       "baseline_description": "Rename a schematic document (the whole sheet, not a single page). May also rename a linked reuse-module symbol + PCB.",
+      "baseline_outputs": [
+        "ok"
+      ],
       "baseline_source": "internal/protocol/actions.go:218",
       "v2": {
         "effect_scope": "PROJECT_TOPOLOGY",
@@ -2727,6 +4445,9 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "Save active schematic document.",
+      "baseline_outputs": [
+        "saved"
+      ],
       "baseline_source": "internal/protocol/actions.go:615",
       "v2": {
         "effect_scope": "SAVE",
@@ -2746,6 +4467,9 @@
         "primitiveIds"
       ],
       "baseline_description": "Select schematic primitives by id and return the active selection.",
+      "baseline_outputs": [
+        "selected primitive ids"
+      ],
       "baseline_source": "internal/protocol/actions.go:570",
       "v2": {
         "effect_scope": "NAVIGATION_SELECTION",
@@ -2765,6 +4489,17 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "Read-only list of ALL text primitives on the ACTIVE schematic page (#156) — the typed enumeration that pairs with schematic.primitives.delete to clean up orphaned zone-draw labels without the debug.exec_js escape hatch. Page-lazy-load law applies: only the active page's texts are returned; iterate pages with document.switch. Each entry carries primitiveId/content/x/y/rotation/fontSize/fontName/color/bold/italic.",
+      "baseline_outputs": [
+        "count",
+        "scope (activePage)",
+        "texts[].primitiveId",
+        "texts[].content",
+        "texts[].x",
+        "texts[].y",
+        "texts[].rotation",
+        "texts[].fontSize",
+        "texts[].color"
+      ],
       "baseline_source": "internal/protocol/actions.go:339",
       "v2": {
         "effect_scope": "NONE",
@@ -2784,6 +4519,10 @@
         "pageUuid optional"
       ],
       "baseline_description": "Read a schematic page's 明细表 (title block): show flag + per-field data. Defaults to the focused page; pass pageUuid for another. Read this first to discover the editable field keys before titleblock.modify.",
+      "baseline_outputs": [
+        "showTitleBlock",
+        "titleBlockData (field keys + values)"
+      ],
       "baseline_source": "internal/protocol/actions.go:154",
       "v2": {
         "effect_scope": "NONE",
@@ -2806,6 +4545,9 @@
         "titleBlockData optional"
       ],
       "baseline_description": "Modify the focused page's 明细表 (title block): toggle visibility and/or patch fields. titleBlockData carries only items to change ({key:{showTitle?,showValue?,value?}}); unknown keys ignored, untouched items keep current value.",
+      "baseline_outputs": [
+        "ok"
+      ],
       "baseline_source": "internal/protocol/actions.go:163",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -2830,6 +4572,10 @@
         "style optional"
       ],
       "baseline_description": "Create a schematic wire polyline.",
+      "baseline_outputs": [
+        "primitive id",
+        "wire state"
+      ],
       "baseline_source": "internal/protocol/actions.go:284",
       "v2": {
         "effect_scope": "DESIGN_CONTENT",
@@ -2853,6 +4599,11 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "Check Go daemon and EasyEDA connector availability.",
+      "baseline_outputs": [
+        "daemon status",
+        "connected windows",
+        "active window"
+      ],
       "baseline_source": "internal/protocol/actions.go:55",
       "v2": {
         "diagnostic": true,
@@ -2875,6 +4626,11 @@
         "duration optional (seconds, default 3)"
       ],
       "baseline_description": "Show a non-blocking toast INSIDE the EasyEDA window — the design flow announces each stage as it passes (完成 X,下一步 Y) so the user can watch progress live.",
+      "baseline_outputs": [
+        "shown",
+        "message",
+        "type"
+      ],
       "baseline_source": "internal/protocol/actions.go:62",
       "v2": {
         "effect_scope": "UI_NATIVE",
@@ -2896,6 +4652,9 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "Zoom to fit all primitives in the focused canvas (适应全部, the `K` shortcut). Works on schematic and PCB. → eda.dmt_EditorControl.zoomToAllPrimitives.",
+      "baseline_outputs": [
+        "region (left/right/top/bottom)"
+      ],
       "baseline_source": "internal/protocol/actions.go:99",
       "v2": {
         "effect_scope": "NAVIGATION_SELECTION",
@@ -2913,6 +4672,9 @@
       "reason": "",
       "baseline_inputs": [],
       "baseline_description": "Zoom to fit the currently selected primitives (适应选中). Select first (schematic.select / pcb), then fit. → eda.dmt_EditorControl.zoomToSelectedPrimitives.",
+      "baseline_outputs": [
+        "region (left/right/top/bottom)"
+      ],
       "baseline_source": "internal/protocol/actions.go:107",
       "v2": {
         "effect_scope": "NAVIGATION_SELECTION",
@@ -2935,6 +4697,9 @@
         "bottom"
       ],
       "baseline_description": "Zoom to a rectangular region given by its two X and two unordered Y bounds (canvas units: sch 0.01inch, PCB mil; both y-UP). → eda.dmt_EditorControl.zoomToRegion.",
+      "baseline_outputs": [
+        "ok"
+      ],
       "baseline_source": "internal/protocol/actions.go:124",
       "v2": {
         "effect_scope": "NAVIGATION_SELECTION",
@@ -2961,6 +4726,9 @@
         "scale optional"
       ],
       "baseline_description": "Pan/zoom to a center coordinate and/or scale ratio. Omitted fields keep their current value; scale is a percent (200 = 200%). Sch/symbol units are 0.01inch, PCB/footprint units are mil. → eda.dmt_EditorControl.zoomTo.",
+      "baseline_outputs": [
+        "region (left/right/top/bottom)"
+      ],
       "baseline_source": "internal/protocol/actions.go:115",
       "v2": {
         "effect_scope": "NAVIGATION_SELECTION",

@@ -14,6 +14,7 @@ import (
 )
 
 type v2Pending struct {
+	started time.Time
 	request executionv2.Request
 	conn    *conn
 	results chan executionv2.HandlerResult
@@ -39,12 +40,12 @@ func writeV2(w http.ResponseWriter, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 func (s *Server) validateV2(r executionv2.Request) (executionv2.Admission, error) {
-	if protocol.ActionDisabled(r.Action) {
-		return executionv2.Admission{}, errors.New("CAPABILITY_DISABLED")
-	}
 	a, e := protocol.ValidateV2(r)
 	if e != nil {
 		return a, e
+	}
+	if protocol.ActionDisabled(r.Action) {
+		return executionv2.Admission{}, errors.New("CAPABILITY_DISABLED")
 	}
 	if r.Action == "system.health" {
 		if r.Target.Session != s.v2Session || r.Target.Activation != s.v2Session {
@@ -74,6 +75,16 @@ func (s *Server) validateV2(r executionv2.Request) (executionv2.Admission, error
 	}
 	if r.Target.Scope == "DOCUMENT" && (r.Target.DocumentUUID != snapshot.Context.DocumentUUID || r.Target.DocumentType != snapshot.Context.DocumentType || r.Target.TabID != snapshot.Context.TabID) {
 		return a, errors.New("V2_TARGET_MISMATCH")
+	}
+	if r.Action == "pcb.drc.compare" {
+		if e := validateDrcV2(r); e != nil {
+			return a, e
+		}
+	}
+	if r.Action == "route.apply_batch" {
+		if err := s.validateBatchV2(r); err != nil {
+			return a, err
+		}
 	}
 	if gateForAction[r.Action] != "" {
 		keys := []string{r.Target.ProjectUUID}
@@ -105,7 +116,7 @@ func (s *Server) executeV2(r executionv2.Request, digest string) <-chan executio
 		return ch
 	}
 	s.v2Mu.Lock()
-	s.v2Pending[r.OperationID] = v2Pending{request: r, conn: c, results: ch}
+	s.v2Pending[r.OperationID] = v2Pending{request: r, conn: c, results: ch, started: time.Now()}
 	s.v2Mu.Unlock()
 	// Never tie native ownership to an HTTP caller's context or wait budget.
 	go func() {
@@ -132,7 +143,7 @@ func (s *Server) deliverV2(c *conn, data []byte) {
 		return
 	} // exact transport ownership, never retired redirect
 	select {
-	case p.results <- completeReportV2(p.request, frame.Result):
+	case p.results <- telemetryV2(p.request, p.started, frame.Result, s.completeArtifactV2(p.request, s.completeFastReadV2(p.request, completeDrcV2(p.request, completeReportV2(p.request, frame.Result))))):
 	default:
 	}
 }
@@ -167,7 +178,16 @@ func (s *Server) handleV2Status(w http.ResponseWriter, r *http.Request) {
 			http.NotFound(w, r)
 			return
 		}
-		if e := p.conn.write(r.Context(), map[string]any{"type": "v2_reconcile", "operation_id": id}); e != nil {
+		if result, exists := s.v2.Status(id); exists && result.Outcome != executionv2.Unknown {
+			// Repeat only the daemon's resolved release authorization. A lost
+			// release frame must not require a second native invocation.
+			digest, err := p.request.Digest()
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				return
+			}
+			s.releaseV2(p.request, digest)
+		} else if e := p.conn.write(r.Context(), map[string]any{"type": "v2_reconcile", "operation_id": id}); e != nil {
 			http.Error(w, e.Error(), 503)
 			return
 		}

@@ -1,4 +1,93 @@
 {
+  "pcb.manufacturing.export": {
+    "schema": "c59d80942a2dfce6b73813a237ec91ac0c299b51769c9b5905a1ca48dcfc97ff",
+    "revision": "1",
+    "effect_scope": "UI_NATIVE",
+    "target": "pcb",
+    "input": {
+      "document_uuid": "string",
+      "profile": "!object",
+      "project_uuid": "string",
+      "verification_ids": "string[]"
+    }
+  },
+  "pcb.drc.compare": {
+    "schema": "f2d66645520930bbfc0235295e9610382140751a2b7d54b6072e87bfb0870138",
+    "revision": "1",
+    "effect_scope": "NATIVE_RECOMPUTE",
+    "target": "pcb",
+    "input": {
+      "baseline_id": "string",
+      "document_uuid": "string",
+      "project_uuid": "string",
+      "run_native": "!boolean"
+    }
+  },
+  "pcb.plane.refresh": {
+    "schema": "f918cf9cf7e2ec41041df2795eb160ac6d25a2eedccc59759bdab8883f7b91d1",
+    "revision": "1",
+    "effect_scope": "NATIVE_RECOMPUTE",
+    "target": "pcb",
+    "input": {
+      "base_revision": "!string",
+      "document_uuid": "string",
+      "logical_ids": "string[]",
+      "project_uuid": "string"
+    }
+  },
+  "pcb.routing_profile": {
+    "schema": "aab3eaccd5e2ad6284965be8111ed1b1bf89d048c511e2318eb8cb717cf7c3b0",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {
+      "document_uuid": "string",
+      "operation": "!string",
+      "profile": "object",
+      "profile_id": "string",
+      "project_uuid": "string"
+    }
+  },
+  "route.tuning_plan": {
+    "schema": "55a15d1e3266376e5534b4b2f1fae41bca7212ea2fa743d008ec5d808b1d60bd",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {
+      "base_revision": "!string",
+      "corner": "!string",
+      "corridor": "!array",
+      "document_uuid": "string",
+      "min_amplitude_h": "!number",
+      "net": "!string",
+      "profile_id": "string",
+      "project_uuid": "string",
+      "side": "!string",
+      "spacing_w": "!number",
+      "span_id": "!string",
+      "target_length": "number",
+      "target_mode": "!string"
+    }
+  },
+  "route.pair_plan": {
+    "schema": "f98555ccb5297cbc0c0d4ce81e8336fc9ebb540005bdaa12208b404c4aee1113",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {
+      "base_revision": "!string",
+      "centerline": "!array",
+      "document_uuid": "string",
+      "gap": "!number",
+      "layer": "!number",
+      "negative_net": "!string",
+      "positive_net": "!string",
+      "profile_id": "string",
+      "project_uuid": "string",
+      "transitions": "array",
+      "width": "!number"
+    }
+  },
   "project.list": {
     "schema": "10662b83abd3c5e5ab2561d2bc6c12fe927534fbdeb7e13d46ef6c168fef2ab6",
     "revision": "1",
@@ -8,6 +97,88 @@
       "folder_uuid": "string",
       "team_uuid": "string",
       "workspace_uuid": "string"
+    }
+  },
+  "project.create": {
+    "schema": "b36057186c32e8c1f40a428a1f9d7eec4eed33e19cc430fd82c420870798568c",
+    "revision": "1",
+    "effect_scope": "PROJECT_TOPOLOGY",
+    "target": "ANY",
+    "input": {
+      "client_transaction_id": "!string",
+      "expected_project_uuid": "string",
+      "folder_uuid": "string",
+      "name": "!string",
+      "session_token": "!string",
+      "team_uuid": "string"
+    }
+  },
+  "project.open": {
+    "schema": "9ebd87d681add9ea0ab2975ef9766702f19c8c59b178105547ce0097bab15c7e",
+    "revision": "1",
+    "effect_scope": "NAVIGATION_SELECTION",
+    "target": "ANY",
+    "input": {
+      "expected_project_uuid": "string",
+      "project_uuid": "!string",
+      "saved_current_project": "!boolean"
+    }
+  },
+  "schematic.create": {
+    "schema": "1476eb3c27452438d258ff62fd40ed32c0de84985253f86e4bf3b7b7b57d1b5d",
+    "revision": "1",
+    "effect_scope": "PROJECT_TOPOLOGY",
+    "target": "PROJECT",
+    "input": {
+      "board_name": "string",
+      "client_transaction_id": "!string",
+      "expected_project_uuid": "!string",
+      "session_token": "!string"
+    }
+  },
+  "board.snapshot_compact": {
+    "schema": "6202592821edd4896ae1e5c02396b2536731441689dfa9136438c48d460f4835",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {
+      "bbox": "array",
+      "document_uuid": "string",
+      "include": "object",
+      "layers": "array",
+      "nets": "string[]",
+      "project_uuid": "string"
+    }
+  },
+  "route.preflight": {
+    "schema": "e1f72499e6fae7113d44b1ee5541bf22df569c21c2c0320c03a581b58c25857b",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {
+      "base_revision": "!string",
+      "clearance_profile": "object",
+      "delete_ids": "string[]",
+      "document_uuid": "string",
+      "profile_id": "string",
+      "project_uuid": "string",
+      "protected_nets": "string[]",
+      "routes": "array",
+      "vias": "array"
+    }
+  },
+  "route.apply_batch": {
+    "schema": "47d848f46216499b867b2dc1545bf595d03d0a6f1e969a552d582d4ac3882f04",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "base_revision": "!string",
+      "client_transaction_id": "!string",
+      "document_uuid": "string",
+      "operations": "array",
+      "plan_hash": "!string",
+      "project_uuid": "string"
     }
   },
   "system.health": {
@@ -155,6 +326,16 @@
       "pageUuid": "!string"
     }
   },
+  "schematic.page.clear": {
+    "schema": "6af138d0b6ceafabf9358653145a0196c086d37d19c06840f18783fef5e1163a",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "schematic",
+    "input": {
+      "dryRun": "boolean",
+      "preserveSheet": "boolean"
+    }
+  },
   "schematic.rename": {
     "schema": "c22b155d6fe8cf3f3630c6a56aa30d11f072ff622534c2d322a77dc712d7d94c",
     "revision": "1",
@@ -164,6 +345,68 @@
       "name": "!string",
       "schematicUuid": "string",
       "uuid": "string"
+    }
+  },
+  "schematic.components.list": {
+    "schema": "b67df81f72e1901be07945706f73bf6b5914ad75c0460a81765ffa4aaf7251b7",
+    "revision": "1",
+    "effect_scope": "NAVIGATION_SELECTION",
+    "target": "PROJECT",
+    "input": {
+      "allPages": "boolean",
+      "includeBBox": "boolean",
+      "includeConnectivitySummary": "boolean",
+      "includeDeviceIdentity": "boolean",
+      "includePins": "boolean",
+      "includeWires": "boolean",
+      "tagPages": "boolean"
+    }
+  },
+  "schematic.component.place": {
+    "schema": "76e6b46db1539ed7b87dcc08a3bc4d80f5a4c1a77730a29a42785e02229b3f8b",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "schematic",
+    "input": {
+      "addIntoBom": "boolean",
+      "addIntoPcb": "boolean",
+      "designator": "string",
+      "libraryUuid": "!string",
+      "mirror": "boolean",
+      "rotation": "number",
+      "subPartName": "string",
+      "uuid": "!string",
+      "x": "!number",
+      "y": "!number"
+    }
+  },
+  "schematic.component.modify": {
+    "schema": "6a869072994be74ddc0b8776521a12676fc873da164dcd2dae692a908364a3be",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "schematic",
+    "input": {
+      "patch": "!object",
+      "primitiveId": "!string"
+    }
+  },
+  "schematic.component.delete": {
+    "schema": "24c08db171448bbe819ec24a9e2a4230b849d3e63b16b4875559a573a6e820b2",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "schematic",
+    "input": {
+      "cascade": "boolean",
+      "primitiveIds": "!string|array"
+    }
+  },
+  "schematic.primitives.delete": {
+    "schema": "546344c8ab6a477b9e4cf52b9625e4572623edbb634c97850942f53640310e66",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "schematic",
+    "input": {
+      "primitiveIds": "string|array"
     }
   },
   "schematic.wire.create": {
@@ -179,6 +422,17 @@
       "points": "!array"
     }
   },
+  "schematic.group.move": {
+    "schema": "b791c67c07c28c23e767ccc453d5ce24fbfa5fbd862ef93db0be9220f1f5265c",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "schematic",
+    "input": {
+      "dx": "!number",
+      "dy": "!number",
+      "primitiveIds": "!string[]"
+    }
+  },
   "schematic.netflag.create": {
     "schema": "65ba4c4d0074427e05bc4aa07e6ab29f0d04f235ed820d2d6129f0ffeae558bd",
     "revision": "1",
@@ -191,6 +445,27 @@
       "rotation": "number",
       "x": "!number",
       "y": "!number"
+    }
+  },
+  "schematic.pin.set_no_connect": {
+    "schema": "d4a2d70de2cb6ae3c8e8b5af411c317d157bc9b86e9d9694657d8588e72c6f25",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "schematic",
+    "input": {
+      "designator": "!string",
+      "noConnected": "boolean",
+      "pins": "!array"
+    }
+  },
+  "schematic.component.resolve_lcsc": {
+    "schema": "caef031387bc1800217b1c703bc653115cb3d89b782376dae1dbb87efba9ddb4",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "schematic",
+    "input": {
+      "apply": "boolean",
+      "primitiveId": "string"
     }
   },
   "schematic.text.list": {
@@ -276,6 +551,18 @@
       "uuid": "!string"
     }
   },
+  "library.footprint.build": {
+    "schema": "7ef6ab61b795060dba377117f1f5bfacaa3706b078a7df8d47b944e6cfd1df9b",
+    "revision": "1",
+    "effect_scope": "LIBRARY_ASSET",
+    "target": "LIBRARY",
+    "input": {
+      "libraryUuid": "!string",
+      "lines": "array",
+      "pads": "array",
+      "uuid": "!string"
+    }
+  },
   "library.symbol.create": {
     "schema": "36a317fca2b29001804c2307426143c9007efa4fafcbdef0aa8e73df3ceb642c",
     "revision": "1",
@@ -297,6 +584,19 @@
     "target": "ANY",
     "input": {
       "libraryUuid": "string",
+      "uuid": "!string"
+    }
+  },
+  "library.symbol.build": {
+    "schema": "74249d301d97c7820a0c160f164a35beb5fb98e03b4ed7ed3b8ec780f84ab6b0",
+    "revision": "1",
+    "effect_scope": "LIBRARY_ASSET",
+    "target": "LIBRARY",
+    "input": {
+      "circles": "array",
+      "libraryUuid": "!string",
+      "outline": "!array",
+      "pins": "!array",
       "uuid": "!string"
     }
   },
@@ -426,6 +726,50 @@
       "uuid": "!string"
     }
   },
+  "schematic.component.replace": {
+    "schema": "9caaee0b17bbe2ddbe21297cfa5910551c25ddb26179b89898bb96898f12111d",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "schematic",
+    "input": {
+      "client_transaction_id": "string",
+      "deviceLibraryUuid": "string",
+      "deviceUuid": "string",
+      "keepProperties": "boolean",
+      "lcsc": "string",
+      "primitiveId": "!string",
+      "query": "string"
+    }
+  },
+  "schematic.power.connect_pin": {
+    "schema": "9e56dafb00314ef3be651147be42859a4b22cf8612aee627ac09a02ee25b90a9",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "schematic",
+    "input": {
+      "direction": "string",
+      "kind": "!string",
+      "net": "!string",
+      "offset": "number",
+      "pinX": "!number",
+      "pinY": "!number",
+      "rotation": "number"
+    }
+  },
+  "schematic.pin.disconnect": {
+    "schema": "22a00d3b1e3a7c7bcca576d08b1f88836922f60f76496b0b610919138a1b3100",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "schematic",
+    "input": {
+      "designator": "string",
+      "flagPrimitiveId": "string",
+      "pin": "string",
+      "pinX": "number",
+      "pinY": "number",
+      "wirePrimitiveId": "string"
+    }
+  },
   "schematic.select": {
     "schema": "479b03074740f45b11b2e757b7e35be561852d7dab71fd3cb55a89f4a1bfd0a3",
     "revision": "1",
@@ -435,12 +779,89 @@
       "primitiveIds": "!string|array"
     }
   },
+  "schematic.drc.check": {
+    "schema": "b838bec7fd633f0369866d67c7586037a4c082575e22674c50b9164bc400c02a",
+    "revision": "1",
+    "effect_scope": "NATIVE_RECOMPUTE",
+    "target": "schematic",
+    "input": {
+      "includeVerboseError": "boolean",
+      "strict": "boolean"
+    }
+  },
+  "schematic.check": {
+    "schema": "0e1f7c4aba7ad89c9d615e69555b8ea614c6b5c9bab5279e1af6a4d63b716426",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "schematic",
+    "input": {
+      "allPages": "boolean"
+    }
+  },
+  "schematic.bridgeCheck": {
+    "schema": "0e1f7c4aba7ad89c9d615e69555b8ea614c6b5c9bab5279e1af6a4d63b716426",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "schematic",
+    "input": {
+      "allPages": "boolean"
+    }
+  },
+  "schematic.read": {
+    "schema": "2236e25bde2c18eb2f206af24176a7174cf973d2dc3fa13fdf83dcb5ba9f8f37",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "schematic",
+    "input": {
+      "allPages": "boolean",
+      "includeCheck": "boolean"
+    }
+  },
   "schematic.save": {
     "schema": "b9dbb4870c0a93c2c8af50ecde0dde53b29c4fbe44c03324b5e40936ab3c668a",
     "revision": "1",
     "effect_scope": "SAVE",
     "target": "schematic",
     "input": {}
+  },
+  "schematic.export.netlist": {
+    "schema": "e12fb896980b656480edc70ce3e19625f7d51859d3916548f2c7de7fcba962da",
+    "revision": "1",
+    "effect_scope": "UI_NATIVE",
+    "target": "schematic",
+    "input": {
+      "fileName": "string",
+      "netlistType": "string"
+    }
+  },
+  "schematic.export.image": {
+    "schema": "cadab764f955663e6d9236645c704534fc86fdd149fa0dda3d30ab7a9b496f41",
+    "revision": "1",
+    "effect_scope": "UI_NATIVE",
+    "target": "schematic",
+    "input": {
+      "fileName": "string",
+      "format": "string",
+      "lineWidth": "string",
+      "primitiveIds": "string|string[]",
+      "scope": "string",
+      "theme": "string"
+    }
+  },
+  "schematic.export.bom": {
+    "schema": "fff8a9b0fcfc6568d9433ab67c73ce2301613a8b9d5bc4e85052a70e61e065ba",
+    "revision": "1",
+    "effect_scope": "UI_NATIVE",
+    "target": "schematic",
+    "input": {
+      "columns": "array",
+      "fileName": "string",
+      "fileType": "string",
+      "filterOptions": "object",
+      "property": "string[]",
+      "statistics": "string[]",
+      "template": "string"
+    }
   },
   "pcb.documents.list": {
     "schema": "fcc8de644953a274b85b5b11f4c29a83d76e2e396ea8e1e8736a4a4709e69af1",
@@ -500,6 +921,28 @@
       "side": "!string"
     }
   },
+  "pcb.stackup.set": {
+    "schema": "070a7586f5bf432b92eda563fcdfed837f749a6c0678b191fe1a16806387a2d4",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "count": "number",
+      "layers": "array"
+    }
+  },
+  "pcb.silk.align": {
+    "schema": "52999db1d751fe547cf4a8eb9093d4679356b3d3b22cc1ce5c36e438f190eeb6",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "offset": "number",
+      "refs": "array",
+      "side": "string",
+      "spacing": "number"
+    }
+  },
   "pcb.silk.list": {
     "schema": "87633cb595e9e46c18c82caf40f027ea0b6a9bc5d8d470412006ed85a9814984",
     "revision": "1",
@@ -520,6 +963,54 @@
       "text": "!string",
       "x": "!number",
       "y": "!number"
+    }
+  },
+  "pcb.silk.set": {
+    "schema": "b5cf1741dbd9e5fe953501b88fcc995cfe5c0a33122c47b3cd7a53f3ab6db19f",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "align": "string",
+      "fontSize": "number",
+      "ids": "string|array",
+      "lineWidth": "number",
+      "primitiveIds": "string|array",
+      "ref": "string",
+      "rotation": "number",
+      "text": "string",
+      "x": "number",
+      "y": "number"
+    }
+  },
+  "pcb.silk.netnames": {
+    "schema": "992010628c2d5830959d41d6c1b91af5d3ad86e812edcb29c146b0bfdb65f931",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "align": "string",
+      "exclude_nets": "string[]",
+      "fontSize": "number",
+      "layer": "number",
+      "lineWidth": "number",
+      "zone_rect": "!object"
+    }
+  },
+  "pcb.silk.label_pads": {
+    "schema": "3429a6699a545d0ac58adbad5c9cfb65f632fc30172afffe18135af19a1f76cc",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "align_axis": "string",
+      "content": "string",
+      "exclude_nets": "string[]",
+      "fontSize": "number",
+      "layer": "number",
+      "lineWidth": "number",
+      "refs": "!string[]",
+      "side": "string"
     }
   },
   "pcb.silk.import_svg": {
@@ -615,6 +1106,16 @@
       "nets": "!string[]"
     }
   },
+  "pcb.equal_length_group.add_nets": {
+    "schema": "2e433356cd7902f883c6cb5d4c93d21214f018dabcf7acb49c09fabcc42d71a4",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "name": "!string",
+      "nets": "!string[]"
+    }
+  },
   "pcb.equal_length_group.delete": {
     "schema": "182cb3e2d6d3b874944185a84e08a910e892da24416069a84e67ee5461a636a9",
     "revision": "1",
@@ -656,6 +1157,18 @@
       "schematicUuid": "string"
     }
   },
+  "board.new_pcb": {
+    "schema": "dee8edb91a4ec4c08300c3a6bef1d76ee3776a00dc1a5c57d1280031dee02b62",
+    "revision": "1",
+    "effect_scope": "PROJECT_TOPOLOGY",
+    "target": "PROJECT",
+    "input": {
+      "force": "boolean",
+      "name": "string",
+      "schematic": "string",
+      "schematicUuid": "string"
+    }
+  },
   "board.rename": {
     "schema": "6a49bf2cce38521c7782db5c2313fbbacd4bf51cc82f357c674d9ded7ee9309a",
     "revision": "1",
@@ -688,6 +1201,45 @@
       "schematicUuid": "string"
     }
   },
+  "board.rebind": {
+    "schema": "c232db0fb65779711da6a295da39a88a227a5caaa21a3f3e4af165700e6e64aa",
+    "revision": "1",
+    "effect_scope": "PROJECT_TOPOLOGY",
+    "target": "PROJECT",
+    "input": {
+      "force": "boolean",
+      "name": "string",
+      "pcbUuid": "string",
+      "schematicUuid": "!string"
+    }
+  },
+  "pcb.component.attrs_backfill": {
+    "schema": "3dd2e21a373be0d12c13344a6cbfe667a8a39429473e4782deae04452fc4e3c5",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "overwrite": "boolean"
+    }
+  },
+  "pcb.add_component": {
+    "schema": "18b025994ef38591621ebe1b9aa91698225262bd969009500f0c2e504a404404",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "designator": "string",
+      "device": "object",
+      "layer": "number",
+      "libraryUuid": "string",
+      "nets": "object",
+      "rotation": "number",
+      "uniqueId": "string",
+      "uuid": "string",
+      "x": "!number",
+      "y": "!number"
+    }
+  },
   "pcb.component.modify": {
     "schema": "7a0106b9cacfae4b390add0219a018df3528f4f8b440793cd79a8e22d6f7fc6d",
     "revision": "1",
@@ -696,6 +1248,91 @@
     "input": {
       "patch": "!object",
       "primitiveId": "!string"
+    }
+  },
+  "pcb.component.lock": {
+    "schema": "4bde6d0a696d47e895bcb4214548ead449e8de4a921fe95482fc8776ee82bff4",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "locked": "boolean",
+      "primitiveIds": "!string|array"
+    }
+  },
+  "pcb.component.delete": {
+    "schema": "c953f613191e0713420d077e62f92d88fa76a0c898ff39588cc68e932cfbb0b1",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "primitiveIds": "!string|array"
+    }
+  },
+  "pcb.page.clear": {
+    "schema": "2601efd8afc01f0aa94e35d565824f685ae831346b36a07cab50aeb585db194d",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "dryRun": "boolean",
+      "includeLocked": "boolean",
+      "only": "string|array",
+      "preserveOutline": "boolean"
+    }
+  },
+  "pcb.align": {
+    "schema": "791d0a3a19fa76a1d693ed6db37467b876036934d2a10f15896dace8f6941aa7",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "mode": "!string",
+      "primitiveIds": "string|array"
+    }
+  },
+  "pcb.distribute": {
+    "schema": "142cdbd4ab0f8ea8b2de54322e36f8763f38ac99402ef6670a05a3f3b1778617",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "axis": "!string",
+      "primitiveIds": "string|array"
+    }
+  },
+  "pcb.grid_snap": {
+    "schema": "7ac59b12af27f487660f0d38a39946141fd519538653cbecdef1411c5d61fca7",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "grid": "!number",
+      "primitiveIds": "string|array"
+    }
+  },
+  "pcb.components.move": {
+    "schema": "59ed0c75b0fad90f5b9d953d09bc5c14065351662b8719d8a7bae354021dc952",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "dx": "!number",
+      "dy": "!number",
+      "primitiveIds": "string|array"
+    }
+  },
+  "pcb.components.arrange": {
+    "schema": "904d62e14532df7e8a859faed63c2781d8e9b409c8b0309b36fed2a9d956445e",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "cols": "number",
+      "gutter": "number",
+      "mode": "string",
+      "pitch": "number",
+      "primitiveIds": "string|array"
     }
   },
   "pcb.drc.check": {
@@ -749,6 +1386,27 @@
     "target": "pcb",
     "input": {}
   },
+  "pcb.export.dsn": {
+    "schema": "839c7a7752278270f6f1a249a5350a16811d0a7958b933b4a63076e2ea50a911",
+    "revision": "1",
+    "effect_scope": "UI_NATIVE",
+    "target": "pcb",
+    "input": {
+      "fileName": "string",
+      "injectKeepout": "boolean"
+    }
+  },
+  "pcb.snapshot": {
+    "schema": "3294c14caccde6762781ba9a51bb839fc540ebea9bf7aa4ae722c66d0ec80a45",
+    "revision": "1",
+    "effect_scope": "UI_NATIVE",
+    "target": "pcb",
+    "input": {
+      "fit": "boolean",
+      "previousSha256": "string",
+      "tabId": "string"
+    }
+  },
   "pcb.line.list": {
     "schema": "cd659e1b565b8cdbb202bee1cbbd12cea5a36372fb76287c3345b881b742712d",
     "revision": "1",
@@ -766,6 +1424,62 @@
     "target": "pcb",
     "input": {
       "net": "string"
+    }
+  },
+  "pcb.route.rip_up": {
+    "schema": "68f768ddb26ecf6455316809004a745189bf467c0479850fbec2853c43d0560a",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "net": "string|string[]",
+      "nets": "string|string[]"
+    }
+  },
+  "pcb.track.lock": {
+    "schema": "98cb6d9d79eb388970d27f184ee3a33d5374b7f888f2fa9a1caae1fd2c76b81e",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "all": "boolean",
+      "includeFills": "boolean",
+      "locked": "boolean",
+      "net": "string|string[]",
+      "nets": "string|string[]",
+      "primitiveIds": "string[]"
+    }
+  },
+  "pcb.route.delete": {
+    "schema": "02025dcf0c70bfbc813929c0d607c638235c32532efb8b82a149bc1543595c34",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "ids": "string|string[]",
+      "kind": "string",
+      "primitiveIds": "string|string[]"
+    }
+  },
+  "pcb.route.via_hop": {
+    "schema": "b009d3f925b45530dad73289d94f1514fa56191c3e74444cd89df657df3d1766",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "bondFill": "boolean",
+      "bondSize": "number",
+      "fromX": "!number",
+      "fromY": "!number",
+      "holeDiameter": "number",
+      "hopLayer": "number",
+      "layer": "number",
+      "lineWidth": "number",
+      "net": "!string",
+      "stub": "number",
+      "toX": "!number",
+      "toY": "!number",
+      "viaDiameter": "number"
     }
   },
   "pcb.pour.create": {
@@ -794,6 +1508,27 @@
       "net": "string"
     }
   },
+  "pcb.pour.delete": {
+    "schema": "c953f613191e0713420d077e62f92d88fa76a0c898ff39588cc68e932cfbb0b1",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "primitiveIds": "!string|array"
+    }
+  },
+  "pcb.pour.rebuild": {
+    "schema": "b3885a885339799ff8f1f4a6426600fa165d079a98eb2e2668d713682d2178db",
+    "revision": "1",
+    "effect_scope": "NATIVE_RECOMPUTE",
+    "target": "pcb",
+    "input": {
+      "document_uuid": "string",
+      "logical_ids": "string[]",
+      "net": "string",
+      "project_uuid": "string"
+    }
+  },
   "pcb.region.create": {
     "schema": "131f889cd5d78f2cb223ba4bb379bda3d7309973db79cfcfe990ba7985bc7714",
     "revision": "1",
@@ -816,6 +1551,15 @@
     "target": "pcb",
     "input": {
       "layer": "number"
+    }
+  },
+  "pcb.region.delete": {
+    "schema": "c953f613191e0713420d077e62f92d88fa76a0c898ff39588cc68e932cfbb0b1",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "primitiveIds": "!string|array"
     }
   },
   "pcb.fill.create": {
@@ -843,10 +1587,37 @@
       "net": "string"
     }
   },
+  "pcb.fill.delete": {
+    "schema": "c953f613191e0713420d077e62f92d88fa76a0c898ff39588cc68e932cfbb0b1",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "primitiveIds": "!string|array"
+    }
+  },
+  "pcb.outline.set": {
+    "schema": "a5698248ff7c92b4ad9387a184bb622cbd4cddcca1992ef1ce6d66acd1fc0299",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "lineWidth": "number",
+      "points": "!array",
+      "replace": "boolean"
+    }
+  },
   "pcb.outline.get": {
     "schema": "87633cb595e9e46c18c82caf40f027ea0b6a9bc5d8d470412006ed85a9814984",
     "revision": "1",
     "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {}
+  },
+  "pcb.outline.clear": {
+    "schema": "b46d6936e6090ab8f0c47f3c6dec058f5a984dea86db4374f76cbbeb370a4e64",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
     "target": "pcb",
     "input": {}
   }

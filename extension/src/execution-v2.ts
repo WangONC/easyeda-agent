@@ -27,6 +27,7 @@ export interface NativeContext {
  request: Request;
  effect<T>(invoke: () => Promise<T> | T): Promise<T>;
  prepare(readback: () => Promise<Observation>): void;
+ navigationTarget(target: Target): void;
  verify(): Promise<Observation>;
 }
 export interface NativeAction {
@@ -90,17 +91,26 @@ export class ControlledExecutor {
   const effects: Effects={effect_started:false,state_changed:false,native_settled:true,effect_scope:action.scope,reconciled:false};
   let expired=Date.now()>=deadline;
   let verifier: (()=>Promise<Observation>) | undefined;
+  let destination:Target|undefined;
   let verifying=false;
   let activeNative=0;
   let accepting=true;
   let pendingDone:Promise<void>|undefined;
   const cancel=armDeadline(Math.max(0,deadline-Date.now()),()=>{expired=true;});
   const result: HandlerResult={protocol:V2,operation_id:request.operation_id,digest,target_ref:request.target_ref,effects,verification:unavailable()};
-  const guard=async()=>{if (!sameTarget(await this.target(request.target_ref),request.target_ref)) throw Error('V2_TARGET_MISMATCH');};
+  const guard=async()=>{
+   try {if(sameTarget(await this.target(request.target_ref),request.target_ref))return;}catch{/* a registered navigation destination is checked below */}
+   if(effects.effect_started&&destination&&sameTarget(await this.target(destination),destination))return;
+   throw Error('V2_TARGET_MISMATCH');
+  };
   try {
    action.validate(request.input);
    await guard();
-   let observation=await action.run({request,prepare:readback=>{
+   let observation=await action.run({request,navigationTarget:target=>{
+    if(effects.effect_started||action.scope!=='NAVIGATION_SELECTION'||target.session!==request.target_ref.session||target.activation!==request.target_ref.activation||target.scope!=='PROJECT'||!target.project_uuid)throw Error('V2_INVALID_NAVIGATION_TARGET');
+    if(destination&&!sameTarget(destination,target))throw Error('V2_NAVIGATION_TARGET_ALREADY_BOUND');
+    destination={...target};
+   },prepare:readback=>{
     if(effects.effect_started) throw Error('V2_VERIFIER_MUST_BE_PREPARED_BEFORE_EFFECT');
     verifier=readback;
    },verify:async()=>{

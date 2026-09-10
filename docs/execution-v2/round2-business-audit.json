@@ -1,0 +1,2190 @@
+{
+  "baseline": "a583bf731d946d2d39f1223e078d711bd41710d5",
+  "round1": "f96960c0487ca0aff8c5095220f496a22e5d1398",
+  "scope": "70 actions not native at Round 1; direct handler parameters only, not a transitive proof",
+  "actions": [
+    {
+      "action": "board.new_pcb",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbNewBoard",
+      "baseline_handler_line": 8706,
+      "baseline_direct_parameters": [
+        "force",
+        "name",
+        "schematic",
+        "schematicUuid"
+      ],
+      "v2_parameters": [
+        "force",
+        "name",
+        "schematic",
+        "schematicUuid"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "schematicUuid optional (default = current board's schematic)",
+        "name optional (rename the new board)"
+      ],
+      "baseline_outputs": [
+        "boardName",
+        "pcbName",
+        "pcbUuid",
+        "schematicUuid"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "board.rebind",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "boardRebind",
+      "baseline_handler_line": 8603,
+      "baseline_direct_parameters": [
+        "force",
+        "name",
+        "pcbUuid",
+        "schematicUuid"
+      ],
+      "v2_parameters": [
+        "force",
+        "name",
+        "pcbUuid",
+        "schematicUuid"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "schematicUuid",
+        "pcbUuid optional",
+        "name optional (default: current board)",
+        "force optional"
+      ],
+      "baseline_outputs": [
+        "boardName",
+        "schematicUuid",
+        "pcbUuid",
+        "replaced (old binding or null)"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "board.snapshot_compact",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "fastSnapshot",
+      "baseline_handler_line": null,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [
+        "bbox",
+        "document_uuid",
+        "include",
+        "layers",
+        "nets",
+        "project_uuid"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "document_uuid",
+        "project_uuid",
+        "nets[] optional",
+        "bbox [minX,minY,maxX,maxY] optional (mil)",
+        "layers[] optional",
+        "include {components,pads,traces,vias,fills} optional"
+      ],
+      "baseline_outputs": [
+        "board_revision",
+        "geometry_hash",
+        "scope",
+        "components[]",
+        "pads[]",
+        "traces[]",
+        "vias[]",
+        "fills[]",
+        "telemetry"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "debug.exec_js",
+      "mode": "UNSUPPORTED",
+      "baseline_handler": "debugExecJs",
+      "baseline_handler_line": 11703,
+      "baseline_direct_parameters": [
+        "code"
+      ],
+      "v2_parameters": [],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "code"
+      ],
+      "baseline_outputs": [
+        "value"
+      ],
+      "disposition_reason": "Arbitrary AsyncFunction receives the full eda object; effect scope, spawned asynchronous work, target ownership and semantic postconditions cannot be bounded by the typed execution contract."
+    },
+    {
+      "action": "library.footprint.build",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "libraryFootprintBuild",
+      "baseline_handler_line": 4630,
+      "baseline_direct_parameters": [
+        "libraryUuid",
+        "uuid"
+      ],
+      "v2_parameters": [
+        "libraryUuid",
+        "lines",
+        "pads",
+        "uuid"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "uuid",
+        "libraryUuid",
+        "pads[] {number,layer,x,y,rotation?,shape,hole?,metallization?,padType?}",
+        "lines[] {layer,startX,startY,endX,endY,width}"
+      ],
+      "baseline_outputs": [
+        "tabId",
+        "created.pads",
+        "created.lines",
+        "verified",
+        "partial/rollback on failure"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "library.symbol.build",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "librarySymbolBuild",
+      "baseline_handler_line": 4735,
+      "baseline_direct_parameters": [
+        "circles",
+        "libraryUuid",
+        "outline",
+        "pins",
+        "uuid"
+      ],
+      "v2_parameters": [
+        "circles",
+        "libraryUuid",
+        "outline",
+        "pins",
+        "uuid"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "uuid",
+        "libraryUuid",
+        "outline[] x/y coordinates",
+        "pins[] {number,name,x,y,rotation?,length?,shape?,pinType?}",
+        "circles[] optional {centerX,centerY,radius,lineWidth?}"
+      ],
+      "baseline_outputs": [
+        "tabId",
+        "created.pins",
+        "created.outline",
+        "created.circles",
+        "verified",
+        "partial on failure"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.add_component",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbAddComponent",
+      "baseline_handler_line": 9066,
+      "baseline_direct_parameters": [
+        "designator",
+        "device",
+        "layer",
+        "libraryUuid",
+        "nets",
+        "rotation",
+        "uniqueId",
+        "uuid",
+        "x",
+        "y"
+      ],
+      "v2_parameters": [
+        "designator",
+        "device",
+        "layer",
+        "libraryUuid",
+        "nets",
+        "rotation",
+        "uniqueId",
+        "uuid",
+        "x",
+        "y"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "libraryUuid",
+        "uuid",
+        "x",
+        "y",
+        "layer optional (default 1=TOP)",
+        "rotation optional",
+        "designator optional",
+        "uniqueId optional",
+        "nets optional (object padNumber→net)"
+      ],
+      "baseline_outputs": [
+        "primitiveId",
+        "designator",
+        "uniqueId",
+        "padCount",
+        "assignedNets",
+        "unmatchedPads"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.align",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbAlign",
+      "baseline_handler_line": 10076,
+      "baseline_direct_parameters": [
+        "mode"
+      ],
+      "v2_parameters": [
+        "mode",
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "mode",
+        "primitiveIds optional"
+      ],
+      "baseline_outputs": [
+        "moved[].primitiveId",
+        "moved[].designator",
+        "moved[].from",
+        "moved[].to",
+        "count"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.beautify",
+      "mode": "UNSUPPORTED",
+      "baseline_handler": "pcbBeautify",
+      "baseline_handler_line": 10631,
+      "baseline_direct_parameters": [
+        "cornerRadiusRatio",
+        "drc",
+        "drcIgnoreCopperPour",
+        "drcRetryCount",
+        "dryRun",
+        "forceArc",
+        "layer",
+        "mergeTransitionSegments",
+        "net",
+        "nets",
+        "protect",
+        "rebuildPour",
+        "scope"
+      ],
+      "v2_parameters": [],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "scope (all|selected, default all)",
+        "net optional (single) OR nets optional ([]string — beautify only these nets)",
+        "layer optional",
+        "cornerRadiusRatio optional (default 3)",
+        "forceArc optional (default false)",
+        "mergeTransitionSegments optional (default false)",
+        "protect optional (diff/equal-length, default true)",
+        "drc optional (default true)",
+        "drcRetryCount optional (default 4)",
+        "rebuildPour optional (default true)",
+        "dryRun optional (default false)"
+      ],
+      "baseline_outputs": [
+        "scope",
+        "dryRun",
+        "tracksConsidered",
+        "paths",
+        "cornersRounded",
+        "linesCreated",
+        "arcsCreated",
+        "protectedGroups",
+        "drcRounds",
+        "pourRebuilt"
+      ],
+      "disposition_reason": "Experimental engine rewrites routing with internal DRC retries, rollback and pour rebuild; its native effects and compensation residuals are not bounded by a verifiable public operation contract. Dry-run and mutation share this formal action; it is not advertised as a partially migrated success surface."
+    },
+    {
+      "action": "pcb.clear_routing",
+      "mode": "UNSUPPORTED",
+      "baseline_handler": "pcbClearRouting",
+      "baseline_handler_line": 11106,
+      "baseline_direct_parameters": [
+        "type"
+      ],
+      "v2_parameters": [],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "type optional (all|net|connection, default all)"
+      ],
+      "baseline_outputs": [
+        "cleared",
+        "type"
+      ],
+      "disposition_reason": "Native alpha clearRouting(net|connection) consumes implicit UI selection without an API that enumerates the exact destructive connection scope; the all branch also includes non-routing outline geometry. No complete target/residual contract for the full published action. Use native pcb.route.rip_up or pcb.route.delete."
+    },
+    {
+      "action": "pcb.component.attrs_backfill",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbComponentAttrsBackfill",
+      "baseline_handler_line": 8969,
+      "baseline_direct_parameters": [
+        "overwrite"
+      ],
+      "v2_parameters": [
+        "overwrite"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "overwrite optional (default false)"
+      ],
+      "baseline_outputs": [
+        "updatedCount",
+        "partsWithLcsc",
+        "updated[].designator",
+        "updated[].lcsc",
+        "updated[].filledKeys",
+        "unresolvedDesignators",
+        "noLcscDesignators"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.component.delete",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbComponentDelete",
+      "baseline_handler_line": 9782,
+      "baseline_direct_parameters": [
+        "primitiveIds"
+      ],
+      "v2_parameters": [
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveIds"
+      ],
+      "baseline_outputs": [
+        "deleted"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.component.lock",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbComponentLock",
+      "baseline_handler_line": 9697,
+      "baseline_direct_parameters": [
+        "locked",
+        "primitiveIds"
+      ],
+      "v2_parameters": [
+        "locked",
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveIds (string or string[])",
+        "locked optional (default true)"
+      ],
+      "baseline_outputs": [
+        "locked",
+        "requested",
+        "applied",
+        "alreadyInState",
+        "notApplied",
+        "missing",
+        "verified"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.components.arrange",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbComponentsArrange",
+      "baseline_handler_line": 10273,
+      "baseline_direct_parameters": [
+        "cols",
+        "gutter",
+        "mode",
+        "pitch"
+      ],
+      "v2_parameters": [
+        "cols",
+        "gutter",
+        "mode",
+        "pitch",
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "mode optional (cluster|grid, default cluster)",
+        "primitiveIds optional",
+        "pitch optional",
+        "gutter optional",
+        "cols optional"
+      ],
+      "baseline_outputs": [
+        "mode",
+        "groups",
+        "moved[].primitiveId",
+        "moved[].from",
+        "moved[].to",
+        "count"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.components.move",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbComponentsMove",
+      "baseline_handler_line": 10193,
+      "baseline_direct_parameters": [
+        "dx",
+        "dy"
+      ],
+      "v2_parameters": [
+        "dx",
+        "dy",
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "dx",
+        "dy",
+        "primitiveIds optional"
+      ],
+      "baseline_outputs": [
+        "moved[].primitiveId",
+        "moved[].from",
+        "moved[].to",
+        "count"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.distribute",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbDistribute",
+      "baseline_handler_line": 10122,
+      "baseline_direct_parameters": [
+        "axis"
+      ],
+      "v2_parameters": [
+        "axis",
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "axis",
+        "primitiveIds optional"
+      ],
+      "baseline_outputs": [
+        "moved[].primitiveId",
+        "moved[].designator",
+        "moved[].from",
+        "moved[].to",
+        "count"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.drc.compare",
+      "mode": "V2_NATIVE",
+      "baseline_handler": null,
+      "baseline_handler_line": null,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [
+        "baseline_id",
+        "document_uuid",
+        "project_uuid",
+        "run_native"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "project_uuid",
+        "document_uuid",
+        "run_native:true",
+        "baseline_id optional"
+      ],
+      "baseline_outputs": [
+        "drc_id",
+        "revision",
+        "comparable",
+        "new",
+        "cleared",
+        "persistent",
+        "counts",
+        "detailed_artifact"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.equal_length_group.add_nets",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbEqGroupAddNets",
+      "baseline_handler_line": 8396,
+      "baseline_direct_parameters": [
+        "name"
+      ],
+      "v2_parameters": [
+        "name",
+        "nets"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "name",
+        "nets[]"
+      ],
+      "baseline_outputs": [
+        "name",
+        "nets",
+        "added",
+        "alreadyMembers",
+        "partial",
+        "notApplied",
+        "verified"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.export.dsn",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbExportDsn",
+      "baseline_handler_line": 9321,
+      "baseline_direct_parameters": [
+        "fileName",
+        "injectKeepout"
+      ],
+      "v2_parameters": [
+        "fileName",
+        "injectKeepout"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "fileName optional",
+        "injectKeepout optional (default true)"
+      ],
+      "baseline_outputs": [
+        "artifact id",
+        "file path",
+        "file name",
+        "size",
+        "keepouts (injected count)"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.fill.delete",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbFillDelete",
+      "baseline_handler_line": 10904,
+      "baseline_direct_parameters": [
+        "primitiveIds"
+      ],
+      "v2_parameters": [
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveIds (string or string[])"
+      ],
+      "baseline_outputs": [
+        "deleted",
+        "primitiveIds"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.grid_snap",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbGridSnap",
+      "baseline_handler_line": 10159,
+      "baseline_direct_parameters": [
+        "grid"
+      ],
+      "v2_parameters": [
+        "grid",
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "grid",
+        "primitiveIds optional"
+      ],
+      "baseline_outputs": [
+        "snapped[].primitiveId",
+        "snapped[].from",
+        "snapped[].to",
+        "grid",
+        "count"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.import_autoroute",
+      "mode": "UNSUPPORTED",
+      "baseline_handler": "pcbImportAutoroute",
+      "baseline_handler_line": 9358,
+      "baseline_direct_parameters": [
+        "fileBase64",
+        "fileName",
+        "format"
+      ],
+      "v2_parameters": [],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "fileBase64",
+        "format optional (ses|json, default ses)",
+        "fileName optional"
+      ],
+      "baseline_outputs": [
+        "imported",
+        "format"
+      ],
+      "disposition_reason": "Opaque SES/JSON import returns only boolean; no complete imported primitive identity/mapping or bounded residual report. Native ratline refresh is a separate effect. A trustworthy parser plus exact requested-versus-native mapping is required before qualification."
+    },
+    {
+      "action": "pcb.import_changes",
+      "mode": "UNSUPPORTED",
+      "baseline_handler": "pcbImportChanges",
+      "baseline_handler_line": 8852,
+      "baseline_direct_parameters": [
+        "confirm",
+        "ensureBoard",
+        "recomputeRatline",
+        "schematicUuid"
+      ],
+      "v2_parameters": [],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "schematicUuid optional",
+        "ensureBoard optional (default true)",
+        "recomputeRatline optional (default true)"
+      ],
+      "baseline_outputs": [
+        "imported",
+        "createdBoard",
+        "board",
+        "reason"
+      ],
+      "disposition_reason": "The documented Host import promise may settle when its confirmation dialog opens, before delayed component materialization. The dialog has no operation-bound identity and no native settlement/complete schematic-to-PCB mapping receipt. Count stabilization cannot prove completion or release ownership; full import requires Host qualification of a trustworthy lifecycle and mapping contract."
+    },
+    {
+      "action": "pcb.manufacturing.export",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "payload => manufacturingExport(payload,blobToArtifact)",
+      "baseline_handler_line": null,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [
+        "document_uuid",
+        "profile",
+        "project_uuid",
+        "verification_ids"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "project_uuid",
+        "document_uuid",
+        "profile:{id,reviewed:true,units:mm,layers:[IDs]}",
+        "verification_ids optional"
+      ],
+      "baseline_outputs": [
+        "manifest",
+        "status",
+        "artifacts",
+        "warnings"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.outline.clear",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbOutlineClear",
+      "baseline_handler_line": 11592,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [],
+      "baseline_outputs": [
+        "removed"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.outline.set",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbOutlineSet",
+      "baseline_handler_line": 11383,
+      "baseline_direct_parameters": [
+        "lineWidth",
+        "points",
+        "replace"
+      ],
+      "v2_parameters": [
+        "lineWidth",
+        "points",
+        "replace"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "points ([[x,y],...] mil)",
+        "replace optional (default true)",
+        "lineWidth optional (default 10)"
+      ],
+      "baseline_outputs": [
+        "outlineId",
+        "segments",
+        "zoomed",
+        "bbox",
+        "allInside",
+        "outside"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.page.clear",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbPageClear",
+      "baseline_handler_line": 9905,
+      "baseline_direct_parameters": [
+        "dryRun",
+        "includeLocked",
+        "only",
+        "preserveOutline"
+      ],
+      "v2_parameters": [
+        "dryRun",
+        "includeLocked",
+        "only",
+        "preserveOutline"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "only optional (subset of components,routing,copper,regions,silk — omit = all)",
+        "preserveOutline optional (default true)",
+        "includeLocked optional (default false)",
+        "dryRun optional (default false)"
+      ],
+      "baseline_outputs": [
+        "deleted (counts by primitive type)",
+        "total",
+        "deletedIds",
+        "scopes",
+        "skippedLocked",
+        "preserveOutline",
+        "includeLocked",
+        "dryRun"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.plane.refresh",
+      "mode": "V2_NATIVE",
+      "baseline_handler": null,
+      "baseline_handler_line": null,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [
+        "base_revision",
+        "document_uuid",
+        "logical_ids",
+        "project_uuid"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "project_uuid",
+        "document_uuid",
+        "base_revision",
+        "logical_ids"
+      ],
+      "baseline_outputs": [
+        "status",
+        "item_results",
+        "revision_before",
+        "revision_after",
+        "requested_scope",
+        "actual_scope",
+        "freshness",
+        "connectivity"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.pour.delete",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbPourDelete",
+      "baseline_handler_line": 10591,
+      "baseline_direct_parameters": [
+        "primitiveIds"
+      ],
+      "v2_parameters": [
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveIds (string or string[])"
+      ],
+      "baseline_outputs": [
+        "deleted",
+        "primitiveIds"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.pour.rebuild",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbPourRebuild",
+      "baseline_handler_line": 10608,
+      "baseline_direct_parameters": [
+        "logical_ids",
+        "net"
+      ],
+      "v2_parameters": [
+        "document_uuid",
+        "logical_ids",
+        "net",
+        "project_uuid"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "net optional (legacy)",
+        "logical_ids optional 1..64 handles (explicit refresh)",
+        "project_uuid and document_uuid required with logical_ids"
+      ],
+      "baseline_outputs": [
+        "pours",
+        "rebuilt",
+        "logical refresh: status,item_results,requested_scope,actual_scope,freshness,revision (null until fresh snapshot)"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.region.delete",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbRegionDelete",
+      "baseline_handler_line": 10799,
+      "baseline_direct_parameters": [
+        "primitiveIds"
+      ],
+      "v2_parameters": [
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveIds (string or string[])"
+      ],
+      "baseline_outputs": [
+        "deleted",
+        "primitiveIds"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.route.delete",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbRouteDelete",
+      "baseline_handler_line": 11124,
+      "baseline_direct_parameters": [
+        "ids",
+        "kind",
+        "primitiveIds"
+      ],
+      "v2_parameters": [
+        "ids",
+        "kind",
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveIds (string or string[])",
+        "kind optional (via|track — refuse ids of another kind)"
+      ],
+      "baseline_outputs": [
+        "deleted{tracks,arcs,vias}{requested,ok}",
+        "removed[] (full before-state)",
+        "count",
+        "skippedLocked",
+        "notFound"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.route.rip_up",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbRouteRipUp",
+      "baseline_handler_line": 11054,
+      "baseline_direct_parameters": [
+        "net",
+        "nets"
+      ],
+      "v2_parameters": [
+        "net",
+        "nets"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "net optional (string or string[]); omit = all"
+      ],
+      "baseline_outputs": [
+        "nets",
+        "lines{requested,ok}",
+        "arcs{requested,ok}",
+        "vias{requested,ok}"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.route.via_hop",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbRouteViaHop",
+      "baseline_handler_line": 11267,
+      "baseline_direct_parameters": [
+        "bondFill",
+        "bondSize",
+        "fromX",
+        "fromY",
+        "holeDiameter",
+        "hopLayer",
+        "layer",
+        "lineWidth",
+        "net",
+        "stub",
+        "toX",
+        "toY",
+        "viaDiameter"
+      ],
+      "v2_parameters": [
+        "bondFill",
+        "bondSize",
+        "fromX",
+        "fromY",
+        "holeDiameter",
+        "hopLayer",
+        "layer",
+        "lineWidth",
+        "net",
+        "stub",
+        "toX",
+        "toY",
+        "viaDiameter"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "net",
+        "fromX",
+        "fromY",
+        "toX",
+        "toY",
+        "layer optional (default 1=TOP)",
+        "hopLayer optional (default 2=BOTTOM)",
+        "lineWidth optional (default 6)",
+        "holeDiameter optional (default 12)",
+        "viaDiameter optional (default 24)",
+        "stub optional (default 20 mil)",
+        "bondFill optional (default false)",
+        "bondSize optional (default 20 mil)"
+      ],
+      "baseline_outputs": [
+        "net",
+        "layer",
+        "hopLayer",
+        "vias[]{x,y}",
+        "trackIds",
+        "viaIds",
+        "fillIds",
+        "bonded",
+        "note"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.routing_profile",
+      "mode": "V2_NATIVE",
+      "baseline_handler": null,
+      "baseline_handler_line": null,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [
+        "document_uuid",
+        "operation",
+        "profile",
+        "profile_id",
+        "project_uuid"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "project_uuid",
+        "document_uuid",
+        "operation:context|put|get",
+        "profile_id for get",
+        "profile for put"
+      ],
+      "baseline_outputs": [
+        "state",
+        "stackup_hash",
+        "rules_hash",
+        "board_revision",
+        "profile"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.silk.align",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbSilkAlign",
+      "baseline_handler_line": 7206,
+      "baseline_direct_parameters": [
+        "offset",
+        "refs",
+        "side",
+        "spacing"
+      ],
+      "v2_parameters": [
+        "offset",
+        "refs",
+        "side",
+        "spacing"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "offset optional (base mil gap, default 15, ×spacing)",
+        "spacing optional (coefficient, default 1.5 — scales label drift for assembly/solder room)",
+        "side optional (top|bottom|left|right — soft bias)",
+        "refs optional ([designators]; others frozen)"
+      ],
+      "baseline_outputs": [
+        "aligned",
+        "warned (body-overlap)",
+        "unresolved (boxed-in/pad/off-board)",
+        "skipped",
+        "details",
+        "unresolvedDetails",
+        "skippedDetails"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.silk.label_pads",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbSilkLabelPads",
+      "baseline_handler_line": 7898,
+      "baseline_direct_parameters": [
+        "align_axis",
+        "content",
+        "exclude_nets",
+        "fontSize",
+        "layer",
+        "lineWidth",
+        "refs",
+        "side"
+      ],
+      "v2_parameters": [
+        "align_axis",
+        "content",
+        "exclude_nets",
+        "fontSize",
+        "layer",
+        "lineWidth",
+        "refs",
+        "side"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "refs (required: []string — component designators to label, e.g. [J2, U1])",
+        "content optional (pin-number|net-name|both, default both)",
+        "layer optional (3=TOP_SILKSCREEN default, 4=BOTTOM_SILKSCREEN)",
+        "fontSize optional (mil, default 30)",
+        "lineWidth optional (mil, default 4)",
+        "side optional (right|below|above|left|auto, default auto)",
+        "align_axis optional (x|y|auto, default auto) — x: vertical pin array, y: horizontal pin array",
+        "exclude_nets optional ([]string — skip these net names, e.g. [GND])"
+      ],
+      "baseline_outputs": [
+        "created[].ref",
+        "created[].pin",
+        "created[].net",
+        "created[].primitiveId",
+        "created[].x",
+        "created[].y",
+        "created[].bbox",
+        "total",
+        "failed[].ref",
+        "failed[].pin",
+        "failed[].reason",
+        "side_chosen",
+        "align_axis_chosen"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.silk.netnames",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbSilkNetnames",
+      "baseline_handler_line": 7718,
+      "baseline_direct_parameters": [
+        "align",
+        "exclude_nets",
+        "fontSize",
+        "layer",
+        "lineWidth",
+        "zone_rect"
+      ],
+      "v2_parameters": [
+        "align",
+        "exclude_nets",
+        "fontSize",
+        "layer",
+        "lineWidth",
+        "zone_rect"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "zone_rect (required: {left, top, right, bottom} in mil)",
+        "layer optional (3=TOP_SILKSCREEN default, 4=BOTTOM_SILKSCREEN)",
+        "align optional (left|right, default left — left=left-to-right order, right=right-to-left)",
+        "fontSize optional (mil, default 40)",
+        "lineWidth optional (mil, default 6)",
+        "exclude_nets optional ([]string — skip these net names, e.g. [GND, +5V])"
+      ],
+      "baseline_outputs": [
+        "created[].net",
+        "created[].primitiveId",
+        "created[].x",
+        "created[].y",
+        "created[].fontSize",
+        "created[].lineWidth",
+        "created[].bbox",
+        "total",
+        "failed[].net",
+        "failed[].reason"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.silk.set",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbSilkSet",
+      "baseline_handler_line": 7634,
+      "baseline_direct_parameters": [
+        "align",
+        "ids",
+        "primitiveIds",
+        "ref"
+      ],
+      "v2_parameters": [
+        "align",
+        "fontSize",
+        "ids",
+        "lineWidth",
+        "primitiveIds",
+        "ref",
+        "rotation",
+        "text",
+        "x",
+        "y"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveIds (string or [] , required)",
+        "x optional (mil)",
+        "y optional (mil)",
+        "rotation optional (deg)",
+        "fontSize optional (mil)",
+        "lineWidth optional (mil)",
+        "text optional",
+        "align optional (center|mid|centerx|centery|left|right|top|bottom)",
+        "ref optional (designator|board|outline|fill, default board)"
+      ],
+      "baseline_outputs": [
+        "align",
+        "count",
+        "results[].primitiveId",
+        "results[].ok",
+        "results[].x",
+        "results[].y"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.snapshot",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbSnapshot",
+      "baseline_handler_line": 9399,
+      "baseline_direct_parameters": [
+        "fit",
+        "previousSha256",
+        "tabId"
+      ],
+      "v2_parameters": [
+        "fit",
+        "previousSha256",
+        "tabId"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "fit optional (default true)",
+        "tabId optional",
+        "previousSha256 optional (enables stale-frame detection + auto-retry)"
+      ],
+      "baseline_outputs": [
+        "artifact id",
+        "file path",
+        "fitted",
+        "sha256",
+        "stale",
+        "staleRetry",
+        "capturedAt"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.stackup.set",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbStackupSet",
+      "baseline_handler_line": 7090,
+      "baseline_direct_parameters": [
+        "count",
+        "layers"
+      ],
+      "v2_parameters": [
+        "count",
+        "layers"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "count optional (2|4|6|…)",
+        "layers optional ([{id, type: signal|plane, name?}])"
+      ],
+      "baseline_outputs": [
+        "copperLayerCount",
+        "setCount",
+        "modified",
+        "layers"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "pcb.track.lock",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "pcbTrackLock",
+      "baseline_handler_line": 10994,
+      "baseline_direct_parameters": [
+        "all",
+        "includeFills",
+        "locked",
+        "net",
+        "nets",
+        "primitiveIds"
+      ],
+      "v2_parameters": [
+        "all",
+        "includeFills",
+        "locked",
+        "net",
+        "nets",
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "net optional (string or string[])",
+        "primitiveIds optional (string[])",
+        "locked optional (default true)"
+      ],
+      "baseline_outputs": [
+        "locked",
+        "counts{lines,arcs,vias}",
+        "total",
+        "failures"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "project.create",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "projectCreate",
+      "baseline_handler_line": null,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [
+        "client_transaction_id",
+        "expected_project_uuid",
+        "folder_uuid",
+        "name",
+        "session_token",
+        "team_uuid"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "name",
+        "expected_project_uuid + session_token optional paired guards (Go acquires when omitted)",
+        "client_transaction_id optional (Go generates when acquiring guards)",
+        "team_uuid optional",
+        "folder_uuid optional"
+      ],
+      "baseline_outputs": [
+        "status:complete|uncertain",
+        "project_uuid",
+        "opened:false"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "project.open",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "projectOpen",
+      "baseline_handler_line": null,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [
+        "expected_project_uuid",
+        "project_uuid",
+        "saved_current_project"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "project_uuid",
+        "expected_project_uuid",
+        "saved_current_project:true"
+      ],
+      "baseline_outputs": [
+        "status:complete|uncertain",
+        "opened",
+        "project_uuid"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "route.apply_batch",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "fastApply",
+      "baseline_handler_line": null,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [
+        "base_revision",
+        "client_transaction_id",
+        "document_uuid",
+        "operations",
+        "plan_hash",
+        "project_uuid"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "document_uuid",
+        "project_uuid",
+        "base_revision",
+        "plan_hash",
+        "client_transaction_id",
+        "operations[{type:add_trace|add_via|delete_trace|delete_via, exact geometry or id}]"
+      ],
+      "baseline_outputs": [
+        "status:complete|partial|stale|uncertain",
+        "created_ids",
+        "deleted_ids",
+        "item_results",
+        "failed_index",
+        "revision_before",
+        "revision_after",
+        "readback_verified",
+        "rollback_attempted",
+        "rollback_complete",
+        "warnings",
+        "telemetry"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "route.pair_plan",
+      "mode": "V2_NATIVE",
+      "baseline_handler": null,
+      "baseline_handler_line": null,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [
+        "base_revision",
+        "centerline",
+        "document_uuid",
+        "gap",
+        "layer",
+        "negative_net",
+        "positive_net",
+        "profile_id",
+        "project_uuid",
+        "transitions",
+        "width"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "project_uuid",
+        "document_uuid",
+        "base_revision",
+        "positive_net",
+        "negative_net",
+        "layer",
+        "width mil",
+        "gap mil",
+        "centerline [[x,y],...] mil",
+        "transitions optional [{end:start|end,to_layer,diameter,hole,separation}]",
+        "profile_id optional (verified differential width/gap)"
+      ],
+      "baseline_outputs": [
+        "plan",
+        "positive_length",
+        "negative_length",
+        "mismatch",
+        "minimum_gap",
+        "requires_preflight:true"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "route.preflight",
+      "mode": "V2_NATIVE",
+      "baseline_handler": null,
+      "baseline_handler_line": null,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [
+        "base_revision",
+        "clearance_profile",
+        "delete_ids",
+        "document_uuid",
+        "profile_id",
+        "project_uuid",
+        "protected_nets",
+        "routes",
+        "vias"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "document_uuid",
+        "project_uuid",
+        "base_revision",
+        "routes[{net,layer,width,points:[[x,y],...]}]",
+        "vias[{net,x,y,diameter,hole,from_layer,to_layer}]",
+        "delete_ids[] optional",
+        "protected_nets[] optional",
+        "clearance_profile {clearance,min_width,min_hole,min_diameter,min_annulus} in mil"
+      ],
+      "baseline_outputs": [
+        "ok",
+        "board_revision",
+        "plan_hash",
+        "affected_bbox",
+        "touched_nets",
+        "conflicts",
+        "telemetry"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "route.tuning_plan",
+      "mode": "V2_NATIVE",
+      "baseline_handler": null,
+      "baseline_handler_line": null,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [
+        "base_revision",
+        "corner",
+        "corridor",
+        "document_uuid",
+        "min_amplitude_h",
+        "net",
+        "profile_id",
+        "project_uuid",
+        "side",
+        "spacing_w",
+        "span_id",
+        "target_length",
+        "target_mode"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "project_uuid",
+        "document_uuid",
+        "base_revision",
+        "net",
+        "span_id",
+        "corridor [minX,minY,maxX,maxY] mil",
+        "target_mode: specified_length|follow_rule",
+        "target_length mil (specified_length)",
+        "corner: line_45|line_90|arc_90",
+        "side: single|bilateral",
+        "spacing_w mil (centerline spacing)",
+        "min_amplitude_h mil",
+        "profile_id optional (verified single-ended)"
+      ],
+      "baseline_outputs": [
+        "plan",
+        "current_length",
+        "target_length",
+        "achieved_length",
+        "added_length",
+        "residual",
+        "length_tolerance",
+        "turns",
+        "capacity_added_length",
+        "corner",
+        "side",
+        "spacing_w",
+        "min_amplitude_h",
+        "actual_amplitude",
+        "requires_preflight:true"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.bridgeCheck",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicBridgeCheck",
+      "baseline_handler_line": 3760,
+      "baseline_direct_parameters": [
+        "allPages"
+      ],
+      "v2_parameters": [
+        "allPages"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "allPages optional"
+      ],
+      "baseline_outputs": [
+        "passed",
+        "bridges",
+        "orphans",
+        "trees"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.check",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicCheck",
+      "baseline_handler_line": 3319,
+      "baseline_direct_parameters": [
+        "allPages"
+      ],
+      "v2_parameters": [
+        "allPages"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "allPages optional"
+      ],
+      "baseline_outputs": [
+        "passed",
+        "summary",
+        "findings"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.component.delete",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicComponentDelete",
+      "baseline_handler_line": 1794,
+      "baseline_direct_parameters": [
+        "cascade",
+        "primitiveIds"
+      ],
+      "v2_parameters": [
+        "cascade",
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveIds"
+      ],
+      "baseline_outputs": [
+        "deleted"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.component.modify",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicComponentModify",
+      "baseline_handler_line": 1443,
+      "baseline_direct_parameters": [
+        "patch",
+        "primitiveId"
+      ],
+      "v2_parameters": [
+        "patch",
+        "primitiveId"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveId",
+        "patch"
+      ],
+      "baseline_outputs": [
+        "component state"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.component.place",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicComponentPlace",
+      "baseline_handler_line": 1303,
+      "baseline_direct_parameters": [
+        "addIntoBom",
+        "addIntoPcb",
+        "designator",
+        "libraryUuid",
+        "mirror",
+        "rotation",
+        "subPartName",
+        "uuid",
+        "x",
+        "y"
+      ],
+      "v2_parameters": [
+        "addIntoBom",
+        "addIntoPcb",
+        "designator",
+        "libraryUuid",
+        "mirror",
+        "rotation",
+        "subPartName",
+        "uuid",
+        "x",
+        "y"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "libraryUuid",
+        "uuid (device-library uuid, not an instance id)",
+        "x",
+        "y",
+        "rotation optional",
+        "mirror optional"
+      ],
+      "baseline_outputs": [
+        "primitive id",
+        "component state"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.component.replace",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicComponentReplace",
+      "baseline_handler_line": 6127,
+      "baseline_direct_parameters": [
+        "client_transaction_id"
+      ],
+      "v2_parameters": [
+        "client_transaction_id",
+        "deviceLibraryUuid",
+        "deviceUuid",
+        "keepProperties",
+        "lcsc",
+        "primitiveId",
+        "query"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveId",
+        "lcsc OR deviceUuid (+deviceLibraryUuid) OR query",
+        "keepProperties optional (default false)",
+        "client_transaction_id optional (activation-scoped)"
+      ],
+      "baseline_outputs": [
+        "primitiveId (new)",
+        "previousPrimitiveId",
+        "previousDevice",
+        "device",
+        "pinDiff {available,removed,added,moved,…counts}",
+        "component state"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.component.resolve_lcsc",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicComponentResolveLcsc",
+      "baseline_handler_line": 5781,
+      "baseline_direct_parameters": [
+        "apply",
+        "primitiveId"
+      ],
+      "v2_parameters": [
+        "apply",
+        "primitiveId"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveId optional (single part)",
+        "apply optional (default false = dry-run report)"
+      ],
+      "baseline_outputs": [
+        "total",
+        "resolvedCount",
+        "unresolvedCount",
+        "appliedCount (with apply)",
+        "items[].{designator,lcsc,via,footprint,previousSupplierId,applied}",
+        "unresolved[].{designator,mpn,footprint,reason,candidates}"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.components.list",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicComponentsList",
+      "baseline_handler_line": 929,
+      "baseline_direct_parameters": [
+        "allPages",
+        "includeBBox",
+        "includeConnectivitySummary",
+        "includeDeviceIdentity",
+        "includePins",
+        "includeWires",
+        "tagPages"
+      ],
+      "v2_parameters": [
+        "allPages",
+        "includeBBox",
+        "includeConnectivitySummary",
+        "includeDeviceIdentity",
+        "includePins",
+        "includeWires",
+        "tagPages"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "allPages optional (WARNING: non-active pages return shallow data — pins/bbox may be empty even when wired; switch to the page via document.switch for accurate data)",
+        "includePins optional (adds pinsAvailable and pinsError on failure)",
+        "includeBBox optional",
+        "includeDeviceIdentity optional (resolves instance ids to device-library uuids; unresolved parts report deviceIdentityError)",
+        "includeConnectivitySummary optional (active page only, read-only)"
+      ],
+      "baseline_outputs": [
+        "component primitives",
+        "designator",
+        "name",
+        "pins",
+        "pinsAvailable",
+        "pinsError on pin-read failure",
+        "bbox",
+        "connectivitySummary {scope,wires,buses,netflags,netports,netlabels,shortSymbols}"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.create",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicCreate",
+      "baseline_handler_line": null,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [
+        "board_name",
+        "client_transaction_id",
+        "expected_project_uuid",
+        "session_token"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "expected_project_uuid",
+        "session_token from project.list",
+        "client_transaction_id",
+        "board_name optional"
+      ],
+      "baseline_outputs": [
+        "status:complete|uncertain",
+        "schematic_uuid",
+        "project_uuid",
+        "pages",
+        "opened:false"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.drc.check",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicDrcCheck",
+      "baseline_handler_line": 3000,
+      "baseline_direct_parameters": [
+        "includeVerboseError",
+        "strict"
+      ],
+      "v2_parameters": [
+        "includeVerboseError",
+        "strict"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "strict",
+        "includeVerboseError"
+      ],
+      "baseline_outputs": [
+        "passed",
+        "fatal",
+        "summary",
+        "violations"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.export.bom",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicExportBom",
+      "baseline_handler_line": 4219,
+      "baseline_direct_parameters": [
+        "columns",
+        "fileName",
+        "fileType",
+        "filterOptions",
+        "property",
+        "statistics",
+        "template"
+      ],
+      "v2_parameters": [
+        "columns",
+        "fileName",
+        "fileType",
+        "filterOptions",
+        "property",
+        "statistics",
+        "template"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "fileType",
+        "template optional",
+        "columns optional"
+      ],
+      "baseline_outputs": [
+        "artifact id",
+        "file path",
+        "file type"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.export.image",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicExportImage",
+      "baseline_handler_line": 4003,
+      "baseline_direct_parameters": [
+        "fileName",
+        "format",
+        "lineWidth",
+        "primitiveIds",
+        "scope",
+        "theme"
+      ],
+      "v2_parameters": [
+        "fileName",
+        "format",
+        "lineWidth",
+        "primitiveIds",
+        "scope",
+        "theme"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "format svg|png|pdf (default svg)",
+        "primitiveIds optional (auto-selects them)",
+        "scope selection|page|project",
+        "fileName optional",
+        "theme optional",
+        "lineWidth optional"
+      ],
+      "baseline_outputs": [
+        "artifact id",
+        "file path",
+        "format",
+        "scope",
+        "selectedCount",
+        "bytes"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.export.netlist",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicExportNetlist",
+      "baseline_handler_line": 3935,
+      "baseline_direct_parameters": [
+        "fileName",
+        "netlistType"
+      ],
+      "v2_parameters": [
+        "fileName",
+        "netlistType"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "netlistType optional"
+      ],
+      "baseline_outputs": [
+        "artifact id",
+        "file path",
+        "netlist type"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.group.move",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicGroupMove",
+      "baseline_handler_line": 2344,
+      "baseline_direct_parameters": [
+        "dx",
+        "dy",
+        "primitiveIds"
+      ],
+      "v2_parameters": [
+        "dx",
+        "dy",
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveIds (string[], components and/or wires)",
+        "dx",
+        "dy"
+      ],
+      "baseline_outputs": [
+        "movedComponents[]{primitiveId,designator,from,to}",
+        "movedWires[]{oldPrimitiveId,newPrimitiveId,net}",
+        "count",
+        "notFound"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.page.clear",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicPageClear",
+      "baseline_handler_line": 2093,
+      "baseline_direct_parameters": [
+        "dryRun",
+        "preserveSheet"
+      ],
+      "v2_parameters": [
+        "dryRun",
+        "preserveSheet"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "preserveSheet optional (default true)",
+        "dryRun optional (default false)"
+      ],
+      "baseline_outputs": [
+        "deleted (counts by primitive type)",
+        "total",
+        "deletedIds",
+        "preserveSheet",
+        "dryRun"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.pin.disconnect",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicPinDisconnect",
+      "baseline_handler_line": 6505,
+      "baseline_direct_parameters": [
+        "designator",
+        "flagPrimitiveId",
+        "pin",
+        "pinX",
+        "pinY",
+        "wirePrimitiveId"
+      ],
+      "v2_parameters": [
+        "designator",
+        "flagPrimitiveId",
+        "pin",
+        "pinX",
+        "pinY",
+        "wirePrimitiveId"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "designator + pin, OR flagPrimitiveId, OR wirePrimitiveId (at least one)"
+      ],
+      "baseline_outputs": [
+        "disconnected",
+        "pin",
+        "at{x,y}",
+        "deletedWires",
+        "deletedFlags"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.pin.set_no_connect",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicPinSetNoConnect",
+      "baseline_handler_line": 2607,
+      "baseline_direct_parameters": [
+        "designator",
+        "noConnected",
+        "pins"
+      ],
+      "v2_parameters": [
+        "designator",
+        "noConnected",
+        "pins"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "designator",
+        "pins",
+        "noConnected optional"
+      ],
+      "baseline_outputs": [
+        "designator",
+        "primitive id",
+        "pins[].noConnected",
+        "notApplied[]"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.power.connect_pin",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicPowerConnectPin",
+      "baseline_handler_line": 6338,
+      "baseline_direct_parameters": [
+        "direction",
+        "kind",
+        "net",
+        "offset",
+        "pinX",
+        "pinY",
+        "rotation"
+      ],
+      "v2_parameters": [
+        "direction",
+        "kind",
+        "net",
+        "offset",
+        "pinX",
+        "pinY",
+        "rotation"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "pinX",
+        "pinY",
+        "kind",
+        "net",
+        "direction optional",
+        "offset optional",
+        "rotation optional"
+      ],
+      "baseline_outputs": [
+        "wire primitiveId",
+        "flag primitiveId",
+        "end point",
+        "rotation"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.primitives.delete",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicPrimitivesDelete",
+      "baseline_handler_line": 2178,
+      "baseline_direct_parameters": [
+        "primitiveIds"
+      ],
+      "v2_parameters": [
+        "primitiveIds"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveIds optional (string or string[]; default = current selection)"
+      ],
+      "baseline_outputs": [
+        "deleted (counts by primitive type)",
+        "total",
+        "notFound",
+        "deletedIds"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.read",
+      "mode": "V2_NATIVE",
+      "baseline_handler": "schematicRead",
+      "baseline_handler_line": 4132,
+      "baseline_direct_parameters": [
+        "allPages",
+        "includeCheck"
+      ],
+      "v2_parameters": [
+        "allPages",
+        "includeCheck"
+      ],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "allPages optional",
+        "includeCheck optional (default true)"
+      ],
+      "baseline_outputs": [
+        "components[].primitiveId (mutation handle)",
+        "components[]",
+        "componentCount",
+        "nets[]",
+        "netCount",
+        "floatingPins[]",
+        "floatingPinCount",
+        "check"
+      ],
+      "disposition_reason": ""
+    },
+    {
+      "action": "schematic.rebind.footprint",
+      "mode": "UNSUPPORTED",
+      "baseline_handler": "schematicRebindFootprint",
+      "baseline_handler_line": 5428,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveId",
+        "footprint (name) OR footprintUuid (+footprintLibraryUuid)",
+        "scope optional (default project)"
+      ],
+      "baseline_outputs": [
+        "primitiveId (new)",
+        "previousPrimitiveId",
+        "footprint",
+        "device",
+        "component state"
+      ],
+      "disposition_reason": "System-library clone path depends on a DOM conflict-dialog observer that cannot bind its clicks or reused name-only clones to an operation and asset identity. Shared-library mutation plus destructive instance recreation cannot be qualified with the published full fallback contract without Host qualification. No partial in-place-only migration."
+    },
+    {
+      "action": "schematic.rebind.symbol",
+      "mode": "UNSUPPORTED",
+      "baseline_handler": "schematicRebindSymbol",
+      "baseline_handler_line": 5429,
+      "baseline_direct_parameters": [],
+      "v2_parameters": [],
+      "missing_direct_parameters": [],
+      "baseline_inputs": [
+        "primitiveId",
+        "symbol (name) OR symbolUuid (+symbolLibraryUuid)",
+        "scope optional (default project)"
+      ],
+      "baseline_outputs": [
+        "primitiveId (new)",
+        "previousPrimitiveId",
+        "symbol",
+        "device",
+        "component state"
+      ],
+      "disposition_reason": "System-library clone path depends on a DOM conflict-dialog observer that cannot bind its clicks or reused name-only clones to an operation and asset identity. Shared-library mutation plus destructive instance recreation cannot be qualified with the published full fallback contract without Host qualification. No partial in-place-only migration."
+    }
+  ]
+}

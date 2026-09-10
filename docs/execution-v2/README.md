@@ -1,3 +1,9 @@
+# Execution V2 current status
+
+Round 2: **144 V2_NATIVE / 7 UNSUPPORTED / 0 NOT_MIGRATED**, total 151. See [Round 2 implementation report](ROUND2_RESULT.md), [mechanical inventory](ACTION_MIGRATION.md), and [baseline business audit](round2-business-audit.json). This is offline implementation qualification, not real Host certification.
+
+The following Round 1 record is historical; its migration counts and deferred-action notes are superseded by Round 2.
+
 # Execution V2 Round 1 implementation
 
 Baseline: `a583bf731d946d2d39f1223e078d711bd41710d5`. Branch: `codex/execution-v2`. Stage A archive remains `594f78b3204ab0ff1110ff6aa7219ab6c0bef726`.

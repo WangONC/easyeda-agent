@@ -1,3 +1,26 @@
+import { silkCreate,type SilkAuthor } from './v2-silk-create';
+import { groupMove } from './v2-group-move';
+import { manufacture } from './v2-manufacturing';
+import { replaceComponent } from './v2-replace-component';
+import { addPcbComponent } from './v2-add-pcb-component';
+import { rebuildPlanes } from './v2-plane-actions';
+import { rebindBoard } from './v2-board-actions';
+import { viaHop } from './v2-via-hop';
+import { compareDrc } from './v2-drc-compare';
+import { silkPatch } from './v2-silk-actions';
+import { resolveLcsc, attrsBackfill } from './v2-backfill-actions';
+import { placeComponent } from './v2-place-component';
+import { pageClear } from './v2-pcb-clear';
+import { footprintBuild, symbolBuild } from './v2-library-build';
+import { exportAction } from './v2-export-actions';
+import { routingDelete, trackLock } from './v2-routing-actions';
+import { routeBatch } from './v2-route-batch';
+import { outline as v2Outline } from './v2-outline-actions';
+import { schematicDelete as v2SchematicDelete } from './v2-schematic-delete';
+import * as v2Board from './v2-board-actions';
+import * as v2Lifecycle from './v2-lifecycle-actions';
+import * as v2Schematic from './v2-schematic-actions';
+import * as v2Batch from './v2-batch-actions';
 import { verifySchematicPageName, waitSchematicPageSettle } from './schematic-readiness';
 import { namespacedLibraryAssetName } from './library-asset-name';
 import { titleBlockFieldApplied, isTitleBlockStructuralKey, type TitleBlockPatch } from './titleblock-fields';
@@ -820,7 +843,7 @@ async function tagComponentPages(requireComplete = false): Promise<Map<string, {
 	return byId;
 }
 
-export const schematicComponentsList: Handler = async (payload) => {
+export const schematicComponentsListData = async (payload: Payload, tagger=tagComponentPages) => {
 	const allPages = optionalBoolean(payload, 'allPages') === true;
 	const includePins = optionalBoolean(payload, 'includePins') === true;
 	// getState_Component().uuid is a 16-char placed-instance id, while
@@ -851,7 +874,7 @@ export const schematicComponentsList: Handler = async (payload) => {
 	const tagPages = optionalBoolean(payload, 'tagPages') === true;
 	// Tag pages BEFORE the main getAll so the active-page cycling doesn't disturb
 	// the component set we ultimately serialize.
-	const pageById = tagPages ? await tagComponentPages(allPages) : null;
+	const pageById = tagPages ? await tagger(allPages) : null;
 	let components;
 	try {
 		components = await eda.sch_PrimitiveComponent.getAll(undefined, allPages);
@@ -987,8 +1010,8 @@ export const schematicComponentsList: Handler = async (payload) => {
 	const wires: Array<{ x0: number; y0: number; x1: number; y1: number; net: string }> = [];
 	if (includeWires) {
 		let rawWires: Array<{ getState_Line: () => Array<number>; getState_Net?: () => string; getState_PrimitiveId?: () => string }> = [];
-		try { rawWires = (await eda.sch_PrimitiveWire.getAll() ?? []) as typeof rawWires; }
-		catch { rawWires = []; }
+		try { rawWires = v2Native.array(await eda.sch_PrimitiveWire.getAll()) as typeof rawWires; }
+		catch (err) { throw edaError(err, 'Requested wire inventory unavailable.'); }
 		const segs = collectWireSegments(rawWires);
 		for (const s of segs) {
 			wires.push({ x0: s.seg[0], y0: s.seg[1], x1: s.seg[2], y1: s.seg[3], net: s.net });
@@ -996,13 +1019,11 @@ export const schematicComponentsList: Handler = async (payload) => {
 	}
 
 	return {
-		result: {
 			components: serialized,
 			count: serialized.length,
 			wires,
 			...(connectivitySummary ? { connectivitySummary } : {}),
-		},
-	};
+		};
 };
 
 /**
@@ -1334,7 +1355,7 @@ function requireSchematicPropertyPatch(
 	return out;
 }
 
-export const schematicComponentModify: Handler = async (payload) => {
+const schematicModifyPlan = async (payload: Payload) => {
 	const primitiveId = requireString(payload, 'primitiveId');
 	const patch = payload.patch;
 	if (typeof patch !== 'object' || patch === null || Array.isArray(patch)) {
@@ -1400,6 +1421,13 @@ export const schematicComponentModify: Handler = async (payload) => {
 			normalizedPatch.otherProperty = { ...existing };
 		}
 	}
+
+ const before = serializeComponent(await getComponentOrThrow(primitiveId));
+ return {primitiveId,normalizedPatch,propertiesBefore,expectedProperties,preservedPropertyKeys,before};
+};
+
+export const schematicComponentModify: Handler = async (payload) => {
+ const {primitiveId,normalizedPatch,propertiesBefore,expectedProperties,preservedPropertyKeys}=await schematicModifyPlan(payload);
 
 	let component;
 	try {
@@ -1634,7 +1662,7 @@ export function planSchDeleteCascadeTrees(
 /** Read everything the cascade planner needs BEFORE the components are deleted
  *  (their pins vanish with them). Throws on read failure — the caller treats
  *  that as "skip the cascade with a warning", never as "block the delete". */
-async function collectSchDeleteCascadePlan(ids: Array<string>): Promise<Array<SchDeleteCascadeTree>> {
+async function collectSchDeleteCascadePlan(ids: Array<string>, strict=false): Promise<Array<SchDeleteCascadeTree>> {
 	const idSet = new Set(ids);
 	const components = await eda.sch_PrimitiveComponent.getAll();
 	const rawWires = await eda.sch_PrimitiveWire.getAll();
@@ -1653,7 +1681,7 @@ async function collectSchDeleteCascadePlan(ids: Array<string>): Promise<Array<Sc
 				wires.push({ id: String(w.getState_PrimitiveId?.() ?? ''), points: flat });
 			}
 		}
-		catch { /* a wire without geometry cannot anchor anything */ }
+		catch(e) { if(strict)throw e; }
 	}
 	const NET_MARKER_TYPES = new Set(['netflag', 'netport', 'netlabel', 'short_symbol']);
 	const targets: Array<{ id: string; pins: Array<{ x: number; y: number }> }> = [];
@@ -1676,9 +1704,10 @@ async function collectSchDeleteCascadePlan(ids: Array<string>): Promise<Array<Sc
 		let pins: Array<{ x: number; y: number }> = [];
 		try {
 			const raw = await eda.sch_PrimitiveComponent.getAllPinsByPrimitiveId(pid);
+ if(strict&&!Array.isArray(raw))throw Error("V2_PIN_INVENTORY_UNAVAILABLE");
 			pins = (raw ?? []).map(p => ({ x: p.getState_X(), y: p.getState_Y() }));
 		}
-		catch { /* a part whose pins cannot be read contributes none */ }
+		catch(e) { if(strict)throw e; }
 		if (idSet.has(pid)) targets.push({ id: pid, pins });
 		else survivorPins.push(...pins);
 	}
@@ -2235,6 +2264,91 @@ const schematicWireCreate: Handler = async (payload) => {
 // untouched — a pure translation cannot disturb each member's own orientation
 // or the assembly's internal relative layout, which is the entire point.
 
+const groupMovePlan = async (payload:Payload) => {
+	const raw = payload.primitiveIds;
+	if (!Array.isArray(raw) || raw.length === 0 || !raw.every(id => typeof id === 'string')) {
+		throw new ActionError(ErrorCodes.MISSING_PAYLOAD_FIELD, 'Missing required field "primitiveIds" (non-empty string[]).');
+	}
+	const wantIds = new Set(raw as Array<string>);
+	const dx = requireNumber(payload, 'dx');
+	const dy = requireNumber(payload, 'dy');
+
+	// Resolve via getAll() + local filter, NOT a per-id .get(id) call: a
+	// component created earlier in the SAME session/batch can 404 on a direct
+	// .get(id) immediately after creation (observed live, 2026-07-07) despite
+	// being fully present in getAll() — the same "pull fresh via a list call"
+	// caution this codebase already applies elsewhere (rip_up, route delete).
+	let allComponents, allWires;
+	try {
+		allComponents = await eda.sch_PrimitiveComponent.getAll();
+		allWires = await eda.sch_PrimitiveWire.getAll();
+	}
+	catch (err) {
+		throw edaError(err, 'group-move: failed to read components/wires for id resolution.');
+	}
+
+	const movedComponents: Array<Record<string, unknown>> = [];
+	const movedFlags: Array<Record<string, unknown>> = [];
+	const movedWires: Array<Record<string, unknown>> = [];
+	const notFound: Array<string> = [];
+	const seen = new Set<string>();
+
+	// ── Pre-flight classification. `sch_PrimitiveComponent.modify` is ELEMENT-ONLY:
+	// calling it on a netflag/netport throws「仅当器件类型为元件时允许使用该函数进行修改」,
+	// and since the platform has no transaction the old element-loop died on the
+	// first flag with earlier members already moved (live 2026-08-12: R1 translated
+	// three half-runs in a row while C5 + every wire never moved). Flags must move
+	// by DELETE + re-CREATE instead — so resolve every flag's recreate parameters
+	// UP FRONT and abort with ZERO mutations if any member is unresolvable.
+	type flagPlan = {
+		id: string; kind: 'netflag' | 'netport'; createArg: string; net: string;
+		x: number; y: number; rotation: number; mirror: boolean;
+	};
+	const elements: Array<{ id: string; comp: (typeof allComponents)[number] }> = [];
+	const flagPlans: Array<flagPlan> = [];
+	for (const comp of allComponents) {
+		const id = comp.getState_PrimitiveId();
+		if (!wantIds.has(id)) continue;
+		seen.add(id);
+		const ctype = String(comp.getState_ComponentType?.() ?? '');
+		if (ctype === 'netflag' || ctype === 'netport') {
+			const rawName = (comp.getState_Component?.() as { name?: string } | undefined)?.name ?? comp.getState_Name?.() ?? '';
+			const name = String(rawName).toLowerCase();
+			let createArg = '';
+			if (ctype === 'netflag') {
+				if (name.includes('analog')) createArg = 'AnalogGround';
+				else if (name.includes('protect')) createArg = 'ProtectGround';
+				else if (name.startsWith('ground')) createArg = 'Ground';
+				else if (name.startsWith('power')) createArg = 'Power';
+			}
+			else {
+				if (name.endsWith('-bi')) createArg = 'BI';
+				else if (name.endsWith('-in')) createArg = 'IN';
+				else if (name.endsWith('-out')) createArg = 'OUT';
+			}
+			if (!createArg) {
+				throw new ActionError(ErrorCodes.EDA_CALL_FAILED,
+					`group-move: cannot derive recreate parameters for ${ctype} ${id} (symbol "${rawName}") — aborted BEFORE any mutation. Exclude it from the set or move it manually.`);
+			}
+			flagPlans.push({
+				id, kind: ctype, createArg,
+				net: String(comp.getState_Net?.() ?? ''),
+				x: comp.getState_X(), y: comp.getState_Y(),
+				rotation: Number(comp.getState_Rotation?.() ?? 0),
+				mirror: Boolean(comp.getState_Mirror?.() ?? false),
+			});
+		}
+		else if (ctype === 'netlabel' || ctype === 'short_symbol') {
+			throw new ActionError(ErrorCodes.EDA_CALL_FAILED,
+				`group-move: ${ctype} ${id} cannot be moved (no create API to recreate it) — aborted BEFORE any mutation. Exclude it from the set.`);
+		}
+		else {
+			elements.push({ id, comp });
+		}
+	}
+
+ return {elements,flagPlans,allComponents,allWires,wantIds,dx,dy};
+};
 const schematicGroupMove: Handler = async (payload) => {
 	const raw = payload.primitiveIds;
 	if (!Array.isArray(raw) || raw.length === 0 || !raw.every(id => typeof id === 'string')) {
@@ -3210,13 +3324,13 @@ function interiorOnSegment(px: number, py: number, s: Seg): boolean {
 	return Math.hypot(px - s[0], py - s[1]) > endTol && Math.hypot(px - s[2], py - s[3]) > endTol;
 }
 
-const schematicCheck: Handler = async (payload) => {
+const schematicCheckData = async (payload: Payload) => {
 	const allPages = optionalBoolean(payload, 'allPages') === true;
-	let components, wires;
+	let components, wires;let pinsComplete=true;
 	const { byDesignator: netlistPinNets, available: netlistAvailable } = await collectNetlistPinNets();
 	try {
-		components = await eda.sch_PrimitiveComponent.getAll(undefined, allPages);
-		wires = await eda.sch_PrimitiveWire.getAll();
+		components = v2Native.array<Awaited<ReturnType<typeof eda.sch_PrimitiveComponent.getAll>>[number]>(await eda.sch_PrimitiveComponent.getAll(undefined, allPages));
+		wires = v2Native.array(await eda.sch_PrimitiveWire.getAll());
 	}
 	catch (err) {
 		throw edaError(err, 'Failed to read schematic for design check.');
@@ -3234,7 +3348,7 @@ const schematicCheck: Handler = async (payload) => {
 	for (const c of components ?? []) {
 		let type: string;
 		try { type = String(c.getState_ComponentType?.() ?? ''); }
-		catch { continue; }
+		catch { pinsComplete=false;continue; }
 		if (!NET_MARKER_TYPES.has(type)) continue;
 		try {
 			connectionMarkers.push({
@@ -3338,8 +3452,8 @@ const schematicCheck: Handler = async (payload) => {
 		// — getAllPinsByPrimitiveId returns empty for them, so they're skipped.
 		const primitiveId = c.getState_PrimitiveId();
 		let pins;
-		try { pins = await eda.sch_PrimitiveComponent.getAllPinsByPrimitiveId(primitiveId); }
-		catch { continue; }
+		try { pins = v2Native.array(await eda.sch_PrimitiveComponent.getAllPinsByPrimitiveId(primitiveId)); }
+		catch { pinsComplete=false;continue; }
 		if (!pins || pins.length === 0) continue;
 		const designator = c.getState_Designator?.() ?? '';
 
@@ -3513,7 +3627,7 @@ const schematicCheck: Handler = async (payload) => {
 	for (const w of wires ?? []) {
 		let line: Array<number> | Array<Array<number>> | undefined;
 		try { line = w.getState_Line(); }
-		catch { continue; }
+		catch { pinsComplete=false;continue; }
 		if (!Array.isArray(line) || line.length === 0) continue;
 		// getState_Line is flat [x1,y1,x2,y2,…] OR nested [[x1,y1],[x2,y2],…].
 		const verts: Array<[number, number]> = [];
@@ -3624,7 +3738,7 @@ const schematicCheck: Handler = async (payload) => {
 		polarityConventionOutliers,
 		total: findings.length,
 	};
-	return { result: { passed: findings.length === 0, summary, findings } };
+	return { passed: netlistAvailable&&pinsComplete?findings.length === 0:null, summary, findings,...(!netlistAvailable||!pinsComplete?{incomplete:true,netlistAvailable,pinsComplete}:{}) };
 };
 
 // ─── Bridge check (tree-granularity net-vs-copper consistency) ─────────
@@ -3651,12 +3765,12 @@ interface BridgeTree {
 	nets: Array<string>;
 }
 
-const schematicBridgeCheck: Handler = async (payload) => {
+const schematicBridgeCheckData = async (payload: Payload) => {
 	const allPages = optionalBoolean(payload, 'allPages') === true;
 	let components, wires;
 	try {
-		components = await eda.sch_PrimitiveComponent.getAll(undefined, allPages);
-		wires = await eda.sch_PrimitiveWire.getAll();
+		components = v2Native.array<Awaited<ReturnType<typeof eda.sch_PrimitiveComponent.getAll>>[number]>(await eda.sch_PrimitiveComponent.getAll(undefined, allPages));
+		wires = v2Native.array(await eda.sch_PrimitiveWire.getAll());
 	}
 	catch (err) {
 		throw edaError(err, 'Failed to read schematic for bridge check.');
@@ -3808,7 +3922,7 @@ const schematicBridgeCheck: Handler = async (payload) => {
 	const orphanFlags = trees.filter(t => t.kind === 'ORPHAN_FLAG').length;
 	const orphanTrees = trees.filter(t => t.kind === 'ORPHAN_TREE').length;
 	const summary = { trees: trees.length, bridges, orphans, orphanFlags, orphanTrees, wireTreesTotal: treeMap.size };
-	return { result: { passed: trees.length === 0, summary, trees } };
+	return { passed: trees.length === 0, summary, trees };
 };
 
 // ─── Save ─────────────────────────────────────────────────────────────
@@ -4023,20 +4137,21 @@ function withTimeout<T>(p: Promise<T>, ms: number, message: string): Promise<T> 
 // the #1 collectNetlistPinNets logic), nets (net → connected pins + degree +
 // global flag), floating pins, and the geometric design check (schematicCheck;
 // pass includeCheck:false to skip it for a faster read).
-const schematicRead: Handler = async (payload) => {
+const schematicReadData = async (payload: Payload) => {
 	const allPages = optionalBoolean(payload, 'allPages') === true;
 	const includeCheck = optionalBoolean(payload, 'includeCheck') !== false; // default true
 
 	let comps;
 	try {
-		comps = await eda.sch_PrimitiveComponent.getAll(undefined, allPages);
+		comps = v2Native.array<Awaited<ReturnType<typeof eda.sch_PrimitiveComponent.getAll>>[number]>(await eda.sch_PrimitiveComponent.getAll(undefined, allPages));
 	}
 	catch (err) {
 		throw edaError(err, 'Failed to read schematic components.');
 	}
 
 	// JSON-authoritative pin→net per designator (same source as schematic.check).
- const { byDesignator: pinNets } = await collectNetlistPinNets(allPages);
+ const { byDesignator: pinNets,available:netlistAvailable } = await collectNetlistPinNets(allPages);
+ if(!netlistAvailable)throw new ActionError('V2_NETLIST_UNAVAILABLE','Cannot read authoritative pin/net state.');
 
 	const netToPins = new Map<string, Array<string>>();
 	const floating: Array<string> = [];
@@ -4047,7 +4162,7 @@ const schematicRead: Handler = async (payload) => {
 		const pinNetMap = pinNets.get(designator) ?? new Map<string, string>();
 		const pins: Array<Record<string, unknown>> = [];
 		try {
-			const pinPrims = await eda.sch_PrimitiveComponent.getAllPinsByPrimitiveId(c.getState_PrimitiveId());
+			const pinPrims = v2Native.array(await eda.sch_PrimitiveComponent.getAllPinsByPrimitiveId(c.getState_PrimitiveId()));
 			for (const p of pinPrims ?? []) {
 				const number = String(p.getState_PinNumber?.() ?? '');
 				const net = pinNetMap.get(number) ?? '';
@@ -4063,7 +4178,7 @@ const schematicRead: Handler = async (payload) => {
 				pins.push({ number, name: p.getState_PinName?.() ?? '', net: net || null });
 			}
 		}
-		catch { /* pins best-effort */ }
+		catch (err) { throw edaError(err, 'Requested pin inventory unavailable.'); }
 		components.push({
 			designator,
 			// The MUTATION handle: what select / component.delete / modify /
@@ -4090,7 +4205,7 @@ const schematicRead: Handler = async (payload) => {
 	let check: unknown = null;
 	if (includeCheck) {
 		try {
-			check = (await schematicCheck(payload)).result;
+			check = await schematicCheckData(payload);
 		}
 		catch (err) {
 			check = { error: describeThrown(err) };
@@ -4098,7 +4213,6 @@ const schematicRead: Handler = async (payload) => {
 	}
 
 	return {
-		result: {
 			components,
 			componentCount: components.length,
 			nets,
@@ -4106,8 +4220,7 @@ const schematicRead: Handler = async (payload) => {
 			floatingPins: floating,
 			floatingPinCount: floating.length,
 			check,
-		},
-	};
+		};
 };
 
 const schematicExportBom: Handler = async (payload) => {
@@ -4595,6 +4708,39 @@ type SymbolPinSpec = {
 };
 type SymbolCircleSpec = { centerX: number; centerY: number; radius: number; lineWidth: number };
 
+const symbolBuildPlan = (payload:Record<string,unknown>) => {
+	const uuid = requireString(payload, 'uuid');
+	const libraryUuid = requireString(payload, 'libraryUuid');
+	if (!Array.isArray(payload.pins) || payload.pins.length === 0) {
+		throw new ActionError(ErrorCodes.PRECONDITION_REFUSED, 'Symbol build requires a non-empty pins[] array.');
+	}
+	if (!Array.isArray(payload.outline) || payload.outline.length < 8 || payload.outline.some(v => typeof v !== 'number' || !Number.isFinite(v))) {
+		throw new ActionError(ErrorCodes.PRECONDITION_REFUSED, 'Symbol build requires outline[] with at least four finite x/y points.');
+	}
+	const pins = payload.pins.map((raw, index): SymbolPinSpec => {
+		if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new ActionError(ErrorCodes.PRECONDITION_REFUSED, `pins[${index}] must be an object.`);
+		const p = raw as Record<string, unknown>;
+		if (typeof p.number !== 'string' || !p.number || typeof p.name !== 'string') throw new ActionError(ErrorCodes.PRECONDITION_REFUSED, `pins[${index}] requires number and name strings.`);
+		return {
+			x: finiteField(p, 'x', `pins[${index}]`), y: finiteField(p, 'y', `pins[${index}]`),
+			number: p.number, name: p.name,
+			rotation: p.rotation === undefined ? 0 : finiteField(p, 'rotation', `pins[${index}]`),
+			length: p.length === undefined ? 20 : finiteField(p, 'length', `pins[${index}]`),
+			shape: (p.shape ?? 'None') as ESCH_PrimitivePinShape,
+			pinType: (p.pinType ?? 'Passive') as ESCH_PrimitivePinType,
+		};
+	});
+	const rawCircles = payload.circles ?? [];
+	if (!Array.isArray(rawCircles)) throw new ActionError(ErrorCodes.PRECONDITION_REFUSED, 'circles must be an array.');
+	const circles = rawCircles.map((raw, index): SymbolCircleSpec => {
+		if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new ActionError(ErrorCodes.PRECONDITION_REFUSED, `circles[${index}] must be an object.`);
+		const c = raw as Record<string, unknown>;
+		const radius = finiteField(c, 'radius', `circles[${index}]`);
+		if (radius <= 0) throw new ActionError(ErrorCodes.PRECONDITION_REFUSED, `circles[${index}].radius must be greater than zero.`);
+		return { centerX: finiteField(c, 'centerX', `circles[${index}]`), centerY: finiteField(c, 'centerY', `circles[${index}]`), radius, lineWidth: c.lineWidth === undefined ? 1 : finiteField(c, 'lineWidth', `circles[${index}]`) };
+	});
+ return {pins,circles,outline:payload.outline as number[]};
+};
 const librarySymbolBuild: Handler = async (payload) => {
 	const uuid = requireString(payload, 'uuid');
 	const libraryUuid = requireString(payload, 'libraryUuid');
@@ -5756,6 +5902,130 @@ const schematicComponentResolveLcsc: Handler = async (payload) => {
  * Unknown creates retain the original and stop. Recovery requires confirmed
  * exact-ID cleanup and the previously verified original library source.
  */
+const replacePlan = async (payload:Payload) => {
+	const expectedContext=await readResponseContext();
+	const guard=async()=>{const c=await readResponseContext();if(c.projectUuid!==expectedContext.projectUuid||c.documentUuid!==expectedContext.documentUuid)throw new ActionError(ErrorCodes.INVALID_STATE,'Document changed during replacement');};
+	const primitiveId = requireString(payload, 'primitiveId');
+	const lcsc = optionalString(payload, 'lcsc');
+	const explicitUuid = optionalString(payload, 'deviceUuid');
+	const explicitLibraryUuid = optionalString(payload, 'deviceLibraryUuid');
+	const query = optionalString(payload, 'query');
+	const keepProperties = optionalBoolean(payload, 'keepProperties') === true;
+	const selectors = [lcsc, explicitUuid, query].filter(Boolean).length;
+	if (selectors !== 1) {
+		throw new ActionError(
+			ErrorCodes.MISSING_PAYLOAD_FIELD,
+			'Provide exactly ONE target selector: "lcsc" (C-number), "deviceUuid" (+ "deviceLibraryUuid"), or "query" (device name, must match uniquely).',
+		);
+	}
+
+	const component = await getComponentOrThrow(primitiveId);
+	const snapshot = serializeComponent(component);
+	const oldName = typeof snapshot.name === 'string' ? snapshot.name : undefined;
+	// Resolve the OLD device's REAL 32-char library identity up front — it is the
+	// rollback target AND the same-device guard; getState_Component() only carries
+	// a 16-char placed-symbol id, so an unresolvable identity aborts here, before
+	// any canvas change.
+	const oldDevice = await resolvePlacedDeviceIdentity(snapshot);
+	const oldPins = await readPinSnapshots(primitiveId);
+	const oldSource=await eda.lib_Device.get(oldDevice.uuid,oldDevice.libraryUuid);sourceAsset(oldSource);
+
+	// Resolve the NEW device identity.
+	let target: { uuid: string; libraryUuid: string; name?: string };
+	if (explicitUuid) {
+		if (!explicitLibraryUuid) {
+			throw new ActionError(
+				ErrorCodes.MISSING_PAYLOAD_FIELD,
+				'"deviceUuid" requires "deviceLibraryUuid" (both come from schematic.library.search / get_by_lcsc).',
+			);
+		}
+		target = { uuid: explicitUuid, libraryUuid: explicitLibraryUuid };
+	}
+	else if (lcsc) {
+		let raw: Array<Record<string, unknown>>;
+		try {
+			raw = (await eda.lib_Device.getByLcscIds([lcsc], undefined, true)) as unknown as Array<Record<string, unknown>>;
+		}
+		catch (err) {
+			throw edaError(err, `Failed to resolve LCSC id "${lcsc}".`);
+		}
+		const hits = (Array.isArray(raw) ? raw : []).filter(r => typeof r.uuid === 'string' && typeof r.libraryUuid === 'string');
+		if (hits.length === 0) {
+			throw new ActionError(ErrorCodes.INVALID_STATE, `LCSC id "${lcsc}" did not resolve to any library device.`);
+		}
+		if (hits.length > 1) {
+			const uuids = hits.map(h => h.uuid).join(', ');
+			throw new ActionError(
+				ErrorCodes.INVALID_STATE,
+				`LCSC id "${lcsc}" resolved to ${hits.length} devices (uuids: ${uuids}). Pass "deviceUuid" to pick one.`,
+			);
+		}
+		target = { uuid: hits[0].uuid as string, libraryUuid: hits[0].libraryUuid as string, name: typeof hits[0].name === 'string' ? hits[0].name as string : undefined };
+	}
+	else {
+		let raw: Array<NamedLibItem>;
+		try {
+			raw = (await eda.lib_Device.search(query as string)) as unknown as Array<NamedLibItem>;
+		}
+		catch (err) {
+			throw edaError(err, `Failed to search the device library for "${query}".`);
+		}
+		const match = pickNamedCandidate(query as string, Array.isArray(raw) ? raw : []);
+		if (match.kind === 'none') {
+			throw new ActionError(
+				ErrorCodes.INVALID_STATE,
+				`No device named "${query}" found. Use schematic.library.search to explore candidates, then pass "deviceUuid" or "lcsc".`,
+			);
+		}
+		if (match.kind === 'ambiguous') {
+			const uuids = match.matches.map(m => m.uuid).join(', ');
+			throw new ActionError(
+				ErrorCodes.INVALID_STATE,
+				`${match.matches.length} devices named "${query}" match (uuids: ${uuids}). Pass "deviceUuid" to pick one.`,
+			);
+		}
+		target = match.item;
+	}
+	const targetSource=await eda.lib_Device.get(target.uuid,target.libraryUuid);
+	const checkedTarget=sourceAsset(targetSource);
+	if(checkedTarget.uuid!==target.uuid||checkedTarget.libraryUuid!==target.libraryUuid)throw new ActionError(ErrorCodes.INVALID_STATE,'Target library identity mismatch');
+	if (target.uuid === oldDevice.uuid && target.libraryUuid === oldDevice.libraryUuid) {
+		throw new ActionError(
+			ErrorCodes.INVALID_STATE,
+			`Target device is the SAME as the placed one (${target.uuid}) — nothing to replace. Use schematic.component.modify for property-only changes.`,
+		);
+	}
+
+	// Replay geometry + BOM flags into create for both the new device and rollback.
+	const x = typeof snapshot.x === 'number' ? snapshot.x : 0;
+	const y = typeof snapshot.y === 'number' ? snapshot.y : 0;
+	const rotation = typeof snapshot.rotation === 'number' ? snapshot.rotation : undefined;
+	const mirror = typeof snapshot.mirror === 'boolean' ? snapshot.mirror : undefined;
+	const addIntoBom = typeof snapshot.addIntoBom === 'boolean' ? snapshot.addIntoBom : undefined;
+	const addIntoPcb = typeof snapshot.addIntoPcb === 'boolean' ? snapshot.addIntoPcb : undefined;
+	// Identity-preserving props for the NEW device: designator + uniqueId only.
+	const carried=cleanOtherProperty(snapshot.otherProperty as Record<string,unknown>);if(carried)delete carried[SOURCE_KEY];
+	const carryProps = {
+		...(typeof snapshot.designator === 'string' ? { designator: snapshot.designator } : {}),
+		...(typeof snapshot.uniqueId === 'string' ? { uniqueId: snapshot.uniqueId } : {}),
+		...(keepProperties && carried
+			? { otherProperty: carried }
+			: {}),
+	};
+	// Full restore props for ROLLBACK (the original part keeps its identity).
+	const rollbackProps = {
+		...carryProps,
+		...(typeof snapshot.manufacturer === 'string' ? { manufacturer: snapshot.manufacturer } : {}),
+		...(typeof snapshot.manufacturerId === 'string' ? { manufacturerId: snapshot.manufacturerId } : {}),
+		...(typeof snapshot.supplier === 'string' ? { supplier: snapshot.supplier } : {}),
+		...(typeof snapshot.supplierId === 'string' ? { supplierId: snapshot.supplierId } : {}),
+		...(cleanOtherProperty(snapshot.otherProperty as Record<string, unknown> | undefined)
+			? { otherProperty: cleanOtherProperty(snapshot.otherProperty as Record<string, unknown> | undefined) }
+			: {}),
+	};
+
+ return {primitiveId,snapshot,oldName,oldDevice,oldPins,oldSource,target,targetSource,x,y,rotation,mirror,addIntoBom,addIntoPcb,carryProps,rollbackProps,keepProperties,carried};
+};
 const schematicComponentReplaceImpl: Handler = async (payload) => {
 	const expectedContext=await readResponseContext();
 	const guard=async()=>{const c=await readResponseContext();if(c.projectUuid!==expectedContext.projectUuid||c.documentUuid!==expectedContext.documentUuid)throw new ActionError(ErrorCodes.INVALID_STATE,'Document changed during replacement');};
@@ -6205,6 +6475,75 @@ async function appliedRotation(desired: number): Promise<number> {
 // dispatch timeout: worst realistic case (one wire retry + flag) ≈ 3×7s < 18s.
 const CONNECT_PIN_OP_TIMEOUT_MS = 7000;
 
+const connectPinPlan = (payload: Payload) => {
+	const pinX = requireNumber(payload, 'pinX');
+	const pinY = requireNumber(payload, 'pinY');
+	const kind = requireString(payload, 'kind');
+	const net = requireString(payload, 'net');
+	const offset = optionalNumber(payload, 'offset') ?? 30;
+	const direction = (optionalString(payload, 'direction') ?? defaultDirection(kind)) as Direction;
+	// Orientation follows the stub direction; an explicit rotation overrides it.
+	// `rotation` is the desired STORED rotation (what the linter/calibrate read back);
+	// `applied` is what we actually pass, compensated for this connector's stored-
+	// rotation negation (see detectRotationNegation). Verify rendered orientation if
+	// in doubt — the negation is connector-build-dependent.
+	const rotation = optionalNumber(payload, 'rotation') ?? rotationFor(kind, direction);
+
+
+	// `--direction` is the VISUAL outward direction. The schematic canvas is
+	// y-UP (+y renders upward), so 'up' increases y and 'down' decreases it.
+	// Flag-body rotation remains independent: rotationFor() is calibrated in
+	// visual directions and appliedRotation() handles build-specific negation.
+	const endpoint = connectPinEndpoint(pinX, pinY, offset, direction);
+	const endX = endpoint.x;
+	const endY = endpoint.y;
+
+	// Snap the stub endpoint (and thus the flag) to the schematic connection grid
+	// (SCH_GRID=5). EasyEDA snaps a created netflag/netport's connection pin to that
+	// grid, so an OFF-grid endpoint (pin + a non-grid offset like 18 → 338) leaves the
+	// flag's pin a grid-step from the stub end: the stub connects the pin to an empty
+	// point, the flag floats unconnected, its net NAME never applies, and same-named
+	// flags NEVER merge — every pin becomes its own auto-named 1-pin net ($1N1, …).
+	// Snapping to the SAME grid makes the stub end and the snapped flag pin coincide.
+	// Snapping the perpendicular axis too is safe because a pin sits ON the grid (this
+	// is why 5 not 10: ESP32 pins at y=-385 stay put under a 5-snap, but a 10-snap
+	// would jog endY to -380 → a diagonal stub EasyEDA refuses to create).
+	// Snap the pin-side vertex to the exact grid too (issue #143). The pin coord
+	// carries rotation FP residue (e.g. 649.9999999); the stub end is on the grid
+	// (650), so a raw (649.9999999 → 650) vertex makes the stub a 0.0001 diagonal
+	// — EasyEDA refuses it or the flag floats. Snapping the pin vertex to the same
+	// grid keeps the stub perfectly axis-aligned while staying < GRID_EPS from the
+	// real pin, so EasyEDA still treats it as connected to the pin.
+	const pinGX = nearestGrid(pinX);
+	const pinGY = nearestGrid(pinY);
+
+	if (endX === pinGX && endY === pinGY) {
+		throw new ActionError(
+			ErrorCodes.MISSING_PAYLOAD_FIELD,
+			`offset must be non-zero (got ${offset}); pin and netflag would overlap.`,
+		);
+	}
+
+	// An OFF-grid pin cannot get a valid stub at all: the snapped endpoint jogs
+	// the perpendicular axis, turning the stub diagonal (EasyEDA refuses to
+	// create it) — and un-snapping would leave the flag floating instead. Fail
+	// with the actionable cause (probe round #3: autolayout's fractional zone
+	// centers put every pin off-grid → 53/64 cryptic stub failures). The test
+	// tolerates FP residue (GRID_EPS): a pin within 0.01 of a grid point is
+	// on-grid (rotation noise), only a genuinely off-grid pin (≥ half-grid) fails.
+	const offGridX = Math.abs(pinX - pinGX) > GRID_EPS;
+	const offGridY = Math.abs(pinY - pinGY) > GRID_EPS;
+	if ((direction === 'left' || direction === 'right') ? offGridY : offGridX) {
+		throw new ActionError(
+			ErrorCodes.EDA_CALL_FAILED,
+			`Pin (${pinX}, ${pinY}) sits OFF the ${SCH_GRID}-unit schematic grid on the stub's cross axis — the snapped endpoint would make the stub diagonal (EasyEDA refuses it) or leave the flag floating. Re-place the part so its anchor lands on the ${SCH_GRID}-grid (sch autolayout does this automatically), then reconnect.`,
+		);
+	}
+
+ if(!(kind in NET_FLAG_KINDS)&&!(kind in NET_PORT_KINDS))throw Error("V2_UNKNOWN_NETFLAG_KIND");
+ return {kind,net,pinGX,pinGY,endX,endY,direction,offset,rotation,flag:NET_FLAG_KINDS[kind],port:NET_PORT_KINDS[kind]};
+};
+
 const schematicPowerConnectPin: Handler = async (payload) => {
 	const pinX = requireNumber(payload, 'pinX');
 	const pinY = requireNumber(payload, 'pinY');
@@ -6372,7 +6711,7 @@ const schematicPowerConnectPin: Handler = async (payload) => {
 //
 // Target the pin by either `designator`+`pin`, or a known `flagPrimitiveId` /
 // `wirePrimitiveId` (whatever connect_pin returned). At least one locator required.
-export const schematicPinDisconnect: Handler = async (payload) => {
+const pinDisconnectPlan = async (payload: Payload, strict=false) => {
 	const designator = optionalString(payload, 'designator');
 	const pinNumber = optionalString(payload, 'pin');
 	const flagPrimitiveId = optionalString(payload, 'flagPrimitiveId');
@@ -6395,6 +6734,7 @@ export const schematicPinDisconnect: Handler = async (payload) => {
 	try {
 		components = await eda.sch_PrimitiveComponent.getAll();
 		wires = await eda.sch_PrimitiveWire.getAll();
+ if(strict&&(!Array.isArray(wires)||!Array.isArray(components)))throw Error("V2_NATIVE_SHAPE");
 	}
 	catch (err) {
 		throw edaError(err, 'Failed to read schematic primitives.');
@@ -6410,7 +6750,7 @@ export const schematicPinDisconnect: Handler = async (payload) => {
 			if ((c.getState_Designator?.() ?? '') !== designator) continue;
 			let pins;
 			try { pins = await eda.sch_PrimitiveComponent.getAllPinsByPrimitiveId(c.getState_PrimitiveId()); }
-			catch { continue; }
+			catch(e) { if(strict)throw e;continue; }
 			for (const p of pins ?? []) {
 				if (String(p.getState_PinNumber?.() ?? '') === pinNumber) {
 					pinX = p.getState_X();
@@ -6522,7 +6862,7 @@ export const schematicPinDisconnect: Handler = async (payload) => {
 		if (!stubPids.has(String(w.getState_PrimitiveId?.() ?? ''))) continue;
 		let line: Array<number> | undefined;
 		try { line = w.getState_Line() as Array<number>; }
-		catch { continue; }
+		catch(e) { if(strict)throw e;continue; }
 		if (Array.isArray(line)) {
 			for (let i = 0; i + 3 < line.length; i += 2) {
 				wireSegsAll.push([line[i], line[i + 1], line[i + 2], line[i + 3]]);
@@ -6548,25 +6888,25 @@ export const schematicPinDisconnect: Handler = async (payload) => {
 	for (const c of components ?? []) {
 		let type: string;
 		try { type = String(c.getState_ComponentType?.() ?? ''); }
-		catch { continue; }
+		catch(e) { if(strict)throw e;continue; }
 		if (NET_MARKER_TYPES.has(type)) {
 			let cx: number;
 			let cy: number;
 			try { cx = c.getState_X(); cy = c.getState_Y(); }
-			catch { continue; }
+			catch(e) { if(strict)throw e;continue; }
 			if (onWire(cx, cy)) flagIds.push(String(c.getState_PrimitiveId?.() ?? ''));
 			continue;
 		}
 		// Component pins riding the same wire — the deletion disconnects them too.
 		let compPins;
 		try { compPins = await eda.sch_PrimitiveComponent.getAllPinsByPrimitiveId(c.getState_PrimitiveId()); }
-		catch { continue; }
+		catch(e) { if(strict)throw e;continue; }
 		const cDesig = String(c.getState_Designator?.() ?? '');
 		for (const p of compPins ?? []) {
 			let px: number;
 			let py: number;
 			try { px = p.getState_X(); py = p.getState_Y(); }
-			catch { continue; }
+			catch(e) { if(strict)throw e;continue; }
 			if (pinX !== undefined && pinY !== undefined && Math.hypot(px - pinX, py - pinY) <= TOL) continue; // the target pin itself
 			if (onWire(px, py)) alsoDisconnectedPins.push(`${cDesig}:${String(p.getState_PinNumber?.() ?? '')}`);
 		}
@@ -6575,6 +6915,12 @@ export const schematicPinDisconnect: Handler = async (payload) => {
 	// Delete wires + any flags together via the same routed delete used elsewhere.
 	const wireIds = [...stubPids].filter(Boolean);
 	const validFlags = [...new Set(flagIds.filter(Boolean))];
+ return {wireIds,validFlags,designator,pinNumber,pinX,pinY,alsoDisconnectedPins};
+};
+
+export const schematicPinDisconnect: Handler = async (payload) => {
+ const {wireIds,validFlags,designator,pinNumber,pinX,pinY,alsoDisconnectedPins}=await pinDisconnectPlan(payload);
+
 	try {
 		if (wireIds.length) {
 			await deleteSchGroup('wires', wireIds);
@@ -7069,6 +7415,231 @@ function silkCorridor(cb: silkRect, dx: number, dy: number, obs: silkObs[], self
 	return best;
 }
 
+const pcbSilkAlignPlan = async (payload:Payload) => {
+ const steps:Array<{id:string;attribute:boolean;patch:Record<string,unknown>}>=[];
+	// Position-aware auto-placement of component designators: for each part pick the
+	// best of up/down/left/right by LOCAL FREE SPACE + board position + crowd axis,
+	// avoiding other parts' PADS (the #1 fix — a label over exposed copper is clipped),
+	// bodies, keep-out regions, the board edge, and other labels. Rotation stays 0
+	// (upright, keeps `pcb check` clean); bottom parts go to bottom silk + mirror.
+	const side = (optionalString(payload, 'side') ?? '').toLowerCase();
+	const refs = Array.isArray(payload.refs) ? (payload.refs as unknown[]).map(String) : null;
+	// spacing coefficient scales the drift distance so labels sit further from the
+	// footprint (assembly / hand-solder room). Cassembly is the HARD minimum gap the
+	// label keeps from its OWN pads (the body is inflated by it) so a designator never
+	// crowds the copper you solder to; other-pad margin Cpad is larger still.
+	const spacing = optionalNumber(payload, 'spacing') ?? 1.5;
+	const baseOffset = (optionalNumber(payload, 'offset') ?? 15) * spacing;
+
+	const Cpad = 12, Cedge = 15, Cregion = 6, Clabel = 6, Cbody = 6, HALO = 2, Cassembly = 10;
+	const STEP = 22, R_MAX = 6, MAX_SCAN = 200, GAP_CAP = 120;
+
+	let comps;
+	try { comps = await eda.pcb_PrimitiveComponent.getAll(); }
+	catch (err) { throw edaError(err, 'Failed to list components for silk-align.'); }
+	comps = comps ?? [];
+
+	const bbox1 = async (id: string): Promise<silkRect | null> => {
+		try { return (await eda.pcb_Primitive.getPrimitivesBBox([id])) as silkRect; } catch { return null; }
+	};
+
+	// board-outline safeArea (containment box, shrunk by Cedge).
+	let safeArea: silkRect | null = null;
+	{
+		const olIds = await boardOutlineIds();
+		if (olIds.length) {
+			try { const b = (await eda.pcb_Primitive.getPrimitivesBBox(olIds)) as silkRect; if (b) safeArea = silkInflate(b, -Cedge); } catch { /* no outline */ }
+		}
+	}
+	const boardCenter = safeArea ? silkCenter(safeArea) : null;
+
+	// ── one-time obstacle build: pads (by owner) + bodies (pad-union) + regions + frozen silk ──
+	const OBS: silkObs[] = [];
+	const BODY: Record<string, silkRect> = {};
+	for (const c of comps) {
+		const cid = c.getState_PrimitiveId();
+		let pads: Array<{ getState_PrimitiveId(): string; getState_X?(): number; getState_Y?(): number }> = [];
+		try { pads = (await eda.pcb_PrimitiveComponent.getAllPinsByPrimitiveId(cid)) ?? []; } catch { pads = []; }
+		let body: silkRect | null = null;
+		for (const p of pads) {
+			let pr = await bbox1(p.getState_PrimitiveId());
+			if (!pr) { const x = p.getState_X?.() ?? 0, y = p.getState_Y?.() ?? 0; pr = { minX: x - 15, minY: y - 15, maxX: x + 15, maxY: y + 15 }; }
+			OBS.push({ rect: silkInflate(pr, Cpad), kind: 'PAD', owner: cid, m: 0 });
+			body = body ? silkUnion(body, pr) : pr;
+		}
+		if (!body) body = await bbox1(cid);
+		if (body) { BODY[cid] = body; OBS.push({ rect: body, kind: 'BODY', owner: cid, m: Cbody }); }
+	}
+	for (const r of (await eda.pcb_PrimitiveRegion.getAll()) ?? []) {
+		const rb = await bbox1(r.getState_PrimitiveId());
+		if (!rb) continue;
+		const rules = (r.getState_RuleType?.() ?? []) as unknown as number[];
+		OBS.push({ rect: rb, kind: rules.includes(2) ? 'REGION_H' : 'REGION_S', owner: '', m: Cregion });
+	}
+	for (const s of (await eda.pcb_PrimitiveString.getAll()) ?? []) {
+		const ly = Number(s.getState_Layer?.());
+		if (ly !== 3 && ly !== 4) continue;
+		const sb = await bbox1(s.getState_PrimitiveId());
+		if (sb) OBS.push({ rect: sb, kind: 'FROZEN', owner: '', m: Clabel });
+	}
+
+	// ── build items (in-scope designators) + seed placed-label boxes; freeze the rest ──
+	type Item = { c: typeof comps[number]; cid: string; desig: string; attrId: string; cb: silkRect; w: number; h: number; offx: number; offy: number; layer: number; curLayer: number; curMirror: boolean };
+	const items: Item[] = [];
+	const skipped: Array<Record<string, unknown>> = [];
+	const LAB: Record<string, silkRect> = {};
+	for (const c of comps) {
+		const cid = c.getState_PrimitiveId();
+		const desig = c.getState_Designator?.() ?? '';
+		if (!desig) continue;
+		const cb = BODY[cid];
+		if (!cb) { skipped.push({ designator: desig, reason: 'no component body' }); continue; }
+		let attrId: string | null = null;
+		try {
+			const ids = await eda.pcb_PrimitiveAttribute.getAllPrimitiveId(cid);
+			for (const id of ids ?? []) {
+				const a = await eda.pcb_PrimitiveAttribute.get(id);
+				if (a && (String(a.getState_Key?.() ?? '').toLowerCase().includes('desig') || a.getState_Value?.() === desig)) { attrId = id; break; }
+			}
+		} catch { /* skip below */ }
+		if (!attrId) { if (!refs || refs.includes(desig)) skipped.push({ designator: desig, reason: 'no designator attribute found' }); continue; }
+		const a = await eda.pcb_PrimitiveAttribute.get(attrId);
+		const db = await bbox1(attrId);
+		if (!a || !db) { skipped.push({ designator: desig, reason: 'designator attribute not readable' }); continue; }
+		// out-of-scope designators are frozen obstacles (still block in-scope placement).
+		if (refs && !refs.includes(desig)) { OBS.push({ rect: db, kind: 'FROZEN', owner: '', m: Clabel }); continue; }
+		const ax = a.getState_X() ?? 0, ay = a.getState_Y() ?? 0;
+		const bc = silkCenter(db);
+		items.push({
+			c, cid, desig, attrId, cb, w: db.maxX - db.minX, h: db.maxY - db.minY,
+			offx: bc.x - ax, offy: bc.y - ay, layer: Number(c.getState_Layer?.() ?? 1),
+			curLayer: Number(a.getState_Layer?.() ?? 3), curMirror: !!a.getState_Mirror?.(),
+		});
+		LAB[attrId] = db;
+	}
+
+	// ── most-constrained-first order (MRV): fewest free sides / closest to edge first ──
+	const N = [0, 1], S = [0, -1], E = [1, 0], W = [-1, 0];
+	const diags = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
+	const prefBase: Record<string, number> = { '0,1': 1.0, '0,-1': 0.85, '1,0': 0.6, '-1,0': 0.6 };
+	const sideDir = side === 'bottom' ? S : side === 'left' ? W : side === 'right' ? E : side === 'top' ? N : null;
+	for (const it of items) {
+		let free = 0;
+		for (const [dx, dy] of [N, S, E, W]) {
+			const perp = dx !== 0 ? it.h + 2 * Cbody : it.w + 2 * Cbody;
+			if (silkCorridor(it.cb, dx, dy, OBS, it.cid, perp, MAX_SCAN) >= it.h + baseOffset) free++;
+		}
+		(it as unknown as { free: number }).free = free;
+	}
+	const edgeProx = (it: Item) => safeArea ? Math.min(
+		silkCenter(it.cb).x - safeArea.minX, safeArea.maxX - silkCenter(it.cb).x,
+		silkCenter(it.cb).y - safeArea.minY, safeArea.maxY - silkCenter(it.cb).y) : 1e9;
+	items.sort((p, q) => {
+		const fp = (p as unknown as { free: number }).free, fq = (q as unknown as { free: number }).free;
+		if (fp !== fq) return fp - fq;
+		const ep = edgeProx(p), eq = edgeProx(q);
+		if (Math.abs(ep - eq) > 1) return ep - eq;
+		const ap = (p.cb.maxX - p.cb.minX) * (p.cb.maxY - p.cb.minY), aq = (q.cb.maxX - q.cb.minX) * (q.cb.maxY - q.cb.minY);
+		if (ap !== aq) return aq - ap;
+		return p.desig < q.desig ? -1 : 1;
+	});
+
+	// per-item: rank the 4 sides, then place via the ladder.
+	const rankSides = (it: Item): number[][] => {
+		const cc = silkCenter(it.cb);
+		// crowded axis = bearing to nearest OTHER body.
+		let near: silkRect | null = null, nd = Infinity;
+		for (const o of OBS) {
+			if (o.kind !== 'BODY' || o.owner === it.cid) continue;
+			const oc = silkCenter(o.rect); const d = Math.hypot(oc.x - cc.x, oc.y - cc.y);
+			if (d < nd) { nd = d; near = o.rect; }
+		}
+		const crowdVertical = near ? Math.abs(silkCenter(near).y - cc.y) >= Math.abs(silkCenter(near).x - cc.x) : false;
+		let u = 0.5, v = 0.5;
+		if (safeArea) { u = (cc.x - safeArea.minX) / Math.max(1, safeArea.maxX - safeArea.minX); v = (cc.y - safeArea.minY) / Math.max(1, safeArea.maxY - safeArea.minY); }
+		const edgeness = Math.max(0, Math.min(1, 2 * Math.max(Math.abs(u - 0.5), Math.abs(v - 0.5))));
+		const toCenter = boardCenter ? { x: boardCenter.x - cc.x, y: boardCenter.y - cc.y } : { x: 0, y: 0 };
+		const tcLen = Math.hypot(toCenter.x, toCenter.y) || 1;
+		const scored = [N, S, E, W].map(([dx, dy]) => {
+			const perp = dx !== 0 ? it.h + 2 * Cbody : it.w + 2 * Cbody;
+			const clr = silkCorridor(it.cb, dx, dy, OBS, it.cid, perp, MAX_SCAN);
+			const Pfree = Math.min(clr, GAP_CAP) / GAP_CAP;
+			const Ppos = ((dx * toCenter.x + dy * toCenter.y) / tcLen + 1) / 2;
+			const Pref = (sideDir && sideDir[0] === dx && sideDir[1] === dy) ? 1.0 : (prefBase[`${dx},${dy}`] ?? 0.3);
+			const crowdBonus = ((crowdVertical && dx !== 0) || (!crowdVertical && dy !== 0)) ? 1 : 0;
+			// disqualify base slot that would leave the board.
+			let off = false;
+			if (safeArea) {
+				const lx = cc.x + dx * ((it.cb.maxX - it.cb.minX) / 2 + baseOffset + it.w / 2);
+				const ly = cc.y + dy * ((it.cb.maxY - it.cb.minY) / 2 + baseOffset + it.h / 2);
+				off = !silkInside({ minX: lx - it.w / 2, minY: ly - it.h / 2, maxX: lx + it.w / 2, maxY: ly + it.h / 2 }, safeArea);
+			}
+			const score = off ? -Infinity : 0.50 * Pfree + 0.35 * edgeness * Ppos + 0.15 * Pref + 0.20 * crowdBonus;
+			return { dir: [dx, dy], score };
+		});
+		scored.sort((a, b) => b.score - a.score);
+		return scored.map(s => s.dir).concat(diags);
+	};
+
+	const scoreSlot = (L: silkRect, it: Item, rank: number): number => {
+		let padH = 0, ownPadH = 0, off = 0, khard = 0, lab = 0, oBody = 0, ksoft = 0, minClr = Infinity;
+		if (safeArea && !silkInside(L, safeArea)) off = 1;
+		for (const o of OBS) {
+			if (o.kind === 'PAD') { if (o.owner !== it.cid) { if (silkOverlap(L, o.rect, 0)) padH++; } else if (silkOverlap(L, o.rect, 0)) ownPadH++; }
+			else if (o.kind === 'BODY') { if (o.owner !== it.cid && silkOverlap(L, o.rect, o.m)) oBody++; }
+			else if (o.kind === 'REGION_H') { if (silkOverlap(L, o.rect, o.m)) khard++; }
+			else if (o.kind === 'REGION_S') { if (silkOverlap(L, o.rect, o.m)) ksoft++; }
+			else if (o.kind === 'FROZEN') { if (silkOverlap(L, o.rect, o.m)) lab++; }
+			if (o.kind === 'BODY' && o.owner === it.cid) continue;
+			const g = silkGap(L, o.rect); if (g < minClr) minClr = g;
+		}
+		for (const [id, lb] of Object.entries(LAB)) { if (id !== it.attrId && silkOverlap(L, lb, Clabel)) lab++; }
+		const reward = -25 * Math.min(minClr, 30) / 30;
+		return 1e9 * padH + 1e8 * off + 1e6 * khard + 4e3 * ownPadH + 1e4 * lab + 5e3 * oBody + 100 * ksoft + rank * 25 + reward;
+	};
+
+	const aligned: Array<Record<string, unknown>> = [];
+	const unresolved: Array<Record<string, unknown>> = [];
+	for (const it of items) {
+		const cc = silkCenter(it.cb);
+		// offset from the body inflated by the assembly-clearance floor, so the label
+		// keeps ≥ Cassembly from its OWN pads (never crowds the copper).
+		const cbP = silkInflate(it.cb, Cassembly);
+		const hw = (cbP.maxX - cbP.minX) / 2, hh = (cbP.maxY - cbP.minY) / 2;
+		const pref = rankSides(it);
+		let best: { lx: number; ly: number; L: silkRect; cost: number } | null = null;
+		for (let ring = 0; ring < R_MAX && !(best && best.cost < 1e4); ring++) {
+			const d = baseOffset + ring * STEP;
+			for (let i = 0; i < pref.length; i++) {
+				const [dx, dy] = pref[i];
+				const lx = cc.x + dx * (hw + d + it.w / 2);
+				const ly = cc.y + dy * (hh + d + it.h / 2);
+				const L = silkInflate({ minX: lx - it.w / 2, minY: ly - it.h / 2, maxX: lx + it.w / 2, maxY: ly + it.h / 2 }, HALO);
+				const cost = scoreSlot(L, it, i < 4 ? i : 3);
+				if (!best || cost < best.cost) best = { lx, ly, L, cost };
+				if (cost < 1e4) break;
+			}
+		}
+		if (!best || best.cost >= 1e8) {
+			unresolved.push({ designator: it.desig, reason: best && best.cost >= 1e9 ? 'pad-collision' : 'boxed-in-or-off-board', bestCost: best ? best.cost : null });
+			continue;
+		}
+		const layer = it.layer === 2 ? 4 : 3, mirror = it.layer === 2;
+		const mod: Record<string, unknown> = { x: best.lx - it.offx, y: best.ly - it.offy, rotation: 0 };
+		if (layer !== it.curLayer) mod.layer = layer;
+		if (mirror !== it.curMirror) mod.mirror = mirror;
+		try {
+			steps.push({id:it.attrId,attribute:true,patch:mod});
+			const r=true;
+			LAB[it.attrId] = best.L;
+			aligned.push({ designator: it.desig, x: Math.round(best.lx * 100) / 100, y: Math.round(best.ly * 100) / 100, side: pref[0], clean: best.cost < 1e4, warnBodyOverlap: best.cost >= 5e3 && best.cost < 1e4, ok: !!r });
+		}
+		catch (err) { skipped.push({ designator: it.desig, reason: `modify failed: ${String(err)}` }); }
+	}
+
+	const warned = aligned.filter(a => a.warnBodyOverlap === true).length;
+	return {steps,unresolved:unresolved.length,value:{aligned:aligned.length,warned,unresolved:unresolved.length,skipped:skipped.length,details:aligned,unresolvedDetails:unresolved,skippedDetails:skipped}};
+};
 const pcbSilkAlign: Handler = async (payload) => {
 	// Position-aware auto-placement of component designators: for each part pick the
 	// best of up/down/left/right by LOCAL FREE SPACE + board position + crowd axis,
@@ -7499,6 +8070,83 @@ async function resolveSilkRefBBox(ref: string): Promise<silkRect | null> {
 	return null;
 }
 
+const pcbSilkSetPlan = async (payload:Payload) => {
+ const steps:Array<{id:string;attribute:boolean;patch:Record<string,unknown>}>=[];
+	const raw = payload.primitiveIds ?? payload.ids;
+	let ids: Array<string>;
+	if (typeof raw === 'string') ids = [raw];
+	else if (Array.isArray(raw) && raw.every(v => typeof v === 'string')) ids = raw as Array<string>;
+	else throw new ActionError(ErrorCodes.MISSING_PAYLOAD_FIELD, 'Missing "primitiveIds" (string or string[]).');
+
+	const baseProps: Record<string, unknown> = {};
+	for (const k of ['x', 'y', 'rotation', 'fontSize', 'lineWidth', 'text'] as const) {
+		if (payload[k] !== undefined && payload[k] !== null) baseProps[k] = payload[k];
+	}
+
+	// Optional ALIGN: reposition each silk relative to a reference bbox (a component
+	// designator, "board"/"outline", or "fill"). Modes: center|mid (both axes),
+	// centerx|centery, left|right|top|bottom (edge-align). Computes per-silk from its
+	// own bbox, so the CENTER/edge lands exactly on the reference.
+	const align = (optionalString(payload, 'align') ?? '').trim().toLowerCase();
+	let refBox: silkRect | null = null;
+	if (align) {
+		const ref = optionalString(payload, 'ref') ?? 'board';
+		refBox = await resolveSilkRefBBox(ref);
+		if (!refBox) {
+			throw new ActionError(ErrorCodes.EDA_CALL_FAILED, `could not resolve align --ref "${ref}" (use a designator, "board", or "fill").`);
+		}
+	}
+	if (Object.keys(baseProps).length === 0 && !align) {
+		throw new ActionError(ErrorCodes.MISSING_PAYLOAD_FIELD, 'nothing to do — provide x/y/rotation/fontSize/lineWidth/text, and/or --align (+ --ref).');
+	}
+
+	const attrIds = new Set<string>((await eda.pcb_PrimitiveAttribute.getAll() ?? []).map(a => a.getState_PrimitiveId()));
+	const results: Array<Record<string, unknown>> = [];let unresolved=0;
+	for (const id of ids) {
+		try {
+			const isAttr = attrIds.has(id);
+			const props: Record<string, unknown> = { ...baseProps };
+
+			if (align && refBox) {
+				// Anchor offset: the stored (x,y) vs the rendered bbox min corner.
+				const cur = isAttr ? await eda.pcb_PrimitiveAttribute.get(id) : await eda.pcb_PrimitiveString.get(id);
+				const sb = await eda.pcb_Primitive.getPrimitivesBBox([id]) as silkRect;
+				if (cur && sb) {
+					const offx = (cur.getState_X() ?? sb.minX) - sb.minX;
+					const offy = (cur.getState_Y() ?? sb.minY) - sb.minY;
+					const w = sb.maxX - sb.minX, h = sb.maxY - sb.minY;
+					const rcx = (refBox.minX + refBox.maxX) / 2, rcy = (refBox.minY + refBox.maxY) / 2;
+					let tMinX = sb.minX, tMinY = sb.minY;
+					if (align === 'center' || align === 'mid' || align === 'centerx') tMinX = rcx - w / 2;
+					if (align === 'center' || align === 'mid' || align === 'centery') tMinY = rcy - h / 2;
+					if (align === 'left') tMinX = refBox.minX;
+					if (align === 'right') tMinX = refBox.maxX - w;
+					if (align === 'top') tMinY = refBox.maxY - h;
+					if (align === 'bottom') tMinY = refBox.minY;
+					props.x = tMinX + offx;
+					props.y = tMinY + offy;
+				}
+			}
+
+			if (Object.keys(props).length === 0) {
+				unresolved++;results.push({ primitiveId: id, ok: false, error: 'nothing to set for this id' });
+				continue;
+			}
+			if (isAttr) {
+				if ('text' in props) { props.value = props.text; delete props.text; }
+				steps.push({id,attribute:true,patch:props});
+			}
+			else {
+				steps.push({id,attribute:false,patch:props});
+			}
+			results.push({ primitiveId: id, ok: true, x: props.x, y: props.y });
+		}
+		catch (err) {
+			unresolved++;results.push({ primitiveId: id, ok: false, error: String(err) });
+		}
+	}
+	return {steps,unresolved,value:{align:align||undefined,count:results.length,results}};
+};
 const pcbSilkSet: Handler = async (payload) => {
 	const raw = payload.primitiveIds ?? payload.ids;
 	let ids: Array<string>;
@@ -7583,7 +8231,7 @@ const pcbSilkSet: Handler = async (payload) => {
  * The core geometric layout is computed in the Go daemon; connector just
  * fetches raw data and creates the strings.
  */
-const pcbSilkNetnames: Handler = async (payload) => {
+const pcbSilkNetnamesData = async (payload:Payload, author:SilkAuthor) => {
 	const zoneRect = payload.zone_rect as Record<string, number> | undefined;
 	if (!zoneRect || typeof zoneRect.left !== 'number' || typeof zoneRect.top !== 'number' ||
 		typeof zoneRect.right !== 'number' || typeof zoneRect.bottom !== 'number') {
@@ -7601,13 +8249,13 @@ const pcbSilkNetnames: Handler = async (payload) => {
 	let pads: Array<{ primitiveId: string; net: string; x: number; y: number; width: number; height: number }> = [];
 
 	try {
-		netNames = (await eda.pcb_Net.getAllNetsName()) ?? [];
+		netNames = v2Native.array(await eda.pcb_Net.getAllNetsName());
 	} catch (err) {
 		throw edaError(err, 'Failed to read PCB net names.');
 	}
 
 	try {
-		const allPads = (await eda.pcb_PrimitivePad.getAll()) ?? [];
+		const allPads = v2Native.array(await eda.pcb_PrimitivePad.getAll());
 		for (const pad of allPads) {
 			const net = pad.getState_Net?.() ?? null;
 			const padId = pad.getState_PrimitiveId?.() ?? null;
@@ -7647,6 +8295,7 @@ const pcbSilkNetnames: Handler = async (payload) => {
 	// Compute layout: place each net's label in free space around its zone-closest pad
 	const created: Array<Record<string, unknown>> = [];
 	const failed: Array<Record<string, unknown>> = [];
+ const recordFailure=(row:Record<string,unknown>)=>{author.failure(row);failed.push(row);};
 	const occupied: Array<silkRect> = [];
 
 	// Helper: check if a rectangle overlaps with any occupied space or zone boundary
@@ -7705,13 +8354,13 @@ const pcbSilkNetnames: Handler = async (payload) => {
 			}
 
 			if (!best) {
-				failed.push({ net: net.name, reason: 'no free space found (zone fully occupied)' });
+				recordFailure({ net: net.name, reason: 'no free space found (zone fully occupied)' });
 				continue;
 			}
 
 			// Create silkscreen string — 13 params: layer, x, y, text, unknown, fontSize, lineWidth,
 			// alignMode, rotation, isDuplicate, spacing, isMirror, isVertical
-			const created_prim = await eda.pcb_PrimitiveString.create(
+			const created_prim = await author.create(
 				layer as unknown as TPCB_LayersOfImage,
 				best.x,
 				best.y,
@@ -7728,7 +8377,7 @@ const pcbSilkNetnames: Handler = async (payload) => {
 			);
 
 			if (!created_prim) {
-				failed.push({ net: net.name, reason: 'create returned no primitive' });
+				recordFailure({ net: net.name, reason: 'create returned no primitive' });
 				continue;
 			}
 
@@ -7745,16 +8394,14 @@ const pcbSilkNetnames: Handler = async (payload) => {
 				bbox,
 			});
 		} catch (err) {
-			failed.push({ net: net.name, reason: String(err) });
+			recordFailure({ net: net.name, reason: String(err) });
 		}
 	}
 
 	return {
-		result: {
 			created,
 			total: created.length,
 			failed: failed.length > 0 ? failed : undefined,
-		},
 	};
 };
 
@@ -7763,7 +8410,7 @@ const pcbSilkNetnames: Handler = async (payload) => {
  * connectors (J2, U1, etc.) to mark each pin's function. Reads pad coordinates
  * + nets, computes collision-free positions around each pad, creates labels.
  */
-const pcbSilkLabelPads: Handler = async (payload) => {
+const pcbSilkLabelPadsData = async (payload:Payload, author:SilkAuthor) => {
 	const refs = (Array.isArray(payload.refs) ? payload.refs : []) as string[];
 	if (refs.length === 0) {
 		throw new ActionError(ErrorCodes.MISSING_PAYLOAD_FIELD, 'Missing "refs" ([]string of designators, e.g. ["J2", "U1"]).');
@@ -7780,6 +8427,7 @@ const pcbSilkLabelPads: Handler = async (payload) => {
 
 	const created: Array<Record<string, unknown>> = [];
 	const failed: Array<Record<string, unknown>> = [];
+ const recordFailure=(row:Record<string,unknown>)=>{author.failure(row);failed.push(row);};
 	const occupied: Array<silkRect> = [];
 
 	// Helper: check if label can be placed (no collision, within reasonable distance)
@@ -7799,7 +8447,7 @@ const pcbSilkLabelPads: Handler = async (payload) => {
 	// Read all components
 	let components: NonNullable<Awaited<ReturnType<typeof eda.pcb_PrimitiveComponent.getAll>>> = [];
 	try {
-		components = (await eda.pcb_PrimitiveComponent.getAll()) ?? [];
+		components = v2Native.array(await eda.pcb_PrimitiveComponent.getAll());
 	} catch (err) {
 		throw edaError(err, 'Failed to read PCB components.');
 	}
@@ -7855,9 +8503,9 @@ const pcbSilkLabelPads: Handler = async (payload) => {
 		let pins: NonNullable<Awaited<ReturnType<typeof eda.pcb_PrimitiveComponent.getAllPinsByPrimitiveId>>> = [];
 
 		try {
-			pins = (await eda.pcb_PrimitiveComponent.getAllPinsByPrimitiveId?.(compId)) ?? [];
+			pins = v2Native.array(await eda.pcb_PrimitiveComponent.getAllPinsByPrimitiveId(compId));
 		} catch (err) {
-			failed.push({ ref: designator, pin: 'all', reason: `Failed to read pins: ${String(err)}` });
+			recordFailure({ ref: designator, pin: 'all', reason: `Failed to read pins: ${String(err)}` });
 			continue;
 		}
 
@@ -7924,19 +8572,19 @@ const pcbSilkLabelPads: Handler = async (payload) => {
 				pinIndex++;
 
 				if (!bestPos) {
-					failed.push({ ref: designator, pin: String(pinNum), reason: 'no space found' });
+					recordFailure({ ref: designator, pin: String(pinNum), reason: 'no space found' });
 					continue;
 				}
 
 				// Verify placement doesn't collide
 				const estBbox = estimateLabelBbox(bestPos.x, bestPos.y, labelText);
 				if (!canPlaceLabel(estBbox)) {
-					failed.push({ ref: designator, pin: String(pinNum), reason: 'collision detected' });
+					recordFailure({ ref: designator, pin: String(pinNum), reason: 'collision detected' });
 					continue;
 				}
 
 				// Create label
-				const label = await eda.pcb_PrimitiveString.create(
+				const label = await author.create(
 					layer as unknown as TPCB_LayersOfImage,
 					bestPos.x,
 					bestPos.y,
@@ -7953,7 +8601,7 @@ const pcbSilkLabelPads: Handler = async (payload) => {
 				);
 
 				if (!label) {
-					failed.push({ ref: designator, pin: String(pinNum), reason: 'create returned no primitive' });
+					recordFailure({ ref: designator, pin: String(pinNum), reason: 'create returned no primitive' });
 					continue;
 				}
 
@@ -7970,19 +8618,17 @@ const pcbSilkLabelPads: Handler = async (payload) => {
 					bbox,
 				});
 			} catch (err) {
-				failed.push({ ref: designator, pin: 'unknown', reason: String(err) });
+				recordFailure({ ref: designator, pin: 'unknown', reason: String(err) });
 			}
 		}
 	}
 
 	return {
-		result: {
 			created,
 			total: created.length,
 			side_chosen: chosenSide,
 			align_axis_chosen: chosenAlignAxis,
 			failed: failed.length > 0 ? failed : undefined,
-		},
 	};
 };
 
@@ -9828,7 +10474,7 @@ async function readPcbComponentLayout(id: string): Promise<PcbLayoutItem | null>
 	};
 }
 
-const pcbAlign: Handler = async (payload) => {
+const pcbAlignPlan = async (payload: Payload) => {
 	const mode = requireString(payload, 'mode');
 	const ids = await resolvePcbTargetIds(payload);
 	const items = (await Promise.all(ids.map(readPcbComponentLayout))).filter((i): i is PcbLayoutItem => i !== null);
@@ -9864,17 +10510,17 @@ const pcbAlign: Handler = async (payload) => {
 		const nx = t.x ?? it.x;
 		const ny = t.y ?? it.y;
 		try {
-			if (nx !== it.x || ny !== it.y) await eda.pcb_PrimitiveComponent.modify(it.id, { x: nx, y: ny });
+			if (nx !== it.x || ny !== it.y) void 0;
 		}
 		catch (err) {
 			throw edaError(err, `Failed to align component ${it.designator ?? it.id}.`);
 		}
 		moved.push({ primitiveId: it.id, designator: it.designator, from: { x: it.x, y: it.y }, to: { x: nx, y: ny } });
 	}
-	return { result: { mode, moved, count: moved.length } };
+	return { mode, moved, count: moved.length };
 };
 
-const pcbDistribute: Handler = async (payload) => {
+const pcbDistributePlan = async (payload: Payload) => {
 	const axis = requireString(payload, 'axis');
 	if (axis !== 'x' && axis !== 'y') {
 		throw new ActionError(ErrorCodes.MISSING_PAYLOAD_FIELD, `Unknown axis "${axis}"; expected x or y.`);
@@ -9900,7 +10546,7 @@ const pcbDistribute: Handler = async (payload) => {
 		try {
 			// Keep the two extremes fixed; move only the interior ones.
 			if (i !== 0 && i !== sorted.length - 1 && Math.abs(delta) > 1e-6) {
-				await eda.pcb_PrimitiveComponent.modify(it.id, { x: nx, y: ny });
+				void 0;
 			}
 		}
 		catch (err) {
@@ -9908,10 +10554,10 @@ const pcbDistribute: Handler = async (payload) => {
 		}
 		moved.push({ primitiveId: it.id, designator: it.designator, from: { x: it.x, y: it.y }, to: { x: nx, y: ny } });
 	}
-	return { result: { axis, moved, count: moved.length } };
+	return { axis, moved, count: moved.length };
 };
 
-const pcbGridSnap: Handler = async (payload) => {
+const pcbGridSnapPlan = async (payload: Payload) => {
 	const grid = requireNumber(payload, 'grid');
 	if (grid <= 0) {
 		throw new ActionError(ErrorCodes.MISSING_PAYLOAD_FIELD, `grid must be > 0 (got ${grid}).`);
@@ -9931,21 +10577,21 @@ const pcbGridSnap: Handler = async (payload) => {
 		const nx = snap(x);
 		const ny = snap(y);
 		try {
-			if (nx !== x || ny !== y) await eda.pcb_PrimitiveComponent.modify(id, { x: nx, y: ny });
+			if (nx !== x || ny !== y) void 0;
 		}
 		catch (err) {
 			throw edaError(err, `Failed to grid-snap component ${component.getState_Designator() ?? id}.`);
 		}
 		snapped.push({ primitiveId: id, designator: component.getState_Designator(), from: { x, y }, to: { x: nx, y: ny } });
 	}
-	return { result: { grid, snapped, count: snapped.length } };
+	return { grid, snapped, count: snapped.length };
 };
 
 /**
  * Translate components by a relative (dx, dy) — nudge a group. Operates on the
  * current selection unless primitiveIds is given.
  */
-const pcbComponentsMove: Handler = async (payload) => {
+const pcbComponentsMovePlan = async (payload: Payload) => {
 	const dx = requireNumber(payload, 'dx');
 	const dy = requireNumber(payload, 'dy');
 	const ids = await resolvePcbTargetIds(payload);
@@ -9961,14 +10607,14 @@ const pcbComponentsMove: Handler = async (payload) => {
 		const nx = x + dx;
 		const ny = y + dy;
 		try {
-			await eda.pcb_PrimitiveComponent.modify(id, { x: nx, y: ny });
+			void 0;
 		}
 		catch (err) {
 			throw edaError(err, `Failed to move component ${component.getState_Designator() ?? id}.`);
 		}
 		moved.push({ primitiveId: id, designator: component.getState_Designator(), from: { x, y }, to: { x: nx, y: ny } });
 	}
-	return { result: { dx, dy, moved, count: moved.length } };
+	return { dx, dy, moved, count: moved.length };
 };
 
 // ─── PCB auto-layout seed: cluster by shared local nets + grid-pack (P6) ──
@@ -10025,7 +10671,7 @@ function clusterByLocalNets(items: Array<ArrangeItem>): Array<Array<ArrangeItem>
 	return [...groups.values()].sort((a, b) => b.length - a.length);
 }
 
-const pcbComponentsArrange: Handler = async (payload) => {
+const pcbComponentsArrangePlan = async (payload: Payload) => {
 	const mode = optionalString(payload, 'mode') ?? 'cluster';
 	const pitch = optionalNumber(payload, 'pitch') ?? 50;    // gap between cells (mil)
 	const gutter = optionalNumber(payload, 'gutter') ?? 150;  // gap between cluster blocks (mil)
@@ -10060,7 +10706,7 @@ const pcbComponentsArrange: Handler = async (payload) => {
 
 	const movable = items.filter(i => !i.locked);
 	if (movable.length === 0) {
-		return { result: { mode, groups: 0, moved: [], count: 0, note: 'all target components are locked' } };
+		return { mode, groups: 0, moved: [], count: 0, note: 'all target components are locked' };
 	}
 
 	// Anchor at the top-left of the current movable region (y-up: top = max y).
@@ -10089,7 +10735,7 @@ const pcbComponentsArrange: Handler = async (payload) => {
 			const nx = cellCenterX - bcx + it.x;
 			const ny = cellCenterY - bcy + it.y;
 			try {
-				await eda.pcb_PrimitiveComponent.modify(it.id, { x: nx, y: ny });
+				void 0;
 			}
 			catch (err) {
 				throw edaError(err, `Failed to arrange component ${it.designator ?? it.id}.`);
@@ -10100,7 +10746,7 @@ const pcbComponentsArrange: Handler = async (payload) => {
 		blockX += usedCols * cellW + gutter;
 	}
 
-	return { result: { mode, groups: groups.length, moved, count: moved.length } };
+	return { mode, groups: groups.length, moved, count: moved.length };
 };
 
 // ─── PCB DRC ─────────────────────────────────────────────────────────
@@ -10873,6 +11519,92 @@ const pcbClearRouting: Handler = async (payload) => {
 // whole net". Every removed primitive's full before-state is echoed in the
 // result so the audit log holds enough to recreate it (recovery/replay).
 
+const pcbRouteDeletePlan = async (payload:Record<string,unknown>) => {
+	const raw = payload.primitiveIds ?? payload.ids;
+	let ids: Array<string>;
+	if (typeof raw === 'string') ids = [raw];
+	else if (Array.isArray(raw) && raw.every(id => typeof id === 'string') && raw.length > 0) ids = raw as Array<string>;
+	else throw new ActionError(ErrorCodes.MISSING_PAYLOAD_FIELD, 'Missing required field "primitiveIds" (string or non-empty string[]).');
+	const kindGuard = optionalString(payload, 'kind'); // 'via' | 'track' — refuse ids of another kind
+
+	let lines, arcs, vias;
+	try {
+		lines = await eda.pcb_PrimitiveLine.getAll();
+		arcs = await eda.pcb_PrimitiveArc.getAll();
+		vias = await eda.pcb_PrimitiveVia.getAll();
+	}
+	catch (err) {
+		throw edaError(err, 'Failed to read routing primitives for delete.');
+	}
+
+	// id → {kind, locked, before} over ALL routing primitives on the board.
+	type RouteEntry = { kind: 'track' | 'arc' | 'via'; locked: boolean; before: Record<string, unknown> };
+	const byId = new Map<string, RouteEntry>();
+	for (const l of lines ?? []) {
+		byId.set(l.getState_PrimitiveId(), {
+			kind: 'track', locked: l.getState_PrimitiveLock(),
+			before: { net: l.getState_Net(), layer: Number(l.getState_Layer()), startX: l.getState_StartX(), startY: l.getState_StartY(), endX: l.getState_EndX(), endY: l.getState_EndY(), lineWidth: l.getState_LineWidth() },
+		});
+	}
+	for (const a of arcs ?? []) {
+		byId.set(a.getState_PrimitiveId(), {
+			kind: 'arc', locked: a.getState_PrimitiveLock(),
+			before: { net: a.getState_Net(), layer: Number(a.getState_Layer()) },
+		});
+	}
+	for (const v of vias ?? []) {
+		byId.set(v.getState_PrimitiveId(), {
+			kind: 'via', locked: v.getState_PrimitiveLock(),
+			before: { net: v.getState_Net(), x: v.getState_X(), y: v.getState_Y(), holeDiameter: v.getState_HoleDiameter(), diameter: v.getState_Diameter() },
+		});
+	}
+
+	// #120 pre-check: a FOOTPRINT-EMBEDDED primitive's id is its parent
+	// component's primitiveId plus a suffix (QFN EPAD thermal via ba45…f3e184
+	// under component ba45…f3 — verified live). Deleting one is a lie twice
+	// over: the SDK returns true, an immediate getAll even shows it gone, and
+	// the next save/reload re-materializes it from the footprint definition.
+	// So refuse UPFRONT — post-delete readback provably cannot catch this.
+	let componentIds: Array<string> = [];
+	try {
+		const comps = await eda.pcb_PrimitiveComponent.getAll();
+		componentIds = (comps ?? []).map(c => c.getState_PrimitiveId()).filter(Boolean);
+	}
+	catch { throw Error('V2_COMPONENT_OWNERSHIP_UNAVAILABLE'); }
+	const embeddedParent = (id: string): string | undefined =>
+		componentIds.find(cid => id !== cid && id.startsWith(cid));
+
+	const toDelete: Record<'track' | 'arc' | 'via', Array<string>> = { track: [], arc: [], via: [] };
+	const removed: Array<Record<string, unknown>> = [];
+	const skippedLocked: Array<string> = [];
+	const notFound: Array<string> = [];
+	const wrongKind: Array<string> = [];
+	const notDeletable: Array<Record<string, string>> = [];
+	for (const id of ids) {
+		const entry = byId.get(id);
+		if (!entry) { notFound.push(id); continue; }
+		if (kindGuard && entry.kind !== kindGuard) { wrongKind.push(`${id} is a ${entry.kind}`); continue; }
+		if (entry.locked) { skippedLocked.push(id); continue; }
+		const parent = embeddedParent(id);
+		if (parent) {
+			notDeletable.push({ primitiveId: id, parentComponent: parent, reason: 'footprint-embedded — the primitive API cannot delete it (delete claims success, the next reload re-materializes it); edit the footprint in EasyEDA or delete the whole component' });
+			continue;
+		}
+		toDelete[entry.kind].push(id);
+		removed.push({ primitiveId: id, kind: entry.kind, ...entry.before });
+	}
+	if (wrongKind.length) {
+		throw new ActionError(ErrorCodes.MISSING_PAYLOAD_FIELD, `kind=${kindGuard} refused mismatched ids: ${wrongKind.join('; ')}. Drop the kind guard or fix the id list.`);
+	}
+	if (!removed.length) {
+		if (notDeletable.length) {
+			throw new ActionError(ErrorCodes.EDA_CALL_FAILED, `Nothing deletable: ${notDeletable.length} id(s) are FOOTPRINT-EMBEDDED (e.g. EPAD thermal vias — part of ${notDeletable[0].parentComponent}); the primitive API cannot delete them. To bond them to a net use \`easyeda pcb via-bond\`; to remove them edit the footprint or delete the component.`);
+		}
+		throw new ActionError(ErrorCodes.EDA_CALL_FAILED, `Nothing to delete: ${notFound.length} id(s) not found among routing primitives${skippedLocked.length ? `, ${skippedLocked.length} locked` : ''}. Pull fresh ids from pcb.line.list / pcb.via.list.`);
+	}
+
+ return {toDelete,removed,skippedLocked,notFound,notDeletable};
+};
 const pcbRouteDelete: Handler = async (payload) => {
 	const raw = payload.primitiveIds ?? payload.ids;
 	let ids: Array<string>;
@@ -11503,13 +12235,18 @@ const debugExecJs: Handler = async (payload) => {
 
 // ─── Registry & dispatch ─────────────────────────────────────────────
 
-const HANDLERS: Record<string, Handler | NativeAction> = {
+const HANDLERS: Record<string, NativeAction> = {
  'project.list': v2Native.projectList,
- 'project.create': projectCreate,
- 'project.open': projectOpen,
- 'schematic.create': schematicCreate,
-	'board.snapshot_compact': fastSnapshot,
-	'route.apply_batch': fastApply,
+ 'project.create': v2Lifecycle.projectCreate,
+ 'project.open': v2Lifecycle.projectOpen,
+ 'schematic.create': v2Lifecycle.schematicCreate,
+	'board.snapshot_compact': v2Native.fastRead('board.snapshot_compact'),
+ 'route.tuning_plan': v2Native.fastRead('route.tuning_plan'),
+ 'route.pair_plan': v2Native.fastRead('route.pair_plan'),
+ 'pcb.drc.compare': compareDrc,
+	'pcb.routing_profile': v2Native.fastRead('pcb.routing_profile'),
+	'route.preflight': v2Native.fastRead('route.preflight'),
+	'route.apply_batch': routeBatch(),
 	'project.current': v2Native.read(c => projectCurrentData(), v2Native.declaredReadFields('project.current')),
 	'document.current': v2Native.read(c => documentCurrentData(), v2Native.declaredReadFields('document.current')),
 	'document.open': v2Native.documentOpen,
@@ -11522,30 +12259,30 @@ const HANDLERS: Record<string, Handler | NativeAction> = {
 	'schematic.page.create': v2Native.pageCreate,
 	'schematic.page.rename': v2Native.schematicRename(true),
 	'schematic.page.delete': v2Native.pageDelete,
-	'schematic.page.clear': schematicPageClear,
-	'schematic.primitives.delete': schematicPrimitivesDelete,
+	'schematic.page.clear': v2SchematicDelete('page', SCH_PAGE_PRIMITIVE_KINDS, ids => collectSchDeleteCascadePlan(ids,true)),
+	'schematic.primitives.delete': v2SchematicDelete('primitives', SCH_PAGE_PRIMITIVE_KINDS, ids => collectSchDeleteCascadePlan(ids,true)),
 	'schematic.rename': v2Native.schematicRename(false),
 	'schematic.titleblock.get': v2Native.read(c => schematicTitleBlockGetData(c.request.input), v2Native.titleBlockGetFields),
 	'schematic.titleblock.modify': v2Native.titleBlockModify,
-	'schematic.components.list': schematicComponentsList,
-	'schematic.component.place': schematicComponentPlace,
-	'schematic.component.modify': schematicComponentModify,
-	'schematic.component.delete': schematicComponentDelete,
+	'schematic.components.list': v2Schematic.componentsList(schematicComponentsListData),
+	'schematic.component.place': placeComponent(serializeComponent,planOtherPropertyBackfill),
+	'schematic.component.modify': v2Schematic.componentModify(schematicModifyPlan, c => serializeComponent(c as SchComponent)),
+	'schematic.component.delete': v2SchematicDelete('component', SCH_PAGE_PRIMITIVE_KINDS, ids => collectSchDeleteCascadePlan(ids,true)),
 	'schematic.wire.create': v2Native.wireCreate,
-	'schematic.group.move': schematicGroupMove,
+	'schematic.group.move': groupMove(groupMovePlan,serializeComponent,normalizeWirePoints),
 	'schematic.netflag.create': v2Native.netflagCreate(component => serializeComponent(component as SchComponent)),
-	'schematic.pin.set_no_connect': schematicPinSetNoConnect,
-	'schematic.pin.disconnect': schematicPinDisconnect,
+	'schematic.pin.set_no_connect': v2Schematic.noConnect,
+	'schematic.pin.disconnect': v2Schematic.disconnect(p => pinDisconnectPlan(p,true)),
 	'schematic.select': v2Native.selectSchematic,
-	'schematic.drc.check': schematicDrcCheck,
-	'schematic.check': schematicCheck,
-	'schematic.bridgeCheck': schematicBridgeCheck,
-	'schematic.read': schematicRead,
+	'schematic.drc.check': v2Schematic.schematicDrc(normalizeDrc),
+	'schematic.check': v2Native.read(c => schematicCheckData(c.request.input), v2Native.declaredReadFields('schematic.check')),
+	'schematic.bridgeCheck': v2Native.read(c => schematicBridgeCheckData(c.request.input), v2Native.declaredReadFields('schematic.bridgeCheck')),
+	'schematic.read': v2Native.read(c => schematicReadData(c.request.input), v2Native.declaredReadFields('schematic.read')),
 	'schematic.save': v2Native.saveDocument('schematic'),
-	'schematic.export.netlist': schematicExportNetlist,
-	'schematic.export.image': schematicExportImage,
-	'schematic.export.bom': schematicExportBom,
-	'schematic.power.connect_pin': schematicPowerConnectPin,
+	'schematic.export.netlist': exportAction('schematic.export.netlist', {pack:blobToArtifact,sha:blobSha256,settle:waitForCanvasSettle,inject:injectRegionKeepouts,formats:SCH_EXPORT_FORMAT,objects:SCH_EXPORT_OBJECT}),
+	'schematic.export.image': exportAction('schematic.export.image', {pack:blobToArtifact,sha:blobSha256,settle:waitForCanvasSettle,inject:injectRegionKeepouts,formats:SCH_EXPORT_FORMAT,objects:SCH_EXPORT_OBJECT}),
+	'schematic.export.bom': exportAction('schematic.export.bom', {pack:blobToArtifact,sha:blobSha256,settle:waitForCanvasSettle,inject:injectRegionKeepouts,formats:SCH_EXPORT_FORMAT,objects:SCH_EXPORT_OBJECT}),
+	'schematic.power.connect_pin': v2Schematic.connectPin(connectPinPlan),
 	'schematic.library.search': v2Native.read(c => schematicLibrarySearchData(c.request.input), v2Native.searchFields),
 	'schematic.library.get_by_lcsc': v2Native.read(c => schematicLibraryGetByLcscIdsData(c.request.input), v2Native.lcscFields),
 	'library.list': v2Native.libraryList,
@@ -11553,9 +12290,9 @@ const HANDLERS: Record<string, Handler | NativeAction> = {
 	'library.footprint.get': v2Native.assetGet('footprint'),
 	'library.footprint.copy': v2Native.copyLibraryAsset('footprint'),
 	'library.footprint.delete': v2Native.assetDelete('footprint'),
-	'library.footprint.build': libraryFootprintBuild,
+	'library.footprint.build': footprintBuild(parseFootprintBuildSpec),
 	'library.symbol.create': v2Native.symbolCreate,
-	'library.symbol.build': librarySymbolBuild,
+	'library.symbol.build': symbolBuild(symbolBuildPlan),
 	'library.symbol.get': v2Native.assetGet('symbol'),
 	'library.symbol.delete': v2Native.symbolDelete,
 	'library.model3d.create': v2Native.modelCreate,
@@ -11567,10 +12304,8 @@ const HANDLERS: Record<string, Handler | NativeAction> = {
 	'library.device.get': v2Native.assetGet('device'),
 	'library.device.set_model3d': v2Native.deviceSetModel,
 	'library.device.delete': v2Native.assetDelete('device'),
-	'schematic.rebind.footprint': schematicRebindFootprint,
-	'schematic.rebind.symbol': schematicRebindSymbol,
-	'schematic.component.replace': schematicComponentReplace,
-	'schematic.component.resolve_lcsc': schematicComponentResolveLcsc,
+	'schematic.component.replace': replaceComponent(replacePlan,serializeComponent,planOtherPropertyBackfill,readPinSnapshots,diffPins),
+	'schematic.component.resolve_lcsc': resolveLcsc(serializeComponent,readDeviceFootprint,resolvePlacedDevice),
 	'schematic.text.list': v2Native.read(c => schematicTextListData(), v2Native.declaredReadFields('schematic.text.list')),
 	'pcb.documents.list': v2Native.read(c => pcbDocumentsListData(), v2Native.declaredReadFields('pcb.documents.list')),
 	'pcb.components.list': v2Native.read(c => pcbComponentsListData(c.request.input), v2Native.declaredReadFields('pcb.components.list')),
@@ -11578,76 +12313,72 @@ const HANDLERS: Record<string, Handler | NativeAction> = {
 	'pcb.layers.set_current': v2Native.layerSelect,
 	'pcb.layers.visibility': v2Native.layerVisibility(),
 	'pcb.view.side': v2Native.layerVisibility(true),
-	'pcb.stackup.set': pcbStackupSet,
-	'pcb.silk.align': pcbSilkAlign,
+	'pcb.stackup.set': v2Batch.stackup,
+	'pcb.silk.align': silkPatch('pcb.silk.align',pcbSilkAlignPlan),
 	'pcb.silk.list': v2Native.read(c => pcbSilkListData(), v2Native.declaredReadFields('pcb.silk.list')),
 	'pcb.silk.add': v2Native.silkAdd,
 	'pcb.silk.import_svg': v2Native.silkImport,
-	'pcb.silk.set': pcbSilkSet,
-	'pcb.silk.netnames': pcbSilkNetnames,
-	'pcb.silk.label_pads': pcbSilkLabelPads,
+	'pcb.silk.set': silkPatch('pcb.silk.set',pcbSilkSetPlan),
+	'pcb.silk.netnames': silkCreate('pcb.silk.netnames',pcbSilkNetnamesData),
+	'pcb.silk.label_pads': silkCreate('pcb.silk.label_pads',pcbSilkLabelPadsData),
 	'pcb.nets.list': v2Native.read(c => pcbNetsListData(), v2Native.declaredReadFields('pcb.nets.list')),
 	'pcb.report': v2Native.report(pcbReportData),
- 'pcb.manufacturing.export': payload => manufacturingExport(payload,blobToArtifact),
+ 'pcb.manufacturing.export': manufacture(blobToArtifact),
 	'pcb.constraint.list': v2Native.pcbConstraints,
 	'pcb.differential_pair.create': v2Native.differential('create'),
 	'pcb.differential_pair.delete': v2Native.differential('delete'),
 	'pcb.differential_pair.rename': v2Native.differential('rename'),
 	'pcb.equal_length_group.create': v2Native.equalLengthGroup('create'),
-	'pcb.equal_length_group.add_nets': pcbEqGroupAddNets,
+	'pcb.equal_length_group.add_nets': v2Native.groupAddNets,
 	'pcb.equal_length_group.delete': v2Native.equalLengthGroup('delete'),
 	'pcb.board.info': v2Native.read(c => pcbBoardInfoData(), v2Native.declaredReadFields('pcb.board.info')),
 	'board.list': v2Native.read(c => boardListData(), v2Native.declaredReadFields('board.list')),
 	'board.current': v2Native.read(c => boardCurrentData(), v2Native.declaredReadFields('board.current')),
 	'board.create': v2Native.boardMutation('create'),
-	'board.new_pcb': pcbNewBoard,
+	'board.new_pcb': v2Board.newPcb,
 	'system.notify': v2Native.notification,
 	'board.rename': v2Native.boardMutation('rename'),
 	'board.copy': v2Native.boardCopy,
 	'board.delete': v2Native.boardMutation('delete'),
-	'board.rebind': boardRebind,
-	'pcb.import_changes': pcbImportChanges,
-	'pcb.add_component': pcbAddComponent,
-	'pcb.component.attrs_backfill': pcbComponentAttrsBackfill,
+	'board.rebind': rebindBoard,
+	'pcb.add_component': addPcbComponent(pad=>padExtent(pad as PcbPad)),
+	'pcb.component.attrs_backfill': attrsBackfill(planOtherPropertyBackfill),
 	'pcb.component.modify': v2Native.componentModify,
-	'pcb.component.lock': pcbComponentLock,
-	'pcb.component.delete': pcbComponentDelete,
-	'pcb.page.clear': pcbPageClear,
-	'pcb.align': pcbAlign,
-	'pcb.distribute': pcbDistribute,
-	'pcb.grid_snap': pcbGridSnap,
-	'pcb.components.move': pcbComponentsMove,
-	'pcb.components.arrange': pcbComponentsArrange,
+	'pcb.component.lock': v2Batch.componentLock,
+	'pcb.component.delete': v2Batch.pcbDelete('component'),
+	'pcb.page.clear': pageClear(PCB_CLEAR_KINDS,PCB_OUTLINE_KINDS,parsePcbClearScopes),
+	'pcb.align': v2Batch.layout('pcb.align', pcbAlignPlan),
+	'pcb.distribute': v2Batch.layout('pcb.distribute', pcbDistributePlan),
+	'pcb.grid_snap': v2Batch.layout('pcb.grid_snap', pcbGridSnapPlan),
+	'pcb.components.move': v2Batch.layout('pcb.components.move', pcbComponentsMovePlan),
+	'pcb.components.arrange': v2Batch.layout('pcb.components.arrange', pcbComponentsArrangePlan),
 	'pcb.drc.check': v2Native.pcbDrc,
 	'pcb.drc.rules': v2Native.read(c => pcbDrcRulesData(), v2Native.declaredReadFields('pcb.drc.rules')),
 	'pcb.line.create': v2Native.lineCreate,
 	'pcb.via.create': v2Native.viaCreate,
 	'pcb.line.list': v2Native.read(c => pcbLineListData(c.request.input), v2Native.declaredReadFields('pcb.line.list')),
 	'pcb.via.list': v2Native.read(c => pcbViaListData(c.request.input), v2Native.declaredReadFields('pcb.via.list')),
-	'pcb.route.rip_up': pcbRouteRipUp,
-	'pcb.track.lock': pcbTrackLock,
-	'pcb.route.delete': pcbRouteDelete,
-	'pcb.route.via_hop': pcbRouteViaHop,
-	'pcb.clear_routing': pcbClearRouting,
+	'pcb.route.rip_up': routingDelete(),
+	'pcb.track.lock': trackLock,
+	'pcb.route.delete': routingDelete(pcbRouteDeletePlan),
+	'pcb.route.via_hop': viaHop(closedPolygonFromPoints),
 	'pcb.pour.create': v2Native.pourCreate,
 	'pcb.pour.list': v2Native.read(c => pcbPourListData(c.request.input), v2Native.declaredReadFields('pcb.pour.list')),
-	'pcb.pour.delete': pcbPourDelete,
-	'pcb.pour.rebuild': pcbPourRebuild,
-	'pcb.beautify': pcbBeautify,
+	'pcb.pour.delete': v2Batch.pcbDelete('pour'),
+	'pcb.pour.rebuild': rebuildPlanes('pcb.pour.rebuild'),
+ 'pcb.plane.refresh': rebuildPlanes('pcb.plane.refresh'),
 	'pcb.region.create': v2Native.polygonCreate('region'),
 	'pcb.region.list': v2Native.read(c => pcbRegionListData(c.request.input), v2Native.declaredReadFields('pcb.region.list')),
-	'pcb.region.delete': pcbRegionDelete,
+	'pcb.region.delete': v2Batch.pcbDelete('region'),
 	'pcb.fill.create': v2Native.polygonCreate('fill'),
 	'pcb.fill.list': v2Native.read(c => pcbFillListData(c.request.input), v2Native.declaredReadFields('pcb.fill.list')),
-	'pcb.fill.delete': pcbFillDelete,
+	'pcb.fill.delete': v2Batch.pcbDelete('fill'),
 	'pcb.save': v2Native.saveDocument('pcb'),
-	'pcb.export.dsn': pcbExportDsn,
-	'pcb.import_autoroute': pcbImportAutoroute,
-	'pcb.snapshot': pcbSnapshot,
-	'pcb.outline.set': pcbOutlineSet,
+	'pcb.export.dsn': exportAction('pcb.export.dsn', {pack:blobToArtifact,sha:blobSha256,settle:waitForCanvasSettle,inject:injectRegionKeepouts,formats:SCH_EXPORT_FORMAT,objects:SCH_EXPORT_OBJECT}),
+	'pcb.snapshot': exportAction('pcb.snapshot', {pack:blobToArtifact,sha:blobSha256,settle:waitForCanvasSettle,inject:injectRegionKeepouts,formats:SCH_EXPORT_FORMAT,objects:SCH_EXPORT_OBJECT}),
+	'pcb.outline.set': v2Outline('set',pointInPolygon),
 	'pcb.outline.get': v2Native.read(c => pcbOutlineGetData()),
-	'pcb.outline.clear': pcbOutlineClear,
-	'debug.exec_js': debugExecJs,
+	'pcb.outline.clear': v2Outline('clear',pointInPolygon),
 };
 
 /**
@@ -11665,3 +12396,6 @@ export function nativeAction(name: string): NativeAction | undefined {
  const entry=HANDLERS[name];
  return entry && typeof entry==='object' && entry.mode==='V2_NATIVE' ? entry : undefined;
 }
+
+// Test/reference-only legacy business envelope, never in the V2 registry.
+export const schematicComponentsList:Handler=async p=>({result:await schematicComponentsListData(p)});

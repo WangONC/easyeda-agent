@@ -172,7 +172,7 @@ func Finalize(r Request, digest string, h HandlerResult, timedOut bool) Result {
 			out.Outcome = NotApplied
 		}
 	case "partial":
-		if h.Effects.Changed != nil && *h.Effects.Changed && h.Effects.Started != nil && *h.Effects.Started && v.Satisfied > 0 && v.Residual > 0 {
+		if h.Effects.Changed != nil && *h.Effects.Changed && h.Effects.Started != nil && *h.Effects.Started && v.Residual > 0 {
 			out.Outcome = Partial
 		}
 	}

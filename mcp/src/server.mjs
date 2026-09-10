@@ -26,7 +26,8 @@ server.setRequestHandler(CallToolRequestSchema,async ({params})=>{
  }
  const domain=params.name.replace(/^easyeda_/,'');
  const action=catalog.find(a=>a.name===p.action&&a.domain===domain);
- if(!action || action.mode!=='V2_NATIVE')throw Error('V2_ACTION_NOT_MIGRATED');
+ if(!action)return {isError:true,content:[{type:'text',text:'V2_UNKNOWN_ACTION'}]};
+ if(action.mode!=='V2_NATIVE')return {isError:true,content:[{type:'text',text:'V2_ACTION_'+action.mode+': '+(action.reason??'')}]};
  const r=await runEasyeda(['v2','call',JSON.stringify(p)],p.budget_ms+15000);
  const result=r.ok?r.result:r.error?.stdout;
  if(!result || result.operation_id!==p.operation_id)throw Error('V2_RECEIPT_UNAVAILABLE: query the same operation_id; do not replay');

@@ -29,6 +29,9 @@ func ValidateV2(r executionv2.Request) (executionv2.Admission, error) {
 		if a.Name != r.Action {
 			continue
 		}
+		if a.V2Disposition != nil {
+			return executionv2.Admission{}, errors.New("V2_ACTION_" + a.V2Disposition.Mode + ": " + a.V2Disposition.Reason)
+		}
 		v := a.V2
 		if v == nil {
 			return executionv2.Admission{}, errors.New("V2_ACTION_NOT_MIGRATED")
@@ -71,7 +74,7 @@ func ValidateV2(r executionv2.Request) (executionv2.Admission, error) {
 				valid = ok && !math.IsNaN(v) && !math.IsInf(v, 0)
 			case "boolean":
 				_, valid = x.(bool)
-			case "string|array":
+			case "string|array", "string|string[]":
 				switch v := x.(type) {
 				case string:
 					valid = v != ""

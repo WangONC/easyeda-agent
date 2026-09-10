@@ -1069,7 +1069,7 @@ func (r *applyRunner) runAction(action string, payload map[string]any, timeout t
 		}
 		return nil, fmt.Errorf("%s: %s", action, msg)
 	}
-	conclusion := protocol.Interpret(&protocol.Request{Envelope: protocol.Envelope{ID: parsed.ID}, Action: action, Payload: payload}, &parsed, false)
+	conclusion := interpretDaemonExecution(action, payload, &parsed)
 	switch conclusion.DecisionBasis {
 	case "LEGACY_NEGATIVE", "INVALID", "CONFLICT", "UNRESOLVED":
 		return nil, fmt.Errorf("%s: partial application or unresolved execution: %s", action, conclusion.Reason)

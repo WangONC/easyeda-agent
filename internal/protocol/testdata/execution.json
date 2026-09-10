@@ -7885,5 +7885,192 @@
     },
     "want_outcome": "UNCERTAIN",
     "want_satisfied": false
+  },
+  {
+    "name": "closure01_envelope_foreign",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "foreign",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "request": {
+      "id": "r",
+      "action": "pcb.page.clear",
+      "payload": {
+        "dryRun": true
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "dryRun": true,
+        "write_attempted": false,
+        "native_settled": true
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "a93b5c61598d3185458b0215012c462af3c5fad4bc7f4c88bfc772cf33155af9",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": []
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "decision_basis": "UNRESOLVED",
+        "mutation_outcome": "NO_WRITE",
+        "request_satisfied": false,
+        "next_action": "reconcile_without_replay",
+        "reason": "execution evidence is unresolved",
+        "possible_effect": false,
+        "autosave_eligible": false,
+        "health_effect": "UNKNOWN",
+        "freshness_restored": false,
+        "write_attempted": false
+      }
+    },
+    "name": "closure01_prior_unresolved_no_write",
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "request": {
+      "id": "r",
+      "action": "pcb.page.clear",
+      "payload": {
+        "dryRun": true
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "dryRun": true,
+        "write_attempted": false,
+        "native_settled": true
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "foreign",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": []
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "decision_basis": "PREVIEW",
+        "mutation_outcome": "NO_WRITE",
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "execution evidence is unresolved",
+        "possible_effect": false,
+        "autosave_eligible": false,
+        "health_effect": "UNKNOWN",
+        "freshness_restored": false,
+        "write_attempted": false,
+        "native_settled": true
+      }
+    },
+    "name": "closure01_conflict_clears_false",
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "closure01_fast_verification",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "COMPLETE",
+    "want_satisfied": true
   }
 ]

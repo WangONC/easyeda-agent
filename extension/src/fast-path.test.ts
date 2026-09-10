@@ -105,3 +105,33 @@ test('Host line45 IEEE roundoff verifies, actual coordinate changes remain uncer
   assert.equal(r.readback_verified,drift===0);
  }
 });
+
+test('Closure Repair 01 projects contract verification from an actual settled Fast receipt', async()=>{
+ const {interpret}=await import('./execution');const contracts=(await import('./action-contracts.json')).default;
+ const f=new FastPath(),{n,state}=mock();state.traces.push({id:'old',kind:'trace',net:'N',layer:1,width:6,points:[[0,0],[10,0]]});
+ const p=await request(f,n,'closure-real');p.operations=[...operations,{type:'delete_trace',id:'old'}];
+ const receipt=await f.apply(n,p);assert.equal(receipt.result!.status,'complete');
+ const req={id:'closure',action:'route.apply_batch',payload:p};const resp={...receipt,id:'closure'};
+ const e=interpret(req,resp);assert.equal(e.mutation_outcome,'COMPLETE');
+ assert.deepEqual(e.verification.required,contracts['route.apply_batch'].verification.required);
+ assert.deepEqual(e.verification.missing,[]);assert.equal(e.verification.required.length,9);
+ for(const r of e.verification.required)assert.ok(e.verification.observed.includes(r),r);
+ assert.deepEqual(interpret(req,{...resp,execution:e}),e);
+ // A future requirement without an existing verifier must never be asserted observed.
+ const required=contracts['route.apply_batch'].verification.required;
+ required.push('unimplemented_verification');
+ try{const blocked=interpret(req,resp);assert.notEqual(blocked.mutation_outcome,'COMPLETE');assert.ok(!blocked.verification.observed.includes('unimplemented_verification'));}finally{required.pop();}
+});
+
+test('Closure Repair 01 observed requirements are backed by existing Fast readback checks', async()=>{
+ const {interpret}=await import('./execution');
+ const corruptions: Record<string,(p:Primitive)=>void>={net:p=>{p.net='wrong'},layer:p=>{p.layer=9},width:p=>{p.width=99},geometry:p=>{p.points=[[99,99],[100,100]]},hole:p=>{p.hole=99},diameter:p=>{p.diameter=99}};
+ for(const [requirement,corrupt] of Object.entries(corruptions)){
+  const f=new FastPath(),{n,state}=mock(),p=await request(f,n,'proof-'+requirement);const create=n.create;
+  n.create=async op=>{const id=await create(op);const target=[...state.traces,...state.vias].find(x=>x.id===id)!;if(['hole','diameter'].includes(requirement)?op.type==='add_via':op.type==='add_trace')corrupt(target);return id;};
+  const resp=await f.apply(n,p);assert.equal(resp.result!.status,'uncertain',requirement);
+  const e=interpret({action:'route.apply_batch',payload:p},resp);assert.notEqual(e.mutation_outcome,'COMPLETE',requirement);assert.ok(!e.verification.observed.includes(requirement));
+ }
+ const f=new FastPath(),{n,state}=mock();state.traces.push({id:'survivor',kind:'trace',net:'N',layer:1});const p=await request(f,n,'proof-delete');p.operations=[{type:'delete_trace',id:'survivor'}];n.remove=async()=>true;
+ const resp=await f.apply(n,p);assert.equal(resp.result!.status,'uncertain');assert.notEqual(interpret({action:'route.apply_batch',payload:p},resp).mutation_outcome,'COMPLETE');
+});

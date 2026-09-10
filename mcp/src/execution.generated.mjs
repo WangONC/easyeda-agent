@@ -5417,6 +5417,15 @@ function validateExecution(req, resp, before) {
     const c = contractFor(req.action), meta = emptyExecution(req, c);
     meta.observed_target_after = resp?.context;
     const f = { req, resp, c, raw: resp?.result || {}, prior: resp?.execution, meta, before, preview: req.payload?.dryRun === true && c?.dry_run === 'preview', mutation: !!c?.effects.some(e => ['DESIGN_CONTENT', 'PROJECT_TOPOLOGY', 'LIBRARY_ASSET'].includes(e)), effectful: !!c?.effects.length, observed: false, unsettled: false, priorUncertain: false, negative: false, issue: '', basis: '' };
+    if (resp && (req.id || '') !== (resp.id || '')) {
+        f.attributionMismatch = true;
+        f.issue = 'CONFLICT';
+        f.meta = emptyExecution(req, c);
+        if (resp.execution)
+            f.meta.prior_evidence = resp.execution.decision_basis === 'CONFLICT' ? resp.execution.prior_evidence : structuredClone(resp.execution);
+        f.prior = undefined;
+        return f;
+    }
     f.receipt = normalizeReceipt(f);
     f.observed = !!f.receipt.side.write;
     f.unsettled = !!f.receipt.side.unsettled;
@@ -5426,14 +5435,15 @@ function validateExecution(req, resp, before) {
     if (f.prior != null) {
         f.effectful ||= f.prior.possible_effect === true;
         const prior = f.prior;
-        if (validExecutionShape(prior) && prior.decision_basis === 'REFUSED' && prior.contract_version === (c?.version || '') && prior.contract_hash === (c?.hash || '') && prior.request_id === (req.id || '') && prior.request_id === (resp?.id || '') && prior.write_attempted === false && prior.possible_effect === false && !prior.request_satisfied && (prior.mutation_outcome === 'NO_WRITE' || !f.mutation && !prior.mutation_outcome))
+        if (validExecutionShape(prior) && validPriorTuple(prior, c) && prior.decision_basis === 'REFUSED' && prior.contract_version === (c?.version || '') && prior.contract_hash === (c?.hash || '') && prior.request_id === (req.id || '') && prior.request_id === (resp?.id || '') && prior.write_attempted === false && prior.possible_effect === false && !prior.request_satisfied && (prior.mutation_outcome === 'NO_WRITE' || !f.mutation && !prior.mutation_outcome))
             f.before = true;
         const p = f.prior, evidence = validExecutionShape(p) ? (p.invalid_evidence ?? p) : p;
         const side = adaptEvidence(evidence), wrote = !!side.write, pending = !!side.unsettled;
         f.possible ||= !!side.possible;
         f.incomplete ||= !!side.incomplete;
-        f.observed ||= wrote;
-        f.unsettled ||= pending;
+        if (validExecutionShape(p) && validPriorTuple(p, c) && p.contract_version === c?.version && p.contract_hash === c?.hash && p.request_id === (req.id || ''))
+            f.observed ||= !p.invalid_evidence && wrote || p.write_attempted === true;
+        f.unsettled ||= pending || p.native_settled === false;
         if (p.invalid_evidence != null || !validExecutionShape(evidence)) {
             f.invalid = evidence;
             f.issue = 'INVALID';
@@ -5443,6 +5453,8 @@ function validateExecution(req, resp, before) {
         else {
             f.meta = structuredClone(p);
             f.priorUncertain = p.mutation_outcome === 'UNCERTAIN';
+            if (!validPriorTuple(p, c))
+                f.issue = 'CONFLICT';
             if (p.contract_version !== c?.version || p.contract_hash !== c?.hash || p.request_id !== (resp?.id || '') || (req.id && req.id !== resp?.id))
                 f.issue = 'CONFLICT';
             if (!f.mutation && p.mutation_outcome) {
@@ -5474,6 +5486,8 @@ function reconcileExecution(f) {
     const p = f.prior, n = f.receipt;
     const risk = f.observed || f.possible || f.incomplete || f.unsettled;
     const choose = (basis) => { f.basis = basis; return f; };
+    if (f.attributionMismatch)
+        return choose('CONFLICT');
     if (f.before && !risk && !f.priorUncertain)
         return choose('REFUSED');
     if (p?.decision_basis === 'CONFLICT' && f.issue !== 'INVALID')
@@ -5552,8 +5566,14 @@ function deriveExecution(f) {
     const e = f.meta, b = f.basis;
     if (b === 'CONFLICT' && e.prior_evidence == null && f.prior && f.prior.decision_basis !== 'CONFLICT')
         e.prior_evidence = structuredClone(f.prior);
+    e.request_id = f.req.id || "";
+    e.contract_version = f.c?.version || "";
+    e.contract_hash = f.c?.hash || "";
     e.decision_basis = b;
     delete e.mutation_outcome;
+    delete e.write_attempted;
+    if (b === 'CONFLICT' || b === 'INVALID')
+        delete e.native_settled;
     e.request_satisfied = false;
     e.next_action = 'inspect';
     e.reason = 'request not satisfied';
@@ -5573,7 +5593,8 @@ function deriveExecution(f) {
         delete e.write_attempted;
     if (f.observed)
         e.write_attempted = true;
-    e.observed_target_after ??= f.resp?.context;
+    if (!f.attributionMismatch)
+        e.observed_target_after ??= f.resp?.context;
     switch (b) {
         case 'INVALID':
         case 'CONFLICT':
@@ -5615,6 +5636,9 @@ function deriveExecution(f) {
                 e.reason = 'Fast Path semantic readback';
                 e.verification.state = 'AVAILABLE';
                 e.verification.coverage = 'COMPLETE';
+                e.verification.required = [...(f.c?.verification.required || [])];
+                e.verification.observed = [...f.receipt.verifiedRequirements];
+                e.verification.missing = [];
                 if (!e.verification.source)
                     e.verification.source = 'FastPath.matchesOperation';
                 if (!e.verification.evidence_refs.length)
@@ -5684,6 +5708,7 @@ function adaptEvidence(v, prewriteFast = false) {
 function normalizeReceipt(f) {
     const r = f.raw, p = f.prior, fast = f.req.action === 'route.apply_batch';
     const noWrite = fast && ['stale', 'partial'].includes(r.status) && r.mutation_started === false && fastNoWrite(r);
+    const verifiedRequirements = fastVerifiedRequirements(r, f.req.payload || {});
     const side = adaptEvidence(r, noWrite);
     if (!(f.c?.dry_run === 'preview' && f.preview && r.dryRun === true && r.native_settled === true))
         delete side.absence;
@@ -5692,7 +5717,8 @@ function normalizeReceipt(f) {
     return {
         side, fastNoWrite: noWrite,
         fastPartial: fast && r.status === 'partial' && fastSettled(r, f.req.payload || {}, false),
-        fastComplete: fast && r.status === 'complete' && fastComplete(r, f.req.payload || {}),
+        verifiedRequirements,
+        fastComplete: fast && r.status === 'complete' && verifiedRequirements.length > 0 && (f.c?.verification.required || []).every(x => verifiedRequirements.includes(x)),
         recoveryConflict: fast && !!p && ((r.status === 'complete' && p.recovery?.state !== 'NOT_REQUESTED') || (p.recovery?.state === 'RESTORED' && (r.rollback_attempted !== true || r.rollback_complete !== true))),
         itemsConflict: fast && p?.item_results != null && canonical(p.item_results) !== canonical(r.item_results),
         acknowledged: f.resp?.ok === true && r.ok !== false && r.saved !== false,
@@ -5910,4 +5936,35 @@ function validChildResponse(o) {
     if ('artifacts' in o && o.artifacts != null && (!Array.isArray(o.artifacts) || !o.artifacts.every(v => object(v) && strings(v, ['id', 'kind', 'path', 'fileName', 'mimeType', 'sha256', 'inlineBase64']) && (!('size' in v) || (typeof v.size === 'number' && Number.isSafeInteger(v.size) && v.size >= 0)))))
         return false;
     return true;
+}
+function validPriorTuple(p, c) {
+    if (!p.decision_basis)
+        return true;
+    if (p.request_satisfied !== (p.next_action === 'continue'))
+        return false;
+    const mutation = !!c?.effects.some(x => ['DESIGN_CONTENT', 'PROJECT_TOPOLOGY', 'LIBRARY_ASSET'].includes(x));
+    const expected = mutation ? 'UNCERTAIN' : undefined;
+    switch (p.decision_basis) {
+        case 'REFUSED':
+        case 'NO_WRITE':
+        case 'PREVIEW': return p.mutation_outcome === (mutation ? 'NO_WRITE' : undefined) && !p.possible_effect && p.write_attempted === false && (p.decision_basis === 'PREVIEW' || !p.request_satisfied);
+        case 'FAST_COMPLETE': return mutation && p.mutation_outcome === 'COMPLETE' && p.request_satisfied && p.possible_effect && p.write_attempted === true && p.native_settled === true;
+        case 'FAST_PARTIAL': return mutation && p.mutation_outcome === 'PARTIAL' && !p.request_satisfied && p.possible_effect && p.write_attempted === true && p.native_settled === true && p.next_action === 'reconcile_without_replay';
+        case 'INVALID':
+        case 'CONFLICT':
+        case 'UNRESOLVED':
+        case 'UNVERIFIED':
+        case 'LEGACY_NEGATIVE': return p.mutation_outcome === expected && (!mutation || p.possible_effect) && !p.request_satisfied && p.next_action === 'reconcile_without_replay' && p.write_attempted !== false;
+        case 'SATISFIED':
+        case 'DELIVERED': return !mutation && !p.mutation_outcome && p.request_satisfied;
+        case 'REJECTED':
+        case 'PENDING_DELIVERY':
+        case 'DELIVERY_FAILED': return !mutation && !p.mutation_outcome && !p.request_satisfied && p.next_action === 'inspect';
+    }
+    return false;
+}
+// Existing FastPath.matchesOperation + deletion readback + settled receipt,
+// not a copy of whichever requirements a future contract might declare.
+function fastVerifiedRequirements(r, payload) {
+    return fastComplete(r, payload) ? ['net', 'layer', 'geometry', 'width', 'hole', 'diameter', 'deleted_absence', 'all_operations', 'no_pending_native_write'] : [];
 }

@@ -172,6 +172,10 @@ ActionSpec 的 contract 是正式定义；Connector/MCP 使用由它生成并校
 execution.v1.3 先验证结构，再仲裁请求与证据，最后统一派生结论。request_satisfied 与
 possible_effect 分开：请求未完成仍可能产生副作用；dryRun 意图不能推翻实际写入或未 settle 证据。
 无效结构和冲突保留原证据并拒绝继续。重复解释不得把 UNCERTAIN 升级为完成或无写。
+响应 ID 必须先匹配当前请求；外来 receipt 不授予写入或无写证明。已有 canonical tuple
+也须语义一致，冲突降级原子重算 write_attempted 等结论，不保留失效的 false 或 continue。
+Fast COMPLETE 的 required 来自当前合同，observed 仅投影现有 Fast verifier 已证明的项目；
+合同新增而 verifier 未支持的 requirement 会阻止 COMPLETE。CLI/MCP 重解释保留 daemon 请求归属。
 stage/stale/autosave/writeHealth 消费同一结论；普通 legacy autosave 兜底不是完成证明，
 显式 invalid/unsettled 不会被 ok=true 放行，status:uncertain 也不代表已验证的 not-landed。
 Fast 原 status、item_results、IDs、revision、rollback 和 telemetry 保留；历史 duplicate receipt

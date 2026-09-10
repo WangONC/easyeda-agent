@@ -16,6 +16,7 @@ type executionFacts struct {
 	meta                                                                                *Execution
 	invalid                                                                             any
 	before, preview, mutation, effectful, observed, unsettled, priorUncertain, negative bool
+	attributionMismatch                                                                 bool
 	issue, basis                                                                        string
 }
 
@@ -34,6 +35,20 @@ func validateExecution(req *Request, resp *Response, before bool) *executionFact
 	}
 	c, _ := ContractFor(req.Action)
 	f := &executionFacts{req: req, resp: resp, contract: c, before: before, preview: Preview(req), mutation: c.ContentMutation(), effectful: len(c.Effects) > 0, raw: map[string]any{}, meta: emptyExecution(req, c)}
+	if resp != nil && req.ID != resp.ID {
+		f.attributionMismatch = true
+		f.issue = "CONFLICT"
+		// Keep foreign evidence as evidence, never as current-request execution facts.
+		if resp.Execution != nil {
+			wire, _ := jsonValue(resp.Execution).(map[string]any)
+			if wire["decision_basis"] == "CONFLICT" {
+				f.meta.PriorEvidence = wire["prior_evidence"]
+			} else {
+				f.meta.PriorEvidence = jsonValue(resp.Execution)
+			}
+		}
+		return f
+	}
 	if resp != nil {
 		f.raw = resp.Result
 		f.prior = resp.Execution
@@ -46,7 +61,7 @@ func validateExecution(req *Request, resp *Response, before bool) *executionFact
 		f.effectful = f.effectful || f.prior.PossibleEffect
 		// A validated pre-dispatch conclusion carries its phase to later projections.
 		p := f.prior
-		if validExecutionShape(jsonValue(p)) && p.DecisionBasis == "REFUSED" && p.ContractVersion == c.Version && p.ContractHash == c.Hash && p.RequestID == req.ID && p.RequestID == requestResponseID(resp) && p.WriteAttempted != nil && !*p.WriteAttempted && !p.PossibleEffect && !p.RequestSatisfied && (p.MutationOutcome == NoWrite || !f.mutation && p.MutationOutcome == "") {
+		if validExecutionShape(jsonValue(p)) && validPriorTuple(p, c) && p.DecisionBasis == "REFUSED" && p.ContractVersion == c.Version && p.ContractHash == c.Hash && p.RequestID == req.ID && p.RequestID == requestResponseID(resp) && p.WriteAttempted != nil && !*p.WriteAttempted && !p.PossibleEffect && !p.RequestSatisfied && (p.MutationOutcome == NoWrite || !f.mutation && p.MutationOutcome == "") {
 			f.before = true
 		}
 		evidence := f.prior.InvalidEvidence
@@ -57,8 +72,10 @@ func validateExecution(req *Request, resp *Response, before bool) *executionFact
 		wrote, pending := side["write"], side["unsettled"]
 		f.possible = f.possible || side["possible"]
 		f.incomplete = f.incomplete || side["incomplete"]
-		f.observed = f.observed || wrote
-		f.unsettled = f.unsettled || pending
+		if validExecutionShape(jsonValue(p)) && validPriorTuple(p, c) && p.ContractVersion == c.Version && p.ContractHash == c.Hash && p.RequestID == req.ID {
+			f.observed = f.observed || p.InvalidEvidence == nil && wrote || p.WriteAttempted != nil && *p.WriteAttempted
+		}
+		f.unsettled = f.unsettled || pending || adaptEvidence(jsonValue(p))["unsettled"]
 		if f.prior.InvalidEvidence != nil || !validExecutionShape(evidence) {
 			f.invalid = evidence
 			f.issue = "INVALID"
@@ -76,6 +93,9 @@ func validateExecution(req *Request, resp *Response, before bool) *executionFact
 			_ = json.Unmarshal(b, &copy)
 			f.meta = &copy
 			f.priorUncertain = f.prior.MutationOutcome == Uncertain
+			if !validPriorTuple(f.prior, c) {
+				f.issue = "CONFLICT"
+			}
 			if f.prior.ContractVersion != c.Version || f.prior.ContractHash != c.Hash || f.prior.RequestID != requestResponseID(resp) || (req.ID != "" && req.ID != requestResponseID(resp)) {
 				f.issue = "CONFLICT"
 			}
@@ -120,6 +140,10 @@ func requestResponseID(resp *Response) string {
 // and weaker status. Only the explicit delivery-pending state can acquire new evidence.
 func reconcileExecution(f *executionFacts) *executionFacts {
 	p, n := f.prior, f.receipt
+	if f.attributionMismatch {
+		f.basis = "CONFLICT"
+		return f
+	}
 	risk := f.observed || f.possible || f.incomplete || f.unsettled
 	if f.before && !risk && !f.priorUncertain {
 		f.basis = "REFUSED"
@@ -294,8 +318,15 @@ func deriveExecution(f *executionFacts) *Execution {
 	if b == "CONFLICT" && e.PriorEvidence == nil && f.prior != nil && f.prior.DecisionBasis != "CONFLICT" {
 		e.PriorEvidence = jsonValue(f.prior)
 	}
+	e.RequestID = f.req.ID
+	e.ContractVersion = f.contract.Version
+	e.ContractHash = f.contract.Hash
 	e.DecisionBasis = b
 	e.MutationOutcome = ""
+	e.WriteAttempted = nil
+	if b == "CONFLICT" || b == "INVALID" {
+		e.NativeSettled = nil
+	}
 	e.RequestSatisfied = false
 	e.NextAction = "inspect"
 	e.Reason = "request not satisfied"
@@ -321,7 +352,7 @@ func deriveExecution(f *executionFacts) *Execution {
 		v := true
 		e.WriteAttempted = &v
 	}
-	if f.meta.ObservedTargetAfter == nil && f.resp != nil {
+	if !f.attributionMismatch && f.meta.ObservedTargetAfter == nil && f.resp != nil {
 		e.ObservedTargetAfter = f.resp.Context
 	}
 	switch b {
@@ -367,6 +398,9 @@ func deriveExecution(f *executionFacts) *Execution {
 			e.Reason = "Fast Path semantic readback"
 			e.Verification.State = "AVAILABLE"
 			e.Verification.Coverage = "COMPLETE"
+			e.Verification.Required = append([]string{}, f.contract.Verification.Required...)
+			e.Verification.Observed = append([]string{}, f.receipt.verifiedRequirements...)
+			e.Verification.Missing = []string{}
 			if e.Verification.Source == "" {
 				e.Verification.Source = "FastPath.matchesOperation"
 			}
@@ -437,4 +471,37 @@ func containsAll(observed, required []string) bool {
 		}
 	}
 	return true
+}
+
+// Only implications of the frozen canonical tuple; legacy evidence without a
+// decision_basis still uses the existing conservative compatibility path.
+func validPriorTuple(p *Execution, c ActionContract) bool {
+	if p.DecisionBasis == "" {
+		return true
+	}
+	if p.RequestSatisfied != (p.NextAction == "continue") {
+		return false
+	}
+	expected := MutationOutcome("")
+	if c.ContentMutation() {
+		expected = Uncertain
+	}
+	switch p.DecisionBasis {
+	case "REFUSED", "NO_WRITE", "PREVIEW":
+		if c.ContentMutation() {
+			expected = NoWrite
+		}
+		return p.MutationOutcome == expected && !p.PossibleEffect && p.WriteAttempted != nil && !*p.WriteAttempted && (p.DecisionBasis == "PREVIEW" || !p.RequestSatisfied)
+	case "FAST_COMPLETE":
+		return c.ContentMutation() && p.MutationOutcome == Complete && p.RequestSatisfied && p.PossibleEffect && p.WriteAttempted != nil && *p.WriteAttempted && p.NativeSettled != nil && *p.NativeSettled
+	case "FAST_PARTIAL":
+		return c.ContentMutation() && p.MutationOutcome == Partial && !p.RequestSatisfied && p.PossibleEffect && p.WriteAttempted != nil && *p.WriteAttempted && p.NativeSettled != nil && *p.NativeSettled && p.NextAction == "reconcile_without_replay"
+	case "INVALID", "CONFLICT", "UNRESOLVED", "UNVERIFIED", "LEGACY_NEGATIVE":
+		return p.MutationOutcome == expected && (!c.ContentMutation() || p.PossibleEffect) && !p.RequestSatisfied && p.NextAction == "reconcile_without_replay" && (p.WriteAttempted == nil || *p.WriteAttempted)
+	case "SATISFIED", "DELIVERED":
+		return !c.ContentMutation() && p.MutationOutcome == "" && p.RequestSatisfied
+	case "REJECTED", "PENDING_DELIVERY", "DELIVERY_FAILED":
+		return !c.ContentMutation() && p.MutationOutcome == "" && !p.RequestSatisfied && p.NextAction == "inspect"
+	}
+	return false
 }

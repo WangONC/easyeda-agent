@@ -143,3 +143,7 @@ func checkIndependentSemantics(t *testing.T, name string, s map[string]bool, e *
 		t.Fatal(name, "no-write without uncontradicted proof")
 	}
 }
+
+func TestClosureRepairFinitePropertiesAndParity(t *testing.T) {
+	executionProperties(t, "execution-closure-properties.cjs", 450)
+}

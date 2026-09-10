@@ -28,7 +28,17 @@ func TestCLIExecutionFixtureParity(t *testing.T) {
 			continue
 		}
 		t.Run(c.Name, func(t *testing.T) {
-			cfg, _, done := newAutolayoutTestDaemon(t, func(_ int, call autolayoutTestCall) string { return string(c.Response) })
+			// Model daemon attribution before its response reaches CLI (daemon assigns IDs).
+			var response protocol.Response
+			if err := json.Unmarshal(c.Response, &response); err != nil {
+				t.Fatal(err)
+			}
+			response.Execution = protocol.Interpret(&c.Request, &response, false)
+			var raw map[string]json.RawMessage
+			_ = json.Unmarshal(c.Response, &raw)
+			raw["execution"], _ = json.Marshal(response.Execution)
+			wrapped, _ := json.Marshal(raw)
+			cfg, _, done := newAutolayoutTestDaemon(t, func(_ int, call autolayoutTestCall) string { return string(wrapped) })
 			defer done()
 			var out, stderr bytes.Buffer
 			err := dispatch(cfg, c.Request.Action, "w1", c.Request.Payload, &out, &stderr)

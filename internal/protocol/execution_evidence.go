@@ -83,6 +83,7 @@ type receiptFacts struct {
 	fastNoWrite, fastPartial, fastComplete, recoveryConflict, itemsConflict bool
 	acknowledged, saveAcknowledged, delivered, pending, restored, reload    bool
 	items                                                                   any
+	verifiedRequirements                                                    []string
 }
 
 func normalizeReceipt(f *executionFacts) receiptFacts {
@@ -95,7 +96,8 @@ func normalizeReceipt(f *executionFacts) receiptFacts {
 	if f.req.Action == "route.apply_batch" {
 		n.fastNoWrite = (r["status"] == "stale" || r["status"] == "partial") && r["mutation_started"] == false && fastNoWrite(r)
 		n.fastPartial = r["status"] == "partial" && fastSettled(r, f.req.Payload, false)
-		n.fastComplete = r["status"] == "complete" && fastComplete(r, f.req.Payload)
+		n.verifiedRequirements = fastVerifiedRequirements(r, f.req.Payload)
+		n.fastComplete = r["status"] == "complete" && len(n.verifiedRequirements) > 0 && containsAll(n.verifiedRequirements, f.contract.Verification.Required)
 		// Fast partial/stale before-dispatch receipts are stronger than the status alone.
 		if n.fastNoWrite {
 			n.side = adaptReceiptFields(r, true)
@@ -152,4 +154,15 @@ func validAdapterFields(r map[string]any) bool {
 		}
 	}
 	return true
+}
+
+// Projection of the EXISTING Fast verifier, independent of contract.required.
+// matchesOperation proves the applicable add fields; readback_verified also
+// covers deleted absence. fastSettled checks the full operation receipt and
+// terminal revision (and rejects explicit native-unsettled/duplicate evidence).
+func fastVerifiedRequirements(r, payload map[string]any) []string {
+	if !fastComplete(r, payload) {
+		return nil
+	}
+	return []string{"net", "layer", "geometry", "width", "hole", "diameter", "deleted_absence", "all_operations", "no_pending_native_write"}
 }

@@ -278,7 +278,7 @@ func requestActionOnce(cfg *appConfig, action, window string, payload any, timeo
 	var params map[string]any
 	payloadBytes, _ := json.Marshal(payload)
 	_ = json.Unmarshal(payloadBytes, &params)
-	res.Execution = protocol.Interpret(&protocol.Request{Envelope: protocol.Envelope{ID: wire.ID}, Action: action, Payload: params}, &wire, false)
+	res.Execution = interpretDaemonExecution(action, params, &wire)
 	res.Raw = append(json.RawMessage(nil), respBody...)
 	res.Error = wire.Error
 	// Internal composite steps retain invocation semantics so their existing independent
@@ -1004,7 +1004,7 @@ func postAction(cfg *appConfig, action, window string, payload any, timeout time
 	pb, _ := json.Marshal(payload)
 	_ = json.Unmarshal(pb, &params)
 	if json.Unmarshal(adapted, &wire) == nil && json.Unmarshal(adapted, &raw) == nil && raw != nil {
-		wire.Execution = protocol.Interpret(&protocol.Request{Envelope: protocol.Envelope{ID: wire.ID}, Action: action, Payload: params}, &wire, false)
+		wire.Execution = interpretDaemonExecution(action, params, &wire)
 		raw["execution"], _ = json.Marshal(wire.Execution)
 		return json.Marshal(raw)
 	}
@@ -1134,4 +1134,17 @@ func serviceName(body []byte) string {
 		return ""
 	}
 	return payload.Service
+}
+
+// The daemon assigns request IDs. Preserve its canonical attribution when a
+// foreign connector envelope is forwarded as evidence; never reassign it here.
+func interpretDaemonExecution(action string, payload map[string]any, resp *protocol.Response) *protocol.Execution {
+	req := protocol.Request{Envelope: protocol.Envelope{ID: resp.ID}, Action: action, Payload: payload}
+	if e := resp.Execution; e != nil {
+		req.ID = e.RequestID
+		req.OperationID = e.OperationID
+		req.ParentOperationID = e.ParentOperationID
+		req.ExpectedTarget = e.ExpectedTarget
+	}
+	return protocol.Interpret(&req, resp, false)
 }

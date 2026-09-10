@@ -677,5 +677,128 @@
       "scripts/generate-execution-mcp.cjs",
       "skills/easyeda-agent/references/actions.md"
     ]
+  },
+  "stage_a_closure_repair_01": {
+    "baseline": "a1f41bbb64974c7ff26738d4f2471d90e0243b0f",
+    "candidate": "commit containing this record",
+    "status": "STAGE A EXECUTION CONTRACT CLOSED CANDIDATE",
+    "qualification": "OFFLINE_ONLY",
+    "fixed_corpus": 155,
+    "preserved_fixed_corpus": 151,
+    "properties": {
+      "original": {
+        "cases": 4096,
+        "seed": "0x53a3c0de"
+      },
+      "independent_oracle": {
+        "cases": 3294,
+        "seeds": [
+          "0x53a3c0de",
+          "0x14a4e001",
+          "0x76c0ffee"
+        ]
+      },
+      "preview_closure": 144,
+      "closure_finite": {
+        "cases": 450,
+        "envelope": 12,
+        "forbidden_tuple": 282,
+        "atomic_downgrade": 4,
+        "fast_complete": 1,
+        "catalog_projection": 151
+      }
+    },
+    "checks": [
+      {
+        "name": "Go full",
+        "command": "go test -json -count=1 ./...",
+        "result": "3254 test/subtest PASS; four known Windows baseline failures",
+        "log": ".easyeda/closure01-go-final.jsonl",
+        "sha256": "8aaeb097163beda65e9c60d57109a290853c292096427e0a60fd71a6b66df1d0"
+      },
+      {
+        "name": "Go isolated baseline",
+        "command": "go test -json -count=1 ./... -run four_baseline_tests (cwd .easyeda/closure01-baseline)",
+        "result": "same four failures reproduced",
+        "log": ".easyeda/closure01-baseline-tests.jsonl",
+        "sha256": "5acc5359cb6eaeb1adcc6504fd2d4ccd56771b77430b1a6999ded3acc5ec5ed3"
+      },
+      {
+        "name": "Go excluding confirmed baseline",
+        "command": "go test -json -count=1 ./... -skip four_baseline_tests",
+        "result": "11 test packages PASS; 3250 test/subtest PASS",
+        "log": ".easyeda/closure01-go-filtered.jsonl",
+        "sha256": "9af9adfa671d3d52fae4c8ee74040684bbf4171ced1a04d301c36dd87cd5c2c3"
+      },
+      {
+        "name": "Connector",
+        "command": "npm --prefix extension test",
+        "result": "505 PASS; 0 FAIL",
+        "log": ".easyeda/closure01-connector-final.log",
+        "sha256": "cf1dfd946396649da79a36c1826a1c083d2fc9a461a6b82fcfb762c04bb55555"
+      },
+      {
+        "name": "MCP",
+        "command": "EASYEDA_BIN=.easyeda/closure01-easyeda.exe npm --prefix mcp test",
+        "result": "196 PASS; 0 FAIL; 1 Host SKIP",
+        "log": ".easyeda/closure01-mcp-final.log",
+        "sha256": "e4974550c6efcc6a047a720adeebc864d586c2d0dd33ceb731e71c85e7691cfc"
+      },
+      {
+        "name": "TypeScript/generated/Skill/diff",
+        "command": "npm --prefix extension run typecheck; node scripts/generate-execution-mcp.cjs --check; python scripts/pack-skill.py --check; git diff --check",
+        "result": "PASS; 58 Skill files",
+        "log": ".easyeda/closure01-checks.log",
+        "sha256": "2d05e0c8daac7274c72436e52d3e149dfb065618e903b9d2913182b1023ed1ed"
+      }
+    ],
+    "windows_baseline_failures": [
+      "TestStripArtifactNesting",
+      "TestResolveEnrichScriptPriority",
+      "TestResolveEnrichScriptNotFoundListsProbedPaths",
+      "TestUpdateCLIReplacesBinaryAndVerifiesChecksum"
+    ],
+    "baseline_archive_sha256": "b659f32c8fb308f909a52eb016c77cd89d4fb2d4b4c293d49b4e3e74003d9034",
+    "invariants": {
+      "idempotence": "PASS",
+      "cross_language_parity": "PASS",
+      "invalid_missing_conflict_fail_closed": "PASS",
+      "evidence_dominance": "PASS",
+      "no_write_positive_proof": "PASS",
+      "complete_contract_coverage": "PASS",
+      "uncertain_monotonicity": "PASS",
+      "atomic_derivation": "PASS",
+      "canonical_consumers": "PASS",
+      "envelope_attribution": "PASS",
+      "prior_tuple_consistency": "PASS"
+    },
+    "all_actions_excluded": 151,
+    "evidence_adapters": 30,
+    "host_mutation": false,
+    "g474_modified": false,
+    "push_pr_tag": false,
+    "known_stage_a_blockers": [],
+    "changed_files": [
+      "docs/STAGE_A_CLOSURE_REPAIR_01_RESULTS.md",
+      "docs/STAGE_A_TEST_RESULTS.json",
+      "extension/src/execution-closure.test.ts",
+      "extension/src/execution.ts",
+      "extension/src/fast-path.test.ts",
+      "internal/app/cmd_apply.go",
+      "internal/app/dispatch.go",
+      "internal/app/execution_test.go",
+      "internal/daemon/execution_test.go",
+      "internal/protocol/execution_closure_test.go",
+      "internal/protocol/execution_evidence.go",
+      "internal/protocol/execution_properties_test.go",
+      "internal/protocol/execution_reducer.go",
+      "internal/protocol/testdata/execution.json",
+      "mcp/src/authoring-result.mjs",
+      "mcp/src/execution.generated.mjs",
+      "mcp/test/execution-closure.test.mjs",
+      "mcp/test/execution.test.mjs",
+      "scripts/execution-closure-properties.cjs",
+      "skills/easyeda-agent/references/actions.md"
+    ]
   }
 }

@@ -1,8 +1,8 @@
 // Generated from extension/src/execution.ts and the Go ActionSpec catalog. Do not edit.
 const contracts = {
     "board.copy": {
-        "version": "execution.v1",
-        "hash": "b51afd96180dc8f0de2c9ba8cd9b6758b4dd86375c81c4a358ab3e616cbb03d6",
+        "version": "execution.v1.1",
+        "hash": "c4719db2f124fe5e3f6845571001b92c96cd3947e624d3f3548c251534041bf4",
         "executor": "CONNECTOR",
         "effects": [
             "PROJECT_TOPOLOGY"
@@ -30,8 +30,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "board.create": {
-        "version": "execution.v1",
-        "hash": "5cf0d0e26e2dba24266c477385298f1a94efbdecf873b52ccc8a408aa299ad31",
+        "version": "execution.v1.1",
+        "hash": "cb553ea1b925b0fcf6da4d31ae8aced6dd13341f28885e78a0ae6fab334709f9",
         "executor": "CONNECTOR",
         "effects": [
             "PROJECT_TOPOLOGY"
@@ -60,8 +60,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "board.current": {
-        "version": "execution.v1",
-        "hash": "d24736b797891b50130b66e488b510bf8cb33745e648a85e14087730d71f1838",
+        "version": "execution.v1.1",
+        "hash": "c6c3cb2c11737c535ede9b96a8c23fdb78a8503694a9a0d7d9404b4b701e142d",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "PROJECT",
@@ -83,8 +83,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "board.delete": {
-        "version": "execution.v1",
-        "hash": "7d4ea75e131f6d71e9d3e2acfae4d5721284b976d0086b3d93fd551bbdcfe554",
+        "version": "execution.v1.1",
+        "hash": "affbb07d67946154cf71a35bf57fd4b3598c8609f2bc3a9081b20939fb7d8189",
         "executor": "CONNECTOR",
         "effects": [
             "PROJECT_TOPOLOGY"
@@ -110,8 +110,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "board.list": {
-        "version": "execution.v1",
-        "hash": "5af88e7f3926973963955e0d263294db07658a0c4d4a176aa94a70cb9498435b",
+        "version": "execution.v1.1",
+        "hash": "844303821e93b1e80faec12ea06fe9c11ba50be104afd75ae72e7a9ade3c58c5",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "PROJECT",
@@ -133,8 +133,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "board.new_pcb": {
-        "version": "execution.v1",
-        "hash": "5c3d1f95e9b61eba6ece260ced6bcab1fafe385e308735ad3694da7cd824c047",
+        "version": "execution.v1.1",
+        "hash": "e9aa11abb1e1cc2a675cc937f563b35567d80d8d98258f79609ae395c85f5801",
         "executor": "CONNECTOR",
         "effects": [
             "PROJECT_TOPOLOGY"
@@ -164,8 +164,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "board.rebind": {
-        "version": "execution.v1",
-        "hash": "18ccccef546f1295a5c0a317cd358fe06fbdbe0d0eaecddc5e4e8aeac1e06ced",
+        "version": "execution.v1.1",
+        "hash": "214f3cc54e4f971e1f4f7eff9321338477d5f8346ad3e4de92dd6f4589264958",
         "executor": "CONNECTOR",
         "effects": [
             "PROJECT_TOPOLOGY"
@@ -196,8 +196,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "board.rename": {
-        "version": "execution.v1",
-        "hash": "caa018b2bafa3e3d2793e420d11408112d0f92306d5683e0348976895ea1f788",
+        "version": "execution.v1.1",
+        "hash": "d843a3516afe921ff7820ebde5d906e89e98f3230b185d739857d60501ebc51b",
         "executor": "CONNECTOR",
         "effects": [
             "PROJECT_TOPOLOGY"
@@ -224,8 +224,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "board.snapshot_compact": {
-        "version": "execution.v1",
-        "hash": "08a95133cbf902af52429c9f228d64390a9daf7374aa8dacf76e9c40816e4b61",
+        "version": "execution.v1.1",
+        "hash": "e140602896dbbf9edb486ac09d5af2219f3fe839bbe2d61c9fd827841636bc42",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -259,8 +259,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "debug.exec_js": {
-        "version": "execution.v1",
-        "hash": "2d9018259d6e63982b3f993c26111a8eeca336206ae61bde7056274b70c9e429",
+        "version": "execution.v1.1",
+        "hash": "8633e3c3401926ba03037f21469afe55861eb5052400b7b1f8745f4a7f220238",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT",
@@ -297,8 +297,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "document.current": {
-        "version": "execution.v1",
-        "hash": "4d5d51a8a6083043623957f040ea9e73990e2c232f91f6d5e8a9e211f81b4020",
+        "version": "execution.v1.1",
+        "hash": "f828b7757fc7289a07ae0238e9529e32b54781ab915eb717be00c2b6d69875b4",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -325,8 +325,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "document.open": {
-        "version": "execution.v1",
-        "hash": "870a2feb1d4839948ca041c66b7381c19ee5e959623e7841be85c42742eb05f4",
+        "version": "execution.v1.1",
+        "hash": "67a19e621d922e27503251722f107bd77b8500e3e62ef99b9b693e4f6731d28b",
         "executor": "CONNECTOR",
         "effects": [
             "NAVIGATION_SELECTION"
@@ -357,8 +357,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.device.create": {
-        "version": "execution.v1",
-        "hash": "505d3887a12620bc34387b9623e4e3108bad5f9d25af733498b737afe8575d29",
+        "version": "execution.v1.1",
+        "hash": "64ac70e9f9cd06efb82294009d7525b7294d15897468a845ae777dab6814ec41",
         "executor": "CONNECTOR",
         "effects": [
             "LIBRARY_ASSET"
@@ -391,8 +391,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.device.delete": {
-        "version": "execution.v1",
-        "hash": "e04d6e3f15024ea87044c5953be6fc4509d7f60a17f9e067ca0106849063bdaf",
+        "version": "execution.v1.1",
+        "hash": "767e40845723c86feff8a816899ba11cf93deabc506cf1438e3821b79c3af30f",
         "executor": "CONNECTOR",
         "effects": [
             "LIBRARY_ASSET"
@@ -420,8 +420,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.device.get": {
-        "version": "execution.v1",
-        "hash": "b11ec4012343aae5869bcb5587aaa273b785f50593eff5e9f89edfff19eeeb50",
+        "version": "execution.v1.1",
+        "hash": "456d5b729b16d73d1707b42ee346778d7769945be857996b44c2bb4b684aa67a",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "LIBRARY",
@@ -446,8 +446,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.device.set_model3d": {
-        "version": "execution.v1",
-        "hash": "50032fa767a0d9de062eb13fd4954cbfd4cf617f62e1cf777f0f7eb2ca9d440c",
+        "version": "execution.v1.1",
+        "hash": "8106c924c6dacef3c12c338dc2f7118992bf55e79ab7f7fbfbd6d854049a031c",
         "executor": "CONNECTOR",
         "effects": [
             "LIBRARY_ASSET"
@@ -476,8 +476,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.footprint.build": {
-        "version": "execution.v1",
-        "hash": "2b1f294210be5bc74a03dd7096786dd556862bc9079b5ee33c687b81433d5b6b",
+        "version": "execution.v1.1",
+        "hash": "e2fb058237d099f102ddee2e1990050450d9159adb63dc2fd0438461ea663117",
         "executor": "CONNECTOR",
         "effects": [
             "LIBRARY_ASSET"
@@ -506,8 +506,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.footprint.copy": {
-        "version": "execution.v1",
-        "hash": "fc3873956c8f9d87d736f5f702420fbfe64b216426c819511ef71b1d3a17322b",
+        "version": "execution.v1.1",
+        "hash": "e2c256c70e0a664731773f64fae29bba9a575049efbe6c7afe93d2e3a811c61c",
         "executor": "CONNECTOR",
         "effects": [
             "LIBRARY_ASSET"
@@ -539,8 +539,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.footprint.create": {
-        "version": "execution.v1",
-        "hash": "0ba422125a43bd9df614f5842cce95149d5e181bacc57c649d18dbdce2dc5517",
+        "version": "execution.v1.1",
+        "hash": "3804fc3ced1c2aa3ac6b61bbb0582b92ed2d28be546c896d5a0bef92df1996a1",
         "executor": "CONNECTOR",
         "effects": [
             "LIBRARY_ASSET"
@@ -572,8 +572,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.footprint.delete": {
-        "version": "execution.v1",
-        "hash": "9d66be7bbf625fc860bdf11f9c884066867129057830011ec151f85a356bccc0",
+        "version": "execution.v1.1",
+        "hash": "747f88ccbc7f30fe9eda756ecd1d90911b9b2e0244e76aa875c4189e634acf3a",
         "executor": "CONNECTOR",
         "effects": [
             "LIBRARY_ASSET"
@@ -601,8 +601,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.footprint.get": {
-        "version": "execution.v1",
-        "hash": "9fa2abeb4c069bd8cc49fa0606af49959ffa389d2ff7072e38df7d2e653feee0",
+        "version": "execution.v1.1",
+        "hash": "ba8ed6d2484ed755128582d74cdb031d8f7d932cba1cb8cadb694e1fa4188f2b",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "LIBRARY",
@@ -627,8 +627,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.list": {
-        "version": "execution.v1",
-        "hash": "b71c97c701e570e35ff4688261a545b6f5015145010aac3147691699fbecedf2",
+        "version": "execution.v1.1",
+        "hash": "a24ee11f94c7d45515e23ca749aab8985253c731d853c4653f537dcb926e85b1",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "LIBRARY",
@@ -650,8 +650,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.model3d.copy": {
-        "version": "execution.v1",
-        "hash": "8938fedb1d30ed8ade50cb755a50bfa85150a73b147c524449372f5c1101e84b",
+        "version": "execution.v1.1",
+        "hash": "e6beeb046f8e2f2fd4c4e65efab0276e116d4ee5814c1a9dc55341329f00449f",
         "executor": "CONNECTOR",
         "effects": [
             "LIBRARY_ASSET"
@@ -681,8 +681,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.model3d.create": {
-        "version": "execution.v1",
-        "hash": "739fd21d1154ff5b3717adde31c772f096f2d74f46d08d3ee91f5c9e1145889c",
+        "version": "execution.v1.1",
+        "hash": "8e6ac41a44379e66ee3adbeadab366a55e4076cd162d3490cffd8bee5a904543",
         "executor": "CONNECTOR",
         "effects": [
             "LIBRARY_ASSET"
@@ -717,8 +717,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.model3d.delete": {
-        "version": "execution.v1",
-        "hash": "9268bf1eb1c02db55ac84a4e52e8a130c95da53c4b600c3c6b069603db523345",
+        "version": "execution.v1.1",
+        "hash": "572c411dc9919ec370604dace8e1374628f8202773b002ab5a52e7a3209c2d13",
         "executor": "CONNECTOR",
         "effects": [
             "LIBRARY_ASSET"
@@ -746,8 +746,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.model3d.get": {
-        "version": "execution.v1",
-        "hash": "f7492b7bdbe4b302dca0047ffed4b6cdc606037e7a204d5519871db4ff45d6c2",
+        "version": "execution.v1.1",
+        "hash": "3fb260f8dec4458a6278d636bdc2ca51d257aae94c9bc86c661e493d8a1a3606",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "LIBRARY",
@@ -772,8 +772,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.model3d.search": {
-        "version": "execution.v1",
-        "hash": "16bc5952baaa14a77b62f767330d1609ee5a2b1aa095967c6fbe1e92f4bc79d0",
+        "version": "execution.v1.1",
+        "hash": "f6879e4fbad0e01b4c05ee3fce658d473591bbb35ec180e76e5f707699295cec",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "LIBRARY",
@@ -800,8 +800,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.symbol.build": {
-        "version": "execution.v1",
-        "hash": "b21ce57fdc740886f3d1ea7f023d8966a87277e2a66f61b9b19445972c77f003",
+        "version": "execution.v1.1",
+        "hash": "3e66dba6632668463615f05728a1ecb7011838c34820dcb6b0fb955556bee1b5",
         "executor": "CONNECTOR",
         "effects": [
             "LIBRARY_ASSET"
@@ -831,8 +831,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.symbol.create": {
-        "version": "execution.v1",
-        "hash": "50e1808f9d4318cf518e7e739e3b4a7fd3645240a0d5c1c974aebb60931010b4",
+        "version": "execution.v1.1",
+        "hash": "3fbb8b1230af34ac441d3bf5c1599bec0040536aa1cb7008ee409cb15739f400",
         "executor": "CONNECTOR",
         "effects": [
             "LIBRARY_ASSET"
@@ -865,8 +865,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.symbol.delete": {
-        "version": "execution.v1",
-        "hash": "8ac078069f970be33456a1d08ba65f457cb2660f5157c7d1418a1e5e75edd8e2",
+        "version": "execution.v1.1",
+        "hash": "6b25a01c213d4db2f3bb9996e75fc21b403a846a583796d64278f213701942c1",
         "executor": "CONNECTOR",
         "effects": [
             "LIBRARY_ASSET"
@@ -894,8 +894,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "library.symbol.get": {
-        "version": "execution.v1",
-        "hash": "5679385fd9d081a3462033b7f8e5cf13fb6789586f262ed0f191395ebbb74949",
+        "version": "execution.v1.1",
+        "hash": "5efe45967e54f93a93c30b3939baff5217535d44baf284fdf6f390ff4a31ebbf",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "LIBRARY",
@@ -920,8 +920,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.add_component": {
-        "version": "execution.v1",
-        "hash": "f0da92893e21244faa373e4878283aced77d87eacebd6c7f1594dc8888a5a14d",
+        "version": "execution.v1.1",
+        "hash": "dca260c636c2c4ca9c24bc024b60c7f39182ca4706bede89765f25a80d5706bd",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -964,8 +964,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.align": {
-        "version": "execution.v1",
-        "hash": "e76c7eced49dc60b66d98074d442aa2461434977b628582d3461b239bedc9bcb",
+        "version": "execution.v1.1",
+        "hash": "2586bdf44da06ca39940d2025f0c8217402aad36a0d4c20dc322246ed35040af",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -999,8 +999,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.beautify": {
-        "version": "execution.v1",
-        "hash": "1e0d69c478940308ea93026a6d946d74b8748082639e00ac9378028c3c192309",
+        "version": "execution.v1.1",
+        "hash": "2ca5d34b6db034a63ccc43845bf3b7e59a788e1ac01998f83639994c5f7b8105",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1045,8 +1045,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.board.info": {
-        "version": "execution.v1",
-        "hash": "b63d37cf834699ade9425a6bd32d255d88ccf61a864806e4ac74b1eb1213f449",
+        "version": "execution.v1.1",
+        "hash": "b9572bc9a920a4f3f44160e6f0f7d4616d8dcd64a25aaccbda03c23b96832d31",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -1073,8 +1073,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.clear_routing": {
-        "version": "execution.v1",
-        "hash": "634f761f17eeb93d8a67d26058875192beae03485fd370b8a143fbf0ee7de927",
+        "version": "execution.v1.1",
+        "hash": "24328d0d550df3f2e636c75e67592434dc88e96398a704b5d456e48787056274",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1105,8 +1105,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.component.attrs_backfill": {
-        "version": "execution.v1",
-        "hash": "e34235ae5545f91b56210db42bf37fedb45fece66530552d748766f69ecb61b7",
+        "version": "execution.v1.1",
+        "hash": "4818cf8cd2cee211f8dd94ec4dffda8f1a39c631d8e1d59121e95ca8768707ff",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1139,8 +1139,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.component.delete": {
-        "version": "execution.v1",
-        "hash": "5fde4c610fc479c351d904618a392bdd4cd0505c058b69d34beaa6c1497e1cc2",
+        "version": "execution.v1.1",
+        "hash": "da8d1ea5049bc11fc42555d26a54239c9ead9bf9743dde326702bf2833375206",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1173,8 +1173,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.component.lock": {
-        "version": "execution.v1",
-        "hash": "8b260afb7b30a4d07c02ffcb121428a463ebdc2b683e0320e4c962f86e4f0612",
+        "version": "execution.v1.1",
+        "hash": "937247074ccaa0638f1806d7dfe667c82269192b9ff4a602ae0f4155aa1d3200",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1208,8 +1208,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.component.modify": {
-        "version": "execution.v1",
-        "hash": "d346a09f4476a8b726261389f608506443ee6873681bef0eb379c50f8cb7fa19",
+        "version": "execution.v1.1",
+        "hash": "a1e3146ea6b1625d0a7a1cd45dd2616623ff6f63888b027c6dcf48d086e94509",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1243,8 +1243,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.components.arrange": {
-        "version": "execution.v1",
-        "hash": "aa88ecbb41db076f867cf24a1f4a758b237f0d5e0c58705020cc7eeec692888b",
+        "version": "execution.v1.1",
+        "hash": "c40b1966d4c85a38f5e6a7e0b4509081b77a9755ea7f00dca868026aa8c9a193",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1281,8 +1281,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.components.list": {
-        "version": "execution.v1",
-        "hash": "4de3d32c103b89ed09a31557fdecebc49908e09481ba10eeafa52470aaca1cd0",
+        "version": "execution.v1.1",
+        "hash": "b80f790cb2788965ea0960d46220b54c54167acfb16bff0aa29fe2f94914ba0b",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -1313,8 +1313,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.components.move": {
-        "version": "execution.v1",
-        "hash": "1252d9ee701d65572c43c88bb6b3243c2c9e41970096116da3bfe4a63495207c",
+        "version": "execution.v1.1",
+        "hash": "3fbe3aed4bc972c98cc2d73f5d9524fe831b7c68dd494762be672780ed68cf74",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1349,8 +1349,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.constraint.list": {
-        "version": "execution.v1",
-        "hash": "ff74528a9b147f9b0b97d34d49b8da448fd120f5a4018099fe5f07d50d96abe6",
+        "version": "execution.v1.1",
+        "hash": "d2a012c291d5f81430302799669eb405a46b24ebef2bb24f78a882bb854e85c4",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -1377,8 +1377,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.differential_pair.create": {
-        "version": "execution.v1",
-        "hash": "e47736f1f04186154361f7d56e51be19e80382ac091d1c5f39931e191df1b70f",
+        "version": "execution.v1.1",
+        "hash": "a0ba15604a8571045ff2faf271a0386cc94f07bb7268324e8671e92960c33de8",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1414,8 +1414,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.differential_pair.delete": {
-        "version": "execution.v1",
-        "hash": "f8d6478d100ea1f2be15b23f8c67f0b45c683e8d35e65216423410c99fc21470",
+        "version": "execution.v1.1",
+        "hash": "40214c338fbd7599ca3c29e6809fc45f9107c80c063aea73fc45b86ed90fd5ad",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1448,8 +1448,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.differential_pair.rename": {
-        "version": "execution.v1",
-        "hash": "cd0ccaa6d613b92c4d280bcff691801cb0416f56555279220dfdb9675e60b52a",
+        "version": "execution.v1.1",
+        "hash": "a881235d4a048c5f1742cfc90a576113ee1fe78ff343bc5935be8d62b7a23f77",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1483,8 +1483,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.distribute": {
-        "version": "execution.v1",
-        "hash": "80147091525a46a8f2938e730900e080cc3dae693d82f717ebc328f58bab7a32",
+        "version": "execution.v1.1",
+        "hash": "0b179f021768ceec45c6debb3e07f554b7240f178983076a55a1a22afcd2752d",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1518,8 +1518,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.documents.list": {
-        "version": "execution.v1",
-        "hash": "d85e8b6c45c359bbc5ef8156aef8f7be7ee39a9af79cbe95672ac1ca87d5282d",
+        "version": "execution.v1.1",
+        "hash": "8053f3c3e6870a11157ec0e3ecc91e61b4e9b48d1e41fc7947a4190f6f367564",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -1546,8 +1546,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.drc.check": {
-        "version": "execution.v1",
-        "hash": "07e0035da929683182819c7b190d63fa85a9a846a35e7534bbc6a7336fcbf066",
+        "version": "execution.v1.1",
+        "hash": "4c7f1e5824797b6342c4d831f8e8c05cbb7427088b46d1448ce9eca0fcb17be0",
         "executor": "CONNECTOR",
         "effects": [
             "NATIVE_RECOMPUTE"
@@ -1578,8 +1578,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.drc.compare": {
-        "version": "execution.v1",
-        "hash": "b987ebfd0dc3234b53adb3e9566b383316e4c79f8838bf34350b98837017e7fc",
+        "version": "execution.v1.1",
+        "hash": "d5b1d80c1e3416a5c470fd7b1d551129b21e2fb2149a63fcb2d41576fcb6650a",
         "executor": "CLI_COMPOSITE",
         "effects": [
             "NATIVE_RECOMPUTE",
@@ -1617,8 +1617,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.drc.rules": {
-        "version": "execution.v1",
-        "hash": "d43d735373405661978f55456e7ab08d612fa1a6c5a7fd2e02924c63bd62ced4",
+        "version": "execution.v1.1",
+        "hash": "71eb6e065950aa3a20a2cf22b38eec3ac5a03bbf63b8b4748411c4644bf629b4",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -1645,8 +1645,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.equal_length_group.add_nets": {
-        "version": "execution.v1",
-        "hash": "93d5a108e927f878f48af59c133fb886b82fe4e6919142cf84fb085335c0b933",
+        "version": "execution.v1.1",
+        "hash": "3fd8cf314acdc71e2f41d220c6e64fa6dda7af74aab6fe34a419234ed68ffd45",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1680,8 +1680,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.equal_length_group.create": {
-        "version": "execution.v1",
-        "hash": "ebf3e4f6ca1f09e95f4e716108801ebf216bba0a2bb26f2e31d794efd3a635b0",
+        "version": "execution.v1.1",
+        "hash": "0108de82c95e61defc84be4cf3dda6ac18b14696bb82f7b7f3f9a9a5d8a28299",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1716,8 +1716,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.equal_length_group.delete": {
-        "version": "execution.v1",
-        "hash": "6c8977ec9870f1b04f891e0fc71f8ed610c16eca8bf8ca0f47a3bf1851e8fe27",
+        "version": "execution.v1.1",
+        "hash": "3c1d7d202d6f5a534c8cd236bb9cb3152e753c0864e3390e50b03ade4e7c785f",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1750,8 +1750,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.export.dsn": {
-        "version": "execution.v1",
-        "hash": "9abdc4df0d72aadb11cc0b965b2da1335b5fe5648a53789e4415fec3dd58783d",
+        "version": "execution.v1.1",
+        "hash": "8c01b6639ffbf8f6a08a78d5d781e61098d4ff2c452c8820065b2b76cc2f2df6",
         "executor": "CONNECTOR",
         "effects": [
             "ARTIFACT_DELIVERY"
@@ -1783,8 +1783,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.fill.create": {
-        "version": "execution.v1",
-        "hash": "b9e795bd6cb9d4d9284472bba6ac2b3eb49fb0b30f7ea9e6f6d6ba0146c3269e",
+        "version": "execution.v1.1",
+        "hash": "4f96dfd45ddedf8e4e583b7ab3ed658ceb883f707cafdfcae6babefe51274fb1",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1823,8 +1823,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.fill.delete": {
-        "version": "execution.v1",
-        "hash": "882c7cb6e7f442eb55682177c2d18fc60639d834fd564fea7ee64f0bec552a9b",
+        "version": "execution.v1.1",
+        "hash": "aa75b9e41d6f7e0393c1d7fa5db066395abde4c364238189e2ab810ebcb4cdf0",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1857,8 +1857,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.fill.list": {
-        "version": "execution.v1",
-        "hash": "10505b2dd5a02f5fa37d0137e4210ddaeb47652c40aa0871af1304d9d743c6b1",
+        "version": "execution.v1.1",
+        "hash": "0791b8878e66392948e8bc3f4c8f486b8a2b4fe90be72978d4f4f54cc7295cbf",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -1889,8 +1889,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.grid_snap": {
-        "version": "execution.v1",
-        "hash": "5f544409a5ad0091de3adf437c7254b64758db046a0ffbcebfd9b41621141919",
+        "version": "execution.v1.1",
+        "hash": "72f67257b11bf905ac45bcdad6919191ae6387cafa9026c312d25700883d9c04",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1924,8 +1924,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.import_autoroute": {
-        "version": "execution.v1",
-        "hash": "0dc988a7d1ae008e17c0b90a5f11029a6fa4e00576e6e985adbd30a44d2c6312",
+        "version": "execution.v1.1",
+        "hash": "a9e07fceb287241953ae184b72199f882bbcda6dd0b2cc3675a9e1ad43951b3a",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1958,8 +1958,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.import_changes": {
-        "version": "execution.v1",
-        "hash": "2c46f222bfb9643360cfbdfaad20f10558805502537224eba9459c9793cf29e3",
+        "version": "execution.v1.1",
+        "hash": "b1eb65752fea287254846f7e28af4c32fdb582d4f9214f0535c50c33feaa3fee",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -1995,8 +1995,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.layers.list": {
-        "version": "execution.v1",
-        "hash": "ade549511f6a459bf5018fad5d235d8eb42a59aed858ae02d3b364f7ea19d804",
+        "version": "execution.v1.1",
+        "hash": "39c1c1cb2a66b880624e9df87b49dc1d7333afd05d4fb9c9fd387276c1a1f589",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -2023,8 +2023,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.layers.set_current": {
-        "version": "execution.v1",
-        "hash": "1b264171be5d0ad5ab164cca35b30d644f8b1b1ddbf856c2e0e68f9d85b9ca39",
+        "version": "execution.v1.1",
+        "hash": "3e16e15f52905e320a371635420cb9855079e75cc1c9686183bef8a18ef2d726",
         "executor": "CONNECTOR",
         "effects": [
             "NAVIGATION_SELECTION"
@@ -2057,8 +2057,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.layers.visibility": {
-        "version": "execution.v1",
-        "hash": "4c74d68334145f42a85d1601695bdb02e457f83d88f835960932cba4559c2da8",
+        "version": "execution.v1.1",
+        "hash": "d7ded45291743aa53ef0450cd0e1c31153f9717e22e65b2986de7a7330cf44e4",
         "executor": "CONNECTOR",
         "effects": [
             "NAVIGATION_SELECTION"
@@ -2095,8 +2095,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.line.create": {
-        "version": "execution.v1",
-        "hash": "96978d78dc4f0ba7ad602e222c4bde429b1128bde9c6ba2871440630b53f16ce",
+        "version": "execution.v1.1",
+        "hash": "6f67d1d7226827f884d0a8cb2af844daee70287b5378729651a8a3a64f53665a",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -2135,8 +2135,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.line.list": {
-        "version": "execution.v1",
-        "hash": "e672d068f5f30e73c129df78cb802dc82f5dad8c3f7a51649c2c5b809ee3100b",
+        "version": "execution.v1.1",
+        "hash": "9dc494074f446465c93ed0fa5332611e6b4a8a6ee06b329957fa6cb0a28b00b6",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -2166,8 +2166,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.manufacturing.export": {
-        "version": "execution.v1",
-        "hash": "cd278f17dcd093d6b791acc934b526fb65d45792466f337aec0ae6ebaf9fb83a",
+        "version": "execution.v1.1",
+        "hash": "eb71e7a31843a1490fd46f06b9f1d5b1a76db874e085cde6e9d511347f50e52a",
         "executor": "CONNECTOR",
         "effects": [
             "ARTIFACT_DELIVERY"
@@ -2201,8 +2201,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.nets.list": {
-        "version": "execution.v1",
-        "hash": "5b9f1538fa85691349863d073326105b2dbf31681b4bd24bc9ab40eb7dec32e7",
+        "version": "execution.v1.1",
+        "hash": "60850af030615d8cffd5c8d6ce13076f95628328f8cbad5434932c68de3ee040",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -2229,8 +2229,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.outline.clear": {
-        "version": "execution.v1",
-        "hash": "e9907acf1ace00cd14e80f65995490ebcff3b25447662b14221757e1ea2bc297",
+        "version": "execution.v1.1",
+        "hash": "7e939362d792f39370477273c5549e0b740cf3d43bfb2df689a0d4f53393bec6",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -2261,8 +2261,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.outline.get": {
-        "version": "execution.v1",
-        "hash": "7dd7f451d2178bdf7ad60ab672600d8e2d01fff6d446e560f653ddef0db4a11a",
+        "version": "execution.v1.1",
+        "hash": "c3ce31ff63ed87f4ec0b804674fbc78d80f6f0809c3b41522b21f9d7b3e7ea4d",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -2289,8 +2289,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.outline.set": {
-        "version": "execution.v1",
-        "hash": "74b46dcc4ae811a068e7fda64afb99051388806f0714c2e148d7bc4d8597c16c",
+        "version": "execution.v1.1",
+        "hash": "6e4950567b1aa460706cab2bfba5e293a336b819a3a5a57a51d68ea1ad9a2659",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -2325,8 +2325,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.page.clear": {
-        "version": "execution.v1",
-        "hash": "5e51b321bcb6881c1a792879408ca646ed3e4879480d16d690828cb93d59bf2e",
+        "version": "execution.v1.1",
+        "hash": "fbad2809614c54593cc6e4a4f2d731fbee204d33816b581ba562b0c6c63a810c",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -2363,8 +2363,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.plane.refresh": {
-        "version": "execution.v1",
-        "hash": "c887790f0000b9e0181641176aaf01db203062cc23b1fa65ea2c87982ab89298",
+        "version": "execution.v1.1",
+        "hash": "4c2931a6ce2c58f43eb14fac1c0ff06ac4241c553a4f1d6deac218b3f3b320b4",
         "executor": "CLI_COMPOSITE",
         "effects": [
             "NATIVE_RECOMPUTE"
@@ -2404,8 +2404,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.pour.create": {
-        "version": "execution.v1",
-        "hash": "ab8a59a1a89b67751d986125e1ea1db6b8175270cf502a2407f5a427f8b7c1a4",
+        "version": "execution.v1.1",
+        "hash": "909554800e1d6e312b87ee57b71f3335bdbbd3de6ebf499ac224c98b35ae3905",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -2445,8 +2445,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.pour.delete": {
-        "version": "execution.v1",
-        "hash": "a4b142910b418bca46b7bdf34db3fd699ea09fb086ded39ec92a6774b1dd5ecf",
+        "version": "execution.v1.1",
+        "hash": "7bf32cb8db3a86c73f3cacec24abf7bd55eacf14bca4bc610c43b2722b0711ba",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -2479,8 +2479,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.pour.list": {
-        "version": "execution.v1",
-        "hash": "c28680a6e1aac21ef6b22354a587d80514b5b749b0ad7602998ed7cf78b800b8",
+        "version": "execution.v1.1",
+        "hash": "0b74efa595041f2e017c7e6d6e46775d0007af9ca87e424daf2a734cfd253b5f",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -2511,8 +2511,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.pour.rebuild": {
-        "version": "execution.v1",
-        "hash": "4e03bbd0c7da170e7a2113aa41895059301474b390fb5525d838148e83e1ed7e",
+        "version": "execution.v1.1",
+        "hash": "73ed363753c6743a8ed6fa75ccd0799d98d7478e3e74a2951b33cf2c8434411f",
         "executor": "CONNECTOR",
         "effects": [
             "NATIVE_RECOMPUTE"
@@ -2545,8 +2545,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.region.create": {
-        "version": "execution.v1",
-        "hash": "29b8f6406263a3e26a9fb81f50ecb5104abf131306c72d93ecc6ece49160e7e0",
+        "version": "execution.v1.1",
+        "hash": "4c28a6376a78f0d8e68cddbb78aab0681f3857bde734cba4f3f6a6b802485f61",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -2585,8 +2585,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.region.delete": {
-        "version": "execution.v1",
-        "hash": "7a13a269d98d366ee4f1e2a2f3c36d636c7c68a7ba1e384cdc358d80ab98a68f",
+        "version": "execution.v1.1",
+        "hash": "222fd98fbd254ca8526b41e9f7e4062dfb817937320fd8176c8983db52e05028",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -2619,8 +2619,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.region.list": {
-        "version": "execution.v1",
-        "hash": "da00bb3d2f5784b260d9fbf24c2d44724a0f719e038be1b951aed896c17ea1a9",
+        "version": "execution.v1.1",
+        "hash": "bea2ce225cebee3a5aff226f3d1b20e47c9fc736ec91bc6da09086cb8e2363d4",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -2649,8 +2649,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.report": {
-        "version": "execution.v1",
-        "hash": "c92cdb2cb6a5150c1813e0d799e97b1cf656f795c530a178109dd97c0d96f387",
+        "version": "execution.v1.1",
+        "hash": "931b5322de8680a7a41d56a1b2968473d51cc0c0b35c2b98f5f9356f90b1309e",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -2688,8 +2688,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.route.delete": {
-        "version": "execution.v1",
-        "hash": "da3e2b6b215ad560ea592f3fc81802bb7043eb58c0e5ea1668a58f6e72a0c113",
+        "version": "execution.v1.1",
+        "hash": "846fded8c2c1cd5b4fc15cba8182046f0c89d1deee715919f901b01becd9d3e0",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -2725,8 +2725,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.route.rip_up": {
-        "version": "execution.v1",
-        "hash": "389bb829ce402f64cef81a37848a5283668a221efe9827cd22e60952049583bd",
+        "version": "execution.v1.1",
+        "hash": "f84ce754e79f59bc54748b039c250c733ad2d6f3f1bca19e00f96a46c8f1cb95",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -2760,8 +2760,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.route.via_hop": {
-        "version": "execution.v1",
-        "hash": "04d6cc2ce71b9002f6ac6d91517c4b77e780078a0352908947cf3e74e94032d3",
+        "version": "execution.v1.1",
+        "hash": "36f0dd681b0656afea5be6ccd1efe5b2ff8beb6ff869700318e2947f05b95920",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -2807,8 +2807,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.routing_profile": {
-        "version": "execution.v1",
-        "hash": "b499671f72a1506dda45a6466a0dcaa82a526d3258243ea0ff7a9e77a2da2425",
+        "version": "execution.v1.1",
+        "hash": "bcd96319e949c0763682021f31e50048f0b45d1b628ffd48e8e30cac3fbc6302",
         "executor": "DAEMON",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -2843,8 +2843,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.save": {
-        "version": "execution.v1",
-        "hash": "4cef515c52232b5545ac24b87c6f4c3a21283a630d2ff97e1f864de6ed69a446",
+        "version": "execution.v1.1",
+        "hash": "e25dbe01b0c05cfc58ab9993356f52f29649c9b42ed9ef02896efc8229575d6b",
         "executor": "CONNECTOR",
         "effects": [
             "SAVE"
@@ -2873,8 +2873,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.silk.add": {
-        "version": "execution.v1",
-        "hash": "66b0d842248f5fd6a6674b27303a6e0c726a611659704d5133d0a1a111d63bf6",
+        "version": "execution.v1.1",
+        "hash": "f19047983d34f0244c835df614256722639934bd868f4373eaede933d958b873",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -2914,8 +2914,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.silk.align": {
-        "version": "execution.v1",
-        "hash": "26adb1264b9d38f984fc1b1410b0db64096b73f38c2a394eb60103e6aa1ca31c",
+        "version": "execution.v1.1",
+        "hash": "81a5f5169a7479621f67b0b4a71e0f73df357675e3d3a4f425ac83f0e4ecfef4",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -2952,8 +2952,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.silk.import_svg": {
-        "version": "execution.v1",
-        "hash": "906c4e1954c585367ac923f647f30b5bb913a9248142135dc51342a00ca5490a",
+        "version": "execution.v1.1",
+        "hash": "622448c61fda9a26b670673dc2dcc00366313e09ec96442d9de65a6bbd4cd6e5",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -2994,8 +2994,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.silk.label_pads": {
-        "version": "execution.v1",
-        "hash": "ac004e809d6c39908335602f16b12bedf57b6ab02fab47d94d2d14a3d46eb0be",
+        "version": "execution.v1.1",
+        "hash": "4bce7feb1037708a7e808d0b6fe8e34afb82cd8551ebe45aaa3bae13a88d60f6",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -3035,8 +3035,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.silk.list": {
-        "version": "execution.v1",
-        "hash": "cc831ac938150ee0b707a28b77b5784006800a6aea27e7a728dcfecbda19a8a5",
+        "version": "execution.v1.1",
+        "hash": "bd8d4b9b24ad1d6fee39ea90adc6fef23ba597b4a6996326bdeb11b9bdb67900",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -3063,8 +3063,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.silk.netnames": {
-        "version": "execution.v1",
-        "hash": "72d5a61c800e88a1da743b74fa76a92683ea5e4d9891c783c1be310f7b0732ab",
+        "version": "execution.v1.1",
+        "hash": "63b2b189650ae8ef11da5737edb871cbf4e83f7a8f3f1e3b5b46e358bf88d95a",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -3103,8 +3103,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.silk.set": {
-        "version": "execution.v1",
-        "hash": "dee666bb0a0e5dfb9cebb987483b70d9867799e714ab8ebf1d0ec320716a45ca",
+        "version": "execution.v1.1",
+        "hash": "f2aa3c0783168d996a3fd2fed43619ddc3c5d493ed92c37b41dd2bdfa747ecc9",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -3145,8 +3145,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.snapshot": {
-        "version": "execution.v1",
-        "hash": "7b9cd88ed2a95fedee6d3243b498d25b391d42ddebf67c7f72ea5e716029c445",
+        "version": "execution.v1.1",
+        "hash": "d124870efa62fed6cc4890d3ad44debbea34cb7b7e24337cd36c07e9a8bb265d",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -3177,8 +3177,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.stackup.set": {
-        "version": "execution.v1",
-        "hash": "167243e8fca4c7264d694e6235ad9e1324c524d3e78f7dff53c5e5a089845061",
+        "version": "execution.v1.1",
+        "hash": "516d159e1c6d97dc252ce55d84efe4e04b745d1c50258bcd3d55f32cf9f0da09",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -3212,8 +3212,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.track.lock": {
-        "version": "execution.v1",
-        "hash": "90f6a439f7db61cb1682f770bad1433846e70e0d7b305200522542dfa227f25c",
+        "version": "execution.v1.1",
+        "hash": "3be9faceb419b4f4eef499b5aa17833640035a5f0053b4d15ad866cf187f13a5",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -3248,8 +3248,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.via.create": {
-        "version": "execution.v1",
-        "hash": "793dd840bdfde239d19dfca41b137ff54d90fd28e2103e163d139c504bfb4220",
+        "version": "execution.v1.1",
+        "hash": "75167b88676190540b01bed7d97a315444264cd19511c0518ebbd2b7ec05d5f9",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -3286,8 +3286,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.via.list": {
-        "version": "execution.v1",
-        "hash": "a76a68b618bdf3fc9b12c25897c1719e68ed3760a2f3668dff9a2c579c03563e",
+        "version": "execution.v1.1",
+        "hash": "c5074d29d5b3a57a08c50c2d630abfa59de22cfcf5a765c2c5a0a952857692f7",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -3316,8 +3316,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "pcb.view.side": {
-        "version": "execution.v1",
-        "hash": "76e3c5b8bca3910e13cfecc0a30b7d5eee1fd12113ad1f92bb1099ed45731301",
+        "version": "execution.v1.1",
+        "hash": "a3e4fdf049998cdfb9ea11b111022f97a47afc44710d85db6de2188f4ab71baa",
         "executor": "CONNECTOR",
         "effects": [
             "NAVIGATION_SELECTION"
@@ -3351,8 +3351,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "project.create": {
-        "version": "execution.v1",
-        "hash": "d4f51e22de03a35e69feb2a066374ebb66d4a153d5efc2d2cd6c558bd4e3934f",
+        "version": "execution.v1.1",
+        "hash": "c733834edf18d7c83376a743ace59366f0e479721a2f23f48ea4e23687b271a4",
         "executor": "CONNECTOR",
         "effects": [
             "PROJECT_TOPOLOGY"
@@ -3384,8 +3384,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "project.current": {
-        "version": "execution.v1",
-        "hash": "8d9c24c7acec280d55046ea23674b16cb8d6127f5a9a9dc34b6b4ac4ee64eb31",
+        "version": "execution.v1.1",
+        "hash": "b5a2ba6149765687911c0b60d88c279c20c5cbedb715f8a055757b3448f18638",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "PROJECT",
@@ -3407,8 +3407,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "project.list": {
-        "version": "execution.v1",
-        "hash": "3d794d164a28b420206979c919ff415600f57f8e49f921c268c0925beb5f27a0",
+        "version": "execution.v1.1",
+        "hash": "51d073f496af98350cf424c3939be7853308515c6b2ca5152397ca0d81582ad8",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "PROJECT",
@@ -3434,8 +3434,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "project.open": {
-        "version": "execution.v1",
-        "hash": "79c62d457a370762975e03fd5de7974efbef7d16af29b471b0ec1ea371b61568",
+        "version": "execution.v1.1",
+        "hash": "2403051d21e8fef06f5dc6378453c064f26446ebbc0167ae8ad20a2835348d15",
         "executor": "CONNECTOR",
         "effects": [
             "NAVIGATION_SELECTION"
@@ -3472,8 +3472,8 @@ const contracts = {
             "delete_trace",
             "delete_via"
         ],
-        "version": "execution.v1",
-        "hash": "eb75d113a16a20af86ee8ded43242570a00c730507167b8f0c36926a1f34f7f9",
+        "version": "execution.v1.1",
+        "hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -3521,8 +3521,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "route.pair_plan": {
-        "version": "execution.v1",
-        "hash": "ab8f20fbe082330952f7a771c4e82d62b32f037f910dc5677a051deb5c8f4133",
+        "version": "execution.v1.1",
+        "hash": "bc890f7fe2ff6007893778a3fe1ed25ef0caae5a6d7b28729f6aaa572ede1c24",
         "executor": "DAEMON",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -3563,8 +3563,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "route.preflight": {
-        "version": "execution.v1",
-        "hash": "6e5b8b8de1152653d8a312dd7f906205ba14dc1d9b50c394e0b36085476325e6",
+        "version": "execution.v1.1",
+        "hash": "34a6a7de635e19b43cc0023132ee0735fa8dba61c42bdc54ce673887d70cdbce",
         "executor": "DAEMON",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -3602,8 +3602,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "route.tuning_plan": {
-        "version": "execution.v1",
-        "hash": "8203c6128117144bcd183fdf1b88b3f34c84f4813ada26b28be8d6c9d7fd2638",
+        "version": "execution.v1.1",
+        "hash": "7d208b4c543b74b18e4b1b0c28fa1bb835b2a8b5bd8dc507e6a2bd617dc55d83",
         "executor": "DAEMON",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -3646,8 +3646,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.bridgeCheck": {
-        "version": "execution.v1",
-        "hash": "bb29a5850705e0f825241535483bf048ffac6cbaeca1e3be933af8f4470d29fe",
+        "version": "execution.v1.1",
+        "hash": "c0908f9368d4cd651c5965295bd25f198dc7c00d9c7f5c2d85bd5e1e2ef80dea",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -3676,8 +3676,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.check": {
-        "version": "execution.v1",
-        "hash": "414f5279d1e1fac75b4008141f00ca76502e9a74b4ecb16c412b9821cddb3db8",
+        "version": "execution.v1.1",
+        "hash": "b15a8e20761ad87e5e8fafe62ef1f99eaa96435170594b5b2ad2e62a6152370f",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -3706,8 +3706,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.component.delete": {
-        "version": "execution.v1",
-        "hash": "18a2f428960be4cfa08661d70a6794f5844649b77caa48782dff5ee6efd9d09a",
+        "version": "execution.v1.1",
+        "hash": "46c2bb7877c64b4bd0a437c54b5a566fd6fc2b6da20bfe78412ac839ec80655f",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -3740,8 +3740,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.component.modify": {
-        "version": "execution.v1",
-        "hash": "10741fd69c53453db93d45e1d094948ba66d7614ce3a6a465c1042e5ec652426",
+        "version": "execution.v1.1",
+        "hash": "993ce893b69aea8a2007c2422bba09af255996256687dc15f475edd89874241c",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -3775,8 +3775,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.component.place": {
-        "version": "execution.v1",
-        "hash": "50639006c265e0dc8f04e4504de42fcd05ef7da6ff3cbdffd752583494695a56",
+        "version": "execution.v1.1",
+        "hash": "047e1e5cd12f28e71547025417ac5044b05aa203e9b2bbd66aa28de5e5fcb51f",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -3814,8 +3814,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.component.replace": {
-        "version": "execution.v1",
-        "hash": "37fd6b6022d7fdeba5444dd6bbe26d5bfd6072e376c557886b009daa172de4c2",
+        "version": "execution.v1.1",
+        "hash": "6090bed3e8f2cc7aae06cf7102016a8915bf4cf32db6e9c1088f9b591f66e1ec",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -3852,8 +3852,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.component.resolve_lcsc": {
-        "version": "execution.v1",
-        "hash": "09bf8a1aaf134d3de9f5a29c3be505484dcbec98147fab5d34c26d5c372e40e0",
+        "version": "execution.v1.1",
+        "hash": "0f58b2468e008d20f777dd6cac3f8b1a34d80d6abb17df50efd10fe1d66e4a03",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -3887,8 +3887,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.components.list": {
-        "version": "execution.v1",
-        "hash": "338880e6191e3f62c609f6e9113834d16d70c71bea5370b5e141fbbf4d85af36",
+        "version": "execution.v1.1",
+        "hash": "aab000106ac273befb61b4f2360defbf17f7cf125108d4c76f7279ec7fcd63ae",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -3921,8 +3921,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.create": {
-        "version": "execution.v1",
-        "hash": "cfda01dcf5f9c570cd5f1fb9b52410f49622976538697999d211488ae927fa56",
+        "version": "execution.v1.1",
+        "hash": "7dea59b02d3ebf3828b6635e75180fff018b162ed5ee22a1be3858853dfaaae8",
         "executor": "CONNECTOR",
         "effects": [
             "PROJECT_TOPOLOGY"
@@ -3953,8 +3953,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.drc.check": {
-        "version": "execution.v1",
-        "hash": "e8947e38a4f10e1924710e7a360dd262e0d754450606598aa96e877f325e17bb",
+        "version": "execution.v1.1",
+        "hash": "b5d20f31d07b2c4e236f7d3492ace53f5502b726c81f9fcc435ed7a727e5f23e",
         "executor": "CONNECTOR",
         "effects": [
             "NATIVE_RECOMPUTE"
@@ -3986,8 +3986,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.export.bom": {
-        "version": "execution.v1",
-        "hash": "b3c5dfe398ecbdf4722a97cb9dd3508ef5243efb83e45e3ed15f838b4066c4b4",
+        "version": "execution.v1.1",
+        "hash": "f19ddf514345e33f042cd6c57eb28865abccd0a39f2bcd7ccfbd2cbae497f3ed",
         "executor": "CONNECTOR",
         "effects": [
             "ARTIFACT_DELIVERY"
@@ -4020,8 +4020,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.export.image": {
-        "version": "execution.v1",
-        "hash": "fce522c5020e0ae6d9b8edaa9c9892d013fd12139e0443f5b6c6f5eae5da6f6d",
+        "version": "execution.v1.1",
+        "hash": "b0289a5912cac3152fe9d1e721c76a9e846576f81d4fc880317c7ac54ca79ab2",
         "executor": "CONNECTOR",
         "effects": [
             "ARTIFACT_DELIVERY"
@@ -4059,8 +4059,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.export.netlist": {
-        "version": "execution.v1",
-        "hash": "d1e38dcb49a41b411c926fe8b4e0586bc305b6e70cd293884e493101c89ed9db",
+        "version": "execution.v1.1",
+        "hash": "bd8de862e78aa57c9c16f2414dacc3f672ae9addb122d187df300d7b82d9a02a",
         "executor": "CONNECTOR",
         "effects": [
             "ARTIFACT_DELIVERY"
@@ -4091,8 +4091,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.group.move": {
-        "version": "execution.v1",
-        "hash": "85878ec6701ee4b8bd094a31e6ecc19ae60fcd9bb98a6139f9dda151fa84c267",
+        "version": "execution.v1.1",
+        "hash": "53024b52336ab2288e2af9f22b3bfd06ab49848e481defd15abbc2585fdea90e",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4127,8 +4127,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.library.get_by_lcsc": {
-        "version": "execution.v1",
-        "hash": "c4f08c1ab84302804572b702583ac1a035ffa854c0222e695b23f1e278ce1114",
+        "version": "execution.v1.1",
+        "hash": "c34217209148a06a4751ac166c8af6105e50f9fe864af66df23d4f6cbc6c8b48",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -4157,8 +4157,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.library.search": {
-        "version": "execution.v1",
-        "hash": "0a807630c1c67a9410447cd219f80e3b0ad3e73becc1461f09d30d663742f3f1",
+        "version": "execution.v1.1",
+        "hash": "6b3fca150505df67988509d37b5f39c5f0a70be5e24dd2aa0f5ce0446f22be76",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -4189,8 +4189,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.netflag.create": {
-        "version": "execution.v1",
-        "hash": "94a0a87db2f139ba5c000c701a4cd5f54fb37cd351effba20351caed3db5c698",
+        "version": "execution.v1.1",
+        "hash": "d098349cf9cefd9334249813399bc157b4dd518c9c2bb6e9a18b756c57f55062",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4227,8 +4227,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.page.clear": {
-        "version": "execution.v1",
-        "hash": "d969dae00722819b6a08ff809a1dc29749b9b94cc316db1bcef9ed5626dbdbe6",
+        "version": "execution.v1.1",
+        "hash": "087c9d9ff13968f6fcd0f84dbccc8df7234c9a53ad378733a240b58cb4633acb",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4262,8 +4262,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.page.create": {
-        "version": "execution.v1",
-        "hash": "cef4d890cce8f89219701921167f0d180ff391ac89612fef94ea38db4316bad7",
+        "version": "execution.v1.1",
+        "hash": "e783cfd8442c9e03072c842bea34403bb31f63f0cc20c45b5c1331b2c4067260",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4296,8 +4296,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.page.delete": {
-        "version": "execution.v1",
-        "hash": "6a5b6035273df702028b215491918ea1d9917b494b33fcd4cb17613401bd4a6f",
+        "version": "execution.v1.1",
+        "hash": "5182c0630ff703585dc4c498871cabeacbfceab432ea22ab654747d7b4af3b4d",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4328,8 +4328,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.page.open": {
-        "version": "execution.v1",
-        "hash": "d893c574d713288bbeb35c603d2bfc1f3a458c9e8a843694f1d44d5296af520b",
+        "version": "execution.v1.1",
+        "hash": "92c3161b99ce31499cf77ef27a6b619f032a333746e693528cfbe0baebe7f982",
         "executor": "CONNECTOR",
         "effects": [
             "NAVIGATION_SELECTION"
@@ -4360,8 +4360,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.page.rename": {
-        "version": "execution.v1",
-        "hash": "c175dfefcc6660848f1ee9981de8ec7e9c2fb8b9c64c1e626f6e6e61d2fbbc96",
+        "version": "execution.v1.1",
+        "hash": "cd2179e197f676784854006451c8700aab24108a8a89b274c0048d03b62aeb58",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4393,8 +4393,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.pages.list": {
-        "version": "execution.v1",
-        "hash": "26cda118c33507b41a01a7e122c92a455fb627761d1af76d9b88658e7fddd515",
+        "version": "execution.v1.1",
+        "hash": "0fbfe756d24fb7e9de080df02a8e5e6110a55b075dc857f520a6209c72c8a701",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -4421,8 +4421,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.pin.disconnect": {
-        "version": "execution.v1",
-        "hash": "d102bdac151bf54a428d64b61b5d7c639e35927c1e0a9208209534914959818b",
+        "version": "execution.v1.1",
+        "hash": "1204f65df734e3891649d59a66a8704995b7cca7bd542885b3dd40517af00737",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4455,8 +4455,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.pin.set_no_connect": {
-        "version": "execution.v1",
-        "hash": "ab58889392e284c583be8affbd26a9493fbc911c63a5713d13491549a10f7681",
+        "version": "execution.v1.1",
+        "hash": "77f854842be59917c8cef2c56a1ee8a1ad05ddc5d47e93a389dbd278e3492818",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4492,8 +4492,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.power.connect_pin": {
-        "version": "execution.v1",
-        "hash": "d8a2ae0811785985fb6e9c909efe0a92e5c0c50d7675215e600d8c8737461483",
+        "version": "execution.v1.1",
+        "hash": "3fb8f6e3cd5fe954f57ec58f615f856e14fcfde2e59d3d757f7949214306c094",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4532,8 +4532,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.primitives.delete": {
-        "version": "execution.v1",
-        "hash": "53f0ebedd32de0f265ebd39c9cd2b1c9951df4e3fc6137cabf3e40b1549d0217",
+        "version": "execution.v1.1",
+        "hash": "471129186cf1ce16d1c3a1da4690c89b3ac3713368dd105d8f032883766d16fd",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4566,8 +4566,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.read": {
-        "version": "execution.v1",
-        "hash": "c8da28857a978bebf1923e331ff80074cfd7ac8904b0fbef7e45258efe73c001",
+        "version": "execution.v1.1",
+        "hash": "016450fa6c62808a71d1c9244ca42a28fa86535ac7c0e07f8ef84742d9c6c7f5",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -4597,8 +4597,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.rebind.footprint": {
-        "version": "execution.v1",
-        "hash": "dd8961db22356bb5f031247c941ba531de2c6c95cf3f66fe941e3963e1550466",
+        "version": "execution.v1.1",
+        "hash": "1e48893a56c99012676a5ffd3f18fe847e4541e8570bf49da85760bc1ec72c9f",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4634,8 +4634,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.rebind.symbol": {
-        "version": "execution.v1",
-        "hash": "fa836e8efed393652d6e95dfd08f468e516180359ae6190c58d414a0205ffbf0",
+        "version": "execution.v1.1",
+        "hash": "c66ef4ba99fcac2bb60290b53e3f0e12ec307f80424107b7e28860fb96a64e98",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4671,8 +4671,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.rename": {
-        "version": "execution.v1",
-        "hash": "058df47adca0359c961c86d09ccf9a8b09b2bed273ceaf33e70e49674aa3bed9",
+        "version": "execution.v1.1",
+        "hash": "1b33df5324b42fda199f0332bac49159d2fb7befdcba6bbc0a05956801c86ee1",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4704,8 +4704,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.save": {
-        "version": "execution.v1",
-        "hash": "08fb813da7cbda53449f2dd5078c1c10a9617aeed3215aaa4478883634d15ac2",
+        "version": "execution.v1.1",
+        "hash": "c272a53d703936de1e7d245b57feeffcab540d8bdd51b82c3a79110514c4e2c2",
         "executor": "CONNECTOR",
         "effects": [
             "SAVE"
@@ -4734,8 +4734,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.select": {
-        "version": "execution.v1",
-        "hash": "2a5789bc6730e0354a1b61f6ca50473649cad4497831e92d729b538cfe7f9cfb",
+        "version": "execution.v1.1",
+        "hash": "62a579f79d25ddfd030881789d95a8b65f789259cb7f3bf1311f2de619bc5008",
         "executor": "CONNECTOR",
         "effects": [
             "NAVIGATION_SELECTION"
@@ -4766,8 +4766,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.text.list": {
-        "version": "execution.v1",
-        "hash": "186bac92f36ba7417f940255363a76189df26fd19ca5b6bc6d4d2e129ccaabec",
+        "version": "execution.v1.1",
+        "hash": "2ef00b7beec78910db8d57918a45192b1073ddd5bfd702303fbfd75f1deda719",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -4794,8 +4794,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.titleblock.get": {
-        "version": "execution.v1",
-        "hash": "6f4df06ed40be1482664c01c802f978a33e74edb0608cdc748fa58b5442c1f4e",
+        "version": "execution.v1.1",
+        "hash": "61ad44e257b06c7bd93ebe2ca974ac37bb812e428e13a0ec6d9ee4713ebabe88",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "DOCUMENT",
@@ -4824,8 +4824,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.titleblock.modify": {
-        "version": "execution.v1",
-        "hash": "52bd6e680a123d8edda49f2e3fdeb8d041207b08d88c255ce62a8ef8895f5853",
+        "version": "execution.v1.1",
+        "hash": "62a53c331a8119e910d41bc277f5fe65ff96febc057d2b01543dbff14ee9e3d1",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4859,8 +4859,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "schematic.wire.create": {
-        "version": "execution.v1",
-        "hash": "f7ff19887f3fb8668b515b2a8775ab8a620e3a22b4cecdd0b746a90e9ed639ee",
+        "version": "execution.v1.1",
+        "hash": "b9537b96a648fc3433afd0ef595760a18d5f68461c1c050ad476181d67bda8ce",
         "executor": "CONNECTOR",
         "effects": [
             "DESIGN_CONTENT"
@@ -4895,8 +4895,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "system.health": {
-        "version": "execution.v1",
-        "hash": "ee614a22f065487b218d6c5584a78ea0474e04e3b5ea31d69396a72fea100de7",
+        "version": "execution.v1.1",
+        "hash": "61d15f1c74920f74f981f5c0bf14625256f46242dd18d1176ffc76f7a8a86993",
         "executor": "DAEMON",
         "effects": [],
         "target_scope": "HOME",
@@ -4918,8 +4918,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "system.notify": {
-        "version": "execution.v1",
-        "hash": "848d0ad862fa3b1acf20c8f2e083001388d11fe7cf8aa104d51eee204d840496",
+        "version": "execution.v1.1",
+        "hash": "92e3ad1086d369c940da84d1d4f2bb3f1f2aef1703cb3ee1d5d3c08e326e75d7",
         "executor": "CONNECTOR",
         "effects": [],
         "target_scope": "HOME",
@@ -4945,8 +4945,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "view.fit": {
-        "version": "execution.v1",
-        "hash": "b8cd33da3538298afc9331141261d31d2923c8011ec5f13f19ba97fc940c0691",
+        "version": "execution.v1.1",
+        "hash": "8cda964ada6b109483bb7d8c4ae5da74ba0eb0eaf1825c081aa9243b505e41df",
         "executor": "CONNECTOR",
         "effects": [
             "NAVIGATION_SELECTION"
@@ -4975,8 +4975,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "view.fit_selection": {
-        "version": "execution.v1",
-        "hash": "2cbfacf91afd30013caf11df55318458957906718fad02409a37ab82af1f2b83",
+        "version": "execution.v1.1",
+        "hash": "3aa9eeb4ce6ea2e471823f5b2bc88aed561c472faba58791c1f24023344b20f7",
         "executor": "CONNECTOR",
         "effects": [
             "NAVIGATION_SELECTION"
@@ -5005,8 +5005,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "view.region": {
-        "version": "execution.v1",
-        "hash": "86a731c48a3e8d4e1ab336294bb17c92adc436574e4956f311fb105739f51bb5",
+        "version": "execution.v1.1",
+        "hash": "2a88430cc39948133e44dc01cb320bea80163969e1d959a0adc6813cdd3ba202",
         "executor": "CONNECTOR",
         "effects": [
             "NAVIGATION_SELECTION"
@@ -5040,8 +5040,8 @@ const contracts = {
         "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
     },
     "view.zoom": {
-        "version": "execution.v1",
-        "hash": "e4d7ca06487690e20440681c896f529afc7b1e02a5550206339320c84f803728",
+        "version": "execution.v1.1",
+        "hash": "f375262be1b039556190554a6d37593474a4b4b58e33330e7f299cbd0c8db8c4",
         "executor": "CONNECTOR",
         "effects": [
             "NAVIGATION_SELECTION"
@@ -5095,7 +5095,7 @@ export function negativeResult(r) {
 export function interpret(req, resp, beforeDispatch = false) {
     const c = contractFor(req.action);
     const mutation = c?.effects.some(e => ['DESIGN_CONTENT', 'PROJECT_TOPOLOGY', 'LIBRARY_ASSET'].includes(e));
-    const e = { operation_id: req.operationId || req.payload?.client_transaction_id, parent_operation_id: req.parentOperationId, request_id: req.id || '', contract_version: c?.version || '', contract_hash: c?.hash || '', expected_target: req.expectedTarget, verification: { state: 'UNAVAILABLE', coverage: 'PARTIAL', required: [], observed: [], missing: [], evidence_refs: [] }, recovery: { state: 'NOT_REQUESTED' }, persistence: { state: 'NOT_REQUESTED' }, request_satisfied: false, next_action: mutation ? 'reconcile_without_replay' : 'inspect', reason: 'legacy evidence does not prove semantic completion' };
+    let e = { operation_id: req.operationId || req.payload?.client_transaction_id, parent_operation_id: req.parentOperationId, request_id: req.id || '', contract_version: c?.version || '', contract_hash: c?.hash || '', expected_target: req.expectedTarget, verification: { state: 'UNAVAILABLE', coverage: 'PARTIAL', required: [], observed: [], missing: [], evidence_refs: [] }, recovery: { state: 'NOT_REQUESTED' }, persistence: { state: 'NOT_REQUESTED' }, request_satisfied: false, next_action: mutation ? 'reconcile_without_replay' : 'inspect', reason: 'legacy evidence does not prove semantic completion' };
     if (mutation)
         e.mutation_outcome = 'UNCERTAIN';
     if (beforeDispatch) {
@@ -5115,10 +5115,13 @@ export function interpret(req, resp, beforeDispatch = false) {
         return e;
     }
     const prior = resp.execution;
-    if (prior && (req.action !== 'route.apply_batch' || prior.mutation_outcome === 'NO_WRITE')) {
-        const copy = { ...prior };
-        const cvalid = prior.contract_version === c?.version && prior.contract_hash === c?.hash && prior.request_id === resp.id && (!req.id || req.id === resp.id);
-        if (mutation) {
+    if (prior) {
+        const copy = structuredClone(prior);
+        copy.persistence = { ...prior.persistence };
+        copy.recovery = { ...prior.recovery };
+        e = copy;
+        const cvalid = prior.contract_version === c?.version && prior.contract_hash === c?.hash && prior.request_id === (resp.id || '') && (!req.id || req.id === resp.id);
+        if (mutation && req.action !== 'route.apply_batch') {
             let valid = cvalid;
             const r = resp.result || {};
             switch (prior.mutation_outcome) {
@@ -5148,46 +5151,87 @@ export function interpret(req, resp, beforeDispatch = false) {
             return copy;
         }
     }
-    if (prior && !mutation && (!prior.request_satisfied || prior.contract_version !== c?.version || prior.contract_hash !== c?.hash || ['INVALID', 'UNSUPPORTED'].includes(prior.verification?.state))) {
-        return { ...prior, request_satisfied: false };
+    if (prior) {
+        const valid = prior.contract_version === c?.version && prior.contract_hash === c?.hash && prior.request_id === (resp.id || '') && (!req.id || req.id === resp.id);
+        let blocked = !valid || ['INVALID', 'UNSUPPORTED'].includes(prior.verification?.state);
+        if (req.action === 'route.apply_batch' && valid && prior.mutation_outcome === 'NO_WRITE' && prior.write_attempted === false && prior.reason === 'refused before dispatch' && !resp.result)
+            return e;
+        if (req.action === 'route.apply_batch' && ((prior.write_attempted === false || prior.mutation_outcome === 'NO_WRITE') && resp.result?.mutation_started === true))
+            blocked = true;
+        if (req.action === 'route.apply_batch' && prior.item_results != null && canonical(prior.item_results) !== canonical(resp.result?.item_results))
+            blocked = true;
+        if (req.action === 'route.apply_batch')
+            blocked ||= prior.native_settled === false || prior.mutation_outcome === 'UNCERTAIN' || (['COMPLETE', 'PARTIAL'].includes(prior.mutation_outcome || '') && prior.native_settled !== true);
+        else if (!mutation && !prior.request_satisfied)
+            blocked ||= !(c?.effects.includes('ARTIFACT_DELIVERY') && prior.persistence?.state === 'PENDING_DELIVERY');
+        if (blocked) {
+            e.request_satisfied = false;
+            if (mutation) {
+                e.mutation_outcome = 'UNCERTAIN';
+                e.next_action = 'reconcile_without_replay';
+            }
+            return e;
+        }
     }
-    e.observed_target_after = resp.context;
+    e.observed_target_after ??= resp.context;
     const r = resp.result || {};
     if (mutation) {
         if (req.action === 'route.apply_batch') {
+            e.mutation_outcome = 'UNCERTAIN';
+            e.request_satisfied = false;
             e.item_results = r.item_results;
             if (typeof r.mutation_started === 'boolean')
                 e.write_attempted = r.mutation_started;
             if (['stale', 'partial'].includes(String(r.status))) {
-                if (r.mutation_started === false && !nonempty(r.created_ids) && !nonempty(r.deleted_ids))
+                if (r.mutation_started === false && fastNoWrite(r))
                     e.mutation_outcome = 'NO_WRITE';
-                else if (r.status === 'partial' && r.mutation_started === true && r.revision_after != null)
+                else if (r.status === 'partial' && fastSettled(r, req.payload || {}, false)) {
                     e.mutation_outcome = 'PARTIAL';
+                    e.native_settled = true;
+                }
             }
             if (r.status === 'complete' && fastComplete(r, req.payload || {})) {
                 e.mutation_outcome = 'COMPLETE';
+                e.native_settled = true;
                 e.request_satisfied = true;
                 e.verification.state = 'AVAILABLE';
                 e.verification.coverage = 'COMPLETE';
-                e.verification.source = 'FastPath.matchesOperation';
-                e.verification.evidence_refs = ['result'];
+                if (!e.verification.source)
+                    e.verification.source = 'FastPath.matchesOperation';
+                if (!e.verification.evidence_refs.length)
+                    e.verification.evidence_refs = ['result'];
                 e.next_action = 'continue';
                 e.reason = 'Fast Path semantic readback';
             }
             if (r.rollback_complete === true && e.mutation_outcome === 'PARTIAL') {
-                e.recovery = { state: 'RESTORED', evidence_refs: ['result'] };
+                e.recovery.state = 'RESTORED';
+                if (!('evidence_refs' in e.recovery))
+                    e.recovery.evidence_refs = ['result'];
                 e.request_satisfied = false;
             }
         }
     }
     else {
-        e.request_satisfied = resp.ok === true && !negativeResult(r) && r.ok !== false && r.saved !== false;
+        e.request_satisfied = !!c && resp.ok === true && !negativeResult(r) && r.ok !== false && r.saved !== false;
         if (c?.effects.includes('SAVE')) {
             e.request_satisfied = e.request_satisfied && r.saved === true;
             e.persistence.state = e.request_satisfied ? 'SAVE_ACKNOWLEDGED' : 'UNKNOWN';
         }
         if (c?.effects.includes('ARTIFACT_DELIVERY')) {
-            e.request_satisfied = e.request_satisfied && !!resp.artifacts?.length && resp.artifacts.every(a => !!a.path && !!a.sha256);
+            const invocationOK = e.request_satisfied;
+            e.request_satisfied = e.request_satisfied && !!resp.artifacts?.length && resp.artifacts.every(a => typeof a.path === 'string' && !!a.path && typeof a.sha256 === 'string' && !!a.sha256);
+            if (e.request_satisfied) {
+                e.persistence.state = 'DELIVERED';
+                e.reason = 'artifact delivery completed';
+            }
+            else if (invocationOK && resp.artifacts?.length && resp.artifacts.every(a => (!!a.path && !!a.sha256) || !!a.inlineBase64)) {
+                e.persistence.state = 'PENDING_DELIVERY';
+                e.reason = 'artifact delivery evidence pending';
+            }
+            else {
+                e.persistence.state = 'DELIVERY_FAILED';
+                e.reason = 'artifact delivery failed';
+            }
         }
     }
     if (req.payload?.dryRun === true && c?.dry_run === 'preview') {
@@ -5199,18 +5243,84 @@ export function interpret(req, resp, beforeDispatch = false) {
     return e;
 }
 function completeEvidence(v) {
-    return !!v && v.state === 'AVAILABLE' && v.coverage === 'COMPLETE' && Array.isArray(v.required) && v.required.length > 0 && Array.isArray(v.missing) && !v.missing.length && Array.isArray(v.observed) && Array.isArray(v.evidence_refs) && v.evidence_refs.length > 0 && !!v.activation && !!v.revision && !!v.observed_at && !!v.verifier_version && !!v.source && !!v.scope && v.required.every(f => v.observed?.includes(f));
+    const text = (s) => typeof s === 'string' && s.length > 0;
+    const list = (a) => Array.isArray(a) && a.every(text);
+    return !!v && v.state === 'AVAILABLE' && v.coverage === 'COMPLETE' && list(v.required) && v.required.length > 0 && list(v.missing) && !v.missing.length && list(v.observed) && list(v.evidence_refs) && v.evidence_refs.length > 0 && text(v.activation) && text(v.revision) && text(v.observed_at) && text(v.verifier_version) && text(v.source) && !!v.scope && typeof v.scope === 'object' && !Array.isArray(v.scope) && v.required.every(f => v.observed.includes(f));
+}
+const ids = (v) => Array.isArray(v) && v.every(x => typeof x === 'string' && x.length > 0) && new Set(v).size === v.length;
+function fastNoWrite(r) {
+    return ids(r.created_ids) && ids(r.deleted_ids) && !r.created_ids.length && !r.deleted_ids.length && Array.isArray(r.item_results) && !r.item_results.length;
 }
 function fastComplete(r, payload) {
-    if (r.readback_verified !== true || r.mutation_started !== true || r.duplicate === true || r.rollback_attempted !== false || r.rollback_complete !== false || negativeResult(r))
+    return r.readback_verified === true && r.rollback_attempted === false && r.rollback_complete === false && !negativeResult(r) && fastSettled(r, payload, true);
+}
+function fastSettled(r, payload, complete) {
+    if (r.mutation_started !== true || r.duplicate === true)
         return false;
-    if (typeof r.revision_before !== 'string' || !r.revision_before || typeof r.revision_after !== 'string' || !r.revision_after || !('failed_index' in r) || r.failed_index !== null)
+    if (typeof r.revision_before !== 'string' || !r.revision_before.trim() || typeof r.revision_after !== 'string' || !r.revision_after.trim())
         return false;
-    if (!Array.isArray(r.item_results) || !r.item_results.length || r.item_results.some((v, i) => !v || v.index !== i || v.status !== 'applied' || typeof v.id !== 'string' || !v.id))
+    if (r.revision_before === r.revision_after || ('duplicate' in r && typeof r.duplicate !== 'boolean'))
         return false;
-    if (!Array.isArray(r.created_ids) || r.created_ids.some(v => typeof v !== 'string') || !Array.isArray(r.deleted_ids) || r.deleted_ids.some(v => typeof v !== 'string'))
+    if (!complete && r.readback_verified !== false)
         return false;
-    if ('operations' in payload && (!Array.isArray(payload.operations) || payload.operations.length !== r.item_results.length))
+    if (r.rollback_complete === true && (r.rollback_attempted !== true || nonempty(r.deleted_ids)))
         return false;
-    return true;
+    if ('base_revision' in payload && payload.base_revision !== r.revision_before)
+        return false;
+    if ('native_settled' in r && r.native_settled !== true)
+        return false;
+    if (typeof r.rollback_attempted !== 'boolean' || typeof r.rollback_complete !== 'boolean')
+        return false;
+    if (!ids(r.created_ids) || !ids(r.deleted_ids))
+        return false;
+    const items = r.item_results, ops = payload.operations;
+    if (!Array.isArray(items) || !Array.isArray(ops) || !items.length || items.length !== ops.length)
+        return false;
+    if (!('failed_index' in r))
+        return false;
+    let failed = -1;
+    if (complete) {
+        if (r.failed_index !== null)
+            return false;
+    }
+    else {
+        if (typeof r.failed_index !== 'number' || !Number.isInteger(r.failed_index) || r.failed_index < 0 || r.failed_index >= items.length)
+            return false;
+        failed = r.failed_index;
+    }
+    const created = new Set(), deleted = new Set(), seen = new Set();
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i], op = ops[i];
+        if (!item || typeof item !== 'object' || item.index !== i || !op || typeof op !== 'object')
+            return false;
+        const add = ['add_trace', 'add_arc', 'add_via'].includes(op.type), del = ['delete_trace', 'delete_via'].includes(op.type);
+        if (!add && !del)
+            return false;
+        const status = failed === i ? 'failed' : failed >= 0 && i > failed ? 'skipped' : 'applied';
+        if (item.status !== status)
+            return false;
+        if (status !== 'applied') {
+            if ('id' in item)
+                return false;
+            continue;
+        }
+        if (typeof item.id !== 'string' || !item.id || seen.has(item.id))
+            return false;
+        seen.add(item.id);
+        if (add)
+            created.add(item.id);
+        else {
+            if (op.id !== item.id)
+                return false;
+            deleted.add(item.id);
+        }
+    }
+    return r.created_ids.length === created.size && r.deleted_ids.length === deleted.size && r.created_ids.every(id => created.has(id)) && r.deleted_ids.every(id => deleted.has(id));
+}
+function canonical(value) {
+    if (Array.isArray(value))
+        return '[' + value.map(canonical).join(',') + ']';
+    if (value && typeof value === 'object')
+        return '{' + Object.keys(value).sort().map(k => JSON.stringify(k) + ':' + canonical(value[k])).join(',') + '}';
+    return JSON.stringify(value) ?? 'undefined';
 }

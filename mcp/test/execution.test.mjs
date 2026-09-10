@@ -9,3 +9,16 @@ test('Fast schema enumerates the single catalog operation set',async()=>{
  const exposed=branches.flatMap(b=>b.properties.type.const?[b.properties.type.const]:b.properties.type.enum);
  assert.deepEqual(exposed.sort(),[...contractFor('route.apply_batch').operations].sort());
 });
+
+test('metadata and pending artifact evidence survive repeated action projection', () => {
+ const request={action:'schematic.export.bom',payload:{}};
+ const inline={ok:true,result:{},artifacts:[{id:'bom',inlineBase64:'YQ=='}]};
+ const pending=interpret(request,inline);
+ const delivered={...inline,execution:{...pending,operation_id:'op',verification:{...pending.verification,evidence_refs:['connector:receipt']}},artifacts:[{id:'bom',path:'bom.csv',sha256:'hash'}]};
+ const first=authoringResult(request.action,{ok:true,result:delivered});
+ assert.equal(first.ok,true);
+ assert.equal(first.result.execution.operation_id,'op');
+ assert.deepEqual(first.result.execution.verification.evidence_refs,['connector:receipt']);
+ const again=authoringResult(request.action,first);
+ assert.deepEqual(again.result.execution,first.result.execution);
+});

@@ -55,7 +55,9 @@ func TestFastPathHTTPWebSocket(t *testing.T) {
 				board.Revision = "fixture:2"
 				result = map[string]any{"status": "complete", "readback_verified": true, "revision_before": "fixture:1", "revision_after": board.Revision, "native_api_call_count": 40}
 			}
-			_ = wsjson.Write(ctx, c, protocol.Response{Envelope: protocol.Envelope{ID: req.ID, Type: protocol.TypeResponse, Version: "v1"}, OK: true, Result: result})
+			response := protocol.Response{Envelope: protocol.Envelope{ID: req.ID, Type: protocol.TypeResponse, Version: "v1"}, OK: true, Result: result}
+			response.Execution = protocol.Interpret(&req, &response, false)
+			_ = wsjson.Write(ctx, c, response)
 		}
 	}()
 	defer func() { cancel(); <-done }()
@@ -91,8 +93,11 @@ func TestFastPathHTTPWebSocket(t *testing.T) {
 		t.Fatal(r)
 	}
 	checked := call("route.preflight", plan)
-	if !checked.OK || checked.Result["ok"] != true {
+	if !checked.OK || checked.Result["ok"] != true || checked.Execution == nil || !checked.Execution.RequestSatisfied || len(checked.Execution.ChildResponses) != 1 {
 		t.Fatal(checked)
+	}
+	if checked.Execution.OperationID != checked.ID || checked.Execution.ChildResponses[0].Execution.ParentOperationID != checked.Execution.OperationID {
+		t.Fatal("legacy parent/child operation ownership lost")
 	}
 	local, _ := fastpath.Preflight(board, plan)
 	applied := call("route.apply_batch", map[string]any{"base_revision": plan.Base, "plan_hash": checked.Result["plan_hash"], "client_transaction_id": "http-fixture", "operations": local.Operations})

@@ -205,6 +205,7 @@ export interface Evidence {
  required: string[]; observed: string[]; missing: string[]; evidence_refs: string[];
 }
 export interface Execution {
+ child_responses?: ResponseFrame[];
  native_settled?: boolean;
  operation_id?: string; parent_operation_id?: string; request_id: string;
  contract_version: string; contract_hash: string; payload_hash?: string;

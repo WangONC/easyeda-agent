@@ -31,12 +31,25 @@ type fastDispatch func(context.Context, protocol.Request) (*protocol.Response, e
 // The existing dispatch pipeline owns routing gates, FIFO, audit, health and autosave.
 // Fast reads and deterministic helpers reuse one authoritative WS snapshot.
 func (s *Server) forwardFast(ctx context.Context, req protocol.Request, forward fastDispatch, caps []string) (resp *protocol.Response, err error) {
+	// A derived operation owns a stable parent identity even for legacy callers.
+	if req.Action != "board.snapshot_compact" && req.Action != "route.apply_batch" && req.OperationID == "" {
+		req.OperationID = req.ID
+	}
 	started := req.CreatedAt
 	if started.IsZero() {
 		started = time.Now()
 	}
 	nativeCalls := any(nil)
 	observedRevision := ""
+	var child *protocol.Response
+	defer func() {
+		if child != nil && resp != nil {
+			resp.ID = req.ID
+			resp.Execution = nil
+			resp.Execution = protocol.Interpret(&req, resp, false)
+			resp.Execution.ChildResponses = []protocol.Response{*child}
+		}
+	}()
 	defer func() {
 		if resp == nil {
 			r := errorResponse(req.ID, "FAST_DISPATCH_UNCERTAIN", "Fast Path connector response unavailable", fmt.Sprint(err))
@@ -163,6 +176,14 @@ func (s *Server) forwardFast(ctx context.Context, req protocol.Request, forward 
 	}
 	wire := req
 	wire.Action = "board.snapshot_compact"
+	if req.Action != wire.Action {
+		wire.ID = req.ID + "/snapshot"
+		wire.ParentOperationID = req.OperationID
+		if wire.ParentOperationID == "" {
+			wire.ParentOperationID = req.ID
+		}
+		wire.OperationID = wire.ParentOperationID + "/snapshot"
+	}
 	if req.ContractVersion != "" || req.ContractHash != "" {
 		c, _ := protocol.ContractFor(wire.Action)
 		wire.ContractVersion = c.Version
@@ -170,8 +191,17 @@ func (s *Server) forwardFast(ctx context.Context, req protocol.Request, forward 
 	}
 	wire.Payload = map[string]any{"document_uuid": doc, "project_uuid": project}
 	resp, err = forward(ctx, wire)
+	if resp != nil && req.Action != wire.Action {
+		// Preserve the complete child receipt before producing the parent result.
+		b, _ := json.Marshal(resp)
+		child = &protocol.Response{}
+		_ = json.Unmarshal(b, child)
+	}
 	if err != nil || !resp.OK {
 		return resp, err
+	}
+	if resp.Execution != nil && !resp.Execution.RequestSatisfied {
+		return reject("FAST_DEPENDENCY_FAILED", "Snapshot execution did not satisfy its contract")
 	}
 	nativeCalls = resp.Result["native_api_call_count"]
 	var snapshot fastpath.Snapshot

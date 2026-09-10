@@ -18,16 +18,6 @@ import (
 // edits quiesce, so the agent doesn't have to remember to. Opt-in via
 // Options.AutosaveDebounce (0 = off).
 
-// mutatesAction maps each action name to whether it mutates the document, so the
-// daemon fires an autosave after content-changing actions only.
-var mutatesAction = func() map[string]bool {
-	m := map[string]bool{}
-	for _, a := range protocol.AllActions() {
-		m[a.Name] = a.Mutates
-	}
-	return m
-}()
-
 // Only a catalog-declared preview can suppress mutation tracking. An arbitrary
 // dryRun field on a legacy writer is rejected by the execution contract.
 func isDryRunRequest(req *protocol.Request) bool {
@@ -37,12 +27,14 @@ func isDryRunRequest(req *protocol.Request) bool {
 	return protocol.Preview(req)
 }
 
-// requestMutates reports whether a request actually changes the document: the
-// catalog's Mutates flag (action-name granularity) MINUS dry-run previews, which
-// the catalog cannot see. `pcb.page.clear --dry-run` only enumerates, so it must
-// neither arm autosave nor the stale-read guard (issue #112).
+// requestMutates uses content effects from Action Contract, excluding declared previews.
+// SAVE, navigation and recompute have separate consumers.
 func requestMutates(req *protocol.Request) bool {
-	return req != nil && mutatesAction[req.Action] && !isDryRunRequest(req)
+	if req == nil || isDryRunRequest(req) {
+		return false
+	}
+	c, ok := protocol.ContractFor(req.Action)
+	return ok && c.ContentMutation()
 }
 
 // saveActionForDocType returns the typed save action for a documentType, or ""
@@ -153,7 +145,8 @@ func (s *Server) maybeAutosave(req *protocol.Request) {
 	if s.autosave == nil || req == nil {
 		return
 	}
-	if !requestMutates(req) {
+	c, _ := protocol.ContractFor(req.Action)
+	if !requestMutates(req) && !(c.HasEffect("NATIVE_RECOMPUTE") && req.Action == "pcb.pour.rebuild") {
 		return
 	}
 	saveAction := saveActionForDocType(docTypeForAction(req.Action))
@@ -237,4 +230,27 @@ func (s *Server) dispatchSave(windowID, saveAction string) {
 	}
 	s.audit.Append(fromResponse(started, &req, resp))
 	s.logf("autosave: %s on %s (ok=%v)", saveAction, windowID, resp.OK)
+}
+
+// Keep the legacy safety net while explicitly refusing unsettled Fast writes.
+// This predicate does not introduce a save barrier or authorize semantic completion.
+func shouldAutosave(req *protocol.Request, resp *protocol.Response) bool {
+	if req == nil || resp == nil || isDryRunRequest(req) {
+		return false
+	}
+	e := resp.Execution
+	if e != nil && (e.MutationOutcome == protocol.NoWrite || e.NativeSettled != nil && !*e.NativeSettled) {
+		return false
+	}
+	if req.Action == "route.apply_batch" {
+		return e != nil && e.NativeSettled != nil && *e.NativeSettled && (e.MutationOutcome == protocol.Complete || e.MutationOutcome == protocol.Partial)
+	}
+	c, _ := protocol.ContractFor(req.Action)
+	if !c.ContentMutation() && req.Action != "pcb.pour.rebuild" {
+		return false
+	}
+	if c.HasEffect("NATIVE_RECOMPUTE") && !c.ContentMutation() {
+		return e != nil && e.RequestSatisfied
+	}
+	return resp.OK || e != nil && (e.MutationOutcome == protocol.Complete || e.MutationOutcome == protocol.Partial)
 }

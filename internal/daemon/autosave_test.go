@@ -83,16 +83,15 @@ func TestSaveActionForDocType(t *testing.T) {
 
 func TestMutatesActionMap(t *testing.T) {
 	// Sanity: a known mutating action and a known read action are classified right.
-	if !mutatesAction["schematic.component.place"] {
+	if !requestMutates(&protocol.Request{Action: "schematic.component.place"}) {
 		t.Error("schematic.component.place should be a mutating action")
 	}
-	if mutatesAction["schematic.components.list"] {
+	if requestMutates(&protocol.Request{Action: "schematic.components.list"}) {
 		t.Error("schematic.components.list should NOT be a mutating action")
 	}
-	// schematic.save is itself Mutates=true — maybeAutosave must exclude it to
-	// avoid recursion; that exclusion is asserted by the action==saveAction guard.
-	if !mutatesAction["schematic.save"] {
-		t.Error("schematic.save is expected to be Mutates=true (the recursion trap)")
+	// A SAVE effect must not recursively trigger another content save.
+	if requestMutates(&protocol.Request{Action: "schematic.save"}) {
+		t.Error("SAVE must not be treated as content mutation")
 	}
 }
 

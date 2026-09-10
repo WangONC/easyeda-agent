@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const ContractVersion = "execution.v1"
+const ContractVersion = "execution.v1.1"
 
 type ActionContract struct {
 	Operations            []string             `json:"operations,omitempty"`
@@ -180,6 +180,7 @@ type Evidence struct {
 	EvidenceRefs    []string `json:"evidence_refs"`
 }
 type Execution struct {
+	ChildResponses       []Response      `json:"child_responses,omitempty"`
 	NativeSettled        *bool           `json:"native_settled,omitempty"`
 	OperationID          string          `json:"operation_id,omitempty"`
 	ParentOperationID    string          `json:"parent_operation_id,omitempty"`
@@ -270,15 +271,19 @@ func Interpret(req *Request, resp *Response, beforeDispatch bool) *Execution {
 		return e
 	}
 	// Structured producer claims are checked, not trusted as verified booleans.
-	if prior := resp.Execution; prior != nil && (req.Action != "route.apply_batch" || prior.MutationOutcome == NoWrite) {
+	if prior := resp.Execution; prior != nil {
 		copy := *prior
+		copy.Recovery = map[string]any{}
+		for k, v := range prior.Recovery {
+			copy.Recovery[k] = v
+		}
 		copy.Persistence = map[string]any{}
 		for k, v := range prior.Persistence {
 			copy.Persistence[k] = v
 		}
 		e = &copy
 		cvalid := prior.ContractVersion == c.Version && prior.ContractHash == c.Hash && prior.RequestID == resp.ID && (req.ID == "" || req.ID == resp.ID)
-		if mutation {
+		if mutation && req.Action != "route.apply_batch" {
 			valid := cvalid
 			switch prior.MutationOutcome {
 			case NoWrite:
@@ -305,41 +310,86 @@ func Interpret(req *Request, resp *Response, beforeDispatch bool) *Execution {
 			return e
 		}
 	}
-	if prior := resp.Execution; prior != nil && !mutation && (!prior.RequestSatisfied || prior.ContractVersion != c.Version || prior.ContractHash != c.Hash || prior.Verification.State == "INVALID" || prior.Verification.State == "UNSUPPORTED") {
-		e.RequestSatisfied = false
-		return e
+	if prior := resp.Execution; prior != nil {
+		valid := prior.ContractVersion == c.Version && prior.ContractHash == c.Hash && prior.RequestID == resp.ID && (req.ID == "" || req.ID == resp.ID)
+		blocked := !valid || prior.Verification.State == "INVALID" || prior.Verification.State == "UNSUPPORTED"
+		if req.Action == "route.apply_batch" {
+			if valid && prior.MutationOutcome == NoWrite && prior.WriteAttempted != nil && !*prior.WriteAttempted && prior.Reason == "refused before dispatch" && resp.Result == nil {
+				return e
+			}
+			if prior.WriteAttempted != nil && !*prior.WriteAttempted && resp.Result["mutation_started"] == true {
+				blocked = true
+			}
+			if prior.MutationOutcome == NoWrite && resp.Result["mutation_started"] == true {
+				blocked = true
+			}
+			if prior.ItemResults != nil {
+				a, _ := json.Marshal(prior.ItemResults)
+				b, _ := json.Marshal(resp.Result["item_results"])
+				if string(a) != string(b) {
+					blocked = true
+				}
+			}
+			blocked = blocked || prior.NativeSettled != nil && !*prior.NativeSettled || prior.MutationOutcome == Uncertain || ((prior.MutationOutcome == Complete || prior.MutationOutcome == Partial) && (prior.NativeSettled == nil || !*prior.NativeSettled))
+		} else if !mutation && !prior.RequestSatisfied {
+			// Only this explicit intermediate delivery state can acquire later evidence.
+			blocked = blocked || !(c.HasEffect("ARTIFACT_DELIVERY") && prior.Persistence["state"] == "PENDING_DELIVERY")
+		}
+		if blocked {
+			e.RequestSatisfied = false
+			if mutation {
+				e.MutationOutcome = Uncertain
+				e.NextAction = "reconcile_without_replay"
+			}
+			return e
+		}
 	}
-	e.ObservedTargetAfter = resp.Context
+	if e.ObservedTargetAfter == nil {
+		e.ObservedTargetAfter = resp.Context
+	}
 	r := resp.Result
 	if mutation {
 		// Fast Path owns its status and readback semantics. Keep its complete historical
 		// receipt intact but never treat a cached receipt as fresh current proof.
 		if req.Action == "route.apply_batch" {
+			e.MutationOutcome = Uncertain
+			e.RequestSatisfied = false
 			e.ItemResults = r["item_results"]
 			if b, ok := r["mutation_started"].(bool); ok {
 				e.WriteAttempted = &b
 			}
 			switch r["status"] {
 			case "stale", "partial":
-				if r["mutation_started"] == false && !nonempty(r["created_ids"]) && !nonempty(r["deleted_ids"]) {
+				if r["mutation_started"] == false && fastNoWrite(r) {
 					e.MutationOutcome = NoWrite
-				} else if r["status"] == "partial" && r["mutation_started"] == true && r["revision_after"] != nil {
+				} else if r["status"] == "partial" && fastSettled(r, req.Payload, false) {
 					e.MutationOutcome = Partial
+					b := true
+					e.NativeSettled = &b
 				}
 			case "complete":
 				if fastComplete(r, req.Payload) {
 					e.MutationOutcome = Complete
+					b := true
+					e.NativeSettled = &b
 					e.RequestSatisfied = true
 					e.Verification.State = "AVAILABLE"
 					e.Verification.Coverage = "COMPLETE"
-					e.Verification.Source = "FastPath.matchesOperation"
-					e.Verification.EvidenceRefs = []string{"result"}
+					if e.Verification.Source == "" {
+						e.Verification.Source = "FastPath.matchesOperation"
+					}
+					if len(e.Verification.EvidenceRefs) == 0 {
+						e.Verification.EvidenceRefs = []string{"result"}
+					}
 					e.NextAction = "continue"
 					e.Reason = "Fast Path semantic readback"
 				}
 			}
 			if r["rollback_complete"] == true && e.MutationOutcome == Partial {
-				e.Recovery = map[string]any{"state": "RESTORED", "evidence_refs": []string{"result"}}
+				e.Recovery["state"] = "RESTORED"
+				if _, ok := e.Recovery["evidence_refs"]; !ok {
+					e.Recovery["evidence_refs"] = []string{"result"}
+				}
 				if e.MutationOutcome != Uncertain {
 					e.MutationOutcome = Partial
 					e.RequestSatisfied = false
@@ -347,7 +397,7 @@ func Interpret(req *Request, resp *Response, beforeDispatch bool) *Execution {
 			}
 		}
 	} else {
-		e.RequestSatisfied = resp.OK && !NegativeResult(r) && r["ok"] != false && r["saved"] != false
+		e.RequestSatisfied = c.Version != "" && resp.OK && !NegativeResult(r) && r["ok"] != false && r["saved"] != false
 		if c.HasEffect("SAVE") {
 			e.RequestSatisfied = e.RequestSatisfied && r["saved"] == true
 			if e.RequestSatisfied {
@@ -357,11 +407,22 @@ func Interpret(req *Request, resp *Response, beforeDispatch bool) *Execution {
 			}
 		}
 		if c.HasEffect("ARTIFACT_DELIVERY") {
+			invocationOK := e.RequestSatisfied
 			e.RequestSatisfied = e.RequestSatisfied && len(resp.Artifacts) > 0
 			for _, a := range resp.Artifacts {
 				if a.Path == "" || a.SHA256 == "" {
 					e.RequestSatisfied = false
 				}
+			}
+			if e.RequestSatisfied {
+				e.Persistence["state"] = "DELIVERED"
+				e.Reason = "artifact delivery completed"
+			} else if invocationOK && pendingArtifacts(resp) {
+				e.Persistence["state"] = "PENDING_DELIVERY"
+				e.Reason = "artifact delivery evidence pending"
+			} else {
+				e.Persistence["state"] = "DELIVERY_FAILED"
+				e.Reason = "artifact delivery failed"
 			}
 		}
 	}
@@ -380,7 +441,20 @@ func RequestSatisfied(req *Request, resp *Response) bool {
 	return Interpret(req, resp, false).RequestSatisfied
 }
 func PossibleMutation(req *Request, resp *Response) bool {
-	if resp == nil {
+	if resp == nil || req == nil || Preview(req) {
+		return false
+	}
+	c, ok := ContractFor(req.Action)
+	if !ok {
+		return false
+	}
+	if resp.Execution != nil && resp.Execution.MutationOutcome == NoWrite {
+		return false
+	}
+	if c.HasEffect("NATIVE_RECOMPUTE") && !c.ContentMutation() {
+		return resp.Execution != nil && resp.Execution.RequestSatisfied || resp.Execution == nil && resp.OK
+	}
+	if !c.ContentMutation() {
 		return false
 	}
 	if resp.Execution != nil {
@@ -390,8 +464,13 @@ func PossibleMutation(req *Request, resp *Response) bool {
 }
 
 func completeEvidence(v Evidence) bool {
-	if v.State != "AVAILABLE" || v.Coverage != "COMPLETE" || len(v.Required) == 0 || len(v.Missing) > 0 || len(v.EvidenceRefs) == 0 || v.Activation == "" || v.Revision == "" || v.ObservedAt == "" || v.VerifierVersion == "" || v.Source == "" || v.Scope == nil {
+	if v.State != "AVAILABLE" || v.Coverage != "COMPLETE" || len(v.Required) == 0 || v.Missing == nil || len(v.Missing) > 0 || len(v.EvidenceRefs) == 0 || v.Activation == "" || v.Revision == "" || v.ObservedAt == "" || v.VerifierVersion == "" || v.Source == "" || v.Scope == nil {
 		return false
+	}
+	for _, value := range append(append(append([]string{}, v.Required...), v.Observed...), v.EvidenceRefs...) {
+		if value == "" {
+			return false
+		}
 	}
 	for _, field := range v.Required {
 		found := false
@@ -407,48 +486,181 @@ func completeEvidence(v Evidence) bool {
 	return true
 }
 
+func pendingArtifacts(resp *Response) bool {
+	if len(resp.Artifacts) == 0 {
+		return false
+	}
+	for _, a := range resp.Artifacts {
+		if (a.Path == "" || a.SHA256 == "") && a.InlineBase64 == "" {
+			return false
+		}
+	}
+	return true
+}
 func fastComplete(r map[string]any, payload map[string]any) bool {
-	if r["readback_verified"] != true || r["mutation_started"] != true || r["duplicate"] == true || r["rollback_attempted"] != false || r["rollback_complete"] != false || NegativeResult(r) {
+	return r["readback_verified"] == true && r["rollback_attempted"] == false && r["rollback_complete"] == false && !NegativeResult(r) && fastSettled(r, payload, true)
+}
+func jsonValue(v any) any {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return nil
+	}
+	var out any
+	if json.Unmarshal(b, &out) != nil {
+		return nil
+	}
+	return out
+}
+func stringIDs(v any) ([]string, bool) {
+	a, ok := jsonValue(v).([]any)
+	if !ok {
+		return nil, false
+	}
+	ids := []string{}
+	seen := map[string]bool{}
+	for _, v := range a {
+		id, ok := v.(string)
+		if !ok || id == "" || seen[id] {
+			return nil, false
+		}
+		seen[id] = true
+		ids = append(ids, id)
+	}
+	return ids, true
+}
+func fastNoWrite(r map[string]any) bool {
+	created, cok := stringIDs(r["created_ids"])
+	deleted, dok := stringIDs(r["deleted_ids"])
+	items, ok := jsonValue(r["item_results"]).([]any)
+	return cok && dok && ok && len(created) == 0 && len(deleted) == 0 && len(items) == 0
+}
+
+// Existing Fast terminal status plus a complete indexed receipt establishes settlement.
+// It never overrides an explicit native_settled=false from an attributed execution.
+func fastSettled(r map[string]any, payload map[string]any, complete bool) bool {
+	if r["mutation_started"] != true || r["duplicate"] == true {
 		return false
 	}
 	for _, key := range []string{"revision_before", "revision_after"} {
-		s, ok := r[key].(string)
-		if !ok || s == "" {
+		v, ok := r[key].(string)
+		if !ok || strings.TrimSpace(v) == "" {
 			return false
 		}
 	}
-	if value, ok := r["failed_index"]; !ok || value != nil {
+	if r["revision_before"] == r["revision_after"] {
 		return false
 	}
-	// Marshal handles typed Fast Go structures and decoded JSON identically.
-	b, err := json.Marshal(r["item_results"])
-	if err != nil {
-		return false
-	}
-	var items []struct {
-		Index  int
-		Status string
-		ID     string
-	}
-	if json.Unmarshal(b, &items) != nil || len(items) == 0 {
-		return false
-	}
-	for i, item := range items {
-		if item.Index != i || item.Status != "applied" || item.ID == "" {
+	if v, ok := r["duplicate"]; ok {
+		if _, valid := v.(bool); !valid {
 			return false
 		}
 	}
-	for _, key := range []string{"created_ids", "deleted_ids"} {
-		b, _ := json.Marshal(r[key])
-		var ids []string
-		if json.Unmarshal(b, &ids) != nil || ids == nil {
+	if !complete && r["readback_verified"] != false {
+		return false
+	}
+	if r["rollback_complete"] == true && (r["rollback_attempted"] != true || nonempty(r["deleted_ids"])) {
+		return false
+	}
+	if base, ok := payload["base_revision"]; ok && base != r["revision_before"] {
+		return false
+	}
+	if v, ok := r["native_settled"]; ok && v != true {
+		return false
+	}
+	if _, ok := r["rollback_attempted"].(bool); !ok {
+		return false
+	}
+	if _, ok := r["rollback_complete"].(bool); !ok {
+		return false
+	}
+	created, cok := stringIDs(r["created_ids"])
+	deleted, dok := stringIDs(r["deleted_ids"])
+	if !cok || !dok {
+		return false
+	}
+	items, iok := jsonValue(r["item_results"]).([]any)
+	ops, ook := jsonValue(payload["operations"]).([]any)
+	if !iok || !ook || len(items) == 0 || len(items) != len(ops) {
+		return false
+	}
+	failed := -1
+	f, exists := r["failed_index"]
+	if !exists {
+		return false
+	}
+	if complete {
+		if f != nil {
+			return false
+		}
+	} else {
+		n, ok := jsonValue(f).(float64)
+		if !ok || n < 0 || n >= float64(len(items)) || n != float64(int(n)) {
+			return false
+		}
+		failed = int(n)
+	}
+	wantCreated := map[string]bool{}
+	wantDeleted := map[string]bool{}
+	seen := map[string]bool{}
+	for i, v := range items {
+		item, ok := v.(map[string]any)
+		if !ok {
+			return false
+		}
+		index, ok := item["index"].(float64)
+		if !ok || index != float64(i) {
+			return false
+		}
+		op, ok := ops[i].(map[string]any)
+		if !ok {
+			return false
+		}
+		typ, _ := op["type"].(string)
+		add := typ == "add_trace" || typ == "add_arc" || typ == "add_via"
+		del := typ == "delete_trace" || typ == "delete_via"
+		if !add && !del {
+			return false
+		}
+		status := "applied"
+		if failed >= 0 && i == failed {
+			status = "failed"
+		}
+		if failed >= 0 && i > failed {
+			status = "skipped"
+		}
+		if item["status"] != status {
+			return false
+		}
+		if status != "applied" {
+			if _, has := item["id"]; has {
+				return false
+			}
+			continue
+		}
+		id, ok := item["id"].(string)
+		if !ok || id == "" || seen[id] {
+			return false
+		}
+		seen[id] = true
+		if add {
+			wantCreated[id] = true
+		} else {
+			if op["id"] != id {
+				return false
+			}
+			wantDeleted[id] = true
+		}
+	}
+	if len(created) != len(wantCreated) || len(deleted) != len(wantDeleted) {
+		return false
+	}
+	for _, id := range created {
+		if !wantCreated[id] {
 			return false
 		}
 	}
-	if ops, ok := payload["operations"]; ok {
-		b, _ := json.Marshal(ops)
-		var list []any
-		if json.Unmarshal(b, &list) != nil || len(list) != len(items) {
+	for _, id := range deleted {
+		if !wantDeleted[id] {
 			return false
 		}
 	}

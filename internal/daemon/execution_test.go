@@ -25,7 +25,7 @@ func TestContractRejectedBeforeConnectorLookup(t *testing.T) {
 }
 func TestExecutionHealthAndLateVerifyUseOneSample(t *testing.T) {
 	tr := newWriteHealthTracker()
-	req := protocol.Request{Envelope: protocol.Envelope{ID: "one"}, Action: "route.apply_batch"}
+	req := protocol.Request{Envelope: protocol.Envelope{ID: "one"}, Action: "route.apply_batch", Payload: map[string]any{"operations": []any{map[string]any{"type": "add_trace"}}}}
 	resp := &protocol.Response{OK: false, Result: map[string]any{"status": "complete", "mutation_started": true, "readback_verified": true, "revision_before": "b", "revision_after": "r", "failed_index": nil, "item_results": []any{map[string]any{"index": 0, "status": "applied", "id": "x"}}, "created_ids": []string{"x"}, "deleted_ids": []string{}, "rollback_attempted": false, "rollback_complete": false}}
 	verdict := effectFromResponse(&req, resp)
 	if verdict != effectLanded {

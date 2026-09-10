@@ -412,7 +412,7 @@ func (s *Server) handleAction(w http.ResponseWriter, r *http.Request) {
 	// After a successful content-changing action, arm a debounced autosave so the
 	// work reaches disk without the agent having to remember to save (no-op when
 	// autosave is disabled or the action doesn't mutate). See autosave.go.
-	if resp.OK || (req.Action == "route.apply_batch" && resp.Result["status"] == "partial" && resp.Result["mutation_started"] == true) {
+	if shouldAutosave(&req, resp) {
 		s.maybeAutosave(&req)
 	}
 	writeJSON(w, http.StatusOK, resp)

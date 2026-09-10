@@ -278,5 +278,89 @@
     "Existing audit Append has no fsync/durable write-ahead intent; implementation deferred to B.",
     "No Host process was updated or activated.",
     "Original untracked hardening plan is preserved and excluded from this candidate commit."
-  ]
+  ],
+  "stage_a_r1": {
+    "parent_commit": "f1bb17381fa36348f1dccacbdc09ac23e54e7d3a",
+    "contract_version": "execution.v1.1",
+    "scope": "A-R1-01..06 only; OFFLINE_ONLY; pending independent acceptance",
+    "shared_fixtures": 82,
+    "full_execution_parity": "Go→TS, TS→Go, repeated interpretation; all shared fixtures plus metadata fixture",
+    "tests": [
+      {
+        "name": "Go full unfiltered",
+        "command": "D:/Environment/go/bin/go.exe test ./...",
+        "result": "FAIL: four documented Windows baseline failures",
+        "log": ".easyeda/r1-go-all.log",
+        "sha256": "e98beecf613565ff1179aaf3505074137c0d33b3388e99249537f4924a3b3b4b"
+      },
+      {
+        "name": "Go full with explicit baseline exclusions",
+        "command": "D:/Environment/go/bin/go.exe test ./... -skip '^(TestStripArtifactNesting|TestResolveEnrichScriptPriority|TestResolveEnrichScriptNotFoundListsProbedPaths|TestUpdateCLIReplacesBinaryAndVerifiesChecksum)$'",
+        "result": "PASS",
+        "log": ".easyeda/r1-go-final.log",
+        "sha256": "4cd18fc5f67fcaf0cd0d96b6fd60ea535c35817427c61e4849a293ac672cbc93"
+      },
+      {
+        "name": "Daemon after final parent ID change",
+        "command": "D:/Environment/go/bin/go.exe test ./internal/daemon",
+        "result": "PASS",
+        "log": ".easyeda/r1-daemon-final.log",
+        "sha256": "34ba8f7ef9287162fa57eb6125e010e1132552f70b1ef64297b37b823350925c"
+      },
+      {
+        "name": "Connector",
+        "command": "npm --prefix extension test",
+        "result": "425 passed",
+        "log": ".easyeda/r1-extension-final.log",
+        "sha256": "3bb2ed65795ee720e89455b3bce8e2217ca5612d5d7a169665753f9803e7adf1"
+      },
+      {
+        "name": "TypeScript",
+        "command": "npm --prefix extension run typecheck",
+        "result": "PASS",
+        "log": ".easyeda/r1-typecheck.log",
+        "sha256": "73cdf70247e975272156bf142e5925d20389cb3ea60afdd201dc9fb44c4da341"
+      },
+      {
+        "name": "MCP",
+        "command": "EASYEDA_BIN=.easyeda/stage-a-r1-easyeda.exe npm --prefix mcp test",
+        "result": "118 passed; 1 Host skip",
+        "log": ".easyeda/r1-mcp-final.log",
+        "sha256": "19f17ad5b9ba6ca050237d1b98d1c8f630ba814902742e58730d202e29553ec0"
+      },
+      {
+        "name": "Skill",
+        "command": "D:/Environment/miniconda3/python.exe scripts/pack-skill.py --check",
+        "result": "PASS: 58 files",
+        "log": ".easyeda/r1-skill-check.log",
+        "sha256": "f5cb43343b02e06e9882dbcbd47e7fe6e0b821bfc3c015d47a807aff6f47a792"
+      }
+    ],
+    "generator_check": "node scripts/generate-execution-mcp.cjs --check: PASS",
+    "changed_files": [
+      "docs/STAGE_A_EXECUTION_CONTRACT.md",
+      "docs/STAGE_A_R1_RESULTS.md",
+      "docs/STAGE_A_TEST_RESULTS.json",
+      "extension/src/action-contracts.json",
+      "extension/src/execution.ts",
+      "extension/src/protocol.ts",
+      "internal/daemon/autosave.go",
+      "internal/daemon/autosave_test.go",
+      "internal/daemon/dispatch.go",
+      "internal/daemon/execution_r1_test.go",
+      "internal/daemon/execution_test.go",
+      "internal/daemon/fastpath.go",
+      "internal/daemon/fastpath_transport_test.go",
+      "internal/daemon/stalereads.go",
+      "internal/protocol/execution.go",
+      "internal/protocol/execution_parity_test.go",
+      "internal/protocol/testdata/execution.json",
+      "mcp/src/authoring-result.mjs",
+      "mcp/src/execution.generated.mjs",
+      "mcp/test/authoring-result.test.mjs",
+      "mcp/test/execution.test.mjs",
+      "scripts/test-execution-parity.mjs"
+    ],
+    "deferred": "All Stage B–E findings remain deferred; no new Host qualification"
+  }
 }

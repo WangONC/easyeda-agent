@@ -1,5 +1,7 @@
 # Stage A — Execution Contract 候选交付
 
+> 本页下文保留首次候选的历史记录。当前 Stage A-R1 合同为 execution.v1.1；修复、测试和留项以 [STAGE_A_R1_RESULTS.md](STAGE_A_R1_RESULTS.md) 为准。
+
 日期：2026-09-10。实施基线和初始 HEAD 均为 a583bf731d946d2d39f1223e078d711bd41710d5；分支 main。
 用户提供的 docs/AUTONOMOUS_EXECUTION_HARDENING_PLAN.md 在开始时未跟踪，全文已读取并保持原样，不混入代码提交。
 本记录对应其第 4 节、第 6.1 节 Stage A 与第 10 节。只交付候选，不代表独立审查接受。

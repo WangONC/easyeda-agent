@@ -129,7 +129,8 @@ func pcbStaleRead(req *protocol.Request) bool {
 	// Document inventory calls dmt_Pcb.getAllPcbsInfo, not a PCB engine index.
 	// It must remain readable to locate the document that needs reloading. This
 	// metadata read neither clears the stale mark nor authorizes geometry reads.
-	return req.Action != "pcb.documents.list" && docTypeForAction(req.Action) == "pcb" && !requestMutates(req)
+	c, _ := protocol.ContractFor(req.Action)
+	return req.Action != "pcb.documents.list" && !pcbStaleClears(req) && !c.HasEffect("SAVE") && !c.HasEffect("NAVIGATION_SELECTION") && docTypeForAction(req.Action) == "pcb" && !requestMutates(req)
 }
 
 // pcbStaleClears reports whether a successful request resets the stale flag.
@@ -183,7 +184,7 @@ func (g *staleGuard) observe(req *protocol.Request, resp *protocol.Response) {
 	if !protocol.PossibleMutation(req, resp) && !resp.OK {
 		return
 	}
-	if pcbStaleClears(req) && resp.OK {
+	if pcbStaleClears(req) && resp.OK && (resp.Execution == nil || resp.Execution.MutationOutcome != protocol.NoWrite && (resp.Execution.NativeSettled == nil || *resp.Execution.NativeSettled)) && (req.Action != "pcb.pour.rebuild" || resp.Execution == nil || resp.Execution.RequestSatisfied) {
 		delete(g.last, req.WindowID)
 		return
 	}

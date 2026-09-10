@@ -478,7 +478,14 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
@@ -514,7 +521,14 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
@@ -550,7 +564,14 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
@@ -585,7 +606,14 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
@@ -622,7 +650,17 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          },
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
@@ -638,6 +676,11 @@
             "index": 0,
             "status": "applied",
             "id": "line"
+          },
+          {
+            "index": 1,
+            "status": "failed",
+            "error": "guard rejected"
           }
         ],
         "created_ids": [
@@ -645,7 +688,8 @@
         ],
         "deleted_ids": [],
         "rollback_attempted": false,
-        "rollback_complete": false
+        "rollback_complete": false,
+        "failed_index": 1
       }
     },
     "before": false,
@@ -657,7 +701,14 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
@@ -692,7 +743,14 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
@@ -710,14 +768,24 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
       "ok": true,
       "result": {
         "status": "stale",
-        "mutation_started": false
+        "mutation_started": false,
+        "item_results": [],
+        "created_ids": [],
+        "deleted_ids": []
       }
     },
     "before": false,
@@ -729,7 +797,17 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          },
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
@@ -737,7 +815,7 @@
       "result": {
         "status": "partial",
         "mutation_started": true,
-        "readback_verified": true,
+        "readback_verified": false,
         "revision_before": "v1",
         "revision_after": "v2",
         "item_results": [
@@ -745,6 +823,11 @@
             "index": 0,
             "status": "applied",
             "id": "line"
+          },
+          {
+            "index": 1,
+            "status": "failed",
+            "error": "guard rejected"
           }
         ],
         "created_ids": [
@@ -752,7 +835,8 @@
         ],
         "deleted_ids": [],
         "rollback_attempted": true,
-        "rollback_complete": true
+        "rollback_complete": true,
+        "failed_index": 1
       }
     },
     "before": false,
@@ -764,7 +848,14 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
@@ -838,7 +929,14 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
@@ -867,7 +965,14 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
@@ -902,7 +1007,14 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
@@ -935,7 +1047,14 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
@@ -970,7 +1089,14 @@
     "request": {
       "id": "r",
       "action": "route.apply_batch",
-      "payload": {}
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
     },
     "response": {
       "id": "r",
@@ -1039,6 +1165,1967 @@
       ]
     },
     "want_outcome": "",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_index_null",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": null,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_index_string",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": "0",
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_index_fraction",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0.5,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_index_negative",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": -1,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_index_missing",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_created_empty",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_created_wrong",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "other"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_deleted_conflict",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [
+          "line"
+        ],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_duplicate_item_id",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          },
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          },
+          {
+            "index": 1,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line",
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_operations_missing",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_delete_wrong_id",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "delete_trace",
+            "id": "other"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [],
+        "deleted_ids": [
+          "line"
+        ],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_revision_\"\"",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_revision_null",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": null,
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_revision_42",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": 42,
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_revision_\"  \"",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "  ",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_base_mismatch",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "other"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_raw_unsettled",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null,
+        "native_settled": false
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_unsettled_fast_complete",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.1",
+        "contract_hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
+        "mutation_outcome": "UNCERTAIN",
+        "native_settled": false,
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "pending"
+          ]
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": false,
+        "next_action": "reconcile_without_replay",
+        "reason": "native pending"
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_unsettled_fast_partial",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          },
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "partial",
+        "mutation_started": true,
+        "readback_verified": false,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          },
+          {
+            "index": 1,
+            "status": "failed",
+            "error": "guard rejected"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": 1
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.1",
+        "contract_hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
+        "mutation_outcome": "UNCERTAIN",
+        "native_settled": false,
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "pending"
+          ]
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": false,
+        "next_action": "reconcile_without_replay",
+        "reason": "native pending"
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_artifact_delivered",
+    "request": {
+      "id": "delivery",
+      "action": "schematic.export.bom",
+      "payload": {}
+    },
+    "response": {
+      "id": "delivery",
+      "ok": true,
+      "result": {},
+      "artifacts": [
+        {
+          "id": "bom",
+          "path": "fixture/bom.csv",
+          "sha256": "sha256"
+        }
+      ],
+      "execution": {
+        "request_id": "delivery",
+        "contract_version": "execution.v1.1",
+        "contract_hash": "f19ddf514345e33f042cd6c57eb28865abccd0a39f2bcd7ccfbd2cbae497f3ed",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": []
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "PENDING_DELIVERY"
+        },
+        "request_satisfied": false,
+        "next_action": "inspect",
+        "reason": "artifact delivery evidence pending"
+      }
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": true
+  },
+  {
+    "name": "r1_artifact_failed",
+    "request": {
+      "id": "delivery",
+      "action": "schematic.export.bom",
+      "payload": {}
+    },
+    "response": {
+      "id": "delivery",
+      "ok": true,
+      "result": {},
+      "artifacts": [
+        {
+          "id": "bom"
+        }
+      ],
+      "execution": {
+        "request_id": "delivery",
+        "contract_version": "execution.v1.1",
+        "contract_hash": "f19ddf514345e33f042cd6c57eb28865abccd0a39f2bcd7ccfbd2cbae497f3ed",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": []
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "PENDING_DELIVERY"
+        },
+        "request_satisfied": false,
+        "next_action": "inspect",
+        "reason": "artifact delivery evidence pending"
+      }
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_artifact_upstream_failure",
+    "request": {
+      "id": "delivery",
+      "action": "schematic.export.bom",
+      "payload": {}
+    },
+    "response": {
+      "id": "delivery",
+      "ok": true,
+      "result": {},
+      "artifacts": [
+        {
+          "path": "file",
+          "sha256": "hash"
+        }
+      ],
+      "execution": {
+        "request_id": "delivery",
+        "contract_version": "execution.v1.1",
+        "contract_hash": "f19ddf514345e33f042cd6c57eb28865abccd0a39f2bcd7ccfbd2cbae497f3ed",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": []
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "DELIVERY_FAILED"
+        },
+        "request_satisfied": false,
+        "next_action": "inspect",
+        "reason": "artifact delivery failed"
+      }
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_parent_route.preflight",
+    "request": {
+      "id": "parent",
+      "action": "route.preflight",
+      "operationId": "parent-op",
+      "payload": {}
+    },
+    "response": {
+      "id": "parent",
+      "ok": true,
+      "result": {
+        "ok": true
+      },
+      "execution": {
+        "operation_id": "parent-op",
+        "request_id": "parent",
+        "contract_version": "execution.v1.1",
+        "contract_hash": "34a6a7de635e19b43cc0023132ee0735fa8dba61c42bdc54ce673887d70cdbce",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": []
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "inspect",
+        "reason": "legacy evidence does not prove semantic completion",
+        "child_responses": [
+          {
+            "id": "child",
+            "ok": true,
+            "result": {
+              "board_revision": "revision"
+            },
+            "execution": {
+              "operation_id": "child-op",
+              "parent_operation_id": "parent-op",
+              "request_id": "child",
+              "contract_version": "execution.v1.1",
+              "contract_hash": "e140602896dbbf9edb486ac09d5af2219f3fe839bbe2d61c9fd827841636bc42",
+              "verification": {
+                "state": "UNAVAILABLE",
+                "coverage": "PARTIAL",
+                "required": [],
+                "observed": [],
+                "missing": [],
+                "evidence_refs": []
+              },
+              "recovery": {
+                "state": "NOT_REQUESTED"
+              },
+              "persistence": {
+                "state": "NOT_REQUESTED"
+              },
+              "request_satisfied": true,
+              "next_action": "inspect",
+              "reason": "legacy evidence does not prove semantic completion"
+            }
+          }
+        ]
+      }
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": true
+  },
+  {
+    "name": "r1_parent_route.tuning_plan",
+    "request": {
+      "id": "parent",
+      "action": "route.tuning_plan",
+      "operationId": "parent-op",
+      "payload": {}
+    },
+    "response": {
+      "id": "parent",
+      "ok": true,
+      "result": {
+        "ok": true
+      },
+      "execution": {
+        "operation_id": "parent-op",
+        "request_id": "parent",
+        "contract_version": "execution.v1.1",
+        "contract_hash": "7d208b4c543b74b18e4b1b0c28fa1bb835b2a8b5bd8dc507e6a2bd617dc55d83",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": []
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "inspect",
+        "reason": "legacy evidence does not prove semantic completion",
+        "child_responses": [
+          {
+            "id": "child",
+            "ok": true,
+            "result": {
+              "board_revision": "revision"
+            },
+            "execution": {
+              "operation_id": "child-op",
+              "parent_operation_id": "parent-op",
+              "request_id": "child",
+              "contract_version": "execution.v1.1",
+              "contract_hash": "e140602896dbbf9edb486ac09d5af2219f3fe839bbe2d61c9fd827841636bc42",
+              "verification": {
+                "state": "UNAVAILABLE",
+                "coverage": "PARTIAL",
+                "required": [],
+                "observed": [],
+                "missing": [],
+                "evidence_refs": []
+              },
+              "recovery": {
+                "state": "NOT_REQUESTED"
+              },
+              "persistence": {
+                "state": "NOT_REQUESTED"
+              },
+              "request_satisfied": true,
+              "next_action": "inspect",
+              "reason": "legacy evidence does not prove semantic completion"
+            }
+          }
+        ]
+      }
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": true
+  },
+  {
+    "name": "r1_parent_route.pair_plan",
+    "request": {
+      "id": "parent",
+      "action": "route.pair_plan",
+      "operationId": "parent-op",
+      "payload": {}
+    },
+    "response": {
+      "id": "parent",
+      "ok": true,
+      "result": {
+        "ok": true
+      },
+      "execution": {
+        "operation_id": "parent-op",
+        "request_id": "parent",
+        "contract_version": "execution.v1.1",
+        "contract_hash": "bc890f7fe2ff6007893778a3fe1ed25ef0caae5a6d7b28729f6aaa572ede1c24",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": []
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "inspect",
+        "reason": "legacy evidence does not prove semantic completion",
+        "child_responses": [
+          {
+            "id": "child",
+            "ok": true,
+            "result": {
+              "board_revision": "revision"
+            },
+            "execution": {
+              "operation_id": "child-op",
+              "parent_operation_id": "parent-op",
+              "request_id": "child",
+              "contract_version": "execution.v1.1",
+              "contract_hash": "e140602896dbbf9edb486ac09d5af2219f3fe839bbe2d61c9fd827841636bc42",
+              "verification": {
+                "state": "UNAVAILABLE",
+                "coverage": "PARTIAL",
+                "required": [],
+                "observed": [],
+                "missing": [],
+                "evidence_refs": []
+              },
+              "recovery": {
+                "state": "NOT_REQUESTED"
+              },
+              "persistence": {
+                "state": "NOT_REQUESTED"
+              },
+              "request_satisfied": true,
+              "next_action": "inspect",
+              "reason": "legacy evidence does not prove semantic completion"
+            }
+          }
+        ]
+      }
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": true
+  },
+  {
+    "name": "r1_parent_pcb.routing_profile",
+    "request": {
+      "id": "parent",
+      "action": "pcb.routing_profile",
+      "operationId": "parent-op",
+      "payload": {}
+    },
+    "response": {
+      "id": "parent",
+      "ok": true,
+      "result": {
+        "ok": true
+      },
+      "execution": {
+        "operation_id": "parent-op",
+        "request_id": "parent",
+        "contract_version": "execution.v1.1",
+        "contract_hash": "bcd96319e949c0763682021f31e50048f0b45d1b628ffd48e8e30cac3fbc6302",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": []
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "inspect",
+        "reason": "legacy evidence does not prove semantic completion",
+        "child_responses": [
+          {
+            "id": "child",
+            "ok": true,
+            "result": {
+              "board_revision": "revision"
+            },
+            "execution": {
+              "operation_id": "child-op",
+              "parent_operation_id": "parent-op",
+              "request_id": "child",
+              "contract_version": "execution.v1.1",
+              "contract_hash": "e140602896dbbf9edb486ac09d5af2219f3fe839bbe2d61c9fd827841636bc42",
+              "verification": {
+                "state": "UNAVAILABLE",
+                "coverage": "PARTIAL",
+                "required": [],
+                "observed": [],
+                "missing": [],
+                "evidence_refs": []
+              },
+              "recovery": {
+                "state": "NOT_REQUESTED"
+              },
+              "persistence": {
+                "state": "NOT_REQUESTED"
+              },
+              "request_satisfied": true,
+              "next_action": "inspect",
+              "reason": "legacy evidence does not prove semantic completion"
+            }
+          }
+        ]
+      }
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": true
+  },
+  {
+    "name": "r1_same_revision",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v1",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_duplicate_type",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null,
+        "duplicate": "false"
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_created_null",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": null,
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_item_null",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          null
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_native_null",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null,
+        "native_settled": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_metadata_fast_complete",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "operation_id": "op",
+        "parent_operation_id": "parent",
+        "request_id": "r",
+        "contract_version": "execution.v1.1",
+        "contract_hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "original-evidence"
+          ],
+          "source": "original-verifier",
+          "revision": "v2",
+          "activation": "a",
+          "observed_at": "time",
+          "verifier_version": "version"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED",
+          "receipt": {
+            "preserved": true
+          }
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED",
+          "receipt": {
+            "preserved": true
+          }
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true,
+        "payload_hash": "hash",
+        "executor_build": "build",
+        "activation": "a"
+      }
+    },
+    "before": false,
+    "want_outcome": "COMPLETE",
+    "want_satisfied": true
+  },
+  {
+    "name": "r1_metadata_fast_restored",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          },
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "partial",
+        "mutation_started": true,
+        "readback_verified": false,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          },
+          {
+            "index": 1,
+            "status": "failed",
+            "error": "guard rejected"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": true,
+        "rollback_complete": true,
+        "failed_index": 1
+      },
+      "execution": {
+        "operation_id": "op",
+        "parent_operation_id": "parent",
+        "request_id": "r",
+        "contract_version": "execution.v1.1",
+        "contract_hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "original-evidence"
+          ],
+          "source": "original-verifier",
+          "revision": "v2",
+          "activation": "a",
+          "observed_at": "time",
+          "verifier_version": "version"
+        },
+        "recovery": {
+          "state": "RESTORED",
+          "evidence_refs": [
+            "result"
+          ],
+          "receipt": {
+            "preserved": true
+          }
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED",
+          "receipt": {
+            "preserved": true
+          }
+        },
+        "request_satisfied": false,
+        "next_action": "reconcile_without_replay",
+        "reason": "legacy evidence does not prove semantic completion",
+        "mutation_outcome": "PARTIAL",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          },
+          {
+            "index": 1,
+            "status": "failed",
+            "error": "guard rejected"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true,
+        "payload_hash": "hash",
+        "executor_build": "build",
+        "activation": "a"
+      }
+    },
+    "before": false,
+    "want_outcome": "PARTIAL",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_write_conflict",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.1",
+        "contract_hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": false,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_item_conflict",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.1",
+        "contract_hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "other"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r1_null_settled",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.1",
+        "contract_hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
     "want_satisfied": false
   }
 ]

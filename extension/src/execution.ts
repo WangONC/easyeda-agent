@@ -33,7 +33,7 @@ export function interpret(req: Partial<RequestFrame> & {
 }, resp?: Partial<ResponseFrame>, beforeDispatch = false): Execution {
     const c = contractFor(req.action);
     const mutation = c?.effects.some(e => ['DESIGN_CONTENT', 'PROJECT_TOPOLOGY', 'LIBRARY_ASSET'].includes(e));
-    const e: Execution = { operation_id: req.operationId || req.payload?.client_transaction_id as string | undefined, parent_operation_id: req.parentOperationId, request_id: req.id || '', contract_version: c?.version || '', contract_hash: c?.hash || '', expected_target: req.expectedTarget, verification: { state: 'UNAVAILABLE', coverage: 'PARTIAL', required: [], observed: [], missing: [], evidence_refs: [] }, recovery: { state: 'NOT_REQUESTED' }, persistence: { state: 'NOT_REQUESTED' }, request_satisfied: false, next_action: mutation ? 'reconcile_without_replay' : 'inspect', reason: 'legacy evidence does not prove semantic completion' };
+    let e: Execution = { operation_id: req.operationId || req.payload?.client_transaction_id as string | undefined, parent_operation_id: req.parentOperationId, request_id: req.id || '', contract_version: c?.version || '', contract_hash: c?.hash || '', expected_target: req.expectedTarget, verification: { state: 'UNAVAILABLE', coverage: 'PARTIAL', required: [], observed: [], missing: [], evidence_refs: [] }, recovery: { state: 'NOT_REQUESTED' }, persistence: { state: 'NOT_REQUESTED' }, request_satisfied: false, next_action: mutation ? 'reconcile_without_replay' : 'inspect', reason: 'legacy evidence does not prove semantic completion' };
     if (mutation)
         e.mutation_outcome = 'UNCERTAIN';
     if (beforeDispatch) {
@@ -53,10 +53,13 @@ export function interpret(req: Partial<RequestFrame> & {
         return e;
     }
     const prior = resp.execution;
-    if (prior && (req.action !== 'route.apply_batch' || prior.mutation_outcome === 'NO_WRITE')) {
-        const copy = { ...prior };
-        const cvalid = prior.contract_version === c?.version && prior.contract_hash === c?.hash && prior.request_id === resp.id && (!req.id || req.id === resp.id);
-        if (mutation) {
+    if (prior) {
+        const copy = structuredClone(prior);
+        copy.persistence = {...prior.persistence};
+        copy.recovery = {...prior.recovery};
+        e = copy;
+        const cvalid = prior.contract_version === c?.version && prior.contract_hash === c?.hash && prior.request_id === (resp.id || '') && (!req.id || req.id === resp.id);
+        if (mutation && req.action !== 'route.apply_batch') {
             let valid = cvalid;
             const r = resp.result || {};
             switch (prior.mutation_outcome) {
@@ -86,46 +89,64 @@ export function interpret(req: Partial<RequestFrame> & {
             return copy;
         }
     }
-    if (prior && !mutation && (!prior.request_satisfied || prior.contract_version !== c?.version || prior.contract_hash !== c?.hash || ['INVALID', 'UNSUPPORTED'].includes(prior.verification?.state))) {
-        return { ...prior, request_satisfied: false };
+    if (prior) {
+        const valid = prior.contract_version === c?.version && prior.contract_hash === c?.hash && prior.request_id === (resp.id || '') && (!req.id || req.id === resp.id);
+        let blocked = !valid || ['INVALID','UNSUPPORTED'].includes(prior.verification?.state);
+        if (req.action === 'route.apply_batch' && valid && prior.mutation_outcome === 'NO_WRITE' && prior.write_attempted === false && prior.reason === 'refused before dispatch' && !resp.result) return e;
+        if (req.action === 'route.apply_batch' && ((prior.write_attempted === false || prior.mutation_outcome === 'NO_WRITE') && resp.result?.mutation_started === true)) blocked = true;
+        if (req.action === 'route.apply_batch' && prior.item_results != null && canonical(prior.item_results) !== canonical(resp.result?.item_results)) blocked = true;
+        if (req.action === 'route.apply_batch') blocked ||= prior.native_settled === false || prior.mutation_outcome === 'UNCERTAIN' || (['COMPLETE','PARTIAL'].includes(prior.mutation_outcome || '') && prior.native_settled !== true);
+        else if (!mutation && !prior.request_satisfied) blocked ||= !(c?.effects.includes('ARTIFACT_DELIVERY') && prior.persistence?.state === 'PENDING_DELIVERY');
+        if (blocked) {
+            e.request_satisfied = false;
+            if (mutation) { e.mutation_outcome = 'UNCERTAIN'; e.next_action = 'reconcile_without_replay'; }
+            return e;
+        }
     }
-    e.observed_target_after = resp.context;
+    e.observed_target_after ??= resp.context;
     const r = resp.result || {};
     if (mutation) {
         if (req.action === 'route.apply_batch') {
+            e.mutation_outcome = 'UNCERTAIN'; e.request_satisfied = false;
             e.item_results = r.item_results;
             if (typeof r.mutation_started === 'boolean')
                 e.write_attempted = r.mutation_started;
             if (['stale', 'partial'].includes(String(r.status))) {
-                if (r.mutation_started === false && !nonempty(r.created_ids) && !nonempty(r.deleted_ids))
+                if (r.mutation_started === false && fastNoWrite(r))
                     e.mutation_outcome = 'NO_WRITE';
-                else if (r.status === 'partial' && r.mutation_started === true && r.revision_after != null)
-                    e.mutation_outcome = 'PARTIAL';
+                else if (r.status === 'partial' && fastSettled(r, req.payload || {}, false)) {
+                    e.mutation_outcome = 'PARTIAL'; e.native_settled = true;
+                }
             }
             if (r.status === 'complete' && fastComplete(r, req.payload || {})) {
-                e.mutation_outcome = 'COMPLETE';
+                e.mutation_outcome = 'COMPLETE'; e.native_settled = true;
                 e.request_satisfied = true;
                 e.verification.state = 'AVAILABLE';
                 e.verification.coverage = 'COMPLETE';
-                e.verification.source = 'FastPath.matchesOperation';
-                e.verification.evidence_refs = ['result'];
+                if (!e.verification.source) e.verification.source = 'FastPath.matchesOperation';
+                if (!e.verification.evidence_refs.length) e.verification.evidence_refs = ['result'];
                 e.next_action = 'continue';
                 e.reason = 'Fast Path semantic readback';
             }
             if (r.rollback_complete === true && e.mutation_outcome === 'PARTIAL') {
-                e.recovery = { state: 'RESTORED', evidence_refs: ['result'] };
+                e.recovery.state = 'RESTORED';
+                if (!('evidence_refs' in e.recovery)) e.recovery.evidence_refs = ['result'];
                 e.request_satisfied = false;
             }
         }
     }
     else {
-        e.request_satisfied = resp.ok === true && !negativeResult(r) && r.ok !== false && r.saved !== false;
+        e.request_satisfied = !!c && resp.ok === true && !negativeResult(r) && r.ok !== false && r.saved !== false;
         if (c?.effects.includes('SAVE')) {
             e.request_satisfied = e.request_satisfied && r.saved === true;
             e.persistence.state = e.request_satisfied ? 'SAVE_ACKNOWLEDGED' : 'UNKNOWN';
         }
         if (c?.effects.includes('ARTIFACT_DELIVERY')) {
-            e.request_satisfied = e.request_satisfied && !!resp.artifacts?.length && resp.artifacts.every(a => !!a.path && !!a.sha256);
+            const invocationOK = e.request_satisfied;
+            e.request_satisfied = e.request_satisfied && !!resp.artifacts?.length && resp.artifacts.every(a => typeof a.path === 'string' && !!a.path && typeof a.sha256 === 'string' && !!a.sha256);
+            if (e.request_satisfied) { e.persistence.state = 'DELIVERED'; e.reason = 'artifact delivery completed'; }
+            else if (invocationOK && resp.artifacts?.length && resp.artifacts.every(a => (!!a.path && !!a.sha256) || !!a.inlineBase64)) { e.persistence.state = 'PENDING_DELIVERY'; e.reason = 'artifact delivery evidence pending'; }
+            else { e.persistence.state = 'DELIVERY_FAILED'; e.reason = 'artifact delivery failed'; }
         }
     }
     if (req.payload?.dryRun === true && c?.dry_run === 'preview') {
@@ -137,18 +158,51 @@ export function interpret(req: Partial<RequestFrame> & {
     return e;
 }
 function completeEvidence(v: Execution['verification']) {
-    return !!v && v.state === 'AVAILABLE' && v.coverage === 'COMPLETE' && Array.isArray(v.required) && v.required.length > 0 && Array.isArray(v.missing) && !v.missing.length && Array.isArray(v.observed) && Array.isArray(v.evidence_refs) && v.evidence_refs.length > 0 && !!v.activation && !!v.revision && !!v.observed_at && !!v.verifier_version && !!v.source && !!v.scope && v.required.every(f => v.observed?.includes(f));
+    const text = (s: unknown) => typeof s === 'string' && s.length > 0;
+    const list = (a: unknown): a is string[] => Array.isArray(a) && a.every(text);
+    return !!v && v.state === 'AVAILABLE' && v.coverage === 'COMPLETE' && list(v.required) && v.required.length > 0 && list(v.missing) && !v.missing.length && list(v.observed) && list(v.evidence_refs) && v.evidence_refs.length > 0 && text(v.activation) && text(v.revision) && text(v.observed_at) && text(v.verifier_version) && text(v.source) && !!v.scope && typeof v.scope === 'object' && !Array.isArray(v.scope) && v.required.every(f => v.observed.includes(f));
+}
+const ids = (v: unknown): v is string[] => Array.isArray(v) && v.every(x => typeof x === 'string' && x.length > 0) && new Set(v).size === v.length;
+function fastNoWrite(r: Record<string, unknown>) {
+    return ids(r.created_ids) && ids(r.deleted_ids) && !r.created_ids.length && !r.deleted_ids.length && Array.isArray(r.item_results) && !r.item_results.length;
 }
 function fastComplete(r: Record<string, unknown>, payload: Record<string, unknown>) {
-    if (r.readback_verified !== true || r.mutation_started !== true || r.duplicate === true || r.rollback_attempted !== false || r.rollback_complete !== false || negativeResult(r))
-        return false;
-    if (typeof r.revision_before !== 'string' || !r.revision_before || typeof r.revision_after !== 'string' || !r.revision_after || !('failed_index' in r) || r.failed_index !== null)
-        return false;
-    if (!Array.isArray(r.item_results) || !r.item_results.length || r.item_results.some((v, i) => !v || v.index !== i || v.status !== 'applied' || typeof v.id !== 'string' || !v.id))
-        return false;
-    if (!Array.isArray(r.created_ids) || r.created_ids.some(v => typeof v !== 'string') || !Array.isArray(r.deleted_ids) || r.deleted_ids.some(v => typeof v !== 'string'))
-        return false;
-    if ('operations' in payload && (!Array.isArray(payload.operations) || payload.operations.length !== r.item_results.length))
-        return false;
-    return true;
+    return r.readback_verified === true && r.rollback_attempted === false && r.rollback_complete === false && !negativeResult(r) && fastSettled(r,payload,true);
+}
+function fastSettled(r: Record<string, unknown>, payload: Record<string, unknown>, complete: boolean) {
+    if (r.mutation_started !== true || r.duplicate === true) return false;
+    if (typeof r.revision_before !== 'string' || !r.revision_before.trim() || typeof r.revision_after !== 'string' || !r.revision_after.trim()) return false;
+    if (r.revision_before === r.revision_after || ('duplicate' in r && typeof r.duplicate !== 'boolean')) return false;
+    if (!complete && r.readback_verified !== false) return false;
+    if (r.rollback_complete === true && (r.rollback_attempted !== true || nonempty(r.deleted_ids))) return false;
+    if ('base_revision' in payload && payload.base_revision !== r.revision_before) return false;
+    if ('native_settled' in r && r.native_settled !== true) return false;
+    if (typeof r.rollback_attempted !== 'boolean' || typeof r.rollback_complete !== 'boolean') return false;
+    if (!ids(r.created_ids) || !ids(r.deleted_ids)) return false;
+    const items = r.item_results, ops = payload.operations;
+    if (!Array.isArray(items) || !Array.isArray(ops) || !items.length || items.length !== ops.length) return false;
+    if (!('failed_index' in r)) return false;
+    let failed = -1;
+    if (complete) { if (r.failed_index !== null) return false; }
+    else { if (typeof r.failed_index !== 'number' || !Number.isInteger(r.failed_index) || r.failed_index < 0 || r.failed_index >= items.length) return false; failed = r.failed_index; }
+    const created = new Set<string>(), deleted = new Set<string>(), seen = new Set<string>();
+    for (let i=0;i<items.length;i++) {
+        const item=items[i], op=ops[i];
+        if (!item || typeof item !== 'object' || item.index !== i || !op || typeof op !== 'object') return false;
+        const add=['add_trace','add_arc','add_via'].includes(op.type), del=['delete_trace','delete_via'].includes(op.type);
+        if (!add && !del) return false;
+        const status=failed === i ? 'failed' : failed >= 0 && i > failed ? 'skipped' : 'applied';
+        if (item.status !== status) return false;
+        if (status !== 'applied') { if ('id' in item) return false; continue; }
+        if (typeof item.id !== 'string' || !item.id || seen.has(item.id)) return false;
+        seen.add(item.id);
+        if (add) created.add(item.id); else { if (op.id !== item.id) return false; deleted.add(item.id); }
+    }
+    return r.created_ids.length === created.size && r.deleted_ids.length === deleted.size && r.created_ids.every(id=>created.has(id)) && r.deleted_ids.every(id=>deleted.has(id));
+}
+
+function canonical(value: unknown): string {
+ if (Array.isArray(value)) return '['+value.map(canonical).join(',')+']';
+ if (value && typeof value === 'object') return '{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+canonical((value as Record<string,unknown>)[k])).join(',')+'}';
+ return JSON.stringify(value) ?? 'undefined';
 }

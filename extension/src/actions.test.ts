@@ -1,3 +1,4 @@
+import { retained } from './retained-business.test-support';
 /// <reference types="@jlceda/pro-api-types" />
 /**
  * Unit tests for schematic component serialization (issue #52).
@@ -22,7 +23,6 @@ import {
 	normalizeDeviceRef,
 	planOtherPropertyBackfill,
 	PROJECTED_STATE_KEYS,
-	runAction,
 	schematicComponentsList,
 	serializeComponent,
 	summarizeActivePageConnectivity,
@@ -41,7 +41,7 @@ test('library footprint create defaults to personal library and verifies by get'
 		},
 	};
 	try {
-		const res: any = await runAction('library.footprint.create', { name: 'MY_FP', description: 'test' });
+		const res: any = await retained.libraryFootprintCreate( { name: 'MY_FP', description: 'test' });
 		assert.deepEqual(calls, [['LIB-PERSONAL', 'EA_AGENT__MY_FP', undefined, 'test']]);
 		assert.equal(res.result.name, 'EA_AGENT__MY_FP');
 		assert.equal(res.result.namespace, 'EA_AGENT');
@@ -60,7 +60,7 @@ test('library footprint create reports partial when creation cannot be read back
 		lib_Footprint: { create: async () => 'FP-2', get: async () => undefined },
 	};
 	try {
-		const res: any = await runAction('library.footprint.create', { name: 'ASYNC_FP', scope: 'project' });
+		const res: any = await retained.libraryFootprintCreate( { name: 'ASYNC_FP', scope: 'project' });
 		assert.equal(res.result.partial, true);
 		assert.equal(res.result.verified, false);
 		assert.equal(res.result.created.uuid, 'FP-2');
@@ -79,7 +79,7 @@ test('library footprint copy namespaces the lossless copy and verifies it', asyn
 		},
 	};
 	try {
-		const res: any = await runAction('library.footprint.copy', {
+		const res: any = await retained.libraryFootprintCopy( {
 			uuid: 'SRC', sourceLibraryUuid: 'LIB-SRC', name: 'sdCard v2',
 		});
 		assert.deepEqual(args, ['SRC', 'LIB-SRC', 'LIB-PERSONAL', undefined, 'EA_AGENT__SDCARD_V2']);
@@ -116,7 +116,7 @@ test('library footprint build opens the asset, creates pads/lines and verifies I
 		pcb_Document: { save: async () => true },
 	};
 	try {
-		const res: any = await runAction('library.footprint.build', {
+		const res: any = await retained.libraryFootprintBuild( {
 			uuid: 'FP-1', libraryUuid: 'LIB-F',
 			pads: [
 				{ number: '1', layer: 1, x: -40, y: 0, shape: ['RECT', 40, 50, 4] },
@@ -137,7 +137,7 @@ test('library footprint build rejects duplicate pad numbers before opening/mutat
 	(globalThis as any).eda = { lib_Footprint: { openInEditor: async () => { opened = true; } } };
 	try {
 		await assert.rejects(
-			() => runAction('library.footprint.build', {
+			() => retained.libraryFootprintBuild( {
 				uuid: 'FP-1', libraryUuid: 'LIB-F', pads: [
 					{ number: '1', layer: 1, x: 0, y: 0, shape: ['RECT', 40, 40, 0] },
 					{ number: '1', layer: 1, x: 50, y: 0, shape: ['RECT', 40, 40, 0] },
@@ -160,7 +160,7 @@ test('library Device create binds explicit symbol and footprint refs', async () 
 		},
 	};
 	try {
-		const res: any = await runAction('library.device.create', {
+		const res: any = await retained.libraryDeviceCreate( {
 			name: 'MY_DEVICE', libraryUuid: 'LIB-D',
 			symbol: { uuid: 'SYM-1', libraryUuid: 'LIB-S' },
 			footprint: { uuid: 'FP-1', libraryUuid: 'LIB-F' },
@@ -184,7 +184,7 @@ test('library Device create refuses a malformed symbol ref before mutation', asy
 	(globalThis as any).eda = { lib_Device: { create: async () => { mutated = true; } } };
 	try {
 		await assert.rejects(
-			() => runAction('library.device.create', { name: 'BAD', symbol: { uuid: 'SYM' } }),
+			() => retained.libraryDeviceCreate( { name: 'BAD', symbol: { uuid: 'SYM' } }),
 			(err: any) => err.code === 'PRECONDITION_REFUSED',
 		);
 		assert.equal(mutated, false);
@@ -203,11 +203,11 @@ test('library Device delete requires exact expected name and verifies absence', 
 	};
 	try {
 		await assert.rejects(
-			() => runAction('library.device.delete', { uuid: 'DEV-1', libraryUuid: 'LIB', expectedName: 'USER_PART' }),
+			() => retained.libraryDeviceDelete( { uuid: 'DEV-1', libraryUuid: 'LIB', expectedName: 'USER_PART' }),
 			(err: any) => err.code === 'PRECONDITION_REFUSED' && /name mismatch/.test(err.message),
 		);
 		assert.equal(deleteCalls, 0);
-		const res: any = await runAction('library.device.delete', {
+		const res: any = await retained.libraryDeviceDelete( {
 			uuid: 'DEV-1', libraryUuid: 'LIB', expectedName: 'EA_AGENT__TEST',
 		});
 		assert.equal(res.result.deleted, true);
@@ -1461,7 +1461,7 @@ function edaWithUndeletableText(textIds: string[], wireIds: string[]) {
 test('prim-delete: primitives that survive the delete are reported, not counted as deleted', async () => {
 	(globalThis as any).eda = edaWithUndeletableText(['t1', 't2'], ['w1']) as any;
 	try {
-		const res: any = await runAction('schematic.primitives.delete', { primitiveIds: ['t1', 't2', 'w1'] });
+		const res: any = await retained.schematicPrimitivesDelete( { primitiveIds: ['t1', 't2', 'w1'] });
 		assert.equal(res.result.deleted.texts, 0, 'undeletable texts must not be counted as deleted');
 		assert.equal(res.result.deleted.wires, 1);
 		assert.equal(res.result.total, 1, 'total counts only what actually went away');
@@ -1480,7 +1480,7 @@ test('prim-delete: primitives that survive the delete are reported, not counted 
 test('prim-delete: a fully successful delete carries no partial flag', async () => {
 	(globalThis as any).eda = edaWithUndeletableText([], ['w1', 'w2']) as any;
 	try {
-		const res: any = await runAction('schematic.primitives.delete', { primitiveIds: ['w1', 'w2'] });
+		const res: any = await retained.schematicPrimitivesDelete( { primitiveIds: ['w1', 'w2'] });
 		assert.equal(res.result.total, 2);
 		assert.equal(res.result.partial, undefined);
 		assert.equal(res.result.survived, undefined);
@@ -1568,7 +1568,7 @@ test('component.delete: exclusive stub tree (wire + flag) is cascade-deleted and
 		wires: [{ id: 'w1', points: [100, 100, 100, 130] }],
 	});
 	try {
-		const res: any = await runAction('schematic.component.delete', { primitiveIds: 'u1' });
+		const res: any = await retained.schematicComponentDelete( { primitiveIds: 'u1' });
 		assert.equal(res.result.deleted, true);
 		assert.deepEqual(res.result.cascaded, { wires: ['w1'], flags: ['f1'] });
 		assert.equal(res.result.notApplied, undefined);
@@ -1589,7 +1589,7 @@ test('component.delete: a tree still touching a SURVIVING part pin is shared —
 		wires: [{ id: 'w1', points: [100, 100, 200, 100] }],
 	});
 	try {
-		const res: any = await runAction('schematic.component.delete', { primitiveIds: ['u1'] });
+		const res: any = await retained.schematicComponentDelete( { primitiveIds: ['u1'] });
 		assert.equal(res.result.deleted, true);
 		assert.deepEqual(res.result.cascaded, { wires: [], flags: [] });
 		assert.deepEqual(fx.liveWireIds(), ['w1'], 'the shared wire must survive');
@@ -1608,7 +1608,7 @@ test('component.delete: cascade:false keeps the old behavior (no wire/flag clean
 		wires: [{ id: 'w1', points: [100, 100, 100, 130] }],
 	});
 	try {
-		const res: any = await runAction('schematic.component.delete', { primitiveIds: 'u1', cascade: false });
+		const res: any = await retained.schematicComponentDelete( { primitiveIds: 'u1', cascade: false });
 		assert.equal(res.result.deleted, true);
 		assert.equal(res.result.cascaded, undefined, 'cascade:false must not report a cascaded block');
 		assert.deepEqual(fx.liveWireIds(), ['w1']);
@@ -1628,7 +1628,7 @@ test('component.delete: a lying cascade delete is reported as notApplied, never 
 		keepWireIds: ['w1'],
 	});
 	try {
-		const res: any = await runAction('schematic.component.delete', { primitiveIds: 'u1' });
+		const res: any = await retained.schematicComponentDelete( { primitiveIds: 'u1' });
 		assert.equal(res.result.deleted, true, 'the component itself did go away');
 		// Only PROVEN-removed ids are claimed; the survivor is structured notApplied (#151).
 		assert.deepEqual(res.result.cascaded, { wires: [], flags: ['f1'] });
@@ -2112,7 +2112,7 @@ test('sch check: polarity-convention-outlier fires on the #183 nine-cap page (ha
 		},
 	};
 	try {
-		const res: any = await runAction('schematic.check', {});
+		const res: any = await retained.schematicCheck( {});
 		const pol = res.result.findings.filter((f: any) => f.type === 'polarity-convention-outlier');
 		assert.equal(pol.length, 1);
 		assert.equal(pol[0].designator, 'C9');
@@ -2324,7 +2324,7 @@ function resolveLcscEda(instanceFootprint: Record<string, unknown>): any {
 test('resolve_lcsc: a lower-cased instance footprint matches the library record (T-3)', async () => {
 	(globalThis as any).eda = resolveLcscEda({ libraryUuid: 'LIB-F', uuid: '', name: 'r0603' });
 	try {
-		const res: any = await runAction('schematic.component.resolve_lcsc', {});
+		const res: any = await retained.schematicComponentResolveLcsc( {});
 		assert.equal(res.result.unresolvedCount, 0);
 		assert.equal(res.result.items[0].lcsc, 'C98220');
 		assert.equal(res.result.items[0].via, 'mpn');
@@ -2335,7 +2335,7 @@ test('resolve_lcsc: a lower-cased instance footprint matches the library record 
 test('resolve_lcsc: a matching footprint uuid outranks a differently-named library record', async () => {
 	(globalThis as any).eda = resolveLcscEda({ libraryUuid: 'LIB-F', uuid: 'FP-R0603', name: 'resistor-0603-local' });
 	try {
-		const res: any = await runAction('schematic.component.resolve_lcsc', {});
+		const res: any = await retained.schematicComponentResolveLcsc( {});
 		assert.equal(res.result.unresolvedCount, 0);
 		assert.equal(res.result.items[0].lcsc, 'C98220');
 	}
@@ -2345,7 +2345,7 @@ test('resolve_lcsc: a matching footprint uuid outranks a differently-named libra
 test('resolve_lcsc: a REAL package-variant mismatch is still refused', async () => {
 	(globalThis as any).eda = resolveLcscEda({ libraryUuid: 'LIB-F', uuid: '', name: 'r1206' });
 	try {
-		const res: any = await runAction('schematic.component.resolve_lcsc', {});
+		const res: any = await retained.schematicComponentResolveLcsc( {});
 		assert.equal(res.result.unresolvedCount, 1);
 		assert.match(String(res.result.unresolved[0].reason), /package-variant mismatch/);
 	}
@@ -2355,7 +2355,7 @@ test('resolve_lcsc: a REAL package-variant mismatch is still refused', async () 
 test('resolve_lcsc: a footprint UUID without a name still selects the matching variant', async () => {
 	(globalThis as any).eda = resolveLcscEda({ uuid: 'FP-R0603' });
 	try {
-		const res: any = await runAction('schematic.component.resolve_lcsc', {});
+		const res: any = await retained.schematicComponentResolveLcsc( {});
 		assert.equal(res.result.unresolvedCount, 0);
 		assert.equal(res.result.items[0].lcsc, 'C98220');
 	}
@@ -2370,7 +2370,7 @@ test('resolve_lcsc: a lone wrong UUID is refused before apply even when the inst
 	mock.sch_PrimitiveComponent.modify = async () => { writes++; return true; };
 	(globalThis as any).eda = mock;
 	try {
-		const res: any = await runAction('schematic.component.resolve_lcsc', { apply: true });
+		const res: any = await retained.schematicComponentResolveLcsc( { apply: true });
 		assert.equal(res.result.unresolvedCount, 1);
 		assert.match(res.result.unresolved[0].reason, /FP-MISSING.*package-variant mismatch/);
 		assert.equal(writes, 0);
@@ -2384,7 +2384,7 @@ test('resolve_lcsc: unresolved candidates expose the conflicting footprint ident
  mock.lib_Device.search = async () => [{ ...hits[0], footprint: { uuid: 'FP-LIBRARY', libraryUuid: 'LIB-F', name: 'R0603' } }];
  (globalThis as any).eda = mock;
  try {
-  const res: any = await runAction('schematic.component.resolve_lcsc', {});
+  const res: any = await retained.schematicComponentResolveLcsc( {});
   assert.equal(res.result.unresolvedCount, 1, 'same-name differing identities must still refuse');
   assert.match(res.result.unresolved[0].reason, /instance footprint uuid="FP-INSTANCE", libraryUuid="LIB-F"/);
   assert.deepEqual(res.result.unresolved[0].candidates[0], {
@@ -2402,7 +2402,7 @@ test('resolve_lcsc: current SDK nested names use the same trimmed case-insensiti
 	}));
 	(globalThis as any).eda = mock;
 	try {
-		const res: any = await runAction('schematic.component.resolve_lcsc', {});
+		const res: any = await retained.schematicComponentResolveLcsc( {});
 		assert.equal(res.result.unresolvedCount, 0);
 		assert.equal(res.result.items[0].lcsc, 'C98220');
 	}
@@ -2623,7 +2623,7 @@ test('resolve_lcsc: batch cache keeps same-named footprint UUIDs and libraries s
 		},
 	};
 	try {
-		const res: any = await runAction('schematic.component.resolve_lcsc', { apply: true });
+		const res: any = await retained.schematicComponentResolveLcsc( { apply: true });
 		assert.equal(res.result.unresolvedCount, 0);
 		assert.equal(res.result.appliedCount, 4);
 		assert.deepEqual(writes, [
@@ -2655,7 +2655,7 @@ test('resolve_lcsc: batch cache retains distinct project-name fallbacks for the 
 		},
 	};
 	try {
-		const res: any = await runAction('schematic.component.resolve_lcsc', {});
+		const res: any = await retained.schematicComponentResolveLcsc( {});
 		assert.equal(res.result.unresolvedCount, 0);
 		assert.deepEqual(res.result.items.map((item: any) => [item.lcsc, item.via]), [
 			['C10', 'project-name'], ['C20', 'project-name'], ['C10', 'project-name'],

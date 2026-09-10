@@ -1,7 +1,6 @@
 /// <reference types="@jlceda/pro-api-types" />
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { runAction } from './actions';
 import { nativePort } from './fast-path-native';
 import { FastPath } from './fast-path';
 
@@ -29,9 +28,9 @@ test('native bulk snapshot covers 32 components through 2 net reads, no per-comp
 test('missing component pad is explicit unsupported evidence, never silent completeness',async()=>{
  const m=mockEDA();m.api.pcb_Net.getAllPrimitivesByNet=async()=>[];const data=await nativePort().read();assert.equal(data.pads.length,32);assert.ok(data.pads.every(p=>p.unsupported));
 });
-test('registered typed handler executes multiple native primitives in one action',async()=>{
- const m=mockEDA();const scope={project_uuid:'p',document_uuid:'d'};const s=await runAction('board.snapshot_compact',scope);
- const r=await runAction('route.apply_batch',{...scope,base_revision:s.result!.board_revision,plan_hash:'fixture-only',client_transaction_id:'native-fixture',expires_at_ms:Date.now()+60000,operations:[
+test('retained Fast business engine executes multiple native primitives (not a V2 entry)',async()=>{
+ const m=mockEDA();const scope={project_uuid:'p',document_uuid:'d'};const engine=new FastPath();const port=nativePort();const s=await engine.snapshot(port,scope);
+ const r=await engine.apply(port,{...scope,base_revision:s.result!.board_revision,plan_hash:'fixture-only',client_transaction_id:'native-fixture',expires_at_ms:Date.now()+60000,operations:[
   {type:'add_trace',net:'N0',layer:1,width:6,points:[[0,0],[100,0]]},
   {type:'add_trace',net:'N0',layer:2,width:6,points:[[100,0],[200,0]]},
   {type:'add_via',net:'N0',x:100,y:0,diameter:24,hole:12,from_layer:1,to_layer:2},

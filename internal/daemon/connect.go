@@ -88,6 +88,8 @@ func (s *Server) handleFrame(ctx context.Context, c *conn, data []byte) {
 	}
 
 	switch typed.Type {
+	case "v2_result":
+		s.deliverV2(c, data)
 	case protocol.TypeRegister:
 		var msg protocol.Register
 		if err := json.Unmarshal(data, &msg); err != nil || msg.WindowID == "" {
@@ -106,7 +108,7 @@ func (s *Server) handleFrame(ctx context.Context, c *conn, data []byte) {
 			return
 		}
 		c.applyContext(msg, now)
-		s.hub.dedupeContext(c)
+		// V2 does not silently retire or redirect an explicit activation.
 
 	case protocol.TypePing:
 		c.touch(now)

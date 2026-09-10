@@ -68,11 +68,11 @@ export async function toggleAutoConnect(): Promise<void> {
 	const currentlyEnabled = current !== false;
 	await eda.sys_Storage.setExtensionUserConfig(STORAGE_KEY_AUTO_CONNECT, !currentlyEnabled);
 	const msgKey = currentlyEnabled ? 'Auto-Connect disabled' : 'Auto-Connect enabled';
-	eda.sys_Message.showToastMessage(eda.sys_I18n.text(msgKey));
+	console.info(`[easyeda-agent] ${msgKey}`);
 }
 
 /**
- * Show the About dialog with the current connection status (menu item).
+ * Log connection status without issuing an uncoordinated Host UI effect.
  */
 export async function about(): Promise<void> {
  const status = getConnectionStatus();
@@ -84,7 +84,5 @@ export async function about(): Promise<void> {
   if (!response.ok) throw new Error(`health HTTP ${response.status}`);
   return response.json();
  }, port);
- eda.sys_Dialog.showInformationMessage(
-  `EasyEDA Agent Connector v${extensionConfig.version}\n${statusLine}`, 'About',
- );
+ console.info(`EasyEDA Agent Connector v${extensionConfig.version}\n${statusLine}`);
 }

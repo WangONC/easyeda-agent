@@ -1,0 +1,236 @@
+package daemon
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/protocol"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/workflow"
+	"io"
+	"net/http"
+	"time"
+)
+
+type v2Pending struct {
+	request executionv2.Request
+	conn    *conn
+	results chan executionv2.HandlerResult
+}
+
+func rejectLegacy(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "V2_ACTION_NOT_MIGRATED: use /v2/operations", http.StatusGone)
+}
+func decodeV2(r *http.Request, v any) error {
+	d := json.NewDecoder(http.MaxBytesReader(nil, r.Body, 16<<20))
+	d.DisallowUnknownFields()
+	if e := d.Decode(v); e != nil {
+		return e
+	}
+	var extra any
+	if e := d.Decode(&extra); e != io.EOF {
+		return errors.New("V2_TRAILING_DATA")
+	}
+	return nil
+}
+func writeV2(w http.ResponseWriter, v any) {
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(v)
+}
+func (s *Server) validateV2(r executionv2.Request) (executionv2.Admission, error) {
+	if protocol.ActionDisabled(r.Action) {
+		return executionv2.Admission{}, errors.New("CAPABILITY_DISABLED")
+	}
+	a, e := protocol.ValidateV2(r)
+	if e != nil {
+		return a, e
+	}
+	if r.Action == "system.health" {
+		if r.Target.Session != s.v2Session || r.Target.Activation != s.v2Session {
+			return a, errors.New("V2_SESSION_LOST")
+		}
+		return a, nil
+	}
+	c, ok := s.hub.get(r.Target.Session)
+	if !ok {
+		return a, errors.New("V2_SESSION_LOST")
+	}
+	snapshot := c.snapshot()
+	capable := false
+	for _, cap := range snapshot.Capabilities {
+		if cap == "execution.v2" {
+			capable = true
+		}
+	}
+	if !capable {
+		return a, errors.New("V2_CONNECTOR_REQUIRED")
+	}
+	if r.Target.Activation != snapshot.ActivationID {
+		return a, errors.New("V2_ACTIVATION_MISMATCH")
+	}
+	if r.Target.ProjectUUID != "" && r.Target.ProjectUUID != snapshot.Context.ProjectUUID {
+		return a, errors.New("V2_TARGET_MISMATCH")
+	}
+	if r.Target.Scope == "DOCUMENT" && (r.Target.DocumentUUID != snapshot.Context.DocumentUUID || r.Target.DocumentType != snapshot.Context.DocumentType || r.Target.TabID != snapshot.Context.TabID) {
+		return a, errors.New("V2_TARGET_MISMATCH")
+	}
+	if gateForAction[r.Action] != "" {
+		keys := []string{r.Target.ProjectUUID}
+		if snapshot.Context.ProjectName != "" {
+			keys = append(keys, snapshot.Context.ProjectName)
+		}
+		state, err := workflow.LoadAny(keys...)
+		if err != nil {
+			return a, fmt.Errorf("STAGE_BLOCKED: %w", err)
+		}
+		verdict := workflow.CheckRouteGate(state, false, false, "")
+		if !verdict.Allowed {
+			return a, fmt.Errorf("STAGE_BLOCKED: %s", verdict.Message)
+		}
+	}
+	return a, nil
+}
+func (s *Server) executeV2(r executionv2.Request, digest string) <-chan executionv2.HandlerResult {
+	ch := make(chan executionv2.HandlerResult, 8)
+	if r.Action == "system.health" {
+		value, _ := json.Marshal(map[string]any{"service": Service, "windows": s.hub.listAnnotated(s.opts.Version)})
+		ch <- executionv2.HandlerResult{Protocol: executionv2.Version, OperationID: r.OperationID, Digest: digest, Target: r.Target, Effects: executionv2.Effects{Started: executionv2.Bool(false), Changed: executionv2.Bool(false), Settled: true, Scope: "NONE"}, Verification: executionv2.Verification{Verdict: "satisfied", Checked: []string{"daemon_snapshot"}, Complete: true, Required: 1, Satisfied: 1}, Value: value}
+		close(ch)
+		return ch
+	}
+	c, ok := s.hub.get(r.Target.Session)
+	if !ok {
+		close(ch)
+		return ch
+	}
+	s.v2Mu.Lock()
+	s.v2Pending[r.OperationID] = v2Pending{request: r, conn: c, results: ch}
+	s.v2Mu.Unlock()
+	// Never tie native ownership to an HTTP caller's context or wait budget.
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if e := c.write(ctx, map[string]any{"type": "v2_request", "request": r, "digest": digest, "deadline_unix_ms": r.ExecutionDeadline.UnixMilli()}); e != nil {
+			s.logf("V2 operation %s transport uncertain: %v", r.OperationID, e)
+		}
+	}()
+	return ch
+}
+func (s *Server) deliverV2(c *conn, data []byte) {
+	var frame struct {
+		Type   string                    `json:"type"`
+		Result executionv2.HandlerResult `json:"result"`
+	}
+	if e := json.Unmarshal(data, &frame); e != nil {
+		return
+	}
+	s.v2Mu.Lock()
+	p, ok := s.v2Pending[frame.Result.OperationID]
+	s.v2Mu.Unlock()
+	if !ok || p.conn != c {
+		return
+	} // exact transport ownership, never retired redirect
+	select {
+	case p.results <- completeReportV2(p.request, frame.Result):
+	default:
+	}
+}
+func (s *Server) handleV2(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "POST required", 405)
+		return
+	}
+	var req executionv2.Request
+	if e := decodeV2(r, &req); e != nil {
+		http.Error(w, "V2_INVALID_REQUEST: "+e.Error(), 400)
+		return
+	}
+	result, e := s.v2.Submit(r.Context(), req)
+	if e != nil {
+		http.Error(w, e.Error(), 409)
+		return
+	}
+	writeV2(w, result)
+}
+func (s *Server) handleV2Status(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	if r.Method == "POST" {
+		if r.URL.Query().Get("view") != "reconcile" {
+			http.Error(w, "V2_UNSUPPORTED_OPERATION", 400)
+			return
+		}
+		s.v2Mu.Lock()
+		p, ok := s.v2Pending[id]
+		s.v2Mu.Unlock()
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
+		if e := p.conn.write(r.Context(), map[string]any{"type": "v2_reconcile", "operation_id": id}); e != nil {
+			http.Error(w, e.Error(), 503)
+			return
+		}
+	} else if r.Method != "GET" {
+		http.Error(w, "method not allowed", 405)
+		return
+	}
+	if r.URL.Query().Get("view") == "evidence" {
+		h, ok := s.v2.Evidence(id)
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
+		writeV2(w, h)
+		return
+	}
+	result, ok := s.v2.Status(id)
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	writeV2(w, result)
+}
+
+// Bind only resolves exact identities from a currently registered activation.
+// Connector fresh target guards remain authoritative before every native effect.
+func (s *Server) handleV2Bind(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "POST required", 405)
+		return
+	}
+	var t executionv2.Target
+	if e := decodeV2(r, &t); e != nil {
+		http.Error(w, e.Error(), 400)
+		return
+	}
+	if e := t.Validate(); e != nil {
+		http.Error(w, e.Error(), 400)
+		return
+	}
+	c, ok := s.hub.get(t.Session)
+	if !ok {
+		http.Error(w, "V2_SESSION_LOST", 409)
+		return
+	}
+	snap := c.snapshot()
+	if t.Activation != snap.ActivationID || (t.ProjectUUID != "" && t.ProjectUUID != snap.Context.ProjectUUID) || (t.Scope == "DOCUMENT" && (t.DocumentUUID != snap.Context.DocumentUUID || t.TabID != snap.Context.TabID || t.DocumentType != snap.Context.DocumentType)) {
+		http.Error(w, "V2_TARGET_MISMATCH", 409)
+		return
+	}
+	writeV2(w, map[string]any{"target_ref": t, "verification": "connector_fresh_guard_required", "identity": fmt.Sprint(snap.ConnectedAt.UnixNano())})
+}
+
+func (s *Server) releaseV2(r executionv2.Request, digest string) {
+	s.v2Mu.Lock()
+	p, ok := s.v2Pending[r.OperationID]
+	s.v2Mu.Unlock()
+	if !ok {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if e := p.conn.write(ctx, map[string]any{"type": "v2_release", "operation_id": r.OperationID, "digest": digest, "deadline_unix_ms": r.ExecutionDeadline.UnixMilli()}); e != nil {
+		s.logf("V2 release notification failed for %s: %v", r.OperationID, e)
+	}
+}

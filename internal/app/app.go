@@ -91,6 +91,7 @@ func newRootCmd(stdout, stderr io.Writer) *cobra.Command {
 	root.PersistentFlags().StringVar(&cfg.doc, "doc", "",
 		"pin every mutating action to this schematic page / PCB (uuid or name): the CLI switches to it and confirms via live document.current before editing, refusing rather than land the edit on whatever page is foreground — removes the doc-switch race")
 
+	root.AddCommand(newV2Cmd(stdout))
 	root.AddCommand(
 		newVersionCmd(stdout),
 		newActionsCmd(stdout, stderr),

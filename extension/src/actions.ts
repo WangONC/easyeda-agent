@@ -1,3 +1,10 @@
+import { verifySchematicPageName, waitSchematicPageSettle } from './schematic-readiness';
+import { namespacedLibraryAssetName } from './library-asset-name';
+import { titleBlockFieldApplied, isTitleBlockStructuralKey, type TitleBlockPatch } from './titleblock-fields';
+import { serializePcbComponent, normalizePcbComponentPatch, verifyPcbComponentPatch, PCB_COMPONENT_PATCH_READBACK, PCB_COMPONENT_PATCH_ALIASES } from './pcb-component-patch';
+export { serializePcbComponent, normalizePcbComponentPatch, verifyPcbComponentPatch, PCB_COMPONENT_PATCH_READBACK, PCB_COMPONENT_PATCH_ALIASES } from './pcb-component-patch';
+import * as v2Native from './v2-native-actions';
+import type { NativeAction } from './execution-v2';
 import { SOURCE_KEY, sourceAsset, sourceReceipt, resolveSource, sourceStorageKey } from './component-source';
 import { manufacturingExport } from './manufacturing';
 import { refreshPlanes, logicalPlaneId } from './plane-lifecycle';
@@ -244,28 +251,6 @@ async function readActivePageConnectivitySummary(): Promise<SchematicConnectivit
  * @param component - the PCB component primitive object
  * @returns a plain JSON record
  */
-function serializePcbComponent(component: PcbComponent): Record<string, unknown> {
-	return {
-		primitiveId: component.getState_PrimitiveId(),
-		// uniqueId is the SAME namespace the schematic side reports (serializeComponent
-		// already exposes it): a component keeps one `gge*` id across both documents,
-		// minted by the platform at first sch→PCB import. primitiveId does NOT — each
-		// document mints its own — so uniqueId is the only reliable schematic↔PCB join
-		// key. `pcb sync-designators` uses it to repair placeholder designators
-		// (U? / C? / RF?) on boards wiped by the old attrs_backfill Designator-key bug.
-		uniqueId: component.getState_UniqueId(),
-		designator: component.getState_Designator(),
-		name: component.getState_Name(),
-		layer: component.getState_Layer(),
-		x: component.getState_X(),
-		y: component.getState_Y(),
-		rotation: component.getState_Rotation(),
-		locked: component.getState_PrimitiveLock(),
-		addIntoBom: component.getState_AddIntoBom(),
-		manufacturerId: component.getState_ManufacturerId(),
-		supplierId: component.getState_SupplierId(),
-	};
-}
 
 /**
  * Extract a pad's real copper extent (width/height in mil, axis-aligned after
@@ -346,77 +331,71 @@ async function blobToArtifact(
 
 // ─── Project / document ──────────────────────────────────────────────
 
-const projectCurrent: Handler = async () => {
-	let project;
-	try {
-		project = await eda.dmt_Project.getCurrentProjectInfo();
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to read current project info.');
-	}
-	if (!project) {
-		throw new ActionError(ErrorCodes.EDA_CALL_FAILED, 'No current project is open.');
-	}
-	return {
-		result: {
-			uuid: project.uuid,
-			name: project.name,
-			friendlyName: project.friendlyName,
-			teamUuid: project.teamUuid,
-			description: project.description,
-		},
-	};
+const projectCurrentData = async () => {
+    let project;
+    try {
+        project = await eda.dmt_Project.getCurrentProjectInfo();
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to read current project info.');
+    }
+    if (!project) {
+        throw new ActionError(ErrorCodes.EDA_CALL_FAILED, 'No current project is open.');
+    }
+    return {
+        uuid: project.uuid,
+        name: project.name,
+        friendlyName: project.friendlyName,
+        teamUuid: project.teamUuid,
+        description: project.description,
+    };
 };
 
-const documentCurrent: Handler = async () => {
-	let doc;
-	try {
-		doc = await eda.dmt_SelectControl.getCurrentDocumentInfo();
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to read current document info.');
-	}
-	if (!doc) {
-		throw new ActionError(ErrorCodes.EDA_CALL_FAILED, 'No active document.');
-	}
-	return {
-		result: {
-			uuid: doc.uuid,
-			tabId: doc.tabId,
-			documentType: documentTypeLabel(doc.documentType),
-			documentTypeCode: doc.documentType,
-			parentProjectUuid: doc.parentProjectUuid,
-		},
-	};
+const documentCurrentData = async () => {
+    let doc;
+    try {
+        doc = await eda.dmt_SelectControl.getCurrentDocumentInfo();
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to read current document info.');
+    }
+    if (!doc || typeof doc.uuid !== 'string' || typeof doc.tabId !== 'string' || typeof doc.documentType !== 'number') {
+        throw new ActionError(ErrorCodes.EDA_CALL_FAILED, 'No active document.');
+    }
+    return {
+        uuid: doc.uuid,
+        tabId: doc.tabId,
+        documentType: documentTypeLabel(doc.documentType),
+        documentTypeCode: doc.documentType,
+        parentProjectUuid: doc.parentProjectUuid,
+    };
 };
 
 // ─── Schematic pages ─────────────────────────────────────────────────
 
-const schematicPagesList: Handler = async () => {
-	let schematics;
-	let pages;
-	try {
-		schematics = await eda.dmt_Schematic.getAllSchematicsInfo();
-		pages = await eda.dmt_Schematic.getAllSchematicPagesInfo();
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to list schematics/pages.');
-	}
-	return {
-		result: {
-			schematics: schematics.map(s => ({
-				uuid: s.uuid,
-				name: s.name,
-				parentProjectUuid: s.parentProjectUuid,
-				page: s.page.map(p => ({ uuid: p.uuid, name: p.name, parentSchematicUuid: p.parentSchematicUuid })),
-			})),
-			pages: pages.map(p => ({
-				uuid: p.uuid,
-				name: p.name,
-				parentSchematicUuid: p.parentSchematicUuid,
-			})),
-		},
-	};
+const schematicPagesListData = async () => {
+    let schematics;
+    let pages;
+    try {
+        schematics = await eda.dmt_Schematic.getAllSchematicsInfo();
+        pages = await eda.dmt_Schematic.getAllSchematicPagesInfo();
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to list schematics/pages.');
+    }
+    return {
+        schematics: schematics.map(s => ({
+            uuid: s.uuid,
+            name: s.name,
+            parentProjectUuid: s.parentProjectUuid,
+            page: s.page.map(p => ({ uuid: p.uuid, name: p.name, parentSchematicUuid: p.parentSchematicUuid })),
+        })),
+        pages: pages.map(p => ({
+            uuid: p.uuid,
+            name: p.name,
+            parentSchematicUuid: p.parentSchematicUuid,
+        })),
+    };
 };
 
 const schematicPageOpen: Handler = async (payload) => {
@@ -444,48 +423,30 @@ const schematicPageOpen: Handler = async (payload) => {
 // create / delete pages and rename the schematic document itself.
 
 /** Read a page's title-block state (show flag + field data). Defaults to the focused page. */
-const schematicTitleBlockGet: Handler = async (payload) => {
-	const pageUuid = optionalString(payload, 'pageUuid');
-	let info;
-	try {
-		info = pageUuid
-			? await eda.dmt_Schematic.getSchematicPageInfo(pageUuid)
-			: await eda.dmt_Schematic.getCurrentSchematicPageInfo();
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to read schematic page title block.');
-	}
-	if (!info) {
-		throw new ActionError(ErrorCodes.EDA_CALL_FAILED, 'No schematic page found (open a page, or pass a valid pageUuid).');
-	}
-	return {
-		result: {
-			pageUuid: info.uuid,
-			name: info.name,
-			parentSchematicUuid: info.parentSchematicUuid,
-			showTitleBlock: info.showTitleBlock,
-			titleBlockData: info.titleBlockData,
-		},
-	};
+const schematicTitleBlockGetData = async (payload: Record<string, unknown>) => {
+    const pageUuid = optionalString(payload, 'pageUuid');
+    let info;
+    try {
+        info = pageUuid
+            ? await eda.dmt_Schematic.getSchematicPageInfo(pageUuid)
+            : await eda.dmt_Schematic.getCurrentSchematicPageInfo();
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to read schematic page title block.');
+    }
+    if (!info) {
+        throw new ActionError(ErrorCodes.EDA_CALL_FAILED, 'No schematic page found (open a page, or pass a valid pageUuid).');
+    }
+    return {
+        pageUuid: info.uuid,
+        name: info.name,
+        parentSchematicUuid: info.parentSchematicUuid,
+        showTitleBlock: info.showTitleBlock,
+        titleBlockData: info.titleBlockData,
+    };
 };
 
 /** 明细表单项的可写子字段 —— 与官方 modifySchematicPageTitleBlock 入参结构一致。 */
-type TitleBlockPatch = { showTitle?: boolean; showValue?: boolean; value?: unknown };
-
-/**
- * 逐子字段判定一个明细项是否已落到位。未请求的子字段不参与判定。
- *
- * `value` 比对经 String() 归一化:平台会把数字回读成字符串(反之亦然),
- * 那是格式归一化而非丢弃,不能算 notApplied(同 #151 的 number→string 教训)。
- */
-function titleBlockFieldApplied(actual: TitleBlockPatch | undefined, want: TitleBlockPatch): boolean {
-	if (!actual || typeof actual !== 'object') return false;
-	if (want.value !== undefined && String(actual.value ?? '') !== String(want.value)) return false;
-	if (want.showTitle !== undefined && actual.showTitle !== want.showTitle) return false;
-	if (want.showValue !== undefined && actual.showValue !== want.showValue) return false;
-	return true;
-}
-
 /** 读当前聚焦页的明细表状态;读不到返回 undefined(调用方降级为 verified:false)。 */
 async function readFocusedTitleBlock(): Promise<
 	{ showTitleBlock?: boolean; titleBlockData: Record<string, TitleBlockPatch> } | undefined
@@ -540,17 +501,6 @@ async function readFocusedTitleBlock(): Promise<
  * 写前两类会**损毁文档**(#186 真机复现:符号名被灌进 sheet 的 component/device/
  * symbol UUID 引用位 → EasyEDA 报「器件/符号属性有误」→ 保存后重启拒载 = 图框丢失)。
  */
-const TITLE_BLOCK_STRUCTURAL_FIELDS: ReadonlySet<string> = new Set([
-	'Device', 'Symbol', 'ID',
-	'Size', 'Page Size', 'Width', 'Height', 'Blade Width',
-	'Region Start', 'X Region Count', 'Y Region Count', 'Title Block Position',
-	'Border', 'Title Block', 'Color',
-]);
-
-/** `@` 前缀是平台自动投影的只读项,与上表同样不许下发。 */
-function isTitleBlockStructuralKey(key: string): boolean {
-	return key.startsWith('@') || TITLE_BLOCK_STRUCTURAL_FIELDS.has(key);
-}
 
 export const schematicTitleBlockModify: Handler = async (payload) => {
 	const showTitleBlock = optionalBoolean(payload, 'showTitleBlock');
@@ -788,62 +738,6 @@ const schematicPageRename: Handler = async (payload) => {
  * equals `expected`. Returns true once observed, false if it never settles.
  * Best-effort: read errors are swallowed and treated as "not yet settled".
  */
-async function verifySchematicPageName(pageUuid: string, expected: string): Promise<boolean> {
-	const delays = [0, 120, 250, 500]; // ~0.87s worst case, small enough to stay snappy
-	for (const wait of delays) {
-		if (wait > 0) {
-			await new Promise<void>(resolve => setTimeout(resolve, wait));
-		}
-		try {
-			const pages = await eda.dmt_Schematic.getAllSchematicPagesInfo();
-			const hit = pages.find(p => p.uuid === pageUuid);
-			if (hit && hit.name === expected) return true;
-		}
-		catch {
-			/* best-effort — treat as not-yet-settled and keep polling */
-		}
-	}
-	return false;
-}
-
-/**
- * Wait for a just-opened schematic page's data to settle. `openDocument`
- * resolves as soon as the tab exists — BEFORE the page's primitives finish
- * (re)loading — so a read fired right after would sample a half-loaded page
- * (empty findings, stale mixed-page data — issue #67). The SDK exposes no
- * load-complete signal, so we poll the active page's component count and treat
- * two identical consecutive reads as settled. A non-empty stable count settles
- * immediately; a stable 0 only settles after the full delay window, so a page
- * mid-load (0 → N) is not mistaken for a genuinely empty page. Returns true if
- * it settled, false on timeout — best-effort, read errors keep polling.
- */
-async function waitSchematicPageSettle(): Promise<boolean> {
-	const delays = [0, 200, 300, 400, 500, 600]; // ~2s worst case
-	let last: number | undefined;
-	let sawStableEmpty = 0;
-	for (const wait of delays) {
-		if (wait > 0) {
-			await new Promise<void>(resolve => setTimeout(resolve, wait));
-		}
-		let count: number | undefined;
-		try {
-			const comps = await eda.sch_PrimitiveComponent.getAll();
-			count = Array.isArray(comps) ? comps.length : undefined;
-		}
-		catch {
-			count = undefined; // treat as not-yet-settled, keep polling
-		}
-		if (count === undefined) continue;
-		if (last !== undefined && last === count) {
-			if (count > 0) return true;
-			sawStableEmpty++;
-			if (sawStableEmpty >= 2) return true; // stable-empty confirmed
-		}
-		last = count;
-	}
-	return false;
-}
-
 /** Delete a schematic page. */
 const schematicPageDelete: Handler = async (payload) => {
 	const pageUuid = requireString(payload, 'pageUuid');
@@ -4257,101 +4151,96 @@ const schematicExportBom: Handler = async (payload) => {
 
 // ─── Library search ──────────────────────────────────────────────────
 
-const schematicLibrarySearch: Handler = async (payload) => {
-	const query = requireString(payload, 'query');
-	const limit = optionalNumber(payload, 'limit') ?? 10;
-	const allowFuzzy = optionalBoolean(payload, 'allowFuzzy') ?? false;
-	const libraryUuid = optionalString(payload, 'libraryUuid');
-
-	let raw: Array<unknown>;
-	try {
-		raw = await eda.lib_Device.search(query, libraryUuid);
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to search device library.');
-	}
-	if (!Array.isArray(raw)) {
-		return { result: { count: 0, components: [] } };
-	}
-
-	// Exact LCSC mode. When the query is itself a bare C-number (e.g. "C5665"),
-	// EasyEDA's free-text search still ranks by keyword — so "C5665" surfaces the
-	// op-amp CLC5665IMX (name contains "5665") over the real part whose LCSC id
-	// equals C5665. Strictly filter the raw results by the lcsc/supplierId field so
-	// batch selection never silently binds the wrong device. Opt out with
-	// allowFuzzy to fall through to the ranked free-text path below.
-	if (!allowFuzzy && isLcscQuery(query)) {
-		const exact = filterExactLcsc(raw as Array<Record<string, unknown>>, query)
-			.slice(0, limit)
-			.map((r) => {
-				const otherProperty = (r.otherProperty as Record<string, unknown> | undefined) ?? {};
-				return {
-					uuid: r.uuid,
-					libraryUuid: r.libraryUuid,
-					name: r.name,
-					value: otherProperty.Value,
-					footprintName: r.footprintName,
-					symbolName: r.symbolName,
-					lcsc: r.supplierId ?? otherProperty['Supplier Part'],
-					manufacturer: r.manufacturer ?? otherProperty.Manufacturer,
-					manufacturerId: r.manufacturerId ?? otherProperty['Manufacturer Part'],
-					description: typeof r.description === 'string' ? r.description.slice(0, 200) : r.description,
-				};
-			});
-		if (exact.length === 0) {
-			throw new ActionError(
-				ErrorCodes.EDA_CALL_FAILED,
-				`No device exactly matches LCSC id "${query}". The raw search returned ${raw.length} `
-				+ 'fuzzy candidate(s) whose LCSC field differs — re-run with allowFuzzy (CLI: --allow-fuzzy) '
-				+ 'to see them, or use "lib by-lcsc" for a deterministic lookup.',
-			);
-		}
-		return { result: { count: exact.length, query, exactMatch: true, components: exact } };
-	}
-
-	// Relevance rerank. EasyEDA's raw order often surfaces the wrong category first
-	// (e.g. "100nF 0402" returns resistors before the capacitor). Score each
-	// candidate by how many query terms hit its fields — weighted name/value/MPN >
-	// footprint/symbol/manufacturer > description — then stable-sort (original order
-	// breaks ties, so a zero-match query degrades gracefully to EasyEDA's order).
-	const terms = query.toLowerCase().split(/[\s,]+/).filter(Boolean);
-	const norm = (s: unknown) => String(s ?? '').toLowerCase();
-	const scoreOf = (r: Record<string, unknown>): number => {
-		const op = (r.otherProperty as Record<string, unknown> | undefined) ?? {};
-		const strong = `${norm(r.name)} ${norm(op.Value)} ${norm(r.manufacturerId)}`;
-		const mid = `${norm(r.footprintName)} ${norm(r.symbolName)} ${norm(r.manufacturer)}`;
-		const weak = norm(r.description);
-		let s = 0;
-		for (const t of terms) {
-			if (strong.includes(t)) s += 3;
-			else if (mid.includes(t)) s += 2;
-			else if (weak.includes(t)) s += 1;
-		}
-		return s;
-	};
-	const ranked = (raw as Array<Record<string, unknown>>)
-		.map((d, i) => ({ d, i, s: scoreOf(d) }))
-		.sort((a, b) => (b.s - a.s) || (a.i - b.i))
-		.slice(0, limit);
-
-	const components = ranked.map(({ d: r, s }) => {
-		const otherProperty = (r.otherProperty as Record<string, unknown> | undefined) ?? {};
-		return {
-			uuid: r.uuid,
-			libraryUuid: r.libraryUuid,
-			name: r.name,
-			value: otherProperty.Value,
-			footprintName: r.footprintName,
-			symbolName: r.symbolName,
-			lcsc: r.supplierId,
-			manufacturer: r.manufacturer,
-			manufacturerId: r.manufacturerId,
-			score: s,
-			description: typeof r.description === 'string' ? r.description.slice(0, 200) : r.description,
-		};
-	});
-
-	return { result: { count: components.length, query, components } };
+const schematicLibrarySearchData = async (payload: Record<string, unknown>) => {
+    const query = requireString(payload, 'query');
+    const limit = optionalNumber(payload, 'limit') ?? 10;
+    const allowFuzzy = optionalBoolean(payload, 'allowFuzzy') ?? false;
+    const libraryUuid = optionalString(payload, 'libraryUuid');
+    let raw: Array<unknown>;
+    try {
+        raw = await eda.lib_Device.search(query, libraryUuid);
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to search device library.');
+    }
+    if (!Array.isArray(raw)) {
+        return { count: 0, components: [] };
+    }
+    // Exact LCSC mode. When the query is itself a bare C-number (e.g. "C5665"),
+    // EasyEDA's free-text search still ranks by keyword — so "C5665" surfaces the
+    // op-amp CLC5665IMX (name contains "5665") over the real part whose LCSC id
+    // equals C5665. Strictly filter the raw results by the lcsc/supplierId field so
+    // batch selection never silently binds the wrong device. Opt out with
+    // allowFuzzy to fall through to the ranked free-text path below.
+    if (!allowFuzzy && isLcscQuery(query)) {
+        const exact = filterExactLcsc(raw as Array<Record<string, unknown>>, query)
+            .slice(0, limit)
+            .map((r) => {
+            const otherProperty = (r.otherProperty as Record<string, unknown> | undefined) ?? {};
+            return {
+                uuid: r.uuid,
+                libraryUuid: r.libraryUuid,
+                name: r.name,
+                value: otherProperty.Value,
+                footprintName: r.footprintName,
+                symbolName: r.symbolName,
+                lcsc: r.supplierId ?? otherProperty['Supplier Part'],
+                manufacturer: r.manufacturer ?? otherProperty.Manufacturer,
+                manufacturerId: r.manufacturerId ?? otherProperty['Manufacturer Part'],
+                description: typeof r.description === 'string' ? r.description.slice(0, 200) : r.description,
+            };
+        });
+        if (exact.length === 0) {
+            throw new ActionError(ErrorCodes.EDA_CALL_FAILED, `No device exactly matches LCSC id "${query}". The raw search returned ${raw.length} `
+                + 'fuzzy candidate(s) whose LCSC field differs — re-run with allowFuzzy (CLI: --allow-fuzzy) '
+                + 'to see them, or use "lib by-lcsc" for a deterministic lookup.');
+        }
+        return { count: exact.length, query, exactMatch: true, components: exact };
+    }
+    // Relevance rerank. EasyEDA's raw order often surfaces the wrong category first
+    // (e.g. "100nF 0402" returns resistors before the capacitor). Score each
+    // candidate by how many query terms hit its fields — weighted name/value/MPN >
+    // footprint/symbol/manufacturer > description — then stable-sort (original order
+    // breaks ties, so a zero-match query degrades gracefully to EasyEDA's order).
+    const terms = query.toLowerCase().split(/[\s,]+/).filter(Boolean);
+    const norm = (s: unknown) => String(s ?? '').toLowerCase();
+    const scoreOf = (r: Record<string, unknown>): number => {
+        const op = (r.otherProperty as Record<string, unknown> | undefined) ?? {};
+        const strong = `${norm(r.name)} ${norm(op.Value)} ${norm(r.manufacturerId)}`;
+        const mid = `${norm(r.footprintName)} ${norm(r.symbolName)} ${norm(r.manufacturer)}`;
+        const weak = norm(r.description);
+        let s = 0;
+        for (const t of terms) {
+            if (strong.includes(t))
+                s += 3;
+            else if (mid.includes(t))
+                s += 2;
+            else if (weak.includes(t))
+                s += 1;
+        }
+        return s;
+    };
+    const ranked = (raw as Array<Record<string, unknown>>)
+        .map((d, i) => ({ d, i, s: scoreOf(d) }))
+        .sort((a, b) => (b.s - a.s) || (a.i - b.i))
+        .slice(0, limit);
+    const components = ranked.map(({ d: r, s }) => {
+        const otherProperty = (r.otherProperty as Record<string, unknown> | undefined) ?? {};
+        return {
+            uuid: r.uuid,
+            libraryUuid: r.libraryUuid,
+            name: r.name,
+            value: otherProperty.Value,
+            footprintName: r.footprintName,
+            symbolName: r.symbolName,
+            lcsc: r.supplierId,
+            manufacturer: r.manufacturer,
+            manufacturerId: r.manufacturerId,
+            score: s,
+            description: typeof r.description === 'string' ? r.description.slice(0, 200) : r.description,
+        };
+    });
+    return { count: components.length, query, components };
 };
 
 /**
@@ -4361,63 +4250,57 @@ const schematicLibrarySearch: Handler = async (payload) => {
  * that `schematic.component.place` consumes, plus a `notFound` list for any
  * requested C-number the library did not resolve.
  */
-const schematicLibraryGetByLcscIds: Handler = async (payload) => {
-	const rawIds = payload.lcscIds;
-	let lcscIds: Array<string>;
-	if (typeof rawIds === 'string') lcscIds = [rawIds];
-	else if (Array.isArray(rawIds) && rawIds.every(id => typeof id === 'string')) lcscIds = rawIds as Array<string>;
-	else {
-		throw new ActionError(
-			ErrorCodes.MISSING_PAYLOAD_FIELD,
-			'Missing required field "lcscIds" (a string or string[] of LCSC C-numbers, e.g. "C6186").',
-		);
-	}
-
-	let raw: Array<unknown>;
-	try {
-		// The array overload returns Array<ILIB_DeviceSearchItem> (same record
-		// shape as lib_Device.search).
-		raw = await eda.lib_Device.getByLcscIds(lcscIds, undefined, true);
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to look up devices by LCSC id.');
-	}
-	if (!Array.isArray(raw)) {
-		return { result: { count: 0, requested: lcscIds, components: [], notFound: lcscIds } };
-	}
-
-	const components = (raw as Array<Record<string, unknown>>).map((r) => {
-		const otherProperty = (r.otherProperty as Record<string, unknown> | undefined) ?? {};
-		// supplierId / manufacturer(Id) are deprecated top-level fields, moved into
-		// otherProperty (canonical EasyEDA property names). Read top-level first —
-		// current builds still emit it — then fall back to otherProperty.
-		return {
-			uuid: r.uuid,
-			libraryUuid: r.libraryUuid,
-			name: r.name,
-			value: otherProperty.Value,
-			footprintName: r.footprintName,
-			symbolName: r.symbolName,
-			lcsc: r.supplierId ?? otherProperty['Supplier Part'],
-			manufacturer: r.manufacturer ?? otherProperty.Manufacturer,
-			manufacturerId: r.manufacturerId ?? otherProperty['Manufacturer Part'],
-			description: typeof r.description === 'string' ? r.description.slice(0, 200) : r.description,
-		};
-	});
-
-	// notFound must never INVERT: if no C-number could be read back (e.g. a future
-	// build stops emitting supplierId), report nothing missing rather than falsely
-	// claiming every resolved part is missing.
-	const found = new Set(components.map(c => String(c.lcsc ?? '')).filter(Boolean));
-	const notFound = found.size ? lcscIds.filter(id => !found.has(id)) : [];
-	return {
-		result: {
-			count: components.length,
-			requested: lcscIds,
-			components,
-			...(notFound.length ? { notFound } : {}),
-		},
-	};
+const schematicLibraryGetByLcscIdsData = async (payload: Record<string, unknown>) => {
+    const rawIds = payload.lcscIds;
+    let lcscIds: Array<string>;
+    if (typeof rawIds === 'string')
+        lcscIds = [rawIds];
+    else if (Array.isArray(rawIds) && rawIds.every(id => typeof id === 'string'))
+        lcscIds = rawIds as Array<string>;
+    else {
+        throw new ActionError(ErrorCodes.MISSING_PAYLOAD_FIELD, 'Missing required field "lcscIds" (a string or string[] of LCSC C-numbers, e.g. "C6186").');
+    }
+    let raw: Array<unknown>;
+    try {
+        // The array overload returns Array<ILIB_DeviceSearchItem> (same record
+        // shape as lib_Device.search).
+        raw = await eda.lib_Device.getByLcscIds(lcscIds, undefined, true);
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to look up devices by LCSC id.');
+    }
+    if (!Array.isArray(raw)) {
+        return { count: 0, requested: lcscIds, components: [], notFound: lcscIds };
+    }
+    const components = (raw as Array<Record<string, unknown>>).map((r) => {
+        const otherProperty = (r.otherProperty as Record<string, unknown> | undefined) ?? {};
+        // supplierId / manufacturer(Id) are deprecated top-level fields, moved into
+        // otherProperty (canonical EasyEDA property names). Read top-level first —
+        // current builds still emit it — then fall back to otherProperty.
+        return {
+            uuid: r.uuid,
+            libraryUuid: r.libraryUuid,
+            name: r.name,
+            value: otherProperty.Value,
+            footprintName: r.footprintName,
+            symbolName: r.symbolName,
+            lcsc: r.supplierId ?? otherProperty['Supplier Part'],
+            manufacturer: r.manufacturer ?? otherProperty.Manufacturer,
+            manufacturerId: r.manufacturerId ?? otherProperty['Manufacturer Part'],
+            description: typeof r.description === 'string' ? r.description.slice(0, 200) : r.description,
+        };
+    });
+    // notFound must never INVERT: if no C-number could be read back (e.g. a future
+    // build stops emitting supplierId), report nothing missing rather than falsely
+    // claiming every resolved part is missing.
+    const found = new Set(components.map(c => String(c.lcsc ?? '')).filter(Boolean));
+    const notFound = found.size ? lcscIds.filter(id => !found.has(id)) : [];
+    return {
+        count: components.length,
+        requested: lcscIds,
+        components,
+        ...(notFound.length ? { notFound } : {}),
+    };
 };
 
 // ─── Library asset authoring: symbol + footprint + device ────────────────
@@ -4463,26 +4346,6 @@ async function resolveWritableLibraryUuid(payload: Record<string, unknown>): Pro
 	else throw new ActionError(ErrorCodes.PRECONDITION_REFUSED, '"scope" must be "personal" or "project".');
 	if (!uuid) throw new ActionError(ErrorCodes.INVALID_STATE, `EasyEDA did not expose a ${scope} library UUID.`);
 	return uuid;
-}
-
-function normalizeLibraryNamePart(value: string, fallback: string): string {
-	const normalized = value.normalize('NFKC').trim().toUpperCase()
-		.replace(/[^\p{L}\p{N}]+/gu, '_')
-		.replace(/^_+|_+$/g, '')
-		.replace(/_+/g, '_');
-	return normalized || fallback;
-}
-
-/** Keep agent-authored personal-library assets reusable and visibly separate. */
-async function namespacedLibraryAssetName(requestedName: string): Promise<{ name: string; requestedName: string; namespace: string }> {
-	const assetMark = normalizeLibraryNamePart(requestedName, 'ASSET');
-	const namespace = 'EA_AGENT';
-	const prefix = `${namespace}__`;
-	return {
-		name: requestedName.toUpperCase().startsWith(prefix) ? requestedName : `${prefix}${assetMark}`,
-		requestedName,
-		namespace,
-	};
 }
 
 const libraryFootprintCreate: Handler = async (payload) => {
@@ -4858,17 +4721,20 @@ const libraryModel3DGet: Handler = async (payload) => {
 	catch (err) { if (err instanceof ActionError) throw err; throw edaError(err, 'Failed to read 3D model library asset.'); }
 };
 
-const libraryModel3DSearch: Handler = async (payload) => {
-	const query = requireString(payload, 'query');
-	const libraryUuid = optionalString(payload, 'libraryUuid');
-	const classification = optionalStringArray(payload, 'classification');
-	const limit = payload.limit === undefined ? 20 : finiteField(payload, 'limit', 'payload');
-	if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new ActionError(ErrorCodes.PRECONDITION_REFUSED, 'limit must be an integer from 1 to 100.');
-	try {
-		const models = await eda.lib_3DModel.search(query, libraryUuid, classification, limit, 1);
-		return { result: { query, libraryUuid: libraryUuid ?? null, models, count: models.length } };
-	}
-	catch (err) { throw edaError(err, 'Failed to search 3D model library assets.'); }
+const libraryModel3DSearchData = async (payload: Record<string, unknown>) => {
+    const query = requireString(payload, 'query');
+    const libraryUuid = optionalString(payload, 'libraryUuid');
+    const classification = optionalStringArray(payload, 'classification');
+    const limit = payload.limit === undefined ? 20 : finiteField(payload, 'limit', 'payload');
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100)
+        throw new ActionError(ErrorCodes.PRECONDITION_REFUSED, 'limit must be an integer from 1 to 100.');
+    try {
+        const models = await eda.lib_3DModel.search(query, libraryUuid, classification, limit, 1);
+        return { query, libraryUuid: libraryUuid ?? null, models, count: models.length };
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to search 3D model library assets.');
+    }
 };
 
 const libraryModel3DCopy: Handler = async (payload) => {
@@ -5436,23 +5302,27 @@ const schematicRebindSymbol: Handler = makeRebindHandler('symbol');
  * labels (#156). Read-only; pair with `schematic.primitives.delete` to remove
  * orphans. Page-lazy-load law applies: only the active page's texts are seen.
  */
-const schematicTextList: Handler = async () => {
-	let texts;
-	try { texts = await eda.sch_PrimitiveText.getAll(); }
-	catch (err) { throw edaError(err, 'Failed to list schematic text primitives.'); }
-	const items = (Array.isArray(texts) ? texts : []).map(t => ({
-		primitiveId: t.getState_PrimitiveId(),
-		content: t.getState_Content(),
-		x: t.getState_X(),
-		y: t.getState_Y(),
-		rotation: t.getState_Rotation(),
-		fontSize: t.getState_FontSize(),
-		fontName: t.getState_FontName(),
-		color: t.getState_TextColor(),
-		bold: t.getState_Bold(),
-		italic: t.getState_Italic(),
-	}));
-	return { result: { count: items.length, scope: 'activePage', texts: items } };
+const schematicTextListData = async () => {
+    let texts;
+    try {
+        texts = await eda.sch_PrimitiveText.getAll();
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to list schematic text primitives.');
+    }
+    const items = (Array.isArray(texts) ? texts : []).map(t => ({
+        primitiveId: t.getState_PrimitiveId(),
+        content: t.getState_Content(),
+        x: t.getState_X(),
+        y: t.getState_Y(),
+        rotation: t.getState_Rotation(),
+        fontSize: t.getState_FontSize(),
+        fontName: t.getState_FontName(),
+        color: t.getState_TextColor(),
+        bold: t.getState_Bold(),
+        italic: t.getState_Italic(),
+    }));
+    return { count: items.length, scope: 'activePage', texts: items };
 };
 
 // ─── Replace: swap a placed component's DEVICE(器件标准化「使用推荐器件」)───
@@ -6802,70 +6672,65 @@ const documentOpen: Handler = async (payload) => {
  * List all PCB documents in the current project. Returns uuid + name for each
  * PCB, which can be passed to document.open to switch to that board.
  */
-const pcbDocumentsList: Handler = async () => {
-	let pcbs;
-	try {
-		pcbs = await eda.dmt_Pcb.getAllPcbsInfo();
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to list PCB documents.');
-	}
-	if (!Array.isArray(pcbs)) {
-		return { result: { pcbs: [], count: 0 } };
-	}
-	return {
-		result: {
-			pcbs: pcbs.map(p => ({
-				uuid: p.uuid,
-				name: p.name,
-				parentProjectUuid: p.parentProjectUuid,
-			})),
-			count: pcbs.length,
-		},
-	};
+const pcbDocumentsListData = async () => {
+    let pcbs;
+    try {
+        pcbs = await eda.dmt_Pcb.getAllPcbsInfo();
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to list PCB documents.');
+    }
+    if (!Array.isArray(pcbs)) {
+        return { pcbs: [], count: 0 };
+    }
+    return {
+        pcbs: pcbs.map(p => ({
+            uuid: p.uuid,
+            name: p.name,
+            parentProjectUuid: p.parentProjectUuid,
+        })),
+        count: pcbs.length,
+    };
 };
 
 /**
  * List placed components on the active PCB. Optionally filter by layer and
  * include each component's pads (the net-by-name connectivity surface).
  */
-const pcbComponentsList: Handler = async (payload) => {
-	const layer = payload.layer as TPCB_LayersOfComponent | undefined;
-	const includePads = optionalBoolean(payload, 'includePads') === true;
-	// includeBBox attaches each component's rendered extent {minX,minY,maxX,maxY}
-	// so the agent can reason about size, spacing, and courtyard/overlap.
-	const includeBBox = optionalBoolean(payload, 'includeBBox') === true;
-	let components;
-	try {
-		components = await eda.pcb_PrimitiveComponent.getAll(layer);
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to list PCB components.');
-	}
-
-	const serialized: Array<Record<string, unknown>> = [];
-	for (const component of components) {
-		const record = serializePcbComponent(component);
-		if (includeBBox) {
-			try {
-				const box = await eda.pcb_Primitive.getPrimitivesBBox([component.getState_PrimitiveId()]);
-				if (box) record.bbox = box;
-			}
-			catch { /* bbox is optional */ }
-		}
-		if (includePads) {
-			try {
-				const pads = await eda.pcb_PrimitiveComponent.getAllPinsByPrimitiveId(
-					component.getState_PrimitiveId(),
-				);
-				record.pads = (pads ?? []).map(serializePcbPad);
-			}
-			catch { /* pads are optional */ }
-		}
-		serialized.push(record);
-	}
-
-	return { result: { components: serialized, count: serialized.length } };
+const pcbComponentsListData = async (payload: Record<string, unknown>) => {
+    const layer = payload.layer as TPCB_LayersOfComponent | undefined;
+    const includePads = optionalBoolean(payload, 'includePads') === true;
+    // includeBBox attaches each component's rendered extent {minX,minY,maxX,maxY}
+    // so the agent can reason about size, spacing, and courtyard/overlap.
+    const includeBBox = optionalBoolean(payload, 'includeBBox') === true;
+    let components;
+    try {
+        components = await eda.pcb_PrimitiveComponent.getAll(layer);
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to list PCB components.');
+    }
+    const serialized: Array<Record<string, unknown>> = [];
+    for (const component of components) {
+        const record = serializePcbComponent(component);
+        if (includeBBox) {
+            try {
+                const box = await eda.pcb_Primitive.getPrimitivesBBox([component.getState_PrimitiveId()]);
+                if (box)
+                    record.bbox = box;
+            }
+            catch { /* bbox is optional */ }
+        }
+        if (includePads) {
+            try {
+                const pads = await eda.pcb_PrimitiveComponent.getAllPinsByPrimitiveId(component.getState_PrimitiveId());
+                record.pads = (pads ?? []).map(serializePcbPad);
+            }
+            catch { /* pads are optional */ }
+        }
+        serialized.push(record);
+    }
+    return { components: serialized, count: serialized.length };
 };
 
 /**
@@ -6904,56 +6769,57 @@ function resolveLayerId(spec: unknown, layers: Array<IPCB_LayerItem>): number {
 		`could not resolve layer "${String(spec)}" — pass a numeric id, top|bottom, or a layer name from pcb.layers.list`);
 }
 
-const pcbLayersList: Handler = async (payload) => {
-	// Ensure the PCB tab is the foreground/active document before reading
-	// getCurrentLayer — a null currentLayer in the issue (#40) traced to the PCB
-	// not being the active tab, so the sync getCurrentLayer returned undefined.
-	try {
-		const cur = await eda.dmt_SelectControl.getCurrentDocumentInfo();
-		if (cur?.tabId) await eda.dmt_EditorControl.activateDocument(cur.tabId);
-	}
-	catch { /* best-effort activation */ }
-
-	let layers;
-	try {
-		layers = await eda.pcb_Layer.getAllLayers();
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to list PCB layers.');
-	}
-	// getCurrentLayer is synchronous; copper count is best-effort.
-	let currentLayer: unknown = null;
-	try {
-		currentLayer = eda.pcb_Layer.getCurrentLayer() ?? null;
-	}
-	catch { /* best-effort */ }
-	let copperLayerCount: unknown = null;
-	try {
-		copperLayerCount = await eda.pcb_Layer.getTheNumberOfCopperLayers();
-	}
-	catch { /* best-effort */ }
-
-	// Fallback display-state evidence (#40 acceptance #3): when getCurrentLayer is
-	// empty (new board with no manual layer pick), surface the set of currently
-	// SHOWN layers (layerStatus === SHOW) so the caller can still reason about
-	// what's on screen.
-	let visibleLayers: unknown = null;
-	if (currentLayer == null && Array.isArray(layers)) {
-		visibleLayers = layers
-			.filter(l => l.layerStatus === 1 /* EPCB_LayerStatus.SHOW */)
-			.map(l => ({ id: l.id, name: l.name }));
-	}
-
-	let physical: unknown = undefined, physicalError: string | undefined, rules: unknown = undefined, physicalInventory:unknown;
-    if (payload.include_physical === true) {
-      try { physical=eda.pcb_Layer.getCurrentPhysicalStackingConfiguration(); if(!physical) physicalError='native physical stackup unavailable'; } catch(e) {physicalError=describeThrown(e)}
-      if(payload.include_physical_inventory===true){
-       try {const all=await eda.pcb_Layer.getAllPhysicalStackingConfigurations();physicalInventory=JSON.stringify(all).length<=128*1024&&all.length<=16?all:{status:'too_large',count:all.length};}
-       catch(e){physicalInventory={status:'unavailable',reason:describeThrown(e)}}
-      }
-      rules=await eda.pcb_Drc.getCurrentRuleConfiguration();
+const pcbLayersListData = async (payload: Record<string, unknown>) => {
+    let layers;
+    try {
+        layers = await eda.pcb_Layer.getAllLayers();
     }
-    return { result: { layers, currentLayer, visibleLayers, copperLayerCount, count: layers.length, ...(payload.include_physical===true?{physical:physical??null,physical_error:physicalError,physical_inventory:physicalInventory,rules}: {}) } };
+    catch (err) {
+        throw edaError(err, 'Failed to list PCB layers.');
+    }
+    // getCurrentLayer is synchronous; copper count is best-effort.
+    let currentLayer: unknown = null;
+    try {
+        currentLayer = eda.pcb_Layer.getCurrentLayer() ?? null;
+    }
+    catch { /* best-effort */ }
+    let copperLayerCount: unknown = null;
+    try {
+        copperLayerCount = await eda.pcb_Layer.getTheNumberOfCopperLayers();
+    }
+    catch { /* best-effort */ }
+    // Fallback display-state evidence (#40 acceptance #3): when getCurrentLayer is
+    // empty (new board with no manual layer pick), surface the set of currently
+    // SHOWN layers (layerStatus === SHOW) so the caller can still reason about
+    // what's on screen.
+    let visibleLayers: unknown = null;
+    if (currentLayer == null && Array.isArray(layers)) {
+        visibleLayers = layers
+            .filter(l => l.layerStatus === 1 /* EPCB_LayerStatus.SHOW */)
+            .map(l => ({ id: l.id, name: l.name }));
+    }
+    let physical: unknown = undefined, physicalError: string | undefined, rules: unknown = undefined, physicalInventory: unknown;
+    if (payload.include_physical === true) {
+        try {
+            physical = eda.pcb_Layer.getCurrentPhysicalStackingConfiguration();
+            if (!physical)
+                physicalError = 'native physical stackup unavailable';
+        }
+        catch (e) {
+            physicalError = describeThrown(e);
+        }
+        if (payload.include_physical_inventory === true) {
+            try {
+                const all = await eda.pcb_Layer.getAllPhysicalStackingConfigurations();
+                physicalInventory = JSON.stringify(all).length <= 128 * 1024 && all.length <= 16 ? all : { status: 'too_large', count: all.length };
+            }
+            catch (e) {
+                physicalInventory = { status: 'unavailable', reason: describeThrown(e) };
+            }
+        }
+        rules = await eda.pcb_Drc.getCurrentRuleConfiguration();
+    }
+    return { layers, currentLayer, visibleLayers, copperLayerCount, count: layers.length, ...(payload.include_physical === true ? { physical: physical ?? null, physical_error: physicalError, physical_inventory: physicalInventory, rules } : {}) };
 };
 
 // pcb.layers.set_current — switch the active/edit layer (#40 acceptance #1/#4).
@@ -7440,91 +7306,93 @@ const pcbSilkAlign: Handler = async (payload) => {
 // parent component's side (TOP=1 / BOTTOM=2) so the check can verify a designator
 // sits on the same side as its footprint.
 const PCB_TOP_SILK = 3, PCB_BOTTOM_SILK = 4;
-const pcbSilkList: Handler = async () => {
-	const isSilk = (l: number) => l === PCB_TOP_SILK || l === PCB_BOTTOM_SILK;
-
-	// component primitiveId → side layer (TOP=1 / BOTTOM=2), for attribute parents.
-	const compLayer = new Map<string, number>();
-	try {
-		for (const c of (await eda.pcb_PrimitiveComponent.getAll()) ?? []) {
-			compLayer.set(c.getState_PrimitiveId(), Number(c.getState_Layer()));
-		}
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to list components for silk-list.');
-	}
-
-	const texts: Array<Record<string, unknown>> = [];
-	// Real rendered extent per text (#155): the stored x/y is the BOTTOM-LEFT
-	// anchor, so any consumer that centers an estimated box on it is off by half
-	// a text — the bbox removes anchor/char-width/rotation guessing entirely.
-	const silkBBox = async (id: string): Promise<Record<string, number> | null> => {
-		try {
-			const b = (await eda.pcb_Primitive.getPrimitivesBBox([id])) as { minX: number; minY: number; maxX: number; maxY: number } | null;
-			return b ? { minX: b.minX, minY: b.minY, maxX: b.maxX, maxY: b.maxY } : null;
-		}
-		catch { return null; }
-	};
-
-	// 1. designator / value attributes (component-bound silk text)
-	try {
-		for (const a of (await eda.pcb_PrimitiveAttribute.getAll()) ?? []) {
-			const layer = Number(a.getState_Layer());
-			if (!isSilk(layer)) {
-				continue;
-			}
-			const pid = a.getState_ParentPrimitiveId?.() ?? '';
-			texts.push({
-				primitiveId: a.getState_PrimitiveId(),
-				bbox: await silkBBox(a.getState_PrimitiveId()),
-				kind: 'attribute',
-				text: a.getState_Value?.() ?? '',
-				key: a.getState_Key?.() ?? '',
-				layer,
-				mirror: !!a.getState_Mirror?.(),
-				reverse: !!a.getState_Reverse?.(),
-				rotation: Number(a.getState_Rotation?.() ?? 0),
-				fontSize: Number(a.getState_FontSize?.() ?? 0) || 0,
-				componentId: pid,
-				componentLayer: compLayer.get(pid) ?? 0,
-				x: a.getState_X() ?? 0,
-				y: a.getState_Y() ?? 0,
-			});
-		}
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to enumerate silkscreen attributes.');
-	}
-
-	// 2. free silk strings (board labels, logos, notes)
-	try {
-		for (const s of (await eda.pcb_PrimitiveString.getAll()) ?? []) {
-			const layer = Number(s.getState_Layer());
-			if (!isSilk(layer)) {
-				continue;
-			}
-			texts.push({
-				primitiveId: s.getState_PrimitiveId(),
-				bbox: await silkBBox(s.getState_PrimitiveId()),
-				kind: 'string',
-				text: s.getState_Text?.() ?? '',
-				layer,
-				mirror: !!s.getState_Mirror?.(),
-				reverse: !!s.getState_Reverse?.(),
-				rotation: Number(s.getState_Rotation?.() ?? 0),
-				fontSize: Number(s.getState_FontSize?.() ?? 0) || 0,
-				componentId: '',
-				componentLayer: 0,
-				x: s.getState_X() ?? 0,
-				y: s.getState_Y() ?? 0,
-			});
-		}
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to enumerate silkscreen strings.');
-	}
-
-	return { result: { texts, count: texts.length } };
+const pcbSilkListData = async () => {
+    const isSilk = (l: number) => l === PCB_TOP_SILK || l === PCB_BOTTOM_SILK;
+    // component primitiveId → side layer (TOP=1 / BOTTOM=2), for attribute parents.
+    const compLayer = new Map<string, number>();
+    try {
+        for (const c of (await eda.pcb_PrimitiveComponent.getAll()) ?? []) {
+            compLayer.set(c.getState_PrimitiveId(), Number(c.getState_Layer()));
+        }
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to list components for silk-list.');
+    }
+    const texts: Array<Record<string, unknown>> = [];
+    // Real rendered extent per text (#155): the stored x/y is the BOTTOM-LEFT
+    // anchor, so any consumer that centers an estimated box on it is off by half
+    // a text — the bbox removes anchor/char-width/rotation guessing entirely.
+    const silkBBox = async (id: string): Promise<Record<string, number> | null> => {
+        try {
+            const b = (await eda.pcb_Primitive.getPrimitivesBBox([id])) as {
+                minX: number;
+                minY: number;
+                maxX: number;
+                maxY: number;
+            } | null;
+            return b ? { minX: b.minX, minY: b.minY, maxX: b.maxX, maxY: b.maxY } : null;
+        }
+        catch {
+            return null;
+        }
+    };
+    // 1. designator / value attributes (component-bound silk text)
+    try {
+        for (const a of (await eda.pcb_PrimitiveAttribute.getAll()) ?? []) {
+            const layer = Number(a.getState_Layer());
+            if (!isSilk(layer)) {
+                continue;
+            }
+            const pid = a.getState_ParentPrimitiveId?.() ?? '';
+            texts.push({
+                primitiveId: a.getState_PrimitiveId(),
+                bbox: await silkBBox(a.getState_PrimitiveId()),
+                kind: 'attribute',
+                text: a.getState_Value?.() ?? '',
+                key: a.getState_Key?.() ?? '',
+                layer,
+                mirror: !!a.getState_Mirror?.(),
+                reverse: !!a.getState_Reverse?.(),
+                rotation: Number(a.getState_Rotation?.() ?? 0),
+                fontSize: Number(a.getState_FontSize?.() ?? 0) || 0,
+                componentId: pid,
+                componentLayer: compLayer.get(pid) ?? 0,
+                x: a.getState_X() ?? 0,
+                y: a.getState_Y() ?? 0,
+            });
+        }
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to enumerate silkscreen attributes.');
+    }
+    // 2. free silk strings (board labels, logos, notes)
+    try {
+        for (const s of (await eda.pcb_PrimitiveString.getAll()) ?? []) {
+            const layer = Number(s.getState_Layer());
+            if (!isSilk(layer)) {
+                continue;
+            }
+            texts.push({
+                primitiveId: s.getState_PrimitiveId(),
+                bbox: await silkBBox(s.getState_PrimitiveId()),
+                kind: 'string',
+                text: s.getState_Text?.() ?? '',
+                layer,
+                mirror: !!s.getState_Mirror?.(),
+                reverse: !!s.getState_Reverse?.(),
+                rotation: Number(s.getState_Rotation?.() ?? 0),
+                fontSize: Number(s.getState_FontSize?.() ?? 0) || 0,
+                componentId: '',
+                componentLayer: 0,
+                x: s.getState_X() ?? 0,
+                y: s.getState_Y() ?? 0,
+            });
+        }
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to enumerate silkscreen strings.');
+    }
+    return { texts, count: texts.length };
 };
 
 // pcb.silk.add — create a free silkscreen STRING (board marking / credit / note)
@@ -8122,15 +7990,15 @@ const pcbSilkLabelPads: Handler = async (payload) => {
  * List all nets on the active PCB. `IPCB_NetInfo` ({ net, color, length }) is a
  * plain data object and serializes directly.
  */
-const pcbNetsList: Handler = async () => {
-	let nets;
-	try {
-		nets = await eda.pcb_Net.getAllNets();
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to list PCB nets.');
-	}
-	return { result: { nets, count: nets.length } };
+const pcbNetsListData = async () => {
+    let nets;
+    try {
+        nets = await eda.pcb_Net.getAllNets();
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to list PCB nets.');
+    }
+    return { nets, count: nets.length };
 };
 
 /**
@@ -8143,7 +8011,7 @@ const pcbNetsList: Handler = async () => {
  * rather than failing the whole report. The pcb_Drc.* reads may require the PCB
  * to be the active/foreground tab (same constraint as pcb.drc.check).
  */
-const pcbReport: Handler = async (payload) => {
+const pcbReportData = async (payload: Record<string, unknown>) => {
     const selected = (key:string): string[] | undefined => {
       const value=payload[key];if(value===undefined)return undefined;
       if(!Array.isArray(value)||value.length>256||!value.every(n=>typeof n==='string'&&n.length>0))throw new ActionError('INVALID_PAYLOAD', `${key} must be an array of names`);
@@ -8215,7 +8083,7 @@ const pcbReport: Handler = async (payload) => {
 	}
 	catch (err) { result.equalLengthNetGroupsError = describeThrown(err); }
 
-	return { result };
+	return result;
 };
 
 // ─── PCB length constraints: differential pairs + equal-length groups (#176) ─
@@ -8452,26 +8320,24 @@ const pcbEqGroupDelete: Handler = async (payload) => {
  * prerequisite context for pcb.import_changes. IDMT_BoardItem / IDMT_PcbItem are
  * plain data objects.
  */
-const pcbBoardInfo: Handler = async () => {
-	let board;
-	try {
-		board = await eda.dmt_Board.getCurrentBoardInfo();
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to read current Board info.');
-	}
-	let pcb;
-	try {
-		pcb = await eda.dmt_Pcb.getCurrentPcbInfo();
-	}
-	catch { /* best-effort */ }
-	return {
-		result: {
-			linked: !!board,
-			board: board ? serializeBoard(board) : null,
-			pcb: pcb ? { uuid: pcb.uuid, name: pcb.name } : null,
-		},
-	};
+const pcbBoardInfoData = async () => {
+    let board;
+    try {
+        board = await eda.dmt_Board.getCurrentBoardInfo();
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to read current Board info.');
+    }
+    let pcb;
+    try {
+        pcb = await eda.dmt_Pcb.getCurrentPcbInfo();
+    }
+    catch { /* best-effort */ }
+    return {
+        linked: !!board,
+        board: board ? serializeBoard(board) : null,
+        pcb: pcb ? { uuid: pcb.uuid, name: pcb.name } : null,
+    };
 };
 
 // ─── Board (板子/组合 — schematic↔PCB binding) ─────────────────────────
@@ -8498,27 +8364,27 @@ function serializeBoard(board: BoardItem): Record<string, unknown> {
 }
 
 /** List all Boards (组合) in the current project. */
-const boardList: Handler = async () => {
-	let boards;
-	try {
-		boards = await eda.dmt_Board.getAllBoardsInfo();
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to list Boards.');
-	}
-	return { result: { boards: boards.map(serializeBoard), count: boards.length } };
+const boardListData = async () => {
+    let boards;
+    try {
+        boards = await eda.dmt_Board.getAllBoardsInfo();
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to list Boards.');
+    }
+    return { boards: boards.map(serializeBoard), count: boards.length };
 };
 
 /** Read the current Board (its bound schematic + PCB). */
-const boardCurrent: Handler = async () => {
-	let board;
-	try {
-		board = await eda.dmt_Board.getCurrentBoardInfo();
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to read current Board.');
-	}
-	return { result: { linked: !!board, board: board ? serializeBoard(board) : null } };
+const boardCurrentData = async () => {
+    let board;
+    try {
+        board = await eda.dmt_Board.getCurrentBoardInfo();
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to read current Board.');
+    }
+    return { linked: !!board, board: board ? serializeBoard(board) : null };
 };
 
 /** Create a Board binding a schematic and/or PCB into one group. */
@@ -9473,117 +9339,6 @@ const pcbSnapshot: Handler = async (payload) => {
 
 /** patch key → the serializePcbComponent field that reads it back (null = not
  *  exposed by the serializer, so the write cannot be verified). */
-export const PCB_COMPONENT_PATCH_READBACK: Record<string, string | null> = {
-	layer: 'layer',
-	x: 'x',
-	y: 'y',
-	rotation: 'rotation',
-	primitiveLock: 'locked',
-	addIntoBom: 'addIntoBom',
-	designator: 'designator',
-	name: 'name',
-	uniqueId: 'uniqueId',
-	manufacturerId: 'manufacturerId',
-	supplierId: 'supplierId',
-	manufacturer: null,
-	supplier: null,
-	otherProperty: null,
-};
-
-/** Natural spellings accepted for the awkward official key names. */
-export const PCB_COMPONENT_PATCH_ALIASES: Record<string, string> = {
-	locked: 'primitiveLock',
-	lock: 'primitiveLock',
-};
-
-/**
- * Normalize a pcb.component.modify patch: map aliases onto the official keys
- * and reject unknown keys (the platform ignores them WITHOUT erroring — the
- * root cause of the #174 fake success).
- */
-export function normalizePcbComponentPatch(raw: Record<string, unknown>): Record<string, unknown> {
-	const out: Record<string, unknown> = {};
-	const unknown: Array<string> = [];
-	for (const [rawKey, value] of Object.entries(raw)) {
-		const key = PCB_COMPONENT_PATCH_ALIASES[rawKey] ?? rawKey;
-		if (!(key in PCB_COMPONENT_PATCH_READBACK)) {
-			unknown.push(rawKey);
-			continue;
-		}
-		if (key in out && out[key] !== value) {
-			throw new ActionError(
-				ErrorCodes.MISSING_PAYLOAD_FIELD,
-				`Patch sets "${key}" twice with conflicting values (an alias like "locked" maps onto "primitiveLock").`,
-			);
-		}
-		out[key] = value;
-	}
-	if (unknown.length > 0) {
-		throw new ActionError(
-			ErrorCodes.MISSING_PAYLOAD_FIELD,
-			`Unknown patch field(s): ${unknown.join(', ')}. The platform silently ignores unknown keys and still `
-			+ `reports success (#174), so they are rejected here. Valid keys: `
-			+ `${Object.keys(PCB_COMPONENT_PATCH_READBACK).join(', ')} (aliases: locked/lock → primitiveLock).`,
-		);
-	}
-	if (Object.keys(out).length === 0) {
-		throw new ActionError(ErrorCodes.MISSING_PAYLOAD_FIELD, 'Patch object is empty — nothing to modify.');
-	}
-	return out;
-}
-
-export interface PcbPatchVerification {
-	/** patch keys the fresh readback confirms. */
-	applied: Array<string>;
-	/** patch keys the readback contradicts — the write did NOT stick. */
-	notApplied: Array<{ field: string; expected: unknown; actual: unknown }>;
-	/** patch keys the serializer cannot read back (manufacturer/supplier/otherProperty, or a non-numeric layer literal). */
-	unverified: Array<string>;
-}
-
-const normDeg = (v: number): number => ((v % 360) + 360) % 360;
-
-/**
- * Compare a normalized patch against a FRESH readback record (#174). The
- * object returned by modify() — and even getState_* on the object you just
- * wrote — can echo the input, so the caller must re-pull before verifying.
- */
-export function verifyPcbComponentPatch(
-	patch: Record<string, unknown>,
-	readback: Record<string, unknown>,
-): PcbPatchVerification {
-	const v: PcbPatchVerification = { applied: [], notApplied: [], unverified: [] };
-	for (const [field, expected] of Object.entries(patch)) {
-		const readKey = PCB_COMPONENT_PATCH_READBACK[field];
-		if (readKey === null || readKey === undefined) {
-			v.unverified.push(field);
-			continue;
-		}
-		const actual = readback[readKey];
-		let ok: boolean | null;
-		if (field === 'layer' && typeof expected !== 'number') {
-			// The CLI historically accepts layer literals like "BOTTOM"; the readback
-			// is numeric, and we have no trusted name→id table here — don't guess.
-			ok = null;
-		}
-		else if (typeof expected === 'number' && typeof actual === 'number') {
-			ok = field === 'rotation'
-				? Math.abs(normDeg(expected) - normDeg(actual)) < 1e-3
-				: Math.abs(expected - actual) < 1e-3;
-		}
-		else if (expected === null) {
-			// modify() documents null as "leave blank" — an empty readback matches.
-			ok = actual === null || actual === undefined || actual === '';
-		}
-		else {
-			ok = actual === expected;
-		}
-		if (ok === null) v.unverified.push(field);
-		else if (ok) v.applied.push(field);
-		else v.notApplied.push({ field, expected, actual });
-	}
-	return v;
-}
 
 /**
  * Lay out a component on the active PCB: move/rotate/flip-layer/lock or set
@@ -10396,15 +10151,15 @@ const pcbDrcCheck: Handler = async (payload) => {
  * widths, via sizes, …) without running a check — inspect what pcb.drc.check
  * enforces. Returned verbatim from `eda.pcb_Drc.getCurrentRuleConfiguration`.
  */
-const pcbDrcRules: Handler = async () => {
-	let rules;
-	try {
-		rules = await eda.pcb_Drc.getCurrentRuleConfiguration();
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to read PCB DRC rule configuration (ensure the PCB document is the active/foreground tab).');
-	}
-	return { result: { rules: rules ?? null } };
+const pcbDrcRulesData = async () => {
+    let rules;
+    try {
+        rules = await eda.pcb_Drc.getCurrentRuleConfiguration();
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to read PCB DRC rule configuration (ensure the PCB document is the active/foreground tab).');
+    }
+    return { rules: rules ?? null };
 };
 
 // ─── PCB routing (copper tracks + vias) ──────────────────────────────
@@ -10564,28 +10319,28 @@ const pcbPourCreate: Handler = async (payload) => {
 	};
 };
 
-const pcbPourList: Handler = async (payload) => {
-	const net = optionalString(payload, 'net');
-	let pours;
-	try {
-		pours = await eda.pcb_PrimitivePour.getAll(net);
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to list copper pours.');
-	}
-	const list = (pours ?? []).map(p => ({
+const pcbPourListData = async (payload: Record<string, unknown>) => {
+    const net = optionalString(payload, 'net');
+    let pours;
+    try {
+        pours = await eda.pcb_PrimitivePour.getAll(net);
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to list copper pours.');
+    }
+    const list = (pours ?? []).map(p => ({
         logical_id: logicalPlaneId(p),
-		primitiveId: p.getState_PrimitiveId(),
-		net: p.getState_Net(),
-		layer: p.getState_Layer(),
-		pourName: p.getState_PourName(),
-		fillMethod: p.getState_PourFillMethod(),
-		priority: p.getState_PourPriority(),
-		lineWidth: p.getState_LineWidth(),
-		locked: p.getState_PrimitiveLock(),
-	}));
-	const geometry = payload.include_geometry === true ? await readPourGeometry(pours ?? [], optionalNumber(payload, 'geometry_limit') ?? 16) : undefined;
-	return { result: { pours: list, count: list.length, ...(geometry ? { geometry } : {}) } };
+        primitiveId: p.getState_PrimitiveId(),
+        net: p.getState_Net(),
+        layer: p.getState_Layer(),
+        pourName: p.getState_PourName(),
+        fillMethod: p.getState_PourFillMethod(),
+        priority: p.getState_PourPriority(),
+        lineWidth: p.getState_LineWidth(),
+        locked: p.getState_PrimitiveLock(),
+    }));
+    const geometry = payload.include_geometry === true ? await readPourGeometry(pours ?? [], optionalNumber(payload, 'geometry_limit') ?? 16) : undefined;
+    return { pours: list, count: list.length, ...(geometry ? { geometry } : {}) };
 };
 
 const pcbPourDelete: Handler = async (payload) => {
@@ -10763,37 +10518,35 @@ const pcbRegionCreate: Handler = async (payload) => {
 	};
 };
 
-const pcbRegionList: Handler = async (payload) => {
-	const layer = optionalNumber(payload, 'layer');
-	let regions;
-	try {
-		regions = await eda.pcb_PrimitiveRegion.getAll(
-			layer == null ? undefined : (layer as unknown as TPCB_LayersOfRegion),
-		);
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to list PCB regions.');
-	}
-	const list: Array<Record<string, unknown>> = [];
-	for (const r of (regions ?? [])) {
-		const rules = (r.getState_RuleType() ?? []) as unknown as number[];
-		let bbox;
-		try {
-			bbox = await eda.pcb_Primitive.getPrimitivesBBox([r.getState_PrimitiveId()]);
-		}
-		catch { /* bbox optional — used by the antenna keep-out check */ }
-		list.push({
-			primitiveId: r.getState_PrimitiveId(),
-			layer: r.getState_Layer(),
-			ruleType: rules,
-			ruleTypeNames: rules.map(v => REGION_RULE_NAME[v] ?? String(v)),
-			regionName: r.getState_RegionName() ?? null,
-			bbox,
-			lineWidth: r.getState_LineWidth(),
-			locked: r.getState_PrimitiveLock(),
-		});
-	}
-	return { result: { regions: list, count: list.length } };
+const pcbRegionListData = async (payload: Record<string, unknown>) => {
+    const layer = optionalNumber(payload, 'layer');
+    let regions;
+    try {
+        regions = await eda.pcb_PrimitiveRegion.getAll(layer == null ? undefined : (layer as unknown as TPCB_LayersOfRegion));
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to list PCB regions.');
+    }
+    const list: Array<Record<string, unknown>> = [];
+    for (const r of (regions ?? [])) {
+        const rules = (r.getState_RuleType() ?? []) as unknown as number[];
+        let bbox;
+        try {
+            bbox = await eda.pcb_Primitive.getPrimitivesBBox([r.getState_PrimitiveId()]);
+        }
+        catch { /* bbox optional — used by the antenna keep-out check */ }
+        list.push({
+            primitiveId: r.getState_PrimitiveId(),
+            layer: r.getState_Layer(),
+            ruleType: rules,
+            ruleTypeNames: rules.map(v => REGION_RULE_NAME[v] ?? String(v)),
+            regionName: r.getState_RegionName() ?? null,
+            bbox,
+            lineWidth: r.getState_LineWidth(),
+            locked: r.getState_PrimitiveLock(),
+        });
+    }
+    return { regions: list, count: list.length };
 };
 
 const pcbRegionDelete: Handler = async (payload) => {
@@ -10862,43 +10615,42 @@ const pcbFillCreate: Handler = async (payload) => {
 	};
 };
 
-const pcbFillList: Handler = async (payload) => {
-	const layer = optionalNumber(payload, 'layer');
-	const net = optionalString(payload, 'net');
-	const includeBBox = optionalBoolean(payload, 'includeBBox') === true;
-	let fills;
-	try {
-		fills = await eda.pcb_PrimitiveFill.getAll(
-			layer == null ? undefined : (layer as unknown as TPCB_LayersOfFill),
-			net,
-		);
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to list PCB fills.');
-	}
-	const list: Array<Record<string, unknown>> = [];
-	for (const f of fills ?? []) {
-		const id = f.getState_PrimitiveId();
-		const item: Record<string, unknown> = {
-			primitiveId: id,
-			net: f.getState_Net() ?? null,
-			layer: Number(f.getState_Layer()),
-			fillMode: FILL_MODE_NAME[Number(f.getState_FillMode() ?? 0)] ?? String(f.getState_FillMode()),
-			lineWidth: f.getState_LineWidth(),
-			locked: f.getState_PrimitiveLock(),
-		};
-		if (includeBBox) {
-			// Per-fill rendered extent — feeds `pcb check` via-bond (is this
-			// junction covered by a bond fill?). Best-effort: null on failure.
-			try {
-				const box = await eda.pcb_Primitive.getPrimitivesBBox([id]);
-				item.bbox = box ? { minX: box.minX, minY: box.minY, maxX: box.maxX, maxY: box.maxY } : null;
-			}
-			catch { item.bbox = null; }
-		}
-		list.push(item);
-	}
-	return { result: { fills: list, count: list.length } };
+const pcbFillListData = async (payload: Record<string, unknown>) => {
+    const layer = optionalNumber(payload, 'layer');
+    const net = optionalString(payload, 'net');
+    const includeBBox = optionalBoolean(payload, 'includeBBox') === true;
+    let fills;
+    try {
+        fills = await eda.pcb_PrimitiveFill.getAll(layer == null ? undefined : (layer as unknown as TPCB_LayersOfFill), net);
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to list PCB fills.');
+    }
+    const list: Array<Record<string, unknown>> = [];
+    for (const f of fills ?? []) {
+        const id = f.getState_PrimitiveId();
+        const item: Record<string, unknown> = {
+            primitiveId: id,
+            net: f.getState_Net() ?? null,
+            layer: Number(f.getState_Layer()),
+            fillMode: FILL_MODE_NAME[Number(f.getState_FillMode() ?? 0)] ?? String(f.getState_FillMode()),
+            lineWidth: f.getState_LineWidth(),
+            locked: f.getState_PrimitiveLock(),
+        };
+        if (includeBBox) {
+            // Per-fill rendered extent — feeds `pcb check` via-bond (is this
+            // junction covered by a bond fill?). Best-effort: null on failure.
+            try {
+                const box = await eda.pcb_Primitive.getPrimitivesBBox([id]);
+                item.bbox = box ? { minX: box.minX, minY: box.minY, maxX: box.maxX, maxY: box.maxY } : null;
+            }
+            catch {
+                item.bbox = null;
+            }
+        }
+        list.push(item);
+    }
+    return { fills: list, count: list.length };
 };
 
 const pcbFillDelete: Handler = async (payload) => {
@@ -10924,66 +10676,66 @@ const pcbFillDelete: Handler = async (payload) => {
 // NEVER touches the board outline (layer 11) or locked primitives. clearRouting
 // is the native @alpha alternative (may be undefined on this build).
 
-const pcbLineList: Handler = async (payload) => {
-	const net = optionalString(payload, 'net');
-	const layer = optionalNumber(payload, 'layer') as unknown as TPCB_LayersOfLine | undefined;
-	let lines;
-	try {
-		lines = await eda.pcb_PrimitiveLine.getAll(net, layer);
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to list PCB tracks.');
-	}
-	// Arcs are ALSO copper tracks (beautify rounds corners into track→arc→track).
-	// Return them so headless checks (pcb.check dangling-end) can see a track
-	// terminating on an arc endpoint as anchored, not floating. Best-effort: an
-	// older API without pcb_PrimitiveArc must not break the line list.
-	const arcs = await eda.pcb_PrimitiveArc.getAll(net, layer).catch(() => []);
-	const list = (lines ?? []).map(l => ({
-		primitiveId: l.getState_PrimitiveId(),
-		net: l.getState_Net(),
-		layer: l.getState_Layer(),
-		startX: l.getState_StartX(),
-		startY: l.getState_StartY(),
-		endX: l.getState_EndX(),
-		endY: l.getState_EndY(),
-		lineWidth: l.getState_LineWidth(),
-		locked: l.getState_PrimitiveLock(),
-	}));
-	const arcList = (arcs ?? []).map(a => ({
-		primitiveId: a.getState_PrimitiveId(),
-		net: a.getState_Net(),
-		layer: a.getState_Layer(),
-		startX: a.getState_StartX(),
-		startY: a.getState_StartY(),
-		endX: a.getState_EndX(),
-		endY: a.getState_EndY(),
-		arcAngle: a.getState_ArcAngle(),
-		lineWidth: a.getState_LineWidth(),
-		locked: a.getState_PrimitiveLock(),
-	}));
-	return { result: { lines: list, arcs: arcList, count: list.length, arcCount: arcList.length } };
+const pcbLineListData = async (payload: Record<string, unknown>) => {
+    const net = optionalString(payload, 'net');
+    const layer = optionalNumber(payload, 'layer') as unknown as TPCB_LayersOfLine | undefined;
+    let lines;
+    try {
+        lines = await eda.pcb_PrimitiveLine.getAll(net, layer);
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to list PCB tracks.');
+    }
+    // Arcs are ALSO copper tracks (beautify rounds corners into track→arc→track).
+    // Return them so headless checks (pcb.check dangling-end) can see a track
+    // terminating on an arc endpoint as anchored, not floating. Best-effort: an
+    // older API without pcb_PrimitiveArc must not break the line list.
+    const arcs = await eda.pcb_PrimitiveArc.getAll(net, layer).catch(() => []);
+    const list = (lines ?? []).map(l => ({
+        primitiveId: l.getState_PrimitiveId(),
+        net: l.getState_Net(),
+        layer: l.getState_Layer(),
+        startX: l.getState_StartX(),
+        startY: l.getState_StartY(),
+        endX: l.getState_EndX(),
+        endY: l.getState_EndY(),
+        lineWidth: l.getState_LineWidth(),
+        locked: l.getState_PrimitiveLock(),
+    }));
+    const arcList = (arcs ?? []).map(a => ({
+        primitiveId: a.getState_PrimitiveId(),
+        net: a.getState_Net(),
+        layer: a.getState_Layer(),
+        startX: a.getState_StartX(),
+        startY: a.getState_StartY(),
+        endX: a.getState_EndX(),
+        endY: a.getState_EndY(),
+        arcAngle: a.getState_ArcAngle(),
+        lineWidth: a.getState_LineWidth(),
+        locked: a.getState_PrimitiveLock(),
+    }));
+    return { lines: list, arcs: arcList, count: list.length, arcCount: arcList.length };
 };
 
-const pcbViaList: Handler = async (payload) => {
-	const net = optionalString(payload, 'net');
-	let vias;
-	try {
-		vias = await eda.pcb_PrimitiveVia.getAll(net);
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to list PCB vias.');
-	}
-	const list = (vias ?? []).map(v => ({
-		primitiveId: v.getState_PrimitiveId(),
-		net: v.getState_Net(),
-		x: v.getState_X(),
-		y: v.getState_Y(),
-		holeDiameter: v.getState_HoleDiameter(),
-		diameter: v.getState_Diameter(),
-		locked: v.getState_PrimitiveLock(),
-	}));
-	return { result: { vias: list, count: list.length } };
+const pcbViaListData = async (payload: Record<string, unknown>) => {
+    const net = optionalString(payload, 'net');
+    let vias;
+    try {
+        vias = await eda.pcb_PrimitiveVia.getAll(net);
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to list PCB vias.');
+    }
+    const list = (vias ?? []).map(v => ({
+        primitiveId: v.getState_PrimitiveId(),
+        net: v.getState_Net(),
+        x: v.getState_X(),
+        y: v.getState_Y(),
+        holeDiameter: v.getState_HoleDiameter(),
+        diameter: v.getState_Diameter(),
+        locked: v.getState_PrimitiveLock(),
+    }));
+    return { vias: list, count: list.length };
 };
 
 // ─── pcb.track.lock (issue #127) ─────────────────────────────────────
@@ -11475,67 +11227,77 @@ const pcbOutlineSet: Handler = async (payload) => {
 
 /** Read the current board outline: the polyline (类型=板框) + its bounding box,
  * plus any legacy line/arc segments for backward compatibility. */
-const pcbOutlineGet: Handler = async () => {
-	let polylines, lines;
-	try {
-		polylines = await eda.pcb_PrimitivePolyline.getAll(undefined, BOARD_OUTLINE_LAYER);
-		lines = await eda.pcb_PrimitiveLine.getAll(undefined, BOARD_OUTLINE_LAYER);
-	}
-	catch (err) {
-		throw edaError(err, 'Failed to read board outline.');
-	}
-	let arcCount = 0;
-	try { arcCount = (await eda.pcb_PrimitiveArc.getAll(undefined, BOARD_OUTLINE_LAYER)).length; }
-	catch { /* best-effort */ }
-
-	// The real outline is a polyline; its rendered bbox is the board extent. Fall
-	// back to legacy line endpoints when no polyline exists.
-	let bbox: Record<string, number> | null = null;
-	if (polylines.length) {
-		try { bbox = (await eda.pcb_Primitive.getPrimitivesBBox(polylines.map(p => p.getState_PrimitiveId()))) ?? null; }
-		catch { /* bbox best-effort */ }
-	}
-	else if (lines.length) {
-		let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-		for (const l of lines) {
-			for (const [x, y] of [[l.getState_StartX(), l.getState_StartY()], [l.getState_EndX(), l.getState_EndY()]] as Array<[number, number]>) {
-				minX = Math.min(minX, x); maxX = Math.max(maxX, x);
-				minY = Math.min(minY, y); maxY = Math.max(maxY, y);
-			}
-		}
-		bbox = { minX, maxX, minY, maxY };
-	}
-	// Real polygon points (#167). The bbox alone is an AABB: on a non-rectangular
-	// board (Type-C sticking out, a notch, a milled cutout) "distance to the board
-	// edge" computed from it is simply wrong — a part hugging the real edge of a
-	// protrusion reads as far from the edge. The internal-on-edge / edge-IO layout
-	// dimensions need the true boundary.
-	//
-	// NOTE the points are the outline's CENTER LINE, while the bbox is the RENDERED
-	// extent and therefore includes the outline's line width (measured on ceshi:
-	// 5 mil larger on every side for a 10-mil outline). The mill follows the center
-	// line, so the points are the truthful board edge.
-	let points: Array<[number, number]> | null = null;
-	let outlineFormat: string | null = null;
-	if (polylines.length === 1) {
-		try {
-			const src = polylines[0].getState_Polygon()?.getSource();
-			const parsed = polygonSourceToPoints(src as unknown[]);
-			points = parsed.points;
-			outlineFormat = parsed.format;
-		}
-		catch { /* best-effort: callers fall back to the bbox */ }
-	}
-	else if (polylines.length > 1) {
-		// Several polylines on the outline layer = board + cutouts (or a stale
-		// leftover). Which one is the boundary is ambiguous, so don't guess — the
-		// caller degrades to the bbox and says so.
-		outlineFormat = `ambiguous:${polylines.length}-polylines`;
-	}
-
-	// `outline` = the canonical polyline-based board outline; `segments`/`arcs` keep
-	// reporting legacy line/arc counts so old boards still read sensibly.
-	return { result: { outline: polylines.length, segments: lines.length, arcs: arcCount, bbox, points, outlineFormat } };
+const pcbOutlineGetData = async () => {
+    let polylines, lines;
+    try {
+        polylines = await eda.pcb_PrimitivePolyline.getAll(undefined, BOARD_OUTLINE_LAYER);
+        lines = await eda.pcb_PrimitiveLine.getAll(undefined, BOARD_OUTLINE_LAYER);
+    }
+    catch (err) {
+        throw edaError(err, 'Failed to read board outline.');
+    }
+    let arcCount = 0;
+    try {
+        arcCount = (await eda.pcb_PrimitiveArc.getAll(undefined, BOARD_OUTLINE_LAYER)).length;
+    }
+    catch { /* best-effort */ }
+    // The real outline is a polyline; its rendered bbox is the board extent. Fall
+    // back to legacy line endpoints when no polyline exists.
+    let bbox: Record<string, number> | null = null;
+    if (polylines.length) {
+        try {
+            bbox = (await eda.pcb_Primitive.getPrimitivesBBox(polylines.map(p => p.getState_PrimitiveId()))) ?? null;
+        }
+        catch { /* bbox best-effort */ }
+    }
+    else if (lines.length) {
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const l of lines) {
+            for (const [x, y] of [[l.getState_StartX(), l.getState_StartY()], [l.getState_EndX(), l.getState_EndY()]] as Array<[
+                number,
+                number
+            ]>) {
+                minX = Math.min(minX, x);
+                maxX = Math.max(maxX, x);
+                minY = Math.min(minY, y);
+                maxY = Math.max(maxY, y);
+            }
+        }
+        bbox = { minX, maxX, minY, maxY };
+    }
+    // Real polygon points (#167). The bbox alone is an AABB: on a non-rectangular
+    // board (Type-C sticking out, a notch, a milled cutout) "distance to the board
+    // edge" computed from it is simply wrong — a part hugging the real edge of a
+    // protrusion reads as far from the edge. The internal-on-edge / edge-IO layout
+    // dimensions need the true boundary.
+    //
+    // NOTE the points are the outline's CENTER LINE, while the bbox is the RENDERED
+    // extent and therefore includes the outline's line width (measured on ceshi:
+    // 5 mil larger on every side for a 10-mil outline). The mill follows the center
+    // line, so the points are the truthful board edge.
+    let points: Array<[
+        number,
+        number
+    ]> | null = null;
+    let outlineFormat: string | null = null;
+    if (polylines.length === 1) {
+        try {
+            const src = polylines[0].getState_Polygon()?.getSource();
+            const parsed = polygonSourceToPoints(src as unknown[]);
+            points = parsed.points;
+            outlineFormat = parsed.format;
+        }
+        catch { /* best-effort: callers fall back to the bbox */ }
+    }
+    else if (polylines.length > 1) {
+        // Several polylines on the outline layer = board + cutouts (or a stale
+        // leftover). Which one is the boundary is ambiguous, so don't guess — the
+        // caller degrades to the bbox and says so.
+        outlineFormat = `ambiguous:${polylines.length}-polylines`;
+    }
+    // `outline` = the canonical polyline-based board outline; `segments`/`arcs` keep
+    // reporting legacy line/arc counts so old boards still read sensibly.
+    return { outline: polylines.length, segments: lines.length, arcs: arcCount, bbox, points, outlineFormat };
 };
 
 /**
@@ -11741,113 +11503,113 @@ const debugExecJs: Handler = async (payload) => {
 
 // ─── Registry & dispatch ─────────────────────────────────────────────
 
-const HANDLERS: Record<string, Handler> = {
- 'project.list': projectList,
+const HANDLERS: Record<string, Handler | NativeAction> = {
+ 'project.list': v2Native.projectList,
  'project.create': projectCreate,
  'project.open': projectOpen,
  'schematic.create': schematicCreate,
 	'board.snapshot_compact': fastSnapshot,
 	'route.apply_batch': fastApply,
-	'project.current': projectCurrent,
-	'document.current': documentCurrent,
-	'document.open': documentOpen,
-	'view.fit': viewFit,
-	'view.fit_selection': viewFitSelection,
-	'view.zoom': viewZoom,
-	'view.region': viewRegion,
-	'schematic.pages.list': schematicPagesList,
-	'schematic.page.open': schematicPageOpen,
-	'schematic.page.create': schematicPageCreate,
-	'schematic.page.rename': schematicPageRename,
-	'schematic.page.delete': schematicPageDelete,
+	'project.current': v2Native.read(c => projectCurrentData(), v2Native.declaredReadFields('project.current')),
+	'document.current': v2Native.read(c => documentCurrentData(), v2Native.declaredReadFields('document.current')),
+	'document.open': v2Native.documentOpen,
+	'view.fit': v2Native.viewport('fit'),
+	'view.fit_selection': v2Native.viewport('fit_selection'),
+	'view.zoom': v2Native.viewport('zoom'),
+	'view.region': v2Native.viewport('region'),
+	'schematic.pages.list': v2Native.read(c => schematicPagesListData(), v2Native.declaredReadFields('schematic.pages.list')),
+	'schematic.page.open': v2Native.documentOpen,
+	'schematic.page.create': v2Native.pageCreate,
+	'schematic.page.rename': v2Native.schematicRename(true),
+	'schematic.page.delete': v2Native.pageDelete,
 	'schematic.page.clear': schematicPageClear,
 	'schematic.primitives.delete': schematicPrimitivesDelete,
-	'schematic.rename': schematicRename,
-	'schematic.titleblock.get': schematicTitleBlockGet,
-	'schematic.titleblock.modify': schematicTitleBlockModify,
+	'schematic.rename': v2Native.schematicRename(false),
+	'schematic.titleblock.get': v2Native.read(c => schematicTitleBlockGetData(c.request.input), v2Native.titleBlockGetFields),
+	'schematic.titleblock.modify': v2Native.titleBlockModify,
 	'schematic.components.list': schematicComponentsList,
 	'schematic.component.place': schematicComponentPlace,
 	'schematic.component.modify': schematicComponentModify,
 	'schematic.component.delete': schematicComponentDelete,
-	'schematic.wire.create': schematicWireCreate,
+	'schematic.wire.create': v2Native.wireCreate,
 	'schematic.group.move': schematicGroupMove,
-	'schematic.netflag.create': schematicNetflagCreate,
+	'schematic.netflag.create': v2Native.netflagCreate(component => serializeComponent(component as SchComponent)),
 	'schematic.pin.set_no_connect': schematicPinSetNoConnect,
 	'schematic.pin.disconnect': schematicPinDisconnect,
-	'schematic.select': schematicSelect,
+	'schematic.select': v2Native.selectSchematic,
 	'schematic.drc.check': schematicDrcCheck,
 	'schematic.check': schematicCheck,
 	'schematic.bridgeCheck': schematicBridgeCheck,
 	'schematic.read': schematicRead,
-	'schematic.save': schematicSave,
+	'schematic.save': v2Native.saveDocument('schematic'),
 	'schematic.export.netlist': schematicExportNetlist,
 	'schematic.export.image': schematicExportImage,
 	'schematic.export.bom': schematicExportBom,
 	'schematic.power.connect_pin': schematicPowerConnectPin,
-	'schematic.library.search': schematicLibrarySearch,
-	'schematic.library.get_by_lcsc': schematicLibraryGetByLcscIds,
-	'library.list': libraryList,
-	'library.footprint.create': libraryFootprintCreate,
-	'library.footprint.get': libraryFootprintGet,
-	'library.footprint.copy': libraryFootprintCopy,
-	'library.footprint.delete': libraryFootprintDelete,
+	'schematic.library.search': v2Native.read(c => schematicLibrarySearchData(c.request.input), v2Native.searchFields),
+	'schematic.library.get_by_lcsc': v2Native.read(c => schematicLibraryGetByLcscIdsData(c.request.input), v2Native.lcscFields),
+	'library.list': v2Native.libraryList,
+	'library.footprint.create': v2Native.assetCreate('footprint'),
+	'library.footprint.get': v2Native.assetGet('footprint'),
+	'library.footprint.copy': v2Native.copyLibraryAsset('footprint'),
+	'library.footprint.delete': v2Native.assetDelete('footprint'),
 	'library.footprint.build': libraryFootprintBuild,
-	'library.symbol.create': librarySymbolCreate,
+	'library.symbol.create': v2Native.symbolCreate,
 	'library.symbol.build': librarySymbolBuild,
-	'library.symbol.get': librarySymbolGet,
-	'library.symbol.delete': librarySymbolDelete,
-	'library.model3d.create': libraryModel3DCreate,
-	'library.model3d.get': libraryModel3DGet,
-	'library.model3d.search': libraryModel3DSearch,
-	'library.model3d.copy': libraryModel3DCopy,
-	'library.model3d.delete': libraryModel3DDelete,
-	'library.device.create': libraryDeviceCreate,
-	'library.device.get': libraryDeviceGet,
-	'library.device.set_model3d': libraryDeviceSetModel3D,
-	'library.device.delete': libraryDeviceDelete,
+	'library.symbol.get': v2Native.assetGet('symbol'),
+	'library.symbol.delete': v2Native.symbolDelete,
+	'library.model3d.create': v2Native.modelCreate,
+	'library.model3d.get': v2Native.assetGet('model3d'),
+	'library.model3d.search': v2Native.read(c => libraryModel3DSearchData(c.request.input), v2Native.modelSearchFields),
+	'library.model3d.copy': v2Native.copyLibraryAsset('model3d'),
+	'library.model3d.delete': v2Native.assetDelete('model3d'),
+	'library.device.create': v2Native.assetCreate('device'),
+	'library.device.get': v2Native.assetGet('device'),
+	'library.device.set_model3d': v2Native.deviceSetModel,
+	'library.device.delete': v2Native.assetDelete('device'),
 	'schematic.rebind.footprint': schematicRebindFootprint,
 	'schematic.rebind.symbol': schematicRebindSymbol,
 	'schematic.component.replace': schematicComponentReplace,
 	'schematic.component.resolve_lcsc': schematicComponentResolveLcsc,
-	'schematic.text.list': schematicTextList,
-	'pcb.documents.list': pcbDocumentsList,
-	'pcb.components.list': pcbComponentsList,
-	'pcb.layers.list': pcbLayersList,
-	'pcb.layers.set_current': pcbLayerSetCurrent,
-	'pcb.layers.visibility': pcbLayerVisibility,
-	'pcb.view.side': pcbViewSide,
+	'schematic.text.list': v2Native.read(c => schematicTextListData(), v2Native.declaredReadFields('schematic.text.list')),
+	'pcb.documents.list': v2Native.read(c => pcbDocumentsListData(), v2Native.declaredReadFields('pcb.documents.list')),
+	'pcb.components.list': v2Native.read(c => pcbComponentsListData(c.request.input), v2Native.declaredReadFields('pcb.components.list')),
+	'pcb.layers.list': v2Native.read(c => pcbLayersListData(c.request.input), v2Native.declaredReadFields('pcb.layers.list')),
+	'pcb.layers.set_current': v2Native.layerSelect,
+	'pcb.layers.visibility': v2Native.layerVisibility(),
+	'pcb.view.side': v2Native.layerVisibility(true),
 	'pcb.stackup.set': pcbStackupSet,
 	'pcb.silk.align': pcbSilkAlign,
-	'pcb.silk.list': pcbSilkList,
-	'pcb.silk.add': pcbSilkAdd,
-	'pcb.silk.import_svg': pcbSilkImportSvg,
+	'pcb.silk.list': v2Native.read(c => pcbSilkListData(), v2Native.declaredReadFields('pcb.silk.list')),
+	'pcb.silk.add': v2Native.silkAdd,
+	'pcb.silk.import_svg': v2Native.silkImport,
 	'pcb.silk.set': pcbSilkSet,
 	'pcb.silk.netnames': pcbSilkNetnames,
 	'pcb.silk.label_pads': pcbSilkLabelPads,
-	'pcb.nets.list': pcbNetsList,
-	'pcb.report': pcbReport,
+	'pcb.nets.list': v2Native.read(c => pcbNetsListData(), v2Native.declaredReadFields('pcb.nets.list')),
+	'pcb.report': v2Native.report(pcbReportData),
  'pcb.manufacturing.export': payload => manufacturingExport(payload,blobToArtifact),
-	'pcb.constraint.list': pcbConstraintList,
-	'pcb.differential_pair.create': pcbDiffPairCreate,
-	'pcb.differential_pair.delete': pcbDiffPairDelete,
-	'pcb.differential_pair.rename': pcbDiffPairRename,
-	'pcb.equal_length_group.create': pcbEqGroupCreate,
+	'pcb.constraint.list': v2Native.pcbConstraints,
+	'pcb.differential_pair.create': v2Native.differential('create'),
+	'pcb.differential_pair.delete': v2Native.differential('delete'),
+	'pcb.differential_pair.rename': v2Native.differential('rename'),
+	'pcb.equal_length_group.create': v2Native.equalLengthGroup('create'),
 	'pcb.equal_length_group.add_nets': pcbEqGroupAddNets,
-	'pcb.equal_length_group.delete': pcbEqGroupDelete,
-	'pcb.board.info': pcbBoardInfo,
-	'board.list': boardList,
-	'board.current': boardCurrent,
-	'board.create': boardCreate,
+	'pcb.equal_length_group.delete': v2Native.equalLengthGroup('delete'),
+	'pcb.board.info': v2Native.read(c => pcbBoardInfoData(), v2Native.declaredReadFields('pcb.board.info')),
+	'board.list': v2Native.read(c => boardListData(), v2Native.declaredReadFields('board.list')),
+	'board.current': v2Native.read(c => boardCurrentData(), v2Native.declaredReadFields('board.current')),
+	'board.create': v2Native.boardMutation('create'),
 	'board.new_pcb': pcbNewBoard,
-	'system.notify': systemNotify,
-	'board.rename': boardRename,
-	'board.copy': boardCopy,
-	'board.delete': boardDelete,
+	'system.notify': v2Native.notification,
+	'board.rename': v2Native.boardMutation('rename'),
+	'board.copy': v2Native.boardCopy,
+	'board.delete': v2Native.boardMutation('delete'),
 	'board.rebind': boardRebind,
 	'pcb.import_changes': pcbImportChanges,
 	'pcb.add_component': pcbAddComponent,
 	'pcb.component.attrs_backfill': pcbComponentAttrsBackfill,
-	'pcb.component.modify': pcbComponentModify,
+	'pcb.component.modify': v2Native.componentModify,
 	'pcb.component.lock': pcbComponentLock,
 	'pcb.component.delete': pcbComponentDelete,
 	'pcb.page.clear': pcbPageClear,
@@ -11856,34 +11618,34 @@ const HANDLERS: Record<string, Handler> = {
 	'pcb.grid_snap': pcbGridSnap,
 	'pcb.components.move': pcbComponentsMove,
 	'pcb.components.arrange': pcbComponentsArrange,
-	'pcb.drc.check': pcbDrcCheck,
-	'pcb.drc.rules': pcbDrcRules,
-	'pcb.line.create': pcbLineCreate,
-	'pcb.via.create': pcbViaCreate,
-	'pcb.line.list': pcbLineList,
-	'pcb.via.list': pcbViaList,
+	'pcb.drc.check': v2Native.pcbDrc,
+	'pcb.drc.rules': v2Native.read(c => pcbDrcRulesData(), v2Native.declaredReadFields('pcb.drc.rules')),
+	'pcb.line.create': v2Native.lineCreate,
+	'pcb.via.create': v2Native.viaCreate,
+	'pcb.line.list': v2Native.read(c => pcbLineListData(c.request.input), v2Native.declaredReadFields('pcb.line.list')),
+	'pcb.via.list': v2Native.read(c => pcbViaListData(c.request.input), v2Native.declaredReadFields('pcb.via.list')),
 	'pcb.route.rip_up': pcbRouteRipUp,
 	'pcb.track.lock': pcbTrackLock,
 	'pcb.route.delete': pcbRouteDelete,
 	'pcb.route.via_hop': pcbRouteViaHop,
 	'pcb.clear_routing': pcbClearRouting,
-	'pcb.pour.create': pcbPourCreate,
-	'pcb.pour.list': pcbPourList,
+	'pcb.pour.create': v2Native.pourCreate,
+	'pcb.pour.list': v2Native.read(c => pcbPourListData(c.request.input), v2Native.declaredReadFields('pcb.pour.list')),
 	'pcb.pour.delete': pcbPourDelete,
 	'pcb.pour.rebuild': pcbPourRebuild,
 	'pcb.beautify': pcbBeautify,
-	'pcb.region.create': pcbRegionCreate,
-	'pcb.region.list': pcbRegionList,
+	'pcb.region.create': v2Native.polygonCreate('region'),
+	'pcb.region.list': v2Native.read(c => pcbRegionListData(c.request.input), v2Native.declaredReadFields('pcb.region.list')),
 	'pcb.region.delete': pcbRegionDelete,
-	'pcb.fill.create': pcbFillCreate,
-	'pcb.fill.list': pcbFillList,
+	'pcb.fill.create': v2Native.polygonCreate('fill'),
+	'pcb.fill.list': v2Native.read(c => pcbFillListData(c.request.input), v2Native.declaredReadFields('pcb.fill.list')),
 	'pcb.fill.delete': pcbFillDelete,
-	'pcb.save': pcbSave,
+	'pcb.save': v2Native.saveDocument('pcb'),
 	'pcb.export.dsn': pcbExportDsn,
 	'pcb.import_autoroute': pcbImportAutoroute,
 	'pcb.snapshot': pcbSnapshot,
 	'pcb.outline.set': pcbOutlineSet,
-	'pcb.outline.get': pcbOutlineGet,
+	'pcb.outline.get': v2Native.read(c => pcbOutlineGetData()),
 	'pcb.outline.clear': pcbOutlineClear,
 	'debug.exec_js': debugExecJs,
 };
@@ -11895,26 +11657,11 @@ const HANDLERS: Record<string, Handler> = {
  * @param payload - the request payload (may be undefined)
  * @returns the action result with context attached
  */
-export async function runAction(
-	action: string,
-	payload: Record<string, unknown> | undefined,
-): Promise<ActionResult> {
-	const handler = HANDLERS[action];
-	if (!handler) {
-		throw new ActionError(ErrorCodes.UNKNOWN_ACTION, `Unknown action "${action}".`);
-	}
-	if (typeof eda === 'undefined') {
-		throw new ActionError(ErrorCodes.EDA_API_UNAVAILABLE, 'The eda object is not available in this context.');
-	}
-
-	// Conservatively fence legacy actions, including abandoned handlers that settle late.
-	// Saving and the bypass context read do not mutate observed geometry.
-	const finish = action === 'board.snapshot_compact' || action === 'route.apply_batch' || action === 'document.current' || action === 'pcb.save'
-		? undefined : fastPath.legacyBegin();
-	let result: ActionResult;
-	try { result = await handler(asPayload(payload)); } finally { finish?.(); }
-	if (!result.context && action !== 'route.apply_batch' && action !== 'board.snapshot_compact') {
-		result.context = await readResponseContext();
-	}
-	return result;
+// Legacy handlers remain business-reference source only. No runtime fallback.
+export async function runAction(_action: string, _payload: Record<string, unknown> | undefined): Promise<ActionResult> {
+ throw new ActionError('V2_ACTION_NOT_MIGRATED', 'Use an explicit Execution V2 request.');
+}
+export function nativeAction(name: string): NativeAction | undefined {
+ const entry=HANDLERS[name];
+ return entry && typeof entry==='object' && entry.mode==='V2_NATIVE' ? entry : undefined;
 }

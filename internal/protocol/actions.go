@@ -15,16 +15,17 @@ const (
 )
 
 type ActionSpec struct {
-	Name         string   `json:"name"`
-	Domain       Domain   `json:"domain"`
-	Phase        int      `json:"phase"`
-	Mutates      bool     `json:"mutates"`
-	NeedsWindow  bool     `json:"needsWindow"`
-	NeedsConfirm bool     `json:"needsConfirm"`
-	Description  string   `json:"description"`
-	Inputs       []string `json:"inputs,omitempty"`
-	Outputs      []string `json:"outputs,omitempty"`
-	VerifyWith   []string `json:"verifyWith,omitempty"`
+	V2           *V2Action `json:"v2,omitempty"`
+	Name         string    `json:"name"`
+	Domain       Domain    `json:"domain"`
+	Phase        int       `json:"phase"`
+	Mutates      bool      `json:"mutates"`
+	NeedsWindow  bool      `json:"needsWindow"`
+	NeedsConfirm bool      `json:"needsConfirm"`
+	Description  string    `json:"description"`
+	Inputs       []string  `json:"inputs,omitempty"`
+	Outputs      []string  `json:"outputs,omitempty"`
+	VerifyWith   []string  `json:"verifyWith,omitempty"`
 
 	// RequiresGate names a workflow gate that must pass before the daemon
 	// dispatches this action ("routing" = outline_confirmed + pre_route_passed
@@ -53,14 +54,14 @@ func AllActions() []ActionSpec {
 			Description: "Execute 1..512 explicit trace/via add/delete operations in ONE Connector action. Requires a matching successful preflight. Best-effort compensation; timeout is NOT cancellation.",
 			Inputs:      []string{"document_uuid", "project_uuid", "base_revision", "plan_hash", "client_transaction_id", "operations[{type:add_trace|add_via|delete_trace|delete_via, exact geometry or id}]"}, Outputs: []string{"status:complete|partial|stale|uncertain", "created_ids", "deleted_ids", "item_results", "failed_index", "revision_before", "revision_after", "readback_verified", "rollback_attempted", "rollback_complete", "warnings", "telemetry"}, VerifyWith: []string{"board.snapshot_compact"}},
 		{
-			Name:        "system.health",
+			Name: "system.health", V2: &V2Action{Diagnostic: true, Revision: "1", EffectScope: "NONE", Target: "HOME", Input: map[string]string{}},
 			Domain:      DomainSystem,
 			Phase:       1,
 			Description: "Check Go daemon and EasyEDA connector availability.",
 			Outputs:     []string{"daemon status", "connected windows", "active window"},
 		},
 		{
-			Name:        "system.notify",
+			Name: "system.notify", V2: &V2Action{Revision: "1", EffectScope: "UI_NATIVE", Target: "ANY", Input: map[string]string{"message": "!string", "type": "string", "duration": "number"}},
 			Domain:      DomainSystem,
 			Phase:       1,
 			NeedsWindow: true,
@@ -69,7 +70,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"shown", "message", "type"},
 		},
 		{
-			Name:        "project.current",
+			Name: "project.current", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "PROJECT", Input: map[string]string{}},
 			Domain:      DomainProject,
 			Phase:       1,
 			NeedsWindow: true,
@@ -77,7 +78,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"project uuid", "project name", "team/workspace context"},
 		},
 		{
-			Name:        "document.current",
+			Name: "document.current", V2: &V2Action{Diagnostic: true, Revision: "1", EffectScope: "NONE", Target: "ANY", Input: map[string]string{}},
 			Domain:      DomainDocument,
 			Phase:       1,
 			NeedsWindow: true,
@@ -85,7 +86,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"document uuid", "document type", "tab id"},
 		},
 		{
-			Name:        "document.open",
+			Name: "document.open", V2: &V2Action{Revision: "1", EffectScope: "NAVIGATION_SELECTION", Target: "PROJECT", Input: map[string]string{"uuid": "!string"}},
 			Domain:      DomainDocument,
 			Phase:       1,
 			Mutates:     false,
@@ -97,7 +98,7 @@ func AllActions() []ActionSpec {
 		// ── view (editor canvas, document-agnostic — schematic & PCB) ──────
 		// All map to eda.dmt_EditorControl.* and act on the focused canvas.
 		{
-			Name:        "view.fit",
+			Name: "view.fit", V2: &V2Action{Revision: "1", EffectScope: "NAVIGATION_SELECTION", Target: "DOCUMENT", Input: map[string]string{}},
 			Domain:      DomainDocument,
 			Phase:       1,
 			NeedsWindow: true,
@@ -105,7 +106,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"region (left/right/top/bottom)"},
 		},
 		{
-			Name:        "view.fit_selection",
+			Name: "view.fit_selection", V2: &V2Action{Revision: "1", EffectScope: "NAVIGATION_SELECTION", Target: "DOCUMENT", Input: map[string]string{}},
 			Domain:      DomainDocument,
 			Phase:       1,
 			NeedsWindow: true,
@@ -113,7 +114,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"region (left/right/top/bottom)"},
 		},
 		{
-			Name:        "view.zoom",
+			Name: "view.zoom", V2: &V2Action{Revision: "1", EffectScope: "NAVIGATION_SELECTION", Target: "DOCUMENT", Input: map[string]string{"x": "number", "y": "number", "scale": "number"}},
 			Domain:      DomainDocument,
 			Phase:       1,
 			NeedsWindow: true,
@@ -122,7 +123,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"region (left/right/top/bottom)"},
 		},
 		{
-			Name:        "view.region",
+			Name: "view.region", V2: &V2Action{Revision: "1", EffectScope: "NAVIGATION_SELECTION", Target: "DOCUMENT", Input: map[string]string{"left": "!number", "right": "!number", "top": "!number", "bottom": "!number"}},
 			Domain:      DomainDocument,
 			Phase:       1,
 			NeedsWindow: true,
@@ -131,7 +132,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"ok"},
 		},
 		{
-			Name:        "schematic.pages.list",
+			Name: "schematic.pages.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "PROJECT", Input: map[string]string{}},
 			Domain:      DomainSchematic,
 			Phase:       1,
 			NeedsWindow: true,
@@ -139,7 +140,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"schematic uuid list", "schematic page uuid list"},
 		},
 		{
-			Name:        "schematic.page.open",
+			Name: "schematic.page.open", V2: &V2Action{Revision: "1", EffectScope: "NAVIGATION_SELECTION", Target: "PROJECT", Input: map[string]string{"uuid": "string", "schematicPageUuid": "string"}},
 			Domain:      DomainSchematic,
 			Phase:       1,
 			Mutates:     false,
@@ -152,7 +153,7 @@ func AllActions() []ActionSpec {
 		// All map to eda.dmt_Schematic.*. NOTE: EasyEDA Pro exposes no
 		// set-paper-size (A4/A3) API; the title block is the editable "图纸" surface.
 		{
-			Name:        "schematic.titleblock.get",
+			Name: "schematic.titleblock.get", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "schematic", Input: map[string]string{"pageUuid": "string"}},
 			Domain:      DomainSchematic,
 			Phase:       1,
 			NeedsWindow: true,
@@ -161,7 +162,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"showTitleBlock", "titleBlockData (field keys + values)"},
 		},
 		{
-			Name:        "schematic.titleblock.modify",
+			Name: "schematic.titleblock.modify", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "schematic", Input: map[string]string{"showTitleBlock": "boolean", "titleBlockData": "object"}},
 			Domain:      DomainSchematic,
 			Phase:       1,
 			Mutates:     true,
@@ -172,7 +173,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"schematic.titleblock.get"},
 		},
 		{
-			Name:        "schematic.page.create",
+			Name: "schematic.page.create", V2: &V2Action{Revision: "1", EffectScope: "PROJECT_TOPOLOGY", Target: "PROJECT", Input: map[string]string{"schematicUuid": "!string"}},
 			Domain:      DomainSchematic,
 			Phase:       1,
 			Mutates:     true,
@@ -183,7 +184,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"schematic.pages.list"},
 		},
 		{
-			Name:        "schematic.page.rename",
+			Name: "schematic.page.rename", V2: &V2Action{Revision: "1", EffectScope: "PROJECT_TOPOLOGY", Target: "PROJECT", Input: map[string]string{"uuid": "string", "pageUuid": "string", "name": "!string"}},
 			Domain:      DomainSchematic,
 			Phase:       1,
 			Mutates:     true,
@@ -193,7 +194,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"ok", "verified", "warning"},
 		},
 		{
-			Name:         "schematic.page.delete",
+			Name: "schematic.page.delete", V2: &V2Action{Revision: "1", EffectScope: "PROJECT_TOPOLOGY", Target: "PROJECT", Input: map[string]string{"pageUuid": "!string"}},
 			Domain:       DomainSchematic,
 			Phase:        1,
 			Mutates:      true,
@@ -216,7 +217,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:   []string{"schematic.components.list"},
 		},
 		{
-			Name:        "schematic.rename",
+			Name: "schematic.rename", V2: &V2Action{Revision: "1", EffectScope: "PROJECT_TOPOLOGY", Target: "PROJECT", Input: map[string]string{"uuid": "string", "schematicUuid": "string", "name": "!string"}},
 			Domain:      DomainSchematic,
 			Phase:       1,
 			Mutates:     true,
@@ -282,7 +283,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:   []string{"schematic.components.list"},
 		},
 		{
-			Name:        "schematic.wire.create",
+			Name: "schematic.wire.create", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "schematic", Input: map[string]string{"points": "!array", "net": "string", "color": "string", "lineWidth": "number", "lineType": "number"}},
 			Domain:      DomainSchematic,
 			Phase:       1,
 			Mutates:     true,
@@ -304,7 +305,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"schematic.components.list"},
 		},
 		{
-			Name:        "schematic.netflag.create",
+			Name: "schematic.netflag.create", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "schematic", Input: map[string]string{"kind": "!string", "net": "string", "x": "!number", "y": "!number", "rotation": "number", "mirror": "boolean"}},
 			Domain:      DomainSchematic,
 			Phase:       1,
 			Mutates:     true,
@@ -337,7 +338,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"schematic.components.list"},
 		},
 		{
-			Name:        "schematic.text.list",
+			Name: "schematic.text.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "schematic", Input: map[string]string{}},
 			Domain:      DomainSchematic,
 			Phase:       1,
 			Mutates:     false,
@@ -347,7 +348,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"count", "scope (activePage)", "texts[].primitiveId", "texts[].content", "texts[].x", "texts[].y", "texts[].rotation", "texts[].fontSize", "texts[].color"},
 		},
 		{
-			Name:        "schematic.library.search",
+			Name: "schematic.library.search", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "ANY", Input: map[string]string{"query": "!string", "libraryUuid": "string", "limit": "number", "allowFuzzy": "boolean"}},
 			Domain:      DomainSchematic,
 			Phase:       1,
 			NeedsWindow: true,
@@ -356,7 +357,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"components[].libraryUuid", "components[].uuid", "components[].name", "components[].value", "components[].footprintName", "components[].lcsc", "components[].description"},
 		},
 		{
-			Name:        "schematic.library.get_by_lcsc",
+			Name: "schematic.library.get_by_lcsc", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "ANY", Input: map[string]string{"lcscIds": "!string|array"}},
 			Domain:      DomainSchematic,
 			Phase:       1,
 			NeedsWindow: true,
@@ -365,7 +366,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"components[].lcsc", "components[].libraryUuid", "components[].uuid", "components[].name", "components[].value", "components[].footprintName", "components[].description", "notFound"},
 		},
 		{
-			Name:        "library.list",
+			Name: "library.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "ANY", Input: map[string]string{}},
 			Domain:      DomainLibrary,
 			Phase:       1,
 			NeedsWindow: true,
@@ -373,7 +374,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"libraries", "personalLibraryUuid", "projectLibraryUuid", "systemLibraryUuid"},
 		},
 		{
-			Name:        "library.footprint.create",
+			Name: "library.footprint.create", V2: &V2Action{Revision: "1", EffectScope: "LIBRARY_ASSET", Target: "LIBRARY", Input: map[string]string{"name": "!string", "libraryUuid": "string", "scope": "string", "classification": "string[]", "description": "string"}},
 			Domain:      DomainLibrary,
 			Phase:       1,
 			Mutates:     true,
@@ -384,7 +385,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"library.footprint.get"},
 		},
 		{
-			Name:        "library.footprint.get",
+			Name: "library.footprint.get", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "ANY", Input: map[string]string{"uuid": "!string", "libraryUuid": "string"}},
 			Domain:      DomainLibrary,
 			Phase:       1,
 			NeedsWindow: true,
@@ -393,7 +394,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"footprint"},
 		},
 		{
-			Name:        "library.footprint.copy",
+			Name: "library.footprint.copy", V2: &V2Action{Revision: "1", EffectScope: "LIBRARY_ASSET", Target: "LIBRARY", Input: map[string]string{"uuid": "!string", "sourceLibraryUuid": "!string", "name": "!string", "libraryUuid": "string", "scope": "string", "classification": "string[]"}},
 			Domain:      DomainLibrary,
 			Phase:       1,
 			Mutates:     true,
@@ -404,7 +405,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"library.footprint.get"},
 		},
 		{
-			Name:         "library.footprint.delete",
+			Name: "library.footprint.delete", V2: &V2Action{Revision: "1", EffectScope: "LIBRARY_ASSET", Target: "LIBRARY", Input: map[string]string{"uuid": "!string", "libraryUuid": "string", "expectedName": "!string"}},
 			Domain:       DomainLibrary,
 			Phase:        1,
 			Mutates:      true,
@@ -425,7 +426,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"tabId", "created.pads", "created.lines", "verified", "partial/rollback on failure"},
 		},
 		{
-			Name:        "library.symbol.create",
+			Name: "library.symbol.create", V2: &V2Action{Revision: "1", EffectScope: "LIBRARY_ASSET", Target: "LIBRARY", Input: map[string]string{"name": "!string", "libraryUuid": "string", "scope": "string", "classification": "string[]", "description": "string", "symbolType": "number"}},
 			Domain:      DomainLibrary,
 			Phase:       1,
 			Mutates:     true,
@@ -436,7 +437,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"library.symbol.get"},
 		},
 		{
-			Name:        "library.symbol.get",
+			Name: "library.symbol.get", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "ANY", Input: map[string]string{"uuid": "!string", "libraryUuid": "string"}},
 			Domain:      DomainLibrary,
 			Phase:       1,
 			NeedsWindow: true,
@@ -455,7 +456,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"tabId", "created.pins", "created.outline", "created.circles", "verified", "partial on failure"},
 		},
 		{
-			Name:         "library.symbol.delete",
+			Name: "library.symbol.delete", V2: &V2Action{Revision: "1", EffectScope: "LIBRARY_ASSET", Target: "LIBRARY", Input: map[string]string{"uuid": "!string", "libraryUuid": "string", "expectedName": "!string"}},
 			Domain:       DomainLibrary,
 			Phase:        1,
 			Mutates:      true,
@@ -466,7 +467,7 @@ func AllActions() []ActionSpec {
 			Outputs:      []string{"uuid", "libraryUuid", "name", "deleted", "verified"},
 		},
 		{
-			Name:        "library.model3d.create",
+			Name: "library.model3d.create", V2: &V2Action{Revision: "1", EffectScope: "LIBRARY_ASSET", Target: "LIBRARY", Input: map[string]string{"name": "!string", "dataBase64": "!string", "description": "string", "classification": "string[]", "unit": "string", "fileName": "string", "mimeType": "string", "libraryUuid": "string", "scope": "string"}},
 			Domain:      DomainLibrary,
 			Phase:       1,
 			Mutates:     true,
@@ -476,12 +477,12 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"uuid", "uuids", "libraryUuid", "name", "model", "verified", "partial on metadata failure"},
 			VerifyWith:  []string{"library.model3d.get"},
 		},
-		{Name: "library.model3d.get", Domain: DomainLibrary, Phase: 1, NeedsWindow: true, Description: "Read a 3D model library asset by UUID.", Inputs: []string{"uuid", "libraryUuid optional"}, Outputs: []string{"model"}},
-		{Name: "library.model3d.delete", Domain: DomainLibrary, Phase: 1, Mutates: true, NeedsWindow: true, NeedsConfirm: true, Description: "Delete one exact 3D model after UUID+library+expectedName preflight and verify absence.", Inputs: []string{"uuid", "libraryUuid", "expectedName"}, Outputs: []string{"uuid", "libraryUuid", "name", "deleted", "verified"}},
-		{Name: "library.model3d.search", Domain: DomainLibrary, Phase: 1, NeedsWindow: true, Description: "Search existing 3D models by keyword, optionally within one exact library.", Inputs: []string{"query", "libraryUuid optional", "classification optional", "limit optional 1..100"}, Outputs: []string{"models", "count"}},
-		{Name: "library.model3d.copy", Domain: DomainLibrary, Phase: 1, Mutates: true, NeedsWindow: true, Description: "Copy an existing 3D model into a writable library under the EA_AGENT namespace and verify it by readback.", Inputs: []string{"uuid", "sourceLibraryUuid", "name", "scope/libraryUuid optional", "classification optional"}, Outputs: []string{"uuid", "libraryUuid", "name", "source", "model", "verified"}},
+		{Name: "library.model3d.get", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "ANY", Input: map[string]string{"uuid": "!string", "libraryUuid": "string"}}, Domain: DomainLibrary, Phase: 1, NeedsWindow: true, Description: "Read a 3D model library asset by UUID.", Inputs: []string{"uuid", "libraryUuid optional"}, Outputs: []string{"model"}},
+		{Name: "library.model3d.delete", V2: &V2Action{Revision: "1", EffectScope: "LIBRARY_ASSET", Target: "LIBRARY", Input: map[string]string{"uuid": "!string", "libraryUuid": "string", "expectedName": "!string"}}, Domain: DomainLibrary, Phase: 1, Mutates: true, NeedsWindow: true, NeedsConfirm: true, Description: "Delete one exact 3D model after UUID+library+expectedName preflight and verify absence.", Inputs: []string{"uuid", "libraryUuid", "expectedName"}, Outputs: []string{"uuid", "libraryUuid", "name", "deleted", "verified"}},
+		{Name: "library.model3d.search", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "ANY", Input: map[string]string{"query": "!string", "libraryUuid": "string", "classification": "string[]", "limit": "number"}}, Domain: DomainLibrary, Phase: 1, NeedsWindow: true, Description: "Search existing 3D models by keyword, optionally within one exact library.", Inputs: []string{"query", "libraryUuid optional", "classification optional", "limit optional 1..100"}, Outputs: []string{"models", "count"}},
+		{Name: "library.model3d.copy", V2: &V2Action{Revision: "1", EffectScope: "LIBRARY_ASSET", Target: "LIBRARY", Input: map[string]string{"uuid": "!string", "sourceLibraryUuid": "!string", "name": "!string", "libraryUuid": "string", "scope": "string", "classification": "string[]"}}, Domain: DomainLibrary, Phase: 1, Mutates: true, NeedsWindow: true, Description: "Copy an existing 3D model into a writable library under the EA_AGENT namespace and verify it by readback.", Inputs: []string{"uuid", "sourceLibraryUuid", "name", "scope/libraryUuid optional", "classification optional"}, Outputs: []string{"uuid", "libraryUuid", "name", "source", "model", "verified"}},
 		{
-			Name:        "library.device.create",
+			Name: "library.device.create", V2: &V2Action{Revision: "1", EffectScope: "LIBRARY_ASSET", Target: "LIBRARY", Input: map[string]string{"name": "!string", "libraryUuid": "string", "scope": "string", "classification": "string[]", "description": "string", "symbol": "!object", "footprint": "object", "model3D": "object", "property": "object"}},
 			Domain:      DomainLibrary,
 			Phase:       1,
 			Mutates:     true,
@@ -492,7 +493,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"library.device.get"},
 		},
 		{
-			Name:        "library.device.get",
+			Name: "library.device.get", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "ANY", Input: map[string]string{"uuid": "!string", "libraryUuid": "string"}},
 			Domain:      DomainLibrary,
 			Phase:       1,
 			NeedsWindow: true,
@@ -501,7 +502,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"device"},
 		},
 		{
-			Name:         "library.device.delete",
+			Name: "library.device.delete", V2: &V2Action{Revision: "1", EffectScope: "LIBRARY_ASSET", Target: "LIBRARY", Input: map[string]string{"uuid": "!string", "libraryUuid": "string", "expectedName": "!string"}},
 			Domain:       DomainLibrary,
 			Phase:        1,
 			Mutates:      true,
@@ -511,7 +512,7 @@ func AllActions() []ActionSpec {
 			Inputs:       []string{"uuid", "libraryUuid", "expectedName"},
 			Outputs:      []string{"uuid", "libraryUuid", "name", "deleted", "verified"},
 		},
-		{Name: "library.device.set_model3d", Domain: DomainLibrary, Phase: 1, Mutates: true, NeedsWindow: true, Description: "Bind, replace, or clear a 3D model on an existing Device via lib_Device.modify and exact association readback.", Inputs: []string{"uuid", "libraryUuid", "expectedName", "model3D {uuid,libraryUuid} OR clear=true"}, Outputs: []string{"uuid", "libraryUuid", "model3D", "cleared", "verified", "device"}},
+		{Name: "library.device.set_model3d", V2: &V2Action{Revision: "1", EffectScope: "LIBRARY_ASSET", Target: "LIBRARY", Input: map[string]string{"uuid": "!string", "libraryUuid": "string", "expectedName": "!string", "clear": "boolean", "model3D": "object"}}, Domain: DomainLibrary, Phase: 1, Mutates: true, NeedsWindow: true, Description: "Bind, replace, or clear a 3D model on an existing Device via lib_Device.modify and exact association readback.", Inputs: []string{"uuid", "libraryUuid", "expectedName", "model3D {uuid,libraryUuid} OR clear=true"}, Outputs: []string{"uuid", "libraryUuid", "model3D", "cleared", "verified", "device"}},
 		{
 			Name:        "schematic.rebind.footprint",
 			Domain:      DomainSchematic,
@@ -568,7 +569,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"schematic.check"},
 		},
 		{
-			Name:        "schematic.select",
+			Name: "schematic.select", V2: &V2Action{Revision: "1", EffectScope: "NAVIGATION_SELECTION", Target: "schematic", Input: map[string]string{"primitiveIds": "!string|array"}},
 			Domain:      DomainSchematic,
 			Phase:       1,
 			NeedsWindow: true,
@@ -613,7 +614,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"components[].primitiveId (mutation handle)", "components[]", "componentCount", "nets[]", "netCount", "floatingPins[]", "floatingPinCount", "check"},
 		},
 		{
-			Name:        "schematic.save",
+			Name: "schematic.save", V2: &V2Action{Revision: "1", EffectScope: "SAVE", Target: "schematic", Input: map[string]string{}},
 			Domain:      DomainSchematic,
 			Phase:       1,
 			Mutates:     true,
@@ -654,7 +655,7 @@ func AllActions() []ActionSpec {
 		// layout/routing feature. All read-only; mirrors the schematic read
 		// actions against the eda.pcb_* namespaces. See docs/phase-2-pcb.md.
 		{
-			Name:        "pcb.documents.list",
+			Name: "pcb.documents.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "PROJECT", Input: map[string]string{}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -662,7 +663,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"pcbs[].uuid", "pcbs[].name", "pcbs[].parentProjectUuid", "count"},
 		},
 		{
-			Name:        "pcb.components.list",
+			Name: "pcb.components.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{"layer": "number", "includePads": "boolean", "includeBBox": "boolean"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -671,7 +672,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"components[].primitiveId", "components[].designator", "components[].layer", "components[].x", "components[].y", "components[].rotation", "components[].bbox", "components[].pads", "count"},
 		},
 		{
-			Name:        "pcb.layers.list",
+			Name: "pcb.layers.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{"include_physical": "boolean", "include_physical_inventory": "boolean"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -679,7 +680,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"layers", "currentLayer", "visibleLayers", "copperLayerCount", "count"},
 		},
 		{
-			Name:        "pcb.layers.set_current",
+			Name: "pcb.layers.set_current", V2: &V2Action{Revision: "1", EffectScope: "NAVIGATION_SELECTION", Target: "pcb", Input: map[string]string{"layer": "!string|number"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			Mutates:     true,
@@ -690,7 +691,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"pcb.layers.list"},
 		},
 		{
-			Name:        "pcb.layers.visibility",
+			Name: "pcb.layers.visibility", V2: &V2Action{Revision: "1", EffectScope: "NAVIGATION_SELECTION", Target: "pcb", Input: map[string]string{"preset": "string", "show": "array", "hide": "array", "exclusive": "boolean"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			Mutates:     true,
@@ -701,7 +702,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"pcb.layers.list", "pcb.snapshot"},
 		},
 		{
-			Name:        "pcb.view.side",
+			Name: "pcb.view.side", V2: &V2Action{Revision: "1", EffectScope: "NAVIGATION_SELECTION", Target: "pcb", Input: map[string]string{"side": "!string"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			Mutates:     true,
@@ -734,7 +735,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"pcb.silk.list", "pcb.snapshot"},
 		},
 		{
-			Name:        "pcb.silk.list",
+			Name: "pcb.silk.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -742,7 +743,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"texts[].primitiveId", "texts[].kind", "texts[].text", "texts[].layer", "texts[].mirror", "texts[].componentId", "texts[].componentLayer", "texts[].x", "texts[].y", "count"},
 		},
 		{
-			Name:        "pcb.silk.add",
+			Name: "pcb.silk.add", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"text": "!string", "x": "!number", "y": "!number", "layer": "number", "fontSize": "number", "lineWidth": "number", "rotation": "number"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			Mutates:     true,
@@ -786,7 +787,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"pcb.snapshot"},
 		},
 		{
-			Name:        "pcb.silk.import_svg",
+			Name: "pcb.silk.import_svg", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"polygons": "!array", "x": "!number", "y": "!number", "layer": "number", "width": "number", "height": "number", "rotation": "number", "mirror": "boolean"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			Mutates:     true,
@@ -797,7 +798,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"pcb.silk.list", "pcb.snapshot"},
 		},
 		{
-			Name:        "pcb.nets.list",
+			Name: "pcb.nets.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -805,7 +806,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"nets[].net", "nets[].length", "nets[].color", "count"},
 		},
 		{
-			Name:        "pcb.report",
+			Name: "pcb.report", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{"nets": "string[]", "pairs": "string[]", "groups": "string[]", "telemetry": "boolean", "geometry": "boolean", "project_uuid": "string", "document_uuid": "string", "paths": "array", "profile_id": "string", "reference_net": "string", "tolerance_mil": "number"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -819,7 +820,7 @@ func AllActions() []ActionSpec {
 		// pre-validates net names against the board and reads back after the
 		// write (`verified`) — the platform's boolean return is not proof.
 		{
-			Name:        "pcb.constraint.list",
+			Name: "pcb.constraint.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -827,7 +828,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"differentialPairs[]", "equalLengthGroups[]", "count"},
 		},
 		{
-			Name:        "pcb.differential_pair.create",
+			Name: "pcb.differential_pair.create", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"name": "!string", "positiveNet": "!string", "negativeNet": "!string"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			Mutates:     true,
@@ -838,7 +839,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"pcb.constraint.list", "pcb.report"},
 		},
 		{
-			Name:        "pcb.differential_pair.delete",
+			Name: "pcb.differential_pair.delete", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"name": "!string", "positiveNet": "string", "negativeNet": "string"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			Mutates:     true,
@@ -849,7 +850,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"pcb.constraint.list"},
 		},
 		{
-			Name:        "pcb.differential_pair.rename",
+			Name: "pcb.differential_pair.rename", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"name": "!string", "positiveNet": "string", "negativeNet": "string", "newName": "!string"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			Mutates:     true,
@@ -860,7 +861,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"pcb.constraint.list"},
 		},
 		{
-			Name:        "pcb.equal_length_group.create",
+			Name: "pcb.equal_length_group.create", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"name": "!string", "nets": "!string[]"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			Mutates:     true,
@@ -882,7 +883,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"pcb.constraint.list"},
 		},
 		{
-			Name:        "pcb.equal_length_group.delete",
+			Name: "pcb.equal_length_group.delete", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"name": "!string", "nets": "string[]"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			Mutates:     true,
@@ -897,7 +898,7 @@ func AllActions() []ActionSpec {
 		// schematic), then get laid out with pcb.component.modify. See
 		// docs/phase-2-pcb.md.
 		{
-			Name:        "pcb.board.info",
+			Name: "pcb.board.info", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -908,7 +909,7 @@ func AllActions() []ActionSpec {
 		// A Board groups exactly one schematic + one PCB; it is identified by
 		// NAME (not uuid). All map to eda.dmt_Board.*. Domain-agnostic routing.
 		{
-			Name:        "board.list",
+			Name: "board.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "PROJECT", Input: map[string]string{}},
 			Domain:      DomainBoard,
 			Phase:       2,
 			NeedsWindow: true,
@@ -916,7 +917,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"boards (name + schematic + pcb)"},
 		},
 		{
-			Name:        "board.current",
+			Name: "board.current", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "PROJECT", Input: map[string]string{}},
 			Domain:      DomainBoard,
 			Phase:       2,
 			NeedsWindow: true,
@@ -924,7 +925,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"linked", "board"},
 		},
 		{
-			Name:        "board.create",
+			Name: "board.create", V2: &V2Action{Revision: "1", EffectScope: "PROJECT_TOPOLOGY", Target: "PROJECT", Input: map[string]string{"schematicUuid": "string", "pcbUuid": "string"}},
 			Domain:      DomainBoard,
 			Phase:       2,
 			Mutates:     true,
@@ -946,7 +947,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"board.list", "pcb.docs"},
 		},
 		{
-			Name:        "board.rename",
+			Name: "board.rename", V2: &V2Action{Revision: "1", EffectScope: "PROJECT_TOPOLOGY", Target: "PROJECT", Input: map[string]string{"name": "!string", "newName": "!string", "schematicUuid": "string", "pcbUuid": "string"}},
 			Domain:      DomainBoard,
 			Phase:       2,
 			Mutates:     true,
@@ -956,7 +957,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"ok"},
 		},
 		{
-			Name:        "board.copy",
+			Name: "board.copy", V2: &V2Action{Revision: "1", EffectScope: "PROJECT_TOPOLOGY", Target: "PROJECT", Input: map[string]string{"name": "!string"}},
 			Domain:      DomainBoard,
 			Phase:       2,
 			Mutates:     true,
@@ -967,7 +968,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"board.list"},
 		},
 		{
-			Name:         "board.delete",
+			Name: "board.delete", V2: &V2Action{Revision: "1", EffectScope: "PROJECT_TOPOLOGY", Target: "PROJECT", Input: map[string]string{"name": "!string", "schematicUuid": "string", "pcbUuid": "string"}},
 			Domain:       DomainBoard,
 			Phase:        2,
 			Mutates:      true,
@@ -1026,7 +1027,7 @@ func AllActions() []ActionSpec {
 			InvalidatesStage: "placement_confirmed",
 		},
 		{
-			Name:             "pcb.component.modify",
+			Name: "pcb.component.modify", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"primitiveId": "!string", "patch": "!object"}},
 			Domain:           DomainPcb,
 			Phase:            2,
 			Mutates:          true,
@@ -1139,7 +1140,7 @@ func AllActions() []ActionSpec {
 			InvalidatesStage: "placement_confirmed",
 		},
 		{
-			Name:        "pcb.drc.check",
+			Name: "pcb.drc.check", V2: &V2Action{Revision: "1", EffectScope: "NATIVE_RECOMPUTE", Target: "pcb", Input: map[string]string{"strict": "boolean"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -1148,7 +1149,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"passed", "violations"},
 		},
 		{
-			Name:        "pcb.drc.rules",
+			Name: "pcb.drc.rules", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -1160,7 +1161,7 @@ func AllActions() []ActionSpec {
 		// schematic wire/netflag creates. Bind to a net by NAME; pull layer ids
 		// from pcb.layers.list and net names from pcb.nets.list first.
 		{
-			Name:             "pcb.line.create",
+			Name: "pcb.line.create", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"startX": "!number", "startY": "!number", "endX": "!number", "endY": "!number", "layer": "number", "lineWidth": "number", "net": "string"}},
 			Domain:           DomainPcb,
 			Phase:            2,
 			Mutates:          true,
@@ -1173,7 +1174,7 @@ func AllActions() []ActionSpec {
 			InvalidatesStage: "post_route_checked",
 		},
 		{
-			Name:             "pcb.via.create",
+			Name: "pcb.via.create", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"x": "!number", "y": "!number", "holeDiameter": "number", "diameter": "number", "net": "string"}},
 			Domain:           DomainPcb,
 			Phase:            2,
 			Mutates:          true,
@@ -1186,7 +1187,7 @@ func AllActions() []ActionSpec {
 			InvalidatesStage: "post_route_checked",
 		},
 		{
-			Name:        "pcb.save",
+			Name: "pcb.save", V2: &V2Action{Revision: "1", EffectScope: "SAVE", Target: "pcb", Input: map[string]string{}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			Mutates:     true,
@@ -1227,7 +1228,7 @@ func AllActions() []ActionSpec {
 		},
 		// ─── PCB routing: list + rip-up (iterate/clear copper routing) ────
 		{
-			Name:        "pcb.line.list",
+			Name: "pcb.line.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{"net": "string", "layer": "number"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -1236,7 +1237,7 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"lines[].primitiveId", "lines[].net", "lines[].layer", "lines[].startX", "lines[].startY", "lines[].endX", "lines[].endY", "lines[].lineWidth", "lines[].locked", "count"},
 		},
 		{
-			Name:        "pcb.via.list",
+			Name: "pcb.via.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{"net": "string"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -1309,7 +1310,7 @@ func AllActions() []ActionSpec {
 		// ─── PCB copper pour (铺铜) ───────────────────────────────────────
 		// Build polygon (pcb_MathPolygon.createPolygon) → pour.create → rebuild.
 		{
-			Name:             "pcb.pour.create",
+			Name: "pcb.pour.create", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"points": "!array", "net": "!string", "layer": "number", "fill": "string", "name": "string", "priority": "number", "lineWidth": "number"}},
 			Domain:           DomainPcb,
 			Phase:            2,
 			Mutates:          true,
@@ -1321,7 +1322,7 @@ func AllActions() []ActionSpec {
 			InvalidatesStage: "post_route_checked",
 		},
 		{
-			Name:        "pcb.pour.list",
+			Name: "pcb.pour.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{"net": "string", "include_geometry": "boolean", "geometry_limit": "number"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -1370,7 +1371,7 @@ func AllActions() []ActionSpec {
 		// wires/copper out) — antenna clearance, board-edge inset, mechanical
 		// exclusion. NOT net-bound filled copper (that's pcb.pour.create).
 		{
-			Name:        "pcb.region.create",
+			Name: "pcb.region.create", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"points": "!array", "layer": "number", "ruleTypes": "string|number|array", "ruleType": "string|number|array", "name": "string", "lineWidth": "number", "locked": "boolean"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			Mutates:     true,
@@ -1381,7 +1382,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"pcb.region.list", "pcb.drc.check"},
 		},
 		{
-			Name:        "pcb.region.list",
+			Name: "pcb.region.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{"layer": "number"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -1406,7 +1407,7 @@ func AllActions() []ActionSpec {
 		// patch, thermal copper, odd plane). DISTINCT from keep-out region (no
 		// net) AND from pour (覆铜, which reflows). Does NOT reflow around obstacles.
 		{
-			Name:             "pcb.fill.create",
+			Name: "pcb.fill.create", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"points": "!array", "layer": "number", "net": "string", "fillMode": "string|number", "lineWidth": "number", "locked": "boolean"}},
 			Domain:           DomainPcb,
 			Phase:            2,
 			Mutates:          true,
@@ -1418,7 +1419,7 @@ func AllActions() []ActionSpec {
 			InvalidatesStage: "post_route_checked",
 		},
 		{
-			Name:        "pcb.fill.list",
+			Name: "pcb.fill.list", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{"net": "string", "layer": "number", "includeBBox": "boolean"}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,
@@ -1457,7 +1458,7 @@ func AllActions() []ActionSpec {
 			InvalidatesStage: "outline_confirmed",
 		},
 		{
-			Name:        "pcb.outline.get",
+			Name: "pcb.outline.get", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{}},
 			Domain:      DomainPcb,
 			Phase:       2,
 			NeedsWindow: true,

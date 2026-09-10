@@ -1,3 +1,4 @@
+import v2Catalog from './v2-catalog.generated.json';
 /**
  * WebSocket transport between this connector and the easyeda-agent Go daemon.
  *
@@ -33,7 +34,9 @@
 import { ActionQueue, isBypassAction } from './action-queue';
 import { sweepDeadlines } from './deadlines';
 import { buildContextFrame, readEasyEdaVersion } from './eda-context';
-import { runAction } from './actions';
+import { nativeAction } from './actions';
+import { ControlledExecutor, type Request as V2Request, type Target as V2Target } from './execution-v2';
+import { documentTypeLabel } from './eda-context';
 import { createWebSocketId } from './transport-identity';
 import {
 	ActionError,
@@ -367,7 +370,7 @@ function cancelConnectionFlow(resetRetryCount = true): void {
  * Force a reconnect: cancel any active flow and retry the daemon port now.
  */
 export function reconnect(): void {
-	eda.sys_Message.showToastMessage(eda.sys_I18n.text('Reconnecting...'));
+	console.info('[easyeda-agent] Reconnecting...');
 	connectionAnnounced = false;
 	suspended = false;
 	cancelConnectionFlow();
@@ -384,7 +387,7 @@ export function stop(showToast = true): void {
 	suspended = true; // keep the watchdog from auto-reconnecting after an explicit stop
 	cancelConnectionFlow();
 	if (showToast) {
-		eda.sys_Message.showToastMessage(eda.sys_I18n.text('Connection stopped'));
+		console.info('[easyeda-agent] Connection stopped');
 	}
 }
 
@@ -458,7 +461,7 @@ async function scanAndConnect(force = false): Promise<void> {
 		}
 		// Daemon is genuinely gone — let the next successful connect announce again.
 		connectionAnnounced = false;
-		// Toast ONCE per outage (on the first failed attempt), then retry SILENTLY.
+		// Log once per outage; connection maintenance must not issue Host UI effects.
 		// Previously every fast retry toasted "(n/MAX)" on each retry — at a 3s
 		// cadence the toasts stacked and obscured the UI ("one starts before the
 		// last ends"). Retries stay fast; only the notification is deduped to a
@@ -466,9 +469,7 @@ async function scanAndConnect(force = false): Promise<void> {
 		// announces once via connectionAnnounced. This matters MORE now that the
 		// first retries are sub-second.
 		if (retryCount === 1) {
-			eda.sys_Message.showToastMessage(
-				eda.sys_I18n.text('Daemon not found — retrying in the background; just start the daemon.'),
-			);
+			console.info('[easyeda-agent] Daemon not found; retrying in the background.');
 		}
 		// Exponential backoff: sub-second at first (a daemon restarting under `make
 		// dev` is back within a second or two), settling at BACKOFF_MAX_MS so a
@@ -567,9 +568,7 @@ function tryConnectToPort(port: number, sessionId: number): Promise<boolean> {
 								void sendContext(true);
 								if (!connectionAnnounced) {
 									connectionAnnounced = true;
-									eda.sys_Message.showToastMessage(
-										`${eda.sys_I18n.text('Connected to easyeda-agent')} (port ${port})`,
-									);
+									console.info(`[easyeda-agent] Connected (port ${port})`);
 								}
 								settle(true);
 							}
@@ -608,6 +607,7 @@ function sendRegister(): void {
 	}
 	const frame: RegisterFrame = {
 		type: 'register',
+  activationId:WS_ID_BASE,
 		windowId,
 		connectorVersion: CONNECTOR_VERSION,
 		easyedaVersion: readEasyEdaVersion(),
@@ -875,8 +875,21 @@ async function handleMessage(msg: InboundFrame): Promise<void> {
 			heartbeatPending = false;
 			missedPongs = 0;
 			return;
-		case 'request':
-			await handleRequest(msg as RequestFrame);
+		case 'v2_request': {
+   const f=msg as unknown as {request:V2Request;digest:string;deadline_unix_ms:number};
+   const spec=(v2Catalog as Record<string,{schema:string;revision:string}>)[f.request.action];
+   if(!spec || f.request.protocol!=='execution.v2' || f.request.schema!==spec.schema || f.request.action_revision!==spec.revision || !Number.isFinite(f.deadline_unix_ms)) {sendFrame({type:'log',msg:'V2_SCHEMA_OR_DEADLINE_REJECTED'});return;}
+   void v2Executor.execute(f.request,f.digest,f.deadline_unix_ms).then(result=>sendFrame({type:'v2_result',result})).catch(error=>sendFrame({type:'log',msg:String(error)}));
+   return;
+  }
+  case 'v2_release': {
+   const f=msg as unknown as {operation_id:string;digest:string};v2Executor.release(f.operation_id,f.digest);return;
+  }
+  case 'v2_reconcile':
+   void v2Executor.reconcile((msg as unknown as {operation_id:string}).operation_id).then(result=>sendFrame({type:'v2_result',result})).catch(error=>sendFrame({type:'log',msg:String(error)}));
+   return;
+  case 'request':
+   sendFrame({type:'response',id:(msg as RequestFrame).id,ok:false,error:{code:'V2_ACTION_NOT_MIGRATED',message:'Legacy dispatch disabled'}});
 			return;
 		default:
 			// Unknown frame types are ignored.
@@ -890,85 +903,7 @@ async function handleMessage(msg: InboundFrame): Promise<void> {
  */
 const actionQueue = new ActionQueue();
 
-async function handleRequest(request: RequestFrame): Promise<void> {
-	const base = {
-		type: 'response' as const,
-		id: request.id,
-		version: request.version ?? PROTOCOL_VERSION,
-	};
 
-	// 入队是**同步**发生的(submit 在第一个 await 之前就把任务挂上了链),
-	// 所以入队顺序 === 消息到达顺序。这一点是整个 happens-before 的地基:
-	// 换成先 await 再入队,FIFO 立刻退化回原来的并发。
-	const outcome = await actionQueue.submit({
-		id: request.id,
-		timeoutMs: request.timeoutMs,
-		bypass: isBypassAction(request.action),
-		run: () => runAction(request.action, request.payload),
-	});
-
-	let response: ResponseFrame;
-	switch (outcome.status) {
-		case 'ok': {
-			const result = outcome.value;
-			response = { ...base, ok: true };
-			if (result.result !== undefined) {
-				response.result = result.result;
-			}
-			if (result.context !== undefined) {
-				response.context = result.context;
-			}
-			if (result.artifacts !== undefined && result.artifacts.length > 0) {
-				response.artifacts = result.artifacts;
-			}
-			if (result.warnings !== undefined && result.warnings.length > 0) {
-				response.warnings = result.warnings;
-			}
-			break;
-		}
-		case 'error':
-			response = { ...base, ok: false, error: toResponseError(outcome.error) };
-			break;
-		case 'abandoned':
-			// daemon 多半已经在 (timeoutMs - 2s) 就超时了,所以这条回执往往落不到
-			// 任何等待者手上 —— 那不要紧:它的价值在于**下一条**响应上递增了的
-			// seqAbandoned。措辞必须停在可证边界内:我们只知道「不再等它了」,
-			// 不知道它到底做没做成。
-			response = {
-				...base,
-				ok: false,
-				error: {
-					code: ErrorCodes.ACTION_ABANDONED,
-					message: `action "${request.action}" was abandoned after ${outcome.waitedMs}ms so the queue could keep flowing`,
-					detail: 'the handler is still running; its effect may land later — treat any conclusion about this write as unproven (seqAbandoned was incremented)',
-				},
-			};
-			break;
-		case 'overflow':
-			response = {
-				...base,
-				ok: false,
-				error: {
-					code: ErrorCodes.QUEUE_OVERFLOW,
-					message: `connector action queue is full (${outcome.depth} waiting) — this action was NOT executed`,
-					detail: 'the editor is not draining actions; wait for the backlog to settle (each head is abandoned after its own timeoutMs) or restart EasyEDA',
-				},
-			};
-			break;
-	}
-
-	// 顺序证据挂在**每一条**响应上,包括失败与旁路的。
-	response.seq = outcome.stamp.seq;
-	response.seqAbandoned = outcome.stamp.seqAbandoned;
-	if (outcome.stamp.unordered) {
-		response.unordered = true;
-	}
-	if (outcome.stamp.abandonedIds !== undefined && outcome.stamp.abandonedIds.length > 0) {
-		response.abandonedIds = outcome.stamp.abandonedIds;
-	}
-
-	sendFrame(response);
-}
 
 function toResponseError(err: unknown): ResponseFrame['error'] {
 	if (err instanceof ActionError) {
@@ -984,3 +919,26 @@ function toResponseError(err: unknown): ResponseFrame['error'] {
 		message,
 	};
 }
+
+// Pure context reads only: never activate a tab as part of target checking.
+const v2Executor=new ControlledExecutor(nativeAction,async (wanted: V2Target):Promise<V2Target>=>{
+ if(!windowId || windowId!==wanted.session || WS_ID_BASE!==wanted.activation) throw Error('V2_SESSION_LOST');
+ const project=await eda.dmt_Project.getCurrentProjectInfo();
+ const doc=await eda.dmt_SelectControl.getCurrentDocumentInfo();
+ if(wanted.scope==='HOME') {
+  if(project || (doc && documentTypeLabel(doc.documentType)!=='home')) throw Error('V2_TARGET_MISMATCH');
+  return {scope:'HOME',session:windowId,activation:WS_ID_BASE};
+ }
+ if(wanted.scope==='LIBRARY') {
+  const libraries=await eda.lib_LibrariesList.getAllLibrariesList();
+  if(!Array.isArray(libraries) || !libraries.some(l=>l.uuid===wanted.library_uuid)) throw Error('V2_LIBRARY_IDENTITY');
+  if(wanted.project_uuid && wanted.project_uuid!==project?.uuid) throw Error('V2_TARGET_MISMATCH');
+  return wanted;
+ }
+ if(!project?.uuid) throw Error('V2_TARGET_MISMATCH');
+ if(wanted.scope==='PROJECT') return {scope:'PROJECT',session:windowId,activation:WS_ID_BASE,project_uuid:project.uuid};
+ if(!doc?.uuid || !doc.tabId || doc.parentProjectUuid!==project.uuid) throw Error('V2_TARGET_MISMATCH');
+ return {scope:'DOCUMENT',session:windowId,activation:WS_ID_BASE,project_uuid:project.uuid,document_uuid:doc.uuid,document_type:documentTypeLabel(doc.documentType),tab_id:doc.tabId};
+},2048,(run,request)=>new Promise((resolve,reject)=>{
+ void actionQueue.submit({id:request.operation_id,timeoutMs:request.budget_ms,bypass:request.action==='document.current',run:async()=>{try {const result=await run();resolve(result);}catch(error){reject(error);}}}).then(outcome=>{if(outcome.status==='overflow')reject(Error('V2_QUEUE_OVERFLOW'));});
+}));

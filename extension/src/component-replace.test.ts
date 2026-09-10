@@ -1,7 +1,8 @@
+import { retained } from './retained-business.test-support';
 /// <reference types="@jlceda/pro-api-types" />
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {runAction,schematicComponentPlace,schematicComponentsList} from './actions';
+import {schematicComponentPlace,schematicComponentsList} from './actions';
 import {SOURCE_KEY,sourceReceipt} from './component-source';
 const old='a'.repeat(32),next='b'.repeat(32),lib='LIB';
 let hostNumber=0;
@@ -33,8 +34,8 @@ for(const mode of ['ok','unknown','restore','attribute'])test('replace source cl
   // Simulated save/reload retains only JSON-native persisted state.
   for(const [id,row]of h.rows)h.rows.set(id,JSON.parse(JSON.stringify(row)));
   const read:any=await schematicComponentsList({includeDeviceIdentity:true});assert.equal(read.result.components[0].device.uuid,old);
-  h.calls.length=0;const r:any=await runAction('schematic.component.replace',{primitiveId:'id1',deviceUuid:next,deviceLibraryUuid:lib});
-  const beforeReplay=h.calls.length;const duplicate:any=await runAction('schematic.component.replace',{primitiveId:'id1',deviceUuid:next,deviceLibraryUuid:lib});assert.equal(duplicate.result.duplicate,true);assert.equal(h.calls.length,beforeReplay);
+  h.calls.length=0;const r:any=await retained.schematicComponentReplace({primitiveId:'id1',deviceUuid:next,deviceLibraryUuid:lib});
+  const beforeReplay=h.calls.length;const duplicate:any=await retained.schematicComponentReplace({primitiveId:'id1',deviceUuid:next,deviceLibraryUuid:lib});assert.equal(duplicate.result.duplicate,true);assert.equal(h.calls.length,beforeReplay);
   assert.equal(h.rows.size,1);assert.ok(h.calls.indexOf('create:'+next)<h.calls.indexOf('delete:id1')||!h.calls.includes('delete:id1'));
   const after:any=await schematicComponentsList({includeDeviceIdentity:true});
   assert.equal(after.result.components[0].device.uuid,(mode==='ok'||mode==='attribute')?next:old);
@@ -46,7 +47,7 @@ for(const mode of ['ok','unknown','restore','attribute'])test('replace source cl
 test('invalid saved identity refuses replacement before any create/delete',async()=>{
  const h=host();(globalThis as any).eda=h.api;try{
  await schematicComponentPlace({uuid:old,libraryUuid:lib,x:1,y:2});for(const key of h.storage.keys())h.storage.set(key,'{}');h.calls.length=0;
- await assert.rejects(()=>runAction('schematic.component.replace',{primitiveId:'id1',deviceUuid:next,deviceLibraryUuid:lib}),/Cannot resolve/);assert.equal(h.calls.length,0);
+ await assert.rejects(()=>retained.schematicComponentReplace({primitiveId:'id1',deviceUuid:next,deviceLibraryUuid:lib}),/Cannot resolve/);assert.equal(h.calls.length,0);
  }finally{delete (globalThis as any).eda;}
 });
 
@@ -57,8 +58,8 @@ test('in-flight duplicate cannot start a second native replacement',async()=>{
  const started=new Promise<void>(r=>entered=r);
  h.api.sch_PrimitiveComponent.create=async(...args:any[])=>{entered();await new Promise<void>(r=>release=r);return native(...args)};
  const payload={primitiveId:'id1',deviceUuid:next,deviceLibraryUuid:lib,client_transaction_id:'inflight'};
- const original=runAction('schematic.component.replace',payload);await started;
- const duplicate:any=await runAction('schematic.component.replace',payload);assert.equal(duplicate.result.status,'uncertain');assert.equal(duplicate.result.duplicate,true);
+ const original=retained.schematicComponentReplace(payload);await started;
+ const duplicate:any=await retained.schematicComponentReplace(payload);assert.equal(duplicate.result.status,'uncertain');assert.equal(duplicate.result.duplicate,true);
  release();assert.equal((await original).result?.status,'complete');assert.equal(h.rows.size,1);
  }finally{delete (globalThis as any).eda;}
 });
@@ -98,7 +99,7 @@ for (const preserve of [false, true]) for (const oldValue of ['', '3.3kΩ']) {
   try {
    await schematicComponentPlace({uuid:old, libraryUuid:lib, x:1, y:2, designator:'R1'});
    h.rows.get('id1').OtherProperty.Value = oldValue;
-   const r:any = await runAction('schematic.component.replace', {primitiveId:'id1', deviceUuid:next, deviceLibraryUuid:lib, keepProperties:preserve});
+   const r:any = await retained.schematicComponentReplace( {primitiveId:'id1', deviceUuid:next, deviceLibraryUuid:lib, keepProperties:preserve});
    assert.equal(r.result.status, 'complete'); assert.equal(r.result.verified, true);
    assert.equal(r.result.component.otherProperty.Value, preserve ? oldValue : '22nF');
    assert.equal(r.result.component.otherProperty.Tolerance, preserve ? '5%' : '10%');
@@ -112,12 +113,12 @@ for (const fault of ['stage', 'final']) test(`replace rejects blank Value at ${f
   await schematicComponentPlace({uuid:old, libraryUuid:lib, x:1, y:2, designator:'R1'});
   h.calls.length=0;
   const payload={primitiveId:'id1', deviceUuid:next, deviceLibraryUuid:lib};
-  const r:any=await runAction('schematic.component.replace', payload);
+  const r:any=await retained.schematicComponentReplace( payload);
   assert.equal(r.result.verified,false); assert.equal(r.result.status,'partial');
   assert.match(r.result.reason,/Value readback mismatch/);
   assert.equal(h.rows.size,1);
   if(fault==='stage') {assert.equal(r.result.originalPreserved,true);assert.ok(h.rows.has('id1'));assert.ok(!h.calls.includes('delete:id1'));}
-  const count=h.calls.length; const replay:any=await runAction('schematic.component.replace',payload);
+  const count=h.calls.length; const replay:any=await retained.schematicComponentReplace(payload);
   assert.equal(replay.result.duplicate,true);assert.equal(h.calls.length,count);
  } finally {delete (globalThis as any).eda;}
 });

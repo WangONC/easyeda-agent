@@ -11,7 +11,7 @@ export const CONNECTOR_VERSION =
 	typeof __CONNECTOR_VERSION__ === 'undefined' ? '0.0.0-dev' : __CONNECTOR_VERSION__;
 export const PROTOCOL_VERSION = 'v1';
 export const SERVICE_ID = 'easyeda-agent';
-export const CAPABILITIES = ['schematic.v1', 'pcb.v1', 'pcb.fast_manual.v0.1'];
+export const CAPABILITIES = ['execution.v2', 'schematic.v1', 'pcb.v1', 'pcb.fast_manual.v0.1'];
 
 // ─── Daemon → connector frames ───────────────────────────────────────
 
@@ -56,6 +56,7 @@ export type InboundFrame =
 // ─── Connector → daemon frames ───────────────────────────────────────
 
 export interface RegisterFrame {
+ activationId: string;
 	type: 'register';
 	windowId: string;
 	connectorVersion: string;

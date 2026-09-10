@@ -614,49 +614,14 @@ func postVerify(t *testing.T, s *Server, body string) *httptest.ResponseRecorder
 
 func TestWriteVerifyEndpoint(t *testing.T) {
 	s := New(Options{})
-	for i := 0; i < 6; i++ {
-		s.writeHealth.observe("w1", outcome{Action: "schematic.component.place", OK: true})
+	before := s.writeHealth.snapshot("w1")
+	rec := postVerify(t, s, `{"windowId":"w1","action":"schematic.component.place","landed":1,"notLanded":5}`)
+	if rec.Code != http.StatusGone || !strings.Contains(rec.Body.String(), "V2_ACTION_NOT_MIGRATED") {
+		t.Fatalf("legacy verification accepted: %d %s", rec.Code, rec.Body.String())
 	}
-	rec := postVerify(t, s, `{"windowId":"w1","action":"schematic.component.place","landed":1,"notLanded":5,"source":"sch block-apply"}`)
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d (%s)", rec.Code, rec.Body.String())
-	}
-	var out struct {
-		OK          bool              `json:"ok"`
-		WindowID    string            `json:"windowId"`
-		WriteHealth WindowWriteHealth `json:"writeHealth"`
-	}
-	if err := json.Unmarshal(rec.Body.Bytes(), &out); err != nil {
-		t.Fatalf("bad json: %v (%s)", err, rec.Body.String())
-	}
-	if !out.OK || out.WindowID != "w1" {
-		t.Fatalf("response = %+v", out)
-	}
-	if out.WriteHealth.Failures != 5 || !out.WriteHealth.Degraded {
-		t.Fatalf("the endpoint must echo the amended health: %+v", out.WriteHealth)
-	}
-	if h := s.writeHealth.snapshot("w1"); h.FakeSuccesses != 5 {
-		t.Fatalf("tracker not updated: %+v", h)
-	}
-
-	// 校验:动作必填、计数必须非零、无法归账的判决不能静默吞掉。
-	for _, bad := range []struct {
-		body string
-		want int
-	}{
-		{`{"windowId":"w1","landed":1}`, http.StatusBadRequest},
-		{`{"windowId":"w1","action":"schematic.component.place"}`, http.StatusBadRequest},
-		{`{"action":"schematic.component.place","landed":1}`, http.StatusServiceUnavailable},
-		{`not json`, http.StatusBadRequest},
-	} {
-		if rec := postVerify(t, s, bad.body); rec.Code != bad.want {
-			t.Fatalf("%s → %d, want %d (%s)", bad.body, rec.Code, bad.want, rec.Body.String())
-		}
-	}
-	rec = httptest.NewRecorder()
-	s.routes(60832).ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/writeverify", nil))
-	if rec.Code != http.StatusMethodNotAllowed {
-		t.Fatalf("GET /writeverify = %d, want 405", rec.Code)
+	after := s.writeHealth.snapshot("w1")
+	if before.FakeSuccesses != after.FakeSuccesses {
+		t.Fatal("rejected legacy evidence changed health")
 	}
 }
 

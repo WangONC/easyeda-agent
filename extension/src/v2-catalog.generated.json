@@ -1,0 +1,853 @@
+{
+  "project.list": {
+    "schema": "10662b83abd3c5e5ab2561d2bc6c12fe927534fbdeb7e13d46ef6c168fef2ab6",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "ANY",
+    "input": {
+      "folder_uuid": "string",
+      "team_uuid": "string",
+      "workspace_uuid": "string"
+    }
+  },
+  "system.health": {
+    "schema": "646a617afedf3c5219618b245f7a8ca4594d2bf3a08c7c0650a2d6c7be8eb3bc",
+    "diagnostic": true,
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "HOME",
+    "input": {}
+  },
+  "system.notify": {
+    "schema": "7764c32a0508a4c1d68e65dd7e3e79f26174db6be7cf341865c4aa0cc710260a",
+    "revision": "1",
+    "effect_scope": "UI_NATIVE",
+    "target": "ANY",
+    "input": {
+      "duration": "number",
+      "message": "!string",
+      "type": "string"
+    }
+  },
+  "project.current": {
+    "schema": "fcc8de644953a274b85b5b11f4c29a83d76e2e396ea8e1e8736a4a4709e69af1",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "PROJECT",
+    "input": {}
+  },
+  "document.current": {
+    "schema": "e2fc4090279fc82a0c73cf1e3f9452002b8bbbae2e1f799a27ceb271debce63e",
+    "diagnostic": true,
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "ANY",
+    "input": {}
+  },
+  "document.open": {
+    "schema": "90e040ef41b1f385c6b71fcb746e5cf11e42e538c086f4725beb3f510d9554ea",
+    "revision": "1",
+    "effect_scope": "NAVIGATION_SELECTION",
+    "target": "PROJECT",
+    "input": {
+      "uuid": "!string"
+    }
+  },
+  "view.fit": {
+    "schema": "5a45db0dc85e103e4a214e53d6605704ecb8aac609c0ef8539505a02940e7042",
+    "revision": "1",
+    "effect_scope": "NAVIGATION_SELECTION",
+    "target": "DOCUMENT",
+    "input": {}
+  },
+  "view.fit_selection": {
+    "schema": "5a45db0dc85e103e4a214e53d6605704ecb8aac609c0ef8539505a02940e7042",
+    "revision": "1",
+    "effect_scope": "NAVIGATION_SELECTION",
+    "target": "DOCUMENT",
+    "input": {}
+  },
+  "view.zoom": {
+    "schema": "2a1063351486f6b6a80d0b130cbd7f972117a22756134966bb8afd3dbfda53e5",
+    "revision": "1",
+    "effect_scope": "NAVIGATION_SELECTION",
+    "target": "DOCUMENT",
+    "input": {
+      "scale": "number",
+      "x": "number",
+      "y": "number"
+    }
+  },
+  "view.region": {
+    "schema": "f997a1a891d6d37e896285d443c17fde83602bb3f231e0d2aa6605055569cde8",
+    "revision": "1",
+    "effect_scope": "NAVIGATION_SELECTION",
+    "target": "DOCUMENT",
+    "input": {
+      "bottom": "!number",
+      "left": "!number",
+      "right": "!number",
+      "top": "!number"
+    }
+  },
+  "schematic.pages.list": {
+    "schema": "fcc8de644953a274b85b5b11f4c29a83d76e2e396ea8e1e8736a4a4709e69af1",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "PROJECT",
+    "input": {}
+  },
+  "schematic.page.open": {
+    "schema": "afcc0071f1bab75f8672bae49635c193762c277f27d0ed9fab1ed23b6616ef84",
+    "revision": "1",
+    "effect_scope": "NAVIGATION_SELECTION",
+    "target": "PROJECT",
+    "input": {
+      "schematicPageUuid": "string",
+      "uuid": "string"
+    }
+  },
+  "schematic.titleblock.get": {
+    "schema": "150f65a45bba6800b0d15250b49d34d58c4cd05aa7a8a1554b982bc6367ab1a9",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "schematic",
+    "input": {
+      "pageUuid": "string"
+    }
+  },
+  "schematic.titleblock.modify": {
+    "schema": "984bd252d04ba4c670a571b18863794461f3a330efae30db01f5b75b4fcef542",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "schematic",
+    "input": {
+      "showTitleBlock": "boolean",
+      "titleBlockData": "object"
+    }
+  },
+  "schematic.page.create": {
+    "schema": "3a67ccda03e80f99c40dcbee6c726cd1e4587f2576106b4370462ad73cb68116",
+    "revision": "1",
+    "effect_scope": "PROJECT_TOPOLOGY",
+    "target": "PROJECT",
+    "input": {
+      "schematicUuid": "!string"
+    }
+  },
+  "schematic.page.rename": {
+    "schema": "f065fe46c0fa30ff647526648b8f02529e61dcd2f12a9d6d8e2cc50af89041df",
+    "revision": "1",
+    "effect_scope": "PROJECT_TOPOLOGY",
+    "target": "PROJECT",
+    "input": {
+      "name": "!string",
+      "pageUuid": "string",
+      "uuid": "string"
+    }
+  },
+  "schematic.page.delete": {
+    "schema": "4cde4ab6d99fa417b3232240bc91d543ff989f5e44d0d1980fa3119d222fc420",
+    "revision": "1",
+    "effect_scope": "PROJECT_TOPOLOGY",
+    "target": "PROJECT",
+    "input": {
+      "pageUuid": "!string"
+    }
+  },
+  "schematic.rename": {
+    "schema": "c22b155d6fe8cf3f3630c6a56aa30d11f072ff622534c2d322a77dc712d7d94c",
+    "revision": "1",
+    "effect_scope": "PROJECT_TOPOLOGY",
+    "target": "PROJECT",
+    "input": {
+      "name": "!string",
+      "schematicUuid": "string",
+      "uuid": "string"
+    }
+  },
+  "schematic.wire.create": {
+    "schema": "0e0d428e2921e049deb917be98cbb6c84b41eece3c9cd261a4f33412ed551259",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "schematic",
+    "input": {
+      "color": "string",
+      "lineType": "number",
+      "lineWidth": "number",
+      "net": "string",
+      "points": "!array"
+    }
+  },
+  "schematic.netflag.create": {
+    "schema": "65ba4c4d0074427e05bc4aa07e6ab29f0d04f235ed820d2d6129f0ffeae558bd",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "schematic",
+    "input": {
+      "kind": "!string",
+      "mirror": "boolean",
+      "net": "string",
+      "rotation": "number",
+      "x": "!number",
+      "y": "!number"
+    }
+  },
+  "schematic.text.list": {
+    "schema": "e93154823c580ca52a070396ae04e03231ab3b42c4f46eead1baaa88372d4445",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "schematic",
+    "input": {}
+  },
+  "schematic.library.search": {
+    "schema": "d544eea4f51ce58f2bf296f97db85ebc488a780c872ab506ea9b196ba4bba2a0",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "ANY",
+    "input": {
+      "allowFuzzy": "boolean",
+      "libraryUuid": "string",
+      "limit": "number",
+      "query": "!string"
+    }
+  },
+  "schematic.library.get_by_lcsc": {
+    "schema": "579b5a7b43bab154eb15a54a3da41f1299e572c5b5c6b4c02e18dd82d309cfe9",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "ANY",
+    "input": {
+      "lcscIds": "!string|array"
+    }
+  },
+  "library.list": {
+    "schema": "744f3360595db7dffb960c0c47152a3b2a0bd6bbe054ba3aabe375116583cacc",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "ANY",
+    "input": {}
+  },
+  "library.footprint.create": {
+    "schema": "0958387be598fa25e26bda14aa1c288a9737cb52a9764024bf90ac46c1db6d36",
+    "revision": "1",
+    "effect_scope": "LIBRARY_ASSET",
+    "target": "LIBRARY",
+    "input": {
+      "classification": "string[]",
+      "description": "string",
+      "libraryUuid": "string",
+      "name": "!string",
+      "scope": "string"
+    }
+  },
+  "library.footprint.get": {
+    "schema": "dd876b633cdf37d6a174056149de3e11c1cd8bcf35bc068539b80f186cba7eea",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "ANY",
+    "input": {
+      "libraryUuid": "string",
+      "uuid": "!string"
+    }
+  },
+  "library.footprint.copy": {
+    "schema": "8b5d540b08303da6751561ba310444edcdc029b0f1d101311fea0a5aa65bf8fd",
+    "revision": "1",
+    "effect_scope": "LIBRARY_ASSET",
+    "target": "LIBRARY",
+    "input": {
+      "classification": "string[]",
+      "libraryUuid": "string",
+      "name": "!string",
+      "scope": "string",
+      "sourceLibraryUuid": "!string",
+      "uuid": "!string"
+    }
+  },
+  "library.footprint.delete": {
+    "schema": "86b1eccbd678c8207ce87d46adbe81629829056dd602100a5d189a7a4f9acb5f",
+    "revision": "1",
+    "effect_scope": "LIBRARY_ASSET",
+    "target": "LIBRARY",
+    "input": {
+      "expectedName": "!string",
+      "libraryUuid": "string",
+      "uuid": "!string"
+    }
+  },
+  "library.symbol.create": {
+    "schema": "36a317fca2b29001804c2307426143c9007efa4fafcbdef0aa8e73df3ceb642c",
+    "revision": "1",
+    "effect_scope": "LIBRARY_ASSET",
+    "target": "LIBRARY",
+    "input": {
+      "classification": "string[]",
+      "description": "string",
+      "libraryUuid": "string",
+      "name": "!string",
+      "scope": "string",
+      "symbolType": "number"
+    }
+  },
+  "library.symbol.get": {
+    "schema": "dd876b633cdf37d6a174056149de3e11c1cd8bcf35bc068539b80f186cba7eea",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "ANY",
+    "input": {
+      "libraryUuid": "string",
+      "uuid": "!string"
+    }
+  },
+  "library.symbol.delete": {
+    "schema": "86b1eccbd678c8207ce87d46adbe81629829056dd602100a5d189a7a4f9acb5f",
+    "revision": "1",
+    "effect_scope": "LIBRARY_ASSET",
+    "target": "LIBRARY",
+    "input": {
+      "expectedName": "!string",
+      "libraryUuid": "string",
+      "uuid": "!string"
+    }
+  },
+  "library.model3d.create": {
+    "schema": "7575d1aeae5790479d7b2853b5542447c5e1ee8ce30a7212c953c670157cec1f",
+    "revision": "1",
+    "effect_scope": "LIBRARY_ASSET",
+    "target": "LIBRARY",
+    "input": {
+      "classification": "string[]",
+      "dataBase64": "!string",
+      "description": "string",
+      "fileName": "string",
+      "libraryUuid": "string",
+      "mimeType": "string",
+      "name": "!string",
+      "scope": "string",
+      "unit": "string"
+    }
+  },
+  "library.model3d.get": {
+    "schema": "dd876b633cdf37d6a174056149de3e11c1cd8bcf35bc068539b80f186cba7eea",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "ANY",
+    "input": {
+      "libraryUuid": "string",
+      "uuid": "!string"
+    }
+  },
+  "library.model3d.delete": {
+    "schema": "86b1eccbd678c8207ce87d46adbe81629829056dd602100a5d189a7a4f9acb5f",
+    "revision": "1",
+    "effect_scope": "LIBRARY_ASSET",
+    "target": "LIBRARY",
+    "input": {
+      "expectedName": "!string",
+      "libraryUuid": "string",
+      "uuid": "!string"
+    }
+  },
+  "library.model3d.search": {
+    "schema": "0c807e45f276f8d341a7e35d22e8cd5973dedcf493f6fb531ad433db50aa0464",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "ANY",
+    "input": {
+      "classification": "string[]",
+      "libraryUuid": "string",
+      "limit": "number",
+      "query": "!string"
+    }
+  },
+  "library.model3d.copy": {
+    "schema": "8b5d540b08303da6751561ba310444edcdc029b0f1d101311fea0a5aa65bf8fd",
+    "revision": "1",
+    "effect_scope": "LIBRARY_ASSET",
+    "target": "LIBRARY",
+    "input": {
+      "classification": "string[]",
+      "libraryUuid": "string",
+      "name": "!string",
+      "scope": "string",
+      "sourceLibraryUuid": "!string",
+      "uuid": "!string"
+    }
+  },
+  "library.device.create": {
+    "schema": "b36ca6f1ac193191cf0fc4e4bd49f8f7a72f5fe74500eeea46585af08ffbd459",
+    "revision": "1",
+    "effect_scope": "LIBRARY_ASSET",
+    "target": "LIBRARY",
+    "input": {
+      "classification": "string[]",
+      "description": "string",
+      "footprint": "object",
+      "libraryUuid": "string",
+      "model3D": "object",
+      "name": "!string",
+      "property": "object",
+      "scope": "string",
+      "symbol": "!object"
+    }
+  },
+  "library.device.get": {
+    "schema": "dd876b633cdf37d6a174056149de3e11c1cd8bcf35bc068539b80f186cba7eea",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "ANY",
+    "input": {
+      "libraryUuid": "string",
+      "uuid": "!string"
+    }
+  },
+  "library.device.delete": {
+    "schema": "86b1eccbd678c8207ce87d46adbe81629829056dd602100a5d189a7a4f9acb5f",
+    "revision": "1",
+    "effect_scope": "LIBRARY_ASSET",
+    "target": "LIBRARY",
+    "input": {
+      "expectedName": "!string",
+      "libraryUuid": "string",
+      "uuid": "!string"
+    }
+  },
+  "library.device.set_model3d": {
+    "schema": "343e98d09f846e8f0faf88a0b2e58a5dd1cd59f9c2acb90a8689c31165bff63d",
+    "revision": "1",
+    "effect_scope": "LIBRARY_ASSET",
+    "target": "LIBRARY",
+    "input": {
+      "clear": "boolean",
+      "expectedName": "!string",
+      "libraryUuid": "string",
+      "model3D": "object",
+      "uuid": "!string"
+    }
+  },
+  "schematic.select": {
+    "schema": "479b03074740f45b11b2e757b7e35be561852d7dab71fd3cb55a89f4a1bfd0a3",
+    "revision": "1",
+    "effect_scope": "NAVIGATION_SELECTION",
+    "target": "schematic",
+    "input": {
+      "primitiveIds": "!string|array"
+    }
+  },
+  "schematic.save": {
+    "schema": "b9dbb4870c0a93c2c8af50ecde0dde53b29c4fbe44c03324b5e40936ab3c668a",
+    "revision": "1",
+    "effect_scope": "SAVE",
+    "target": "schematic",
+    "input": {}
+  },
+  "pcb.documents.list": {
+    "schema": "fcc8de644953a274b85b5b11f4c29a83d76e2e396ea8e1e8736a4a4709e69af1",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "PROJECT",
+    "input": {}
+  },
+  "pcb.components.list": {
+    "schema": "eac25f2a4d728fe729ce8a4fb946960c2e91bc9a64518fc1b856ba0adccfa4a8",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {
+      "includeBBox": "boolean",
+      "includePads": "boolean",
+      "layer": "number"
+    }
+  },
+  "pcb.layers.list": {
+    "schema": "a7d8b1d68cbd63789f90e18895478c043c875344d050ff88769e4b4eef2e99e0",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {
+      "include_physical": "boolean",
+      "include_physical_inventory": "boolean"
+    }
+  },
+  "pcb.layers.set_current": {
+    "schema": "1830af31902a67f44c3179942c2115128213d0fcbed7949b513e6e1bec63d3e3",
+    "revision": "1",
+    "effect_scope": "NAVIGATION_SELECTION",
+    "target": "pcb",
+    "input": {
+      "layer": "!string|number"
+    }
+  },
+  "pcb.layers.visibility": {
+    "schema": "a38c126bbad957c37aa2fe93af0bfcf4dc9d0edfad961ddd47170695a3eb2445",
+    "revision": "1",
+    "effect_scope": "NAVIGATION_SELECTION",
+    "target": "pcb",
+    "input": {
+      "exclusive": "boolean",
+      "hide": "array",
+      "preset": "string",
+      "show": "array"
+    }
+  },
+  "pcb.view.side": {
+    "schema": "b5724af456ec7087a481b76b6ddd0794432fb9532bbb097248d2ca7d3baaff0a",
+    "revision": "1",
+    "effect_scope": "NAVIGATION_SELECTION",
+    "target": "pcb",
+    "input": {
+      "side": "!string"
+    }
+  },
+  "pcb.silk.list": {
+    "schema": "87633cb595e9e46c18c82caf40f027ea0b6a9bc5d8d470412006ed85a9814984",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {}
+  },
+  "pcb.silk.add": {
+    "schema": "fe931b6313d3a08bcead41a78c78998f65b882011ff2de0d2d4cde79eeae5d22",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "fontSize": "number",
+      "layer": "number",
+      "lineWidth": "number",
+      "rotation": "number",
+      "text": "!string",
+      "x": "!number",
+      "y": "!number"
+    }
+  },
+  "pcb.silk.import_svg": {
+    "schema": "b497d6aa49aa9ac55b70a6996f0abf29cf4d69ee2e141bc1befa07107ea85275",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "height": "number",
+      "layer": "number",
+      "mirror": "boolean",
+      "polygons": "!array",
+      "rotation": "number",
+      "width": "number",
+      "x": "!number",
+      "y": "!number"
+    }
+  },
+  "pcb.nets.list": {
+    "schema": "87633cb595e9e46c18c82caf40f027ea0b6a9bc5d8d470412006ed85a9814984",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {}
+  },
+  "pcb.report": {
+    "schema": "9ba17a161f2f5c038345277ca66232a6dbe5c80590c5c92e4016626ef684b375",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {
+      "document_uuid": "string",
+      "geometry": "boolean",
+      "groups": "string[]",
+      "nets": "string[]",
+      "pairs": "string[]",
+      "paths": "array",
+      "profile_id": "string",
+      "project_uuid": "string",
+      "reference_net": "string",
+      "telemetry": "boolean",
+      "tolerance_mil": "number"
+    }
+  },
+  "pcb.constraint.list": {
+    "schema": "87633cb595e9e46c18c82caf40f027ea0b6a9bc5d8d470412006ed85a9814984",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {}
+  },
+  "pcb.differential_pair.create": {
+    "schema": "812d6687aaa4cce2902a03901fcf8ffee174d1d6bdc33a554981bda4d5b109b6",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "name": "!string",
+      "negativeNet": "!string",
+      "positiveNet": "!string"
+    }
+  },
+  "pcb.differential_pair.delete": {
+    "schema": "6ca0b30490f1b63142b6bc9ccf07b3ae2816c5e083701a2b7d7a03ed67d998a3",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "name": "!string",
+      "negativeNet": "string",
+      "positiveNet": "string"
+    }
+  },
+  "pcb.differential_pair.rename": {
+    "schema": "4e21878d499c70b899a1b8a5bb5f20174ad5e1c01a494f4ab41ff2abb64dc5f6",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "name": "!string",
+      "negativeNet": "string",
+      "newName": "!string",
+      "positiveNet": "string"
+    }
+  },
+  "pcb.equal_length_group.create": {
+    "schema": "2e433356cd7902f883c6cb5d4c93d21214f018dabcf7acb49c09fabcc42d71a4",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "name": "!string",
+      "nets": "!string[]"
+    }
+  },
+  "pcb.equal_length_group.delete": {
+    "schema": "182cb3e2d6d3b874944185a84e08a910e892da24416069a84e67ee5461a636a9",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "name": "!string",
+      "nets": "string[]"
+    }
+  },
+  "pcb.board.info": {
+    "schema": "87633cb595e9e46c18c82caf40f027ea0b6a9bc5d8d470412006ed85a9814984",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {}
+  },
+  "board.list": {
+    "schema": "fcc8de644953a274b85b5b11f4c29a83d76e2e396ea8e1e8736a4a4709e69af1",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "PROJECT",
+    "input": {}
+  },
+  "board.current": {
+    "schema": "fcc8de644953a274b85b5b11f4c29a83d76e2e396ea8e1e8736a4a4709e69af1",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "PROJECT",
+    "input": {}
+  },
+  "board.create": {
+    "schema": "d54d7ad261488ed7f4feac3603b9331f252ece71a795fd5d95958d3a35e16e49",
+    "revision": "1",
+    "effect_scope": "PROJECT_TOPOLOGY",
+    "target": "PROJECT",
+    "input": {
+      "pcbUuid": "string",
+      "schematicUuid": "string"
+    }
+  },
+  "board.rename": {
+    "schema": "6a49bf2cce38521c7782db5c2313fbbacd4bf51cc82f357c674d9ded7ee9309a",
+    "revision": "1",
+    "effect_scope": "PROJECT_TOPOLOGY",
+    "target": "PROJECT",
+    "input": {
+      "name": "!string",
+      "newName": "!string",
+      "pcbUuid": "string",
+      "schematicUuid": "string"
+    }
+  },
+  "board.copy": {
+    "schema": "e722c24e4551bf7b2a6d155b90a74d7cf8b64655aa9b422c87c036e1b804a61e",
+    "revision": "1",
+    "effect_scope": "PROJECT_TOPOLOGY",
+    "target": "PROJECT",
+    "input": {
+      "name": "!string"
+    }
+  },
+  "board.delete": {
+    "schema": "f7dd4dcba473e818b7f847d99d862ec39a77b9d4f6165bcdcf6771f68a414299",
+    "revision": "1",
+    "effect_scope": "PROJECT_TOPOLOGY",
+    "target": "PROJECT",
+    "input": {
+      "name": "!string",
+      "pcbUuid": "string",
+      "schematicUuid": "string"
+    }
+  },
+  "pcb.component.modify": {
+    "schema": "7a0106b9cacfae4b390add0219a018df3528f4f8b440793cd79a8e22d6f7fc6d",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "patch": "!object",
+      "primitiveId": "!string"
+    }
+  },
+  "pcb.drc.check": {
+    "schema": "e06faf95d7cedceb048eedda8c19911dd3d8e1673458e2e713b9ab075de16820",
+    "revision": "1",
+    "effect_scope": "NATIVE_RECOMPUTE",
+    "target": "pcb",
+    "input": {
+      "strict": "boolean"
+    }
+  },
+  "pcb.drc.rules": {
+    "schema": "87633cb595e9e46c18c82caf40f027ea0b6a9bc5d8d470412006ed85a9814984",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {}
+  },
+  "pcb.line.create": {
+    "schema": "e037365b18bab42b7aa859d4b5c86f3b4b4dc15c8a1cdd475fa7d5825437e144",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "endX": "!number",
+      "endY": "!number",
+      "layer": "number",
+      "lineWidth": "number",
+      "net": "string",
+      "startX": "!number",
+      "startY": "!number"
+    }
+  },
+  "pcb.via.create": {
+    "schema": "8f465fdf53e6d4f063bb646661097d6d2840b51c16e526fc1ce36644688e3696",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "diameter": "number",
+      "holeDiameter": "number",
+      "net": "string",
+      "x": "!number",
+      "y": "!number"
+    }
+  },
+  "pcb.save": {
+    "schema": "d35ba16ea88434d7b966b69bbfa278fbbf309e69f362657ec5334228912b1854",
+    "revision": "1",
+    "effect_scope": "SAVE",
+    "target": "pcb",
+    "input": {}
+  },
+  "pcb.line.list": {
+    "schema": "cd659e1b565b8cdbb202bee1cbbd12cea5a36372fb76287c3345b881b742712d",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {
+      "layer": "number",
+      "net": "string"
+    }
+  },
+  "pcb.via.list": {
+    "schema": "45b1891f16b4f98cf7a2acb2a9f2b40e140cea32035ca4503c66eb6acae269c2",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {
+      "net": "string"
+    }
+  },
+  "pcb.pour.create": {
+    "schema": "08eb3ba161d29d5e78c61129c36ed71570e76c974d53b8d0d8d765796139010a",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "fill": "string",
+      "layer": "number",
+      "lineWidth": "number",
+      "name": "string",
+      "net": "!string",
+      "points": "!array",
+      "priority": "number"
+    }
+  },
+  "pcb.pour.list": {
+    "schema": "d25513275371ab588b0c7606a933df64eb06ac68634d5da7e8ab1dfb9bed51d0",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {
+      "geometry_limit": "number",
+      "include_geometry": "boolean",
+      "net": "string"
+    }
+  },
+  "pcb.region.create": {
+    "schema": "131f889cd5d78f2cb223ba4bb379bda3d7309973db79cfcfe990ba7985bc7714",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "layer": "number",
+      "lineWidth": "number",
+      "locked": "boolean",
+      "name": "string",
+      "points": "!array",
+      "ruleType": "string|number|array",
+      "ruleTypes": "string|number|array"
+    }
+  },
+  "pcb.region.list": {
+    "schema": "c721b7b1cabdcd53f60ba8954a85123cefb052e9cfa894702703d7c47e89757f",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {
+      "layer": "number"
+    }
+  },
+  "pcb.fill.create": {
+    "schema": "6a7877e1d2a562ad3f29945509a8457d766cb120d208167195c03ed74cb5b04b",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "fillMode": "string|number",
+      "layer": "number",
+      "lineWidth": "number",
+      "locked": "boolean",
+      "net": "string",
+      "points": "!array"
+    }
+  },
+  "pcb.fill.list": {
+    "schema": "7b33213d1b6ce0aa0bb7209d88897d097d5a63acfa4d69966bb6ba0ffd89aa8b",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {
+      "includeBBox": "boolean",
+      "layer": "number",
+      "net": "string"
+    }
+  },
+  "pcb.outline.get": {
+    "schema": "87633cb595e9e46c18c82caf40f027ea0b6a9bc5d8d470412006ed85a9814984",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {}
+  }
+}

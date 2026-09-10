@@ -2,15 +2,10 @@ package daemon
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -173,61 +168,71 @@ func TestConnectorRegistersAndContextAppearsInHealth(t *testing.T) {
 	}
 }
 
-func TestActionDispatchToConnector(t *testing.T) {
+func TestActionDispatchToConnectorLegacyEntryGone(t *testing.T) {
 	base, cleanup := startDaemon(t)
 	defer cleanup()
-
-	c := dialConnector(t, base, "win-1")
-	defer c.Close(websocket.StatusNormalClosure, "")
-	go echoRequests(t.Context(), c)
-
-	waitForWindow(t, base, "win-1")
-
-	resp := postAction(t, base, `{"action":"schematic.components.list","windowId":"win-1"}`)
-	if !resp.OK {
-		t.Fatalf("expected ok response, got error: %+v", resp.Error)
+	response, err := http.Post("http://"+base+"/action", "application/json", strings.NewReader(`{"action":"schematic.components.list"}`))
+	if err != nil {
+		t.Fatal(err)
 	}
-	if got, _ := resp.Result["echo"].(string); got != "schematic.components.list" {
-		t.Fatalf("expected echoed action, got %v", resp.Result["echo"])
+	defer response.Body.Close()
+	payload, err := io.ReadAll(response.Body)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if resp.ID == "" {
-		t.Fatal("expected daemon-assigned request id")
+	if response.StatusCode != http.StatusGone || !strings.Contains(string(payload), "V2_ACTION_NOT_MIGRATED") {
+		t.Fatalf("legacy action accepted: %d %s", response.StatusCode, payload)
 	}
 }
 
-func TestSystemHealthActionNeedsNoConnector(t *testing.T) {
+func TestSystemHealthActionNeedsNoConnectorLegacyEntryGone(t *testing.T) {
 	base, cleanup := startDaemon(t)
 	defer cleanup()
-
-	resp := postAction(t, base, `{"action":"system.health"}`)
-	if !resp.OK {
-		t.Fatalf("expected ok, got error: %+v", resp.Error)
+	response, err := http.Post("http://"+base+"/action", "application/json", strings.NewReader(`{"action":"system.health"}`))
+	if err != nil {
+		t.Fatal(err)
 	}
-	if svc, _ := resp.Result["service"].(string); svc != Service {
-		t.Fatalf("expected service %q, got %v", Service, resp.Result["service"])
+	defer response.Body.Close()
+	payload, err := io.ReadAll(response.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if response.StatusCode != http.StatusGone || !strings.Contains(string(payload), "V2_ACTION_NOT_MIGRATED") {
+		t.Fatalf("legacy action accepted: %d %s", response.StatusCode, payload)
 	}
 }
 
-func TestActionWithoutConnector(t *testing.T) {
+func TestActionWithoutConnectorLegacyEntryGone(t *testing.T) {
 	base, cleanup := startDaemon(t)
 	defer cleanup()
-
-	resp := postAction(t, base, `{"action":"schematic.components.list"}`)
-	if resp.OK {
-		t.Fatal("expected error when no connector is connected")
+	response, err := http.Post("http://"+base+"/action", "application/json", strings.NewReader(`{"action":"schematic.components.list"}`))
+	if err != nil {
+		t.Fatal(err)
 	}
-	if resp.Error == nil || resp.Error.Code != "NO_CONNECTOR" {
-		t.Fatalf("expected NO_CONNECTOR, got %+v", resp.Error)
+	defer response.Body.Close()
+	payload, err := io.ReadAll(response.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if response.StatusCode != http.StatusGone || !strings.Contains(string(payload), "V2_ACTION_NOT_MIGRATED") {
+		t.Fatalf("legacy action accepted: %d %s", response.StatusCode, payload)
 	}
 }
 
-func TestUnknownActionRejected(t *testing.T) {
+func TestUnknownActionRejectedLegacyEntryGone(t *testing.T) {
 	base, cleanup := startDaemon(t)
 	defer cleanup()
-
-	resp := postAction(t, base, `{"action":"bogus.thing"}`)
-	if resp.OK || resp.Error == nil || resp.Error.Code != "UNKNOWN_ACTION" {
-		t.Fatalf("expected UNKNOWN_ACTION, got ok=%v err=%+v", resp.OK, resp.Error)
+	response, err := http.Post("http://"+base+"/action", "application/json", strings.NewReader(`{"action":"bogus.thing"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	payload, err := io.ReadAll(response.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if response.StatusCode != http.StatusGone || !strings.Contains(string(payload), "V2_ACTION_NOT_MIGRATED") {
+		t.Fatalf("legacy action accepted: %d %s", response.StatusCode, payload)
 	}
 }
 
@@ -336,87 +341,19 @@ func TestLogFrameIsHandledGracefully(t *testing.T) {
 	}
 }
 
-func TestActionArtifactPersisted(t *testing.T) {
+func TestActionArtifactPersistedLegacyEntryGone(t *testing.T) {
 	base, cleanup := startDaemon(t)
 	defer cleanup()
-
-	c := dialConnector(t, base, "win-1")
-	defer c.Close(websocket.StatusNormalClosure, "")
-
-	const payload = "PNG-BYTES"
-
-	// Connector that answers any request with an inline-base64 artifact.
-	go func() {
-		ctx := t.Context()
-		for {
-			_, data, err := c.Read(ctx)
-			if err != nil {
-				return
-			}
-			var typed protocol.Typed
-			if json.Unmarshal(data, &typed) != nil || typed.Type != protocol.TypeRequest {
-				continue
-			}
-			var req protocol.Request
-			if json.Unmarshal(data, &req) != nil {
-				continue
-			}
-			_ = wsjson.Write(ctx, c, protocol.Response{
-				Envelope: protocol.Envelope{ID: req.ID, Type: protocol.TypeResponse, Version: "v1"},
-				OK:       true,
-				Artifacts: []protocol.Artifact{{
-					ID:           "art_snap",
-					Kind:         "pcb_snapshot",
-					MimeType:     "image/png",
-					FileName:     "snap.png",
-					InlineBase64: base64.StdEncoding.EncodeToString([]byte(payload)),
-				}},
-			})
-		}
-	}()
-
-	waitForWindow(t, base, "win-1")
-
-	// Send a CLI cwd via outputDir; artifacts must land under its hidden dir.
-	outDir := t.TempDir()
-	resp := postAction(t, base, fmt.Sprintf(`{"action":"pcb.snapshot","windowId":"win-1","outputDir":%q}`, outDir))
-	if !resp.OK || len(resp.Artifacts) != 1 {
-		t.Fatalf("expected one artifact, got ok=%v artifacts=%d err=%+v", resp.OK, len(resp.Artifacts), resp.Error)
-	}
-
-	a := resp.Artifacts[0]
-	if a.InlineBase64 != "" {
-		t.Fatal("inlineBase64 should be stripped after persistence")
-	}
-	if a.Path == "" {
-		t.Fatal("expected persisted artifact path")
-	}
-	if a.Size != int64(len(payload)) {
-		t.Fatalf("expected size %d, got %d", len(payload), a.Size)
-	}
-	want := sha256.Sum256([]byte(payload))
-	if a.SHA256 != hex.EncodeToString(want[:]) {
-		t.Fatalf("sha256 mismatch: %s", a.SHA256)
-	}
-	got, err := os.ReadFile(a.Path)
+	response, err := http.Post("http://"+base+"/action", "application/json", strings.NewReader(`{"action":"pcb.snapshot"}`))
 	if err != nil {
-		t.Fatalf("read persisted artifact: %v", err)
+		t.Fatal(err)
 	}
-	if string(got) != payload {
-		t.Fatalf("persisted bytes mismatch: %q", string(got))
+	defer response.Body.Close()
+	payload, err := io.ReadAll(response.Body)
+	if err != nil {
+		t.Fatal(err)
 	}
-
-	// Lands in the CLI cwd's hidden .easyeda/artifacts dir...
-	wantDir := filepath.Join(outDir, ".easyeda", "artifacts")
-	if dir := filepath.Dir(a.Path); dir != wantDir {
-		t.Fatalf("artifact dir = %s, want %s", dir, wantDir)
-	}
-	// ...with a sortable, findable name: <YYYYMMDD-HHMMSS>-<kind>-<short>.png
-	bn := filepath.Base(a.Path)
-	if !strings.Contains(bn, "pcb_snapshot") || !strings.HasSuffix(bn, ".png") {
-		t.Fatalf("unexpected artifact name: %s", bn)
-	}
-	if _, err := time.Parse("20060102-150405", bn[:15]); err != nil {
-		t.Fatalf("name not timestamp-prefixed: %s (%v)", bn, err)
+	if response.StatusCode != http.StatusGone || !strings.Contains(string(payload), "V2_ACTION_NOT_MIGRATED") {
+		t.Fatalf("legacy action accepted: %d %s", response.StatusCode, payload)
 	}
 }

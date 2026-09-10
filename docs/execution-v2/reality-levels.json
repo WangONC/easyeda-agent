@@ -1,0 +1,762 @@
+{
+  "purpose": "Immutable audit classification from EXECUTION_V2_REPOSITORY_REALITY_MAP; not a runtime registry",
+  "source_snapshot": "594f78b3204ab0ff1110ff6aa7219ab6c0bef726",
+  "baseline": "a583bf731d946d2d39f1223e078d711bd41710d5",
+  "actions": [
+    {
+      "name": "board.copy",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "board.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "board.current",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "board.delete",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "board.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "board.new_pcb",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "board.rebind",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "board.rename",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "board.snapshot_compact",
+      "level": 3,
+      "classification": "F"
+    },
+    {
+      "name": "debug.exec_js",
+      "level": 5,
+      "classification": "L"
+    },
+    {
+      "name": "document.current",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "document.open",
+      "level": 2,
+      "classification": "N"
+    },
+    {
+      "name": "library.device.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "library.device.delete",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "library.device.get",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "library.device.set_model3d",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "library.footprint.build",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "library.footprint.copy",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "library.footprint.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "library.footprint.delete",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "library.footprint.get",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "library.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "library.model3d.copy",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "library.model3d.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "library.model3d.delete",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "library.model3d.get",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "library.model3d.search",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "library.symbol.build",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "library.symbol.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "library.symbol.delete",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "library.symbol.get",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.add_component",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "pcb.align",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.beautify",
+      "level": 5,
+      "classification": "L"
+    },
+    {
+      "name": "pcb.board.info",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.clear_routing",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.component.attrs_backfill",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.component.delete",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.component.lock",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.component.modify",
+      "level": 3,
+      "classification": "S"
+    },
+    {
+      "name": "pcb.components.arrange",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.components.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.components.move",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.constraint.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.differential_pair.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "pcb.differential_pair.delete",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "pcb.differential_pair.rename",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "pcb.distribute",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.documents.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.drc.check",
+      "level": 3,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.drc.compare",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "pcb.drc.rules",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.equal_length_group.add_nets",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.equal_length_group.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "pcb.equal_length_group.delete",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "pcb.export.dsn",
+      "level": 3,
+      "classification": "C"
+    },
+    {
+      "name": "pcb.fill.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "pcb.fill.delete",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.fill.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.grid_snap",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.import_autoroute",
+      "level": 3,
+      "classification": "L"
+    },
+    {
+      "name": "pcb.import_changes",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "pcb.layers.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.layers.set_current",
+      "level": 2,
+      "classification": "N"
+    },
+    {
+      "name": "pcb.layers.visibility",
+      "level": 2,
+      "classification": "N"
+    },
+    {
+      "name": "pcb.line.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "pcb.line.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.manufacturing.export",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "pcb.nets.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.outline.clear",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.outline.get",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.outline.set",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "pcb.page.clear",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "pcb.plane.refresh",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "pcb.pour.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "pcb.pour.delete",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.pour.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.pour.rebuild",
+      "level": 3,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.region.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "pcb.region.delete",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.region.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.report",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.route.delete",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.route.rip_up",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.route.via_hop",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "pcb.routing_profile",
+      "level": 3,
+      "classification": "F"
+    },
+    {
+      "name": "pcb.save",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "pcb.silk.add",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "pcb.silk.align",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.silk.import_svg",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "pcb.silk.label_pads",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.silk.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.silk.netnames",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.silk.set",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.snapshot",
+      "level": 3,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.stackup.set",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.track.lock",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "pcb.via.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "pcb.via.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "pcb.view.side",
+      "level": 2,
+      "classification": "N"
+    },
+    {
+      "name": "project.create",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "project.current",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "project.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "project.open",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "route.apply_batch",
+      "level": 5,
+      "classification": "F"
+    },
+    {
+      "name": "route.pair_plan",
+      "level": 3,
+      "classification": "F"
+    },
+    {
+      "name": "route.preflight",
+      "level": 3,
+      "classification": "F"
+    },
+    {
+      "name": "route.tuning_plan",
+      "level": 3,
+      "classification": "F"
+    },
+    {
+      "name": "schematic.bridgeCheck",
+      "level": 3,
+      "classification": "R"
+    },
+    {
+      "name": "schematic.check",
+      "level": 3,
+      "classification": "R"
+    },
+    {
+      "name": "schematic.component.delete",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "schematic.component.modify",
+      "level": 3,
+      "classification": "S"
+    },
+    {
+      "name": "schematic.component.place",
+      "level": 3,
+      "classification": "S"
+    },
+    {
+      "name": "schematic.component.replace",
+      "level": 5,
+      "classification": "C"
+    },
+    {
+      "name": "schematic.component.resolve_lcsc",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "schematic.components.list",
+      "level": 3,
+      "classification": "R"
+    },
+    {
+      "name": "schematic.create",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "schematic.drc.check",
+      "level": 3,
+      "classification": "R"
+    },
+    {
+      "name": "schematic.export.bom",
+      "level": 3,
+      "classification": "C"
+    },
+    {
+      "name": "schematic.export.image",
+      "level": 3,
+      "classification": "C"
+    },
+    {
+      "name": "schematic.export.netlist",
+      "level": 3,
+      "classification": "C"
+    },
+    {
+      "name": "schematic.group.move",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "schematic.library.get_by_lcsc",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "schematic.library.search",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "schematic.netflag.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "schematic.page.clear",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "schematic.page.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "schematic.page.delete",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "schematic.page.open",
+      "level": 2,
+      "classification": "N"
+    },
+    {
+      "name": "schematic.page.rename",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "schematic.pages.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "schematic.pin.disconnect",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "schematic.pin.set_no_connect",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "schematic.power.connect_pin",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "schematic.primitives.delete",
+      "level": 3,
+      "classification": "B"
+    },
+    {
+      "name": "schematic.read",
+      "level": 3,
+      "classification": "R"
+    },
+    {
+      "name": "schematic.rebind.footprint",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "schematic.rebind.symbol",
+      "level": 4,
+      "classification": "C"
+    },
+    {
+      "name": "schematic.rename",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "schematic.save",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "schematic.select",
+      "level": 2,
+      "classification": "N"
+    },
+    {
+      "name": "schematic.text.list",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "schematic.titleblock.get",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "schematic.titleblock.modify",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "schematic.wire.create",
+      "level": 2,
+      "classification": "S"
+    },
+    {
+      "name": "system.health",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "system.notify",
+      "level": 1,
+      "classification": "R"
+    },
+    {
+      "name": "view.fit",
+      "level": 2,
+      "classification": "N"
+    },
+    {
+      "name": "view.fit_selection",
+      "level": 2,
+      "classification": "N"
+    },
+    {
+      "name": "view.region",
+      "level": 2,
+      "classification": "N"
+    },
+    {
+      "name": "view.zoom",
+      "level": 2,
+      "classification": "N"
+    }
+  ]
+}

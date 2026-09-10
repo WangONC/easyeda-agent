@@ -17,6 +17,7 @@ import (
 // Window is a read-only snapshot of a connected EasyEDA window, used by /health
 // and listings.
 type Window struct {
+	ActivationID     string           `json:"activationId"`
 	WindowID         string           `json:"windowId"`
 	ConnectorVersion string           `json:"connectorVersion"`
 	EasyEDAVersion   string           `json:"easyedaVersion"`
@@ -35,8 +36,9 @@ type Window struct {
 // writes are serialized through writeMu so dispatch goroutines can send
 // requests concurrently and safely.
 type conn struct {
-	ws      *websocket.Conn
-	writeMu sync.Mutex
+	activationID string
+	ws           *websocket.Conn
+	writeMu      sync.Mutex
 
 	mu          sync.Mutex
 	windowID    string
@@ -64,6 +66,7 @@ func (c *conn) applyRegister(msg protocol.Register, now time.Time) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.windowID = msg.WindowID
+	c.activationID = msg.ActivationID
 	c.connVersion = msg.ConnectorVersion
 	c.edaVersion = msg.EasyEDAVersion
 	c.caps = msg.Capabilities
@@ -126,6 +129,7 @@ func (c *conn) snapshot() Window {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return Window{
+		ActivationID:     c.activationID,
 		WindowID:         c.windowID,
 		ConnectorVersion: c.connVersion,
 		EasyEDAVersion:   c.edaVersion,
@@ -145,26 +149,7 @@ func (c *conn) write(ctx context.Context, v any) error {
 // dispatch sends a request to the connector and waits for the matching response
 // (correlated by request id) or until ctx is done.
 func (c *conn) dispatch(ctx context.Context, req protocol.Request) (*protocol.Response, error) {
-	ch := make(chan *protocol.Response, 1)
-	c.pendingMu.Lock()
-	c.pending[req.ID] = ch
-	c.pendingMu.Unlock()
-	defer func() {
-		c.pendingMu.Lock()
-		delete(c.pending, req.ID)
-		c.pendingMu.Unlock()
-	}()
-
-	if err := c.write(ctx, req); err != nil {
-		return nil, err
-	}
-
-	select {
-	case resp := <-ch:
-		return resp, nil
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	}
+	return nil, fmt.Errorf("V2_ACTION_NOT_MIGRATED: legacy dispatch disabled")
 }
 
 // deliver routes an inbound response to the goroutine waiting on its id.

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
 	"io"
 	"net"
 	"net/http"
@@ -45,6 +46,11 @@ type Options struct {
 // connector WebSockets on /connect, and forwards typed actions on /action.
 // Artifact storage and audit logging come later.
 type Server struct {
+	v2Session string
+	v2        *executionv2.Coordinator
+	v2Mu      sync.Mutex
+	v2Pending map[string]v2Pending
+
 	fastPlans fastPlans
 	opts      Options
 	hub       *hub
@@ -151,18 +157,21 @@ func New(opts Options) *Server {
 		writeHealth:      newWriteHealthTracker(),
 		queueBlocks:      newQueueBlockTracker(),
 	}
-	if opts.AutosaveDebounce > 0 {
-		s.autosave = newAutosaver(opts.AutosaveDebounce, s.dispatchSave)
-	}
+	s.v2Session = fmt.Sprintf("daemon-%d", time.Now().UnixNano())
+	s.v2Pending = make(map[string]v2Pending)
+	s.v2 = executionv2.New(2048, s.validateV2, s.executeV2)
+	s.v2.OnResolved(s.releaseV2)
+	s.v2.OnResult(s.consumeV2Effects)
 	return s
 }
 
 type health struct {
-	Service string   `json:"service"`
-	Version string   `json:"version"`
-	Status  string   `json:"status"`
-	Port    int      `json:"port"`
-	Windows []Window `json:"windows"`
+	V2Session string   `json:"v2_session"`
+	Service   string   `json:"service"`
+	Version   string   `json:"version"`
+	Status    string   `json:"status"`
+	Port      int      `json:"port"`
+	Windows   []Window `json:"windows"`
 	// WriteHealth is the rolling per-window forwarded-action failure window
 	// (writehealth.go): degraded=true flags a connector that is failing under
 	// load (REPORT round2 新 3 — clients should insert light reads and verify
@@ -189,6 +198,7 @@ func (s *Server) routes(port int) *http.ServeMux {
 		enc := json.NewEncoder(w)
 		enc.SetIndent("", "  ")
 		_ = enc.Encode(health{
+			V2Session:   s.v2Session,
 			Service:     Service,
 			Version:     s.opts.Version,
 			Status:      "ok",
@@ -198,13 +208,16 @@ func (s *Server) routes(port int) *http.ServeMux {
 		})
 	})
 	mux.HandleFunc("/eda", s.handleConnect)
-	mux.HandleFunc("/action", s.handleAction)
+	mux.HandleFunc("/action", rejectLegacy)
+	mux.HandleFunc("/v2/operations", s.handleV2)
+	mux.HandleFunc("/v2/operation", s.handleV2Status)
+	mux.HandleFunc("/v2/bind", s.handleV2Bind)
 	// /writeverify is 通道 B of the write-health metric (writehealth.go): a
 	// command that VERIFIED a write by reading the canvas back posts its verdict
 	// here. Not a typed action on purpose — the verdict arrives after (and often
 	// covers many of) the calls it judges, and keeping it daemon-local means the
 	// connector never needs a rebuild for it.
-	mux.HandleFunc("/writeverify", s.handleWriteVerify)
+	mux.HandleFunc("/writeverify", rejectLegacy)
 	return mux
 }
 

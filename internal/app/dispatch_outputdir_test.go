@@ -2,6 +2,7 @@ package app
 
 import (
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -38,8 +39,13 @@ func TestStripArtifactNesting(t *testing.T) {
 		t.Errorf(".easyeda without artifacts stripped: got %q, want %q", got, cfgDir)
 	}
 	// Degenerate: the pair at the filesystem root must not panic or return "".
-	if got := stripArtifactNesting(filepath.Join(sep+".easyeda", "artifacts")); got != sep {
-		t.Errorf("rooted pair: got %q, want %q", got, sep)
+	wantRoot := sep
+	// A root-relative path without a drive is not absolute on Windows.
+	if runtime.GOOS == "windows" {
+		wantRoot = "."
+	}
+	if got := stripArtifactNesting(filepath.Join(sep+".easyeda", "artifacts")); got != wantRoot {
+		t.Errorf("rooted pair: got %q, want %q", got, wantRoot)
 	}
 }
 

@@ -83,10 +83,15 @@ export class FastPath {
   }
   return { data, context, revision: state.revision };
  }
- async snapshot(n: NativePort, p: Record<string, unknown>): Promise<ActionResult> {
+ // Business snapshot boundary: V2 reads data directly, never an ActionResult.
+ async snapshotData(n: NativePort, p: Record<string, unknown>) {
   if (this.activeBatch) failure('FAST_STATE_BUSY');
   const s = await this.observe(n, p);
-  return { context: s.context, result: { ...s.data, board_revision: s.revision, native_api_call_count: n.calls } };
+  return { context: s.context, data: { ...s.data, board_revision: s.revision, native_api_call_count: n.calls } };
+ }
+ async snapshot(n: NativePort, p: Record<string, unknown>): Promise<ActionResult> {
+  const s = await this.snapshotData(n, p);
+  return { context: s.context, result: s.data };
  }
  async apply(n: NativePort, p: Record<string, unknown>): Promise<ActionResult> {
   if (p.dryRun === true) failure('INVALID_DRY_RUN');

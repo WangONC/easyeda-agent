@@ -26,6 +26,8 @@ func isolate(t *testing.T) (home string) {
 	t.Helper()
 	home = t.TempDir()
 	t.Setenv("HOME", home)
+	// os.UserHomeDir uses USERPROFILE on Windows. Keep installed real skills out of the fixture.
+	t.Setenv("USERPROFILE", home)
 	t.Setenv("EASYEDA_SKILLS_DIR", "")
 	t.Setenv("PATH", "")
 	t.Chdir(t.TempDir())

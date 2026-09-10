@@ -181,7 +181,8 @@ func TestRoutingTelemetryDefaultUnchanged(t *testing.T) {
 		if err := pcbReportScoped(cfg, "w1", payload, &out, &stderr); err != nil {
 			t.Fatal(err)
 		}
-		if out.String() != `{"ok":true,"result":{"nets":[],"units":"mil"}}`+"\n" {
+		var envelope map[string]any
+		if json.Unmarshal(out.Bytes(), &envelope) != nil || !reflect.DeepEqual(envelope["result"], map[string]any{"nets": []any{}, "units": "mil"}) || envelope["execution"] == nil {
 			t.Fatal(out.String())
 		}
 	}

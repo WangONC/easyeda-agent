@@ -15,7 +15,7 @@
  *   2. **每一条响应都带顺序证据**(seq / seqAbandoned / unordered)。
  *
  * 改造前用同一套装置跑出来的基线(2026-08-20):
- *      ENTER slow.write → ENTER fast.read → EXIT fast.read → EXIT slow.write
+ *      ENTER pcb.component.modify → ENTER pcb.components.list → EXIT pcb.components.list → EXIT pcb.component.modify
  *      响应顺序 req-fast, req-slow      ← 读在写 settle 之前就被服务了
  */
 
@@ -53,7 +53,7 @@ const events: string[] = [];
 const actions = require('./actions') as { runAction: unknown };
 actions.runAction = async (action: string): Promise<{ result: Record<string, unknown> }> => {
 	events.push(`enter ${action}`);
-	if (action === 'slow.write') {
+	if (action === 'pcb.component.modify') {
 		await new Promise((r) => setTimeout(r, 150));
 	}
 	events.push(`exit ${action}`);
@@ -79,9 +79,9 @@ test('transport:同 tick 到达的动作按到达顺序串行,响应带顺序证
 	events.length = 0;
 
 	// 同一个 tick 连发三条:一条慢写、一条旁路诊断读、一条快读。
-	onMessage({ data: JSON.stringify({ type: 'request', id: 'req-slow', action: 'slow.write', timeoutMs: 20000 }) });
+	onMessage({ data: JSON.stringify({ type: 'request', id: 'req-slow', action: 'pcb.component.modify', timeoutMs: 20000 }) });
 	onMessage({ data: JSON.stringify({ type: 'request', id: 'req-bypass', action: 'document.current', timeoutMs: 20000 }) });
-	onMessage({ data: JSON.stringify({ type: 'request', id: 'req-fast', action: 'fast.read', timeoutMs: 20000 }) });
+	onMessage({ data: JSON.stringify({ type: 'request', id: 'req-fast', action: 'pcb.components.list', timeoutMs: 20000 }) });
 
 	await sleep(500);
 
@@ -92,9 +92,9 @@ test('transport:同 tick 到达的动作按到达顺序串行,响应带顺序证
 		assert.notEqual(i, -1, `时间线里没有 ${what}:${events.join(' | ')}`);
 		return i;
 	};
-	assert.ok(at('enter fast.read') > at('exit slow.write'),
+	assert.ok(at('enter pcb.components.list') > at('exit pcb.component.modify'),
 		`FIFO 上的读绝不能在写 settle 之前开跑:${events.join(' | ')}`);
-	assert.ok(at('exit document.current') < at('exit slow.write'),
+	assert.ok(at('exit document.current') < at('exit pcb.component.modify'),
 		`旁路必须能在队首还在跑时给出答案(wedge 期唯一的观测手段):${events.join(' | ')}`);
 
 	const responses = sent.filter((f) => f.type === 'response');
@@ -108,7 +108,7 @@ test('transport:同 tick 到达的动作按到达顺序串行,响应带顺序证
 	assert.equal(byId.get('req-slow')?.seq, 1);
 	assert.equal(byId.get('req-slow')?.unordered, undefined);
 	assert.equal(byId.get('req-fast')?.seq, 2,
-		'fast.read 的 seq 必须严格大于 slow.write —— 这就是「读的 handler 在写 settle 之后才开跑」的可传输形式');
+		'pcb.components.list 的 seq 必须严格大于 pcb.component.modify —— 这就是「读的 handler 在写 settle 之后才开跑」的可传输形式');
 	for (const r of responses) {
 		assert.equal(r.seqAbandoned, 0, '本用例没有任何动作被放弃');
 	}

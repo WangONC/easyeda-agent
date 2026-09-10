@@ -182,11 +182,11 @@ func stageNextStep(st *workflow.State, missing []string, project string) string 
 }
 
 // maybeInvalidateStage clears downstream workflow confirmations after a
-// successful placement/outline mutation, catalog-driven. The cleared stages are
+// possibly applied placement/outline mutation, catalog-driven. The cleared stages are
 // surfaced as a response warning so every client sees what its edit invalidated.
 func (s *Server) maybeInvalidateStage(req *protocol.Request, resp *protocol.Response) {
 	stg, ok := invalidatesForAction[req.Action]
-	if !ok || resp == nil || !resp.OK {
+	if !ok || !protocol.PossibleMutation(req, resp) {
 		return
 	}
 	cleared := workflow.InvalidateAll(s.stageKeyCandidates(req), stg, "action "+req.Action)

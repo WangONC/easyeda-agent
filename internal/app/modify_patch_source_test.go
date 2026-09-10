@@ -42,7 +42,7 @@ func TestModifyPatchFile(t *testing.T) {
 				cmd.SetErr(io.Discard)
 				cmd.SetArgs(append([]string{"modify", "--id", "p1", "--patch-file", path}, tc.extra...))
 				err := cmd.Execute()
-				if (err != nil) != tc.wantErr {
+				if (tc.wantErr && err == nil) || (!tc.wantErr && err != errActionFailed) {
 					t.Fatalf("error = %v, wantErr %v", err, tc.wantErr)
 				}
 				captured.mu.Lock()

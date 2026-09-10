@@ -1,3 +1,4 @@
+import { validateContract, interpret } from './execution';
 /**
  * WebSocket transport between this connector and the easyeda-agent Go daemon.
  *
@@ -904,7 +905,11 @@ async function handleRequest(request: RequestFrame): Promise<void> {
 		id: request.id,
 		timeoutMs: request.timeoutMs,
 		bypass: isBypassAction(request.action),
-		run: () => runAction(request.action, request.payload),
+		run: () => {
+   const issue = validateContract(request);
+   if (issue) throw new ActionError(issue, 'Execution contract refused before native calls.');
+   return runAction(request.action, request.payload);
+  },
 	});
 
 	let response: ResponseFrame;
@@ -957,7 +962,9 @@ async function handleRequest(request: RequestFrame): Promise<void> {
 			break;
 	}
 
-	// 顺序证据挂在**每一条**响应上,包括失败与旁路的。
+	response.execution = interpret(request, response, outcome.status === 'overflow' || !!validateContract(request));
+
+ // 顺序证据挂在**每一条**响应上,包括失败与旁路的。
 	response.seq = outcome.stamp.seq;
 	response.seqAbandoned = outcome.stamp.seqAbandoned;
 	if (outcome.stamp.unordered) {

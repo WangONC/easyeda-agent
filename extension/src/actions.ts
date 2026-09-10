@@ -1,3 +1,4 @@
+import { validateContract } from './execution';
 import { SOURCE_KEY, sourceAsset, sourceReceipt, resolveSource, sourceStorageKey } from './component-source';
 import { manufacturingExport } from './manufacturing';
 import { refreshPlanes, logicalPlaneId } from './plane-lifecycle';
@@ -11899,7 +11900,9 @@ export async function runAction(
 	action: string,
 	payload: Record<string, unknown> | undefined,
 ): Promise<ActionResult> {
-	const handler = HANDLERS[action];
+	const contractIssue = validateContract({action, payload});
+ if (contractIssue) throw new ActionError(contractIssue, 'Execution contract refused before native calls.');
+ const handler = HANDLERS[action];
 	if (!handler) {
 		throw new ActionError(ErrorCodes.UNKNOWN_ACTION, `Unknown action "${action}".`);
 	}

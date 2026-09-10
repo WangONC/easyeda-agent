@@ -81,7 +81,7 @@ func TestBoardRebind_WiresActionAndPayload(t *testing.T) {
 	cmd.SetArgs([]string{"rebind", "--name", "Board1", "--schematic", "sch1", "--pcb", "pcb1", "--force"})
 	cmd.SetOut(&stdout)
 	cmd.SetErr(&stderr)
-	if err := cmd.Execute(); err != nil {
+	if err := cmd.Execute(); err != errActionFailed {
 		t.Fatalf("execute: %v (stderr=%s)", err, stderr.String())
 	}
 
@@ -115,7 +115,7 @@ func TestBoardRebind_OmitsUnsetFields(t *testing.T) {
 	cmd.SetArgs([]string{"rebind", "--schematic", "sch1"})
 	cmd.SetOut(&stdout)
 	cmd.SetErr(&stderr)
-	if err := cmd.Execute(); err != nil {
+	if err := cmd.Execute(); err != errActionFailed {
 		t.Fatalf("execute: %v (stderr=%s)", err, stderr.String())
 	}
 

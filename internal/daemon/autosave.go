@@ -28,30 +28,13 @@ var mutatesAction = func() map[string]bool {
 	return m
 }()
 
-// dryRunPayloadField is the payload key every dry-runnable action uses to mark a
-// request as a PREVIEW. It is a project-wide convention, not a per-action one:
-// the actions that forward a preview flag to the connector (pcb.page.clear,
-// schematic.page.clear, pcb.beautify) all send exactly `dryRun`, and every other
-// `--dry-run` CLI flag (mount-holes / power-planes / pour-fit / route-short /
-// autoconnect …) short-circuits inside the CLI and never dispatches a mutating
-// action at all. Keeping one key means the daemon needs no per-action catalog
-// entry to tell a preview from a write (issue #112).
-const dryRunPayloadField = "dryRun"
-
-// isDryRunRequest reports whether a request is a preview that changes nothing.
-// Strictly a JSON `true` — an unparseable/absent flag counts as a real write,
-// which is the safe direction to err (a missed preview only costs a redundant
-// save; a misread write would lose the safety net entirely).
+// Only a catalog-declared preview can suppress mutation tracking. An arbitrary
+// dryRun field on a legacy writer is rejected by the execution contract.
 func isDryRunRequest(req *protocol.Request) bool {
 	if req == nil {
 		return false
 	}
-	v, ok := req.Payload[dryRunPayloadField]
-	if !ok {
-		return false
-	}
-	b, _ := v.(bool)
-	return b
+	return protocol.Preview(req)
 }
 
 // requestMutates reports whether a request actually changes the document: the

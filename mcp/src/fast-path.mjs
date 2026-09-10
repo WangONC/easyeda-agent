@@ -1,3 +1,4 @@
+import { contractFor } from './execution.generated.mjs';
 // Dedicated schemas for the three frozen Fast Path operations. Domain tools remain compatible.
 export const FAST_ACTIONS = {
  easyeda_board_snapshot_compact: 'board.snapshot_compact',
@@ -10,12 +11,13 @@ const strings = { type: 'array', items: string };
 const point = { type: 'array', items: number, minItems: 2, maxItems: 2 };
 const route = { type: 'object', properties: { net: string, layer: { type: 'integer' }, width: number, arc_angle: {type:'number',enum:[-90,90],description:'Optional signed quarter-circle; exactly two endpoints.'}, points: { type: 'array', items: point, minItems: 2 } }, required: ['net','layer','width','points'], additionalProperties: false };
 const via = { type: 'object', properties: { net: string, x: number, y: number, diameter: number, hole: number, from_layer: { type: 'integer' }, to_layer: { type: 'integer' } }, required: ['net','x','y','diameter','hole','from_layer','to_layer'], additionalProperties: false };
+const operationTypes = contractFor('route.apply_batch').operations;
 const operation = { oneOf: [
  { ...route, properties: { ...route.properties, type: { const: 'add_trace' }, points: { type: 'array', items: point, minItems: 2, maxItems: 2 } }, required: ['type', ...route.required] },
  { ...route, properties: {...route.properties,type:{const:'add_arc'},points:{type:'array',items:point,minItems:2,maxItems:2}},required:['type','arc_angle',...route.required] },
  { ...via, properties: { ...via.properties, type: { const: 'add_via' } }, required: ['type', ...via.required] },
- { type: 'object', properties: { type: { enum: ['delete_trace','delete_via'] }, id: string }, required: ['type','id'], additionalProperties: false },
-] };
+ { type: 'object', properties: { type: { enum: operationTypes.filter(type=>type.startsWith('delete_')) }, id: string }, required: ['type','id'], additionalProperties: false },
+].filter(schema => !schema.properties.type.const || operationTypes.includes(schema.properties.type.const)) };
 const props = {
  'board.snapshot_compact': { nets: strings, bbox: { type:'array',items:number,minItems:4,maxItems:4 }, layers: {type:'array',items:{type:'integer'}}, include: {type:'object',properties:Object.fromEntries(['components','pads','traces','vias','fills'].map(k=>[k,{type:'boolean'}])),additionalProperties:false} },
  'route.preflight': { base_revision: string, profile_id: {...string,description:'Explicit reviewed stackup-bound routing profile; must be MANUFACTURER_VERIFIED (reviewed evidence bound to observable rules/layers) or separately accepted HOST_VERIFIED, and match route layer/width. Host physical getters unavailable on EDA 3.2 do not invalidate manufacturer evidence.'}, routes:{type:'array',items:route}, vias:{type:'array',items:via}, delete_ids:strings, protected_nets:strings, clearance_profile:{type:'object',properties:Object.fromEntries(['clearance','min_width','min_hole','min_diameter','min_annulus'].map(k=>[k,number])),required:['clearance','min_width','min_hole','min_diameter','min_annulus'],additionalProperties:false} },
@@ -34,12 +36,11 @@ export function fastInput(input) {
  return {project,doc,window,payload};
 }
 export function compactFastResult(execution) {
- // Preserve the structured failure result even when CLI exits nonzero.
- let value = execution.ok ? execution.result : execution.error?.stdout;
+ const value = execution.ok ? execution.result : execution.error?.stdout ?? execution.error;
  if (!value || typeof value !== 'object') return execution;
- if (value.result && typeof value.result === 'object') {
-  value={...value.result,...(value.error?{error:value.error}:{}),...(value.staleRisk?{stale_risk:value.staleRisk}:{})};
- }
- const ok = execution.ok && value.ok !== false && (!value.status || value.status==='complete');
+ // Compact JSON spacing is sufficient; never strip the evidence envelope.
+ const status = value.result?.status ?? value.status;
+ const satisfied = value.execution?.request_satisfied;
+ const ok = satisfied !== undefined ? satisfied === true : execution.ok && value.ok !== false && value.result?.ok !== false && (!status || status === 'complete');
  return ok ? {ok:true,result:value} : {ok:false,error:value};
 }

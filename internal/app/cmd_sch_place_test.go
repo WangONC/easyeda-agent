@@ -91,7 +91,7 @@ func TestSchPlace_WiresDesignator(t *testing.T) {
 	cmd.SetArgs([]string{"place", "--lib", "lib1", "--uuid", "dev1", "--x", "100", "--y", "200", "--designator", "R12"})
 	cmd.SetOut(&stdout)
 	cmd.SetErr(&stderr)
-	if err := cmd.Execute(); err != nil {
+	if err := cmd.Execute(); err != errActionFailed {
 		t.Fatalf("execute: %v (stderr=%s)", err, stderr.String())
 	}
 
@@ -116,7 +116,7 @@ func TestSchPlace_OmitsDesignatorWhenUnset(t *testing.T) {
 	cmd.SetArgs([]string{"place", "--lib", "lib1", "--uuid", "dev1", "--x", "100", "--y", "200"})
 	cmd.SetOut(&stdout)
 	cmd.SetErr(&stderr)
-	if err := cmd.Execute(); err != nil {
+	if err := cmd.Execute(); err != errActionFailed {
 		t.Fatalf("execute: %v (stderr=%s)", err, stderr.String())
 	}
 

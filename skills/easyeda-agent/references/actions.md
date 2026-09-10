@@ -159,3 +159,24 @@ Playbook 使用 `version:1`、`meta` 和有序 `steps`。每步只选一种执�
 
 - `pcb.component.attrs_backfill` — **PCB 器件属性回填（器件标准化 PCB 侧）**。平台 sch→PCB 导入把 otherProperty 建成**键在值空**（Value/耐压/精度/Datasheet 全 ""），且原理图实例属性值 save/reload 后同样为空（不可作源）——唯一稳定源是 **device 库记录**：按实例 C 号 `getByLcscIds` 解析，只填 PCB 侧空值键（手改值优先，`--overwrite` 强制），全程 PCB 前台。无 C 号器件跳过并报告。`pcb import-changes` 成功后**自动跑**（`--no-sync-attrs` 关）。⚠️ **平台投影键绝不参与 merge**（`Designator`/`Unique ID`/`Name`/`Add into BOM`/`Manufacturer*`/`Supplier*`——它们存在顶层图元状态；库记录的 `Designator:"C?"` 占位键灌进实例会被平台同步成图元位号,一板位号全灭 = 166/166 U? 事故真因,2026-08-09 根治）。CLI：`easyeda pcb sync-attrs [--overwrite]`
 - `pcb sync-designators`（`pcb.components.list` + `pcb.component.modify` 编排,无新 action）— **修占位位号**（`U?`/`C?`）：按 `uniqueId`（平台首次导入铸造、跨文档同一命名空间）从原理图回填。只动占位符（手设真实位号绝不覆盖）；每笔回读验证；修完立落 `pcb.save` 检查点；原理图侧同为占位符的件归类「先标注原理图」。`--dry-run`/`--json`（Failed>0 非零退出）。`import-changes` 后自动**殿后**跑（在 attrs 之后,`--no-sync-designators` 关）。CLI：`easyeda pcb sync-designators`
+
+
+## Execution Contract（Stage A）
+
+ActionSpec 的 contract 是正式定义；Connector/MCP 使用由它生成并校验的投影。
+当前所有 action 的 autonomous_eligibility 均为 EXCLUDED；合同字段不是 Host 资格证据。
+
+调用层 ok 与 execution.mutation_outcome 分开读取：NO_WRITE、COMPLETE、PARTIAL、UNCERTAIN。
+没有完整证据的 legacy 写入是 UNCERTAIN，不能以 ok=true 或 verified=true 单独判定完成。
+直接 CLI 的退出码与 MCP isError 按 execution.request_satisfied 解释，并保留原始 result/error。
+Fast 原 status、item_results、IDs、revision、rollback 和 telemetry 保留；历史 duplicate receipt
+不能用作当前新鲜读回。部分失败和不确定结果先对账，禁止换 transaction ID 盲重发。
+
+内部 legacy CLI 复合步骤仍保留原来的调用错误语义，使已有独立读回/补偿可以完成；
+它们拿到的 execution 不因此变成完整，最终复合工作流也不因此获得 autonomous 资格。
+纯读取沿用调用兼容语义，UNAVAILABLE/PARTIAL 的验证摘要不代表 DRC PASS 或完整库存。
+保存确认不代表重开验证，artifact 路径/hash 不代表制造源一致性。
+
+仅 catalog 声明 preview 的 action 支持 payload.dryRun=true；其他 action 执行前拒绝。
+显式合同版本/hash 不匹配或执行入口不承接时也拒绝。CLI_COMPOSITE 不允许 raw daemon
+/action 盲转 Connector。writeHealth/writeverify 仍是同一个有界统计通道，不授予恢复许可。

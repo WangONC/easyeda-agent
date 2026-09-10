@@ -1,0 +1,282 @@
+{
+  "stage": "A — Execution Contract",
+  "qualification": "OFFLINE_ONLY",
+  "baseline": "a583bf731d946d2d39f1223e078d711bd41710d5",
+  "branch": "main",
+  "host_mutations": 0,
+  "production_autonomous_enabled": false,
+  "catalog_actions": 151,
+  "shared_fixture_cases": 46,
+  "toolchain": {
+    "go": "go1.26.8 windows/amd64",
+    "node": "v22.14.0",
+    "npm": "11.19.1"
+  },
+  "changed_files": [
+    "docs/STAGE_A_EXECUTION_CONTRACT.md",
+    "docs/STAGE_A_TEST_RESULTS.json",
+    "extension/src/action-contracts.json",
+    "extension/src/actions.ts",
+    "extension/src/execution.test.ts",
+    "extension/src/execution.ts",
+    "extension/src/protocol.ts",
+    "extension/src/transport-fifo.test.ts",
+    "extension/src/transport.ts",
+    "internal/app/cmd_board_test.go",
+    "internal/app/cmd_sch_place_test.go",
+    "internal/app/disabled_actions_test.go",
+    "internal/app/dispatch.go",
+    "internal/app/execution_test.go",
+    "internal/app/modify_patch_source_test.go",
+    "internal/app/pcb_routing_telemetry_test.go",
+    "internal/app/project_create_test.go",
+    "internal/daemon/audit.go",
+    "internal/daemon/autosave.go",
+    "internal/daemon/dispatch.go",
+    "internal/daemon/execution_test.go",
+    "internal/daemon/fastpath.go",
+    "internal/daemon/fastpath_test.go",
+    "internal/daemon/stagegate.go",
+    "internal/daemon/stalereads.go",
+    "internal/daemon/writehealth.go",
+    "internal/protocol/actions.go",
+    "internal/protocol/cmd/contractgen/main.go",
+    "internal/protocol/envelope.go",
+    "internal/protocol/execution.go",
+    "internal/protocol/execution_test.go",
+    "internal/protocol/testdata/execution.json",
+    "mcp/src/authoring-result.mjs",
+    "mcp/src/execution.generated.mjs",
+    "mcp/src/fast-path.mjs",
+    "mcp/src/server.mjs",
+    "mcp/test/authoring-result.test.mjs",
+    "mcp/test/execution.test.mjs",
+    "mcp/test/fast-path.test.mjs",
+    "scripts/generate-execution-mcp.cjs",
+    "skills/easyeda-agent/references/actions.md"
+  ],
+  "tests": [
+    {
+      "command": "go test ./...",
+      "result": "FAIL",
+      "note": "Unfiltered run; four Windows failures, all independently reproduced at the requested baseline. No claim of an all-green unfiltered suite.",
+      "path": ".easyeda/stage-a-go-all.log",
+      "sha256": "ab55c447eb591c7d956a7d5ab0f4e369207f928991e17b5d40977308b5dffdb0",
+      "tail": [
+        "",
+        "FAIL",
+        "FAIL\tgithub.com/zhoushoujianwork/easyeda-agent/internal/app\t43.131s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/blocks\t0.605s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/connectivity\t0.948s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/daemon\t2.961s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/fastpath\t1.257s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/pcb/svgimport\t2.200s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/protocol\t(cached)",
+        "?   \tgithub.com/zhoushoujianwork/easyeda-agent/internal/protocol/cmd/contractgen\t[no test files]",
+        "--- FAIL: TestUpdateCLIReplacesBinaryAndVerifiesChecksum (0.01s)",
+        "    cli_test.go:122: replacement is not executable (mode -rw-rw-rw-)",
+        "FAIL",
+        "FAIL\tgithub.com/zhoushoujianwork/easyeda-agent/internal/selfupdate\t5.121s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/spec\t1.459s",
+        "?   \tgithub.com/zhoushoujianwork/easyeda-agent/internal/version\t[no test files]",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/workflow\t0.751s",
+        "FAIL"
+      ]
+    },
+    {
+      "command": "go test ./... -skip '^(TestStripArtifactNesting|TestResolveEnrichScriptPriority|TestResolveEnrichScriptNotFoundListsProbedPaths|TestUpdateCLIReplacesBinaryAndVerifiesChecksum)$'",
+      "result": "PASS",
+      "exit_code": 0,
+      "path": ".easyeda/stage-a-go-final.log",
+      "sha256": "9ab4e4f7515e1baecfa93bc85c22f517233b995ea3ead826666aafda0c404bf6",
+      "tail": [
+        "?   \tgithub.com/zhoushoujianwork/easyeda-agent/cmd/easyeda\t[no test files]",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/apidoc\t(cached)",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/app\t49.398s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/blocks\t(cached)",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/connectivity\t(cached)",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/daemon\t1.561s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/fastpath\t(cached)",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/pcb/svgimport\t(cached)",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/protocol\t0.698s",
+        "?   \tgithub.com/zhoushoujianwork/easyeda-agent/internal/protocol/cmd/contractgen\t[no test files]",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/selfupdate\t(cached)",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/spec\t(cached)",
+        "?   \tgithub.com/zhoushoujianwork/easyeda-agent/internal/version\t[no test files]",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/workflow\t(cached)"
+      ]
+    },
+    {
+      "command": "go test ./internal/app -skip '^(TestStripArtifactNesting|TestResolveEnrichScriptPriority|TestResolveEnrichScriptNotFoundListsProbedPaths)$'",
+      "result": "PASS",
+      "exit_code": 0,
+      "note": "Final CLI preview pre-network guard and error message changes.",
+      "path": ".easyeda/stage-a-app-final.log",
+      "sha256": "b10c8bc71a3e732faf32e1bc44b965cca7f1eb5c5f0378bf308500fa217e1b1c",
+      "tail": [
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/app\t49.647s"
+      ]
+    },
+    {
+      "command": "go test ./internal/protocol ./internal/daemon",
+      "result": "PASS",
+      "exit_code": 0,
+      "note": "Also run repeatedly during final contract/native-settle checks.",
+      "path": ".easyeda/stage-a-final-contract.log",
+      "sha256": "02ceac09456f1f380a38624795e8d157ab10a1f17f2d4e16982b16a86bec47cf",
+      "tail": [
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/protocol\t0.634s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/daemon\t1.628s"
+      ]
+    },
+    {
+      "command": "go test ./internal/app -run ^TestCLIExecutionFixtureParity$",
+      "result": "PASS",
+      "exit_code": 0,
+      "path": ".easyeda/stage-a-cli-final.log",
+      "sha256": "907660d554816eb6e2405020ceb362a97ec8848f2262c5f6aac8685f1f7c04e6",
+      "tail": [
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/app\t1.669s"
+      ]
+    },
+    {
+      "command": "npm --prefix extension run typecheck",
+      "result": "PASS",
+      "exit_code": 0,
+      "path": ".easyeda/stage-a-typecheck-final.log",
+      "sha256": "73cdf70247e975272156bf142e5925d20389cb3ea60afdd201dc9fb44c4da341",
+      "tail": [
+        "> easyeda-agent-connector@1.4.15 typecheck",
+        "> tsc --noEmit"
+      ]
+    },
+    {
+      "command": "npm --prefix extension test",
+      "result": "PASS",
+      "exit_code": 0,
+      "tests": 389,
+      "passed": 389,
+      "failed": 0,
+      "skipped": 0,
+      "path": ".easyeda/stage-a-extension-final.log",
+      "sha256": "719e994d85503a06f946e2fa17415d8709bb670643f8f5d08ff60f067cdd4785",
+      "tail": [
+        "ok 383 - native footprint source: refuses source in an ATTR instead of META",
+        "  ---",
+        "  duration_ms: 0.1418",
+        "  ...",
+        "# Subtest: native footprint source: refuses multiple source documents",
+        "ok 384 - native footprint source: refuses multiple source documents",
+        "  ---",
+        "  duration_ms: 0.1492",
+        "  ...",
+        "1..384",
+        "# tests 389",
+        "# suites 0",
+        "# pass 389",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 20922.2226"
+      ]
+    },
+    {
+      "command": "go build -o .easyeda/stage-a-easyeda.exe ./cmd/easyeda; EASYEDA_BIN=<absolute test binary> npm --prefix mcp test",
+      "result": "PASS_WITH_HOST_SKIP",
+      "exit_code": 0,
+      "tests": 70,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 1,
+      "skip_reason": "real Host MCP compact snapshot and scoped report; Host qualification not run",
+      "path": ".easyeda/stage-a-mcp-final.log",
+      "sha256": "3f7ae9f2f8a1d826633b298b2944f7e737ca2db215301c3e4fdc9eb23452949c",
+      "tail": [
+        "ok 69 - reload is a fixed CLI recovery operation, not an arbitrary script",
+        "  ---",
+        "  duration_ms: 0.1583",
+        "  ...",
+        "# Subtest: default CLI is the repository formal binary, never PATH or a test build",
+        "ok 70 - default CLI is the repository formal binary, never PATH or a test build",
+        "  ---",
+        "  duration_ms: 0.3602",
+        "  ...",
+        "1..70",
+        "# tests 70",
+        "# suites 0",
+        "# pass 69",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 1",
+        "# todo 0",
+        "# duration_ms 3549.2925"
+      ]
+    },
+    {
+      "command": "node scripts/generate-execution-mcp.cjs --check",
+      "result": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "D:/Environment/miniconda3/python.exe scripts/pack-skill.py --check",
+      "result": "PASS",
+      "exit_code": 0,
+      "path": ".easyeda/stage-a-skill-check.log",
+      "sha256": "f5cb43343b02e06e9882dbcbd47e7fe6e0b821bfc3c015d47a807aff6f47a792",
+      "tail": [
+        "Skill package check passed: 58 tracked files; local links stay inside the installed skill"
+      ]
+    },
+    {
+      "command": "go test ./internal/app -run 'TestStripArtifactNesting|TestResolveEnrichScript'",
+      "cwd": ".easyeda/stage-a-baseline",
+      "source_commit": "a583bf731d946d2d39f1223e078d711bd41710d5",
+      "result": "FAIL_REPRODUCED_BASELINE",
+      "path": ".easyeda/stage-a-baseline-windows.log",
+      "sha256": "688946567e5ba72668046cb7ad374421a7bcc204c6bdb6099fdbd36c97e24be2",
+      "tail": [
+        "          E:\\Cache\\Temp\\go-build1615671274\\b001\\skills\\easyeda-schematic\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\go-build1615671274\\skills\\easyeda-agent\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\go-build1615671274\\skills\\easyeda-schematic\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\skills\\easyeda-agent\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\skills\\easyeda-schematic\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\skills\\easyeda-agent\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\skills\\easyeda-schematic\\scripts\\bom-enrich.py",
+        "          E:\\skills\\easyeda-agent\\scripts\\bom-enrich.py",
+        "          E:\\skills\\easyeda-schematic\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\TestResolveEnrichScriptNotFoundListsProbedPaths1751586501\\002\\skills\\easyeda-agent\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\TestResolveEnrichScriptNotFoundListsProbedPaths1751586501\\002\\skills\\easyeda-schematic\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\TestResolveEnrichScriptNotFoundListsProbedPaths1751586501\\skills\\easyeda-agent\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\TestResolveEnrichScriptNotFoundListsProbedPaths1751586501\\skills\\easyeda-schematic\\scripts\\bom-enrich.py",
+        "          $PATH/bom-enrich.py",
+        "        pass --script /path/to/bom-enrich.py, set EASYEDA_SKILLS_DIR to your skills root, or install the skill (`easyeda skill sync --create-missing`)",
+        "FAIL",
+        "FAIL\tgithub.com/zhoushoujianwork/easyeda-agent/internal/app\t1.490s",
+        "FAIL"
+      ]
+    },
+    {
+      "command": "go test ./internal/selfupdate -run ^TestUpdateCLIReplacesBinaryAndVerifiesChecksum$",
+      "cwd": ".easyeda/stage-a-baseline",
+      "source_commit": "a583bf731d946d2d39f1223e078d711bd41710d5",
+      "result": "FAIL_REPRODUCED_BASELINE",
+      "path": ".easyeda/stage-a-baseline-selfupdate.log",
+      "sha256": "977571360f321e44ef5fe3a58c04a82484ebecfce9e2a14098f73ac3f68220da",
+      "tail": [
+        "--- FAIL: TestUpdateCLIReplacesBinaryAndVerifiesChecksum (0.01s)",
+        "    cli_test.go:122: replacement is not executable (mode -rw-rw-rw-)",
+        "FAIL",
+        "FAIL\tgithub.com/zhoushoujianwork/easyeda-agent/internal/selfupdate\t0.902s",
+        "FAIL"
+      ]
+    }
+  ],
+  "implementation_notes": [
+    "Go/TS share fixtures; MCP adapter is generated from TS, catalog generated from AllActions.",
+    "Legacy internal CLI composite steps retain invocation error semantics and expose execution/raw evidence; they do not become autonomous-safe.",
+    "Existing audit Append has no fsync/durable write-ahead intent; implementation deferred to B.",
+    "No Host process was updated or activated.",
+    "Original untracked hardening plan is preserved and excluded from this candidate commit."
+  ]
+}

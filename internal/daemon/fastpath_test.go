@@ -175,15 +175,16 @@ func TestFastQueueRefusalVersusAbandon(t *testing.T) {
 			if e != nil || resp.OK || resp.Error.Code != code {
 				t.Fatal(resp, e)
 			}
-			if code == "ACTION_ABANDONED" {
-				if resp.Result["status"] != "uncertain" {
-					t.Fatal(resp)
-				}
-			} else {
-				if resp.Result["mutation_started"] != false || resp.Result["status"] != "partial" {
-					t.Fatal(resp)
-				}
+			// Legacy error codes alone cannot establish the native write boundary.
+			// Preserve the original empty result; only execution carries uncertainty.
+			if resp.Result["status"] != nil || resp.Result["mutation_started"] != nil {
+				t.Fatal("native evidence fabricated", resp)
 			}
+			projected := protocol.Interpret(&r, resp, false)
+			if projected.MutationOutcome != protocol.Uncertain {
+				t.Fatal(projected)
+			}
+
 		})
 	}
 }

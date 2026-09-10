@@ -1,0 +1,1044 @@
+[
+  {
+    "name": "absent_true",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "native_false_true",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "value": false
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "native_undefined_true",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {}
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "verified_missing_true",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "id": "x"
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "verified_false_true",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "verified": false
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "verified_true_only_true",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "verified": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "partial_true",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "partial": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "notApplied_true",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "notApplied": [
+          "net"
+        ]
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "survivor_true",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "survivedTotal": 1
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "stale_true",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "stale"
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "absent_false",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": false
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "native_false_false",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": false,
+      "result": {
+        "value": false
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "native_undefined_false",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": false,
+      "result": {}
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "verified_missing_false",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": false,
+      "result": {
+        "id": "x"
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "verified_false_false",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": false,
+      "result": {
+        "verified": false
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "verified_true_only_false",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": false,
+      "result": {
+        "verified": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "partial_false",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": false,
+      "result": {
+        "partial": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "notApplied_false",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": false,
+      "result": {
+        "notApplied": [
+          "net"
+        ]
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "survivor_false",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": false,
+      "result": {
+        "survivedTotal": 1
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "stale_false",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": false,
+      "result": {
+        "status": "stale"
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "known_pre_dispatch_rejection",
+    "request": {
+      "id": "r",
+      "action": "pcb.line.create",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": false,
+      "result": {}
+    },
+    "before": true,
+    "want_outcome": "NO_WRITE",
+    "want_satisfied": false
+  },
+  {
+    "name": "save_false",
+    "request": {
+      "id": "r",
+      "action": "pcb.save",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "saved": false
+      }
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": false
+  },
+  {
+    "name": "save_missing",
+    "request": {
+      "id": "r",
+      "action": "pcb.save",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {}
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": false
+  },
+  {
+    "name": "save_ack",
+    "request": {
+      "id": "r",
+      "action": "pcb.save",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "saved": true
+      }
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": true
+  },
+  {
+    "name": "artifact_missing",
+    "request": {
+      "id": "r",
+      "action": "pcb.manufacturing.export",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {}
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": false
+  },
+  {
+    "name": "read_empty_available",
+    "request": {
+      "id": "r",
+      "action": "pcb.components.list",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "items": []
+      }
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": true
+  },
+  {
+    "name": "read_explicit_failure",
+    "request": {
+      "id": "r",
+      "action": "pcb.drc.check",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "ok": false
+      }
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": false
+  },
+  {
+    "name": "fast_complete",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "COMPLETE",
+    "want_satisfied": true
+  },
+  {
+    "name": "fast_false_call_complete",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": false,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "COMPLETE",
+    "want_satisfied": true
+  },
+  {
+    "name": "fast_missing_readback",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "fast_cached_complete",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "duplicate": true,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "fast_partial",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "partial",
+        "mutation_started": true,
+        "readback_verified": false,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false
+      }
+    },
+    "before": false,
+    "want_outcome": "PARTIAL",
+    "want_satisfied": false
+  },
+  {
+    "name": "fast_uncertain",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "uncertain",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "fast_stale_unknown",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "stale"
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "fast_stale_no_write",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "stale",
+        "mutation_started": false
+      }
+    },
+    "before": false,
+    "want_outcome": "NO_WRITE",
+    "want_satisfied": false
+  },
+  {
+    "name": "fast_restored",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "partial",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": true,
+        "rollback_complete": true
+      }
+    },
+    "before": false,
+    "want_outcome": "PARTIAL",
+    "want_satisfied": false
+  },
+  {
+    "name": "fast_unknown_compensation",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "uncertain",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": true,
+        "rollback_complete": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "preview",
+    "request": {
+      "id": "r",
+      "action": "pcb.page.clear",
+      "payload": {
+        "dryRun": true
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "dryRun": true,
+        "total": 3
+      }
+    },
+    "before": false,
+    "want_outcome": "NO_WRITE",
+    "want_satisfied": true
+  },
+  {
+    "name": "unsupported_preview_never_suppresses_write",
+    "request": {
+      "id": "r",
+      "action": "pcb.line.create",
+      "payload": {
+        "dryRun": true
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {}
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "fast_missing_item_results",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "fast_missing_mutation_started",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "fast_missing_created_ids",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "fast_missing_failed_index",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "fast_missing_revision_after",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "save_negative_evidence",
+    "request": {
+      "id": "r",
+      "action": "pcb.save"
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "saved": true,
+        "verified": false
+      }
+    },
+    "want_outcome": "",
+    "want_satisfied": false
+  },
+  {
+    "name": "artifact_negative_evidence",
+    "request": {
+      "id": "r",
+      "action": "pcb.manufacturing.export"
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "partial": true
+      },
+      "artifacts": [
+        {
+          "id": "a",
+          "kind": "file",
+          "path": "file",
+          "sha256": "hash"
+        }
+      ]
+    },
+    "want_outcome": "",
+    "want_satisfied": false
+  }
+]

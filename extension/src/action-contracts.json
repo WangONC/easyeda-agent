@@ -1,0 +1,5075 @@
+{
+  "board.copy": {
+    "version": "execution.v1",
+    "hash": "b51afd96180dc8f0de2c9ba8cd9b6758b4dd86375c81c4a358ab3e616cbb03d6",
+    "executor": "CONNECTOR",
+    "effects": [
+      "PROJECT_TOPOLOGY"
+    ],
+    "target_scope": "PROJECT",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [
+        "board.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "name"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "board.create": {
+    "version": "execution.v1",
+    "hash": "5cf0d0e26e2dba24266c477385298f1a94efbdecf873b52ccc8a408aa299ad31",
+    "executor": "CONNECTOR",
+    "effects": [
+      "PROJECT_TOPOLOGY"
+    ],
+    "target_scope": "PROJECT",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [
+        "board.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "schematicUuid optional",
+      "pcbUuid optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "board.current": {
+    "version": "execution.v1",
+    "hash": "d24736b797891b50130b66e488b510bf8cb33745e648a85e14087730d71f1838",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "PROJECT",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "board.delete": {
+    "version": "execution.v1",
+    "hash": "7d4ea75e131f6d71e9d3e2acfae4d5721284b976d0086b3d93fd551bbdcfe554",
+    "executor": "CONNECTOR",
+    "effects": [
+      "PROJECT_TOPOLOGY"
+    ],
+    "target_scope": "PROJECT",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "name"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "board.list": {
+    "version": "execution.v1",
+    "hash": "5af88e7f3926973963955e0d263294db07658a0c4d4a176aa94a70cb9498435b",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "PROJECT",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "board.new_pcb": {
+    "version": "execution.v1",
+    "hash": "5c3d1f95e9b61eba6ece260ced6bcab1fafe385e308735ad3694da7cd824c047",
+    "executor": "CONNECTOR",
+    "effects": [
+      "PROJECT_TOPOLOGY"
+    ],
+    "target_scope": "PROJECT",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [
+        "board.list",
+        "pcb.docs"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "schematicUuid optional (default = current board's schematic)",
+      "name optional (rename the new board)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "board.rebind": {
+    "version": "execution.v1",
+    "hash": "18ccccef546f1295a5c0a317cd358fe06fbdbe0d0eaecddc5e4e8aeac1e06ced",
+    "executor": "CONNECTOR",
+    "effects": [
+      "PROJECT_TOPOLOGY"
+    ],
+    "target_scope": "PROJECT",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [
+        "board.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "schematicUuid",
+      "pcbUuid optional",
+      "name optional (default: current board)",
+      "force optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "board.rename": {
+    "version": "execution.v1",
+    "hash": "caa018b2bafa3e3d2793e420d11408112d0f92306d5683e0348976895ea1f788",
+    "executor": "CONNECTOR",
+    "effects": [
+      "PROJECT_TOPOLOGY"
+    ],
+    "target_scope": "PROJECT",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "name",
+      "newName"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "board.snapshot_compact": {
+    "version": "execution.v1",
+    "hash": "08a95133cbf902af52429c9f228d64390a9daf7374aa8dacf76e9c40816e4b61",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "document_uuid",
+      "project_uuid",
+      "nets[] optional",
+      "bbox [minX,minY,maxX,maxY] optional (mil)",
+      "layers[] optional",
+      "include {components,pads,traces,vias,fills} optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "debug.exec_js": {
+    "version": "execution.v1",
+    "hash": "2d9018259d6e63982b3f993c26111a8eeca336206ae61bde7056274b70c9e429",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT",
+      "PROJECT_TOPOLOGY",
+      "LIBRARY_ASSET",
+      "NAVIGATION_SELECTION",
+      "NATIVE_RECOMPUTE",
+      "SAVE",
+      "ARTIFACT_DELIVERY"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "code"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "document.current": {
+    "version": "execution.v1",
+    "hash": "4d5d51a8a6083043623957f040ea9e73990e2c232f91f6d5e8a9e211f81b4020",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "document.open": {
+    "version": "execution.v1",
+    "hash": "870a2feb1d4839948ca041c66b7381c19ee5e959623e7841be85c42742eb05f4",
+    "executor": "CONNECTOR",
+    "effects": [
+      "NAVIGATION_SELECTION"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "bounded_navigation",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "uuid"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.device.create": {
+    "version": "execution.v1",
+    "hash": "505d3887a12620bc34387b9623e4e3108bad5f9d25af733498b737afe8575d29",
+    "executor": "CONNECTOR",
+    "effects": [
+      "LIBRARY_ASSET"
+    ],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [
+        "library.device.get"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "name",
+      "symbol {uuid,libraryUuid}",
+      "footprint optional {uuid,libraryUuid}",
+      "model3D optional {uuid,libraryUuid}",
+      "property optional",
+      "scope/libraryUuid optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.device.delete": {
+    "version": "execution.v1",
+    "hash": "e04d6e3f15024ea87044c5953be6fc4509d7f60a17f9e067ca0106849063bdaf",
+    "executor": "CONNECTOR",
+    "effects": [
+      "LIBRARY_ASSET"
+    ],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "uuid",
+      "libraryUuid",
+      "expectedName"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.device.get": {
+    "version": "execution.v1",
+    "hash": "b11ec4012343aae5869bcb5587aaa273b785f50593eff5e9f89edfff19eeeb50",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "uuid",
+      "libraryUuid optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.device.set_model3d": {
+    "version": "execution.v1",
+    "hash": "50032fa767a0d9de062eb13fd4954cbfd4cf617f62e1cf777f0f7eb2ca9d440c",
+    "executor": "CONNECTOR",
+    "effects": [
+      "LIBRARY_ASSET"
+    ],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "uuid",
+      "libraryUuid",
+      "expectedName",
+      "model3D {uuid,libraryUuid} OR clear=true"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.footprint.build": {
+    "version": "execution.v1",
+    "hash": "2b1f294210be5bc74a03dd7096786dd556862bc9079b5ee33c687b81433d5b6b",
+    "executor": "CONNECTOR",
+    "effects": [
+      "LIBRARY_ASSET"
+    ],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "uuid",
+      "libraryUuid",
+      "pads[] {number,layer,x,y,rotation?,shape,hole?,metallization?,padType?}",
+      "lines[] {layer,startX,startY,endX,endY,width}"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.footprint.copy": {
+    "version": "execution.v1",
+    "hash": "fc3873956c8f9d87d736f5f702420fbfe64b216426c819511ef71b1d3a17322b",
+    "executor": "CONNECTOR",
+    "effects": [
+      "LIBRARY_ASSET"
+    ],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [
+        "library.footprint.get"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "uuid",
+      "sourceLibraryUuid",
+      "name",
+      "scope/libraryUuid optional",
+      "classification optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.footprint.create": {
+    "version": "execution.v1",
+    "hash": "0ba422125a43bd9df614f5842cce95149d5e181bacc57c649d18dbdce2dc5517",
+    "executor": "CONNECTOR",
+    "effects": [
+      "LIBRARY_ASSET"
+    ],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [
+        "library.footprint.get"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "name",
+      "scope optional (personal|project)",
+      "libraryUuid optional",
+      "classification optional string[]",
+      "description optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.footprint.delete": {
+    "version": "execution.v1",
+    "hash": "9d66be7bbf625fc860bdf11f9c884066867129057830011ec151f85a356bccc0",
+    "executor": "CONNECTOR",
+    "effects": [
+      "LIBRARY_ASSET"
+    ],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "uuid",
+      "libraryUuid",
+      "expectedName"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.footprint.get": {
+    "version": "execution.v1",
+    "hash": "9fa2abeb4c069bd8cc49fa0606af49959ffa389d2ff7072e38df7d2e653feee0",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "uuid",
+      "libraryUuid optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.list": {
+    "version": "execution.v1",
+    "hash": "b71c97c701e570e35ff4688261a545b6f5015145010aac3147691699fbecedf2",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.model3d.copy": {
+    "version": "execution.v1",
+    "hash": "8938fedb1d30ed8ade50cb755a50bfa85150a73b147c524449372f5c1101e84b",
+    "executor": "CONNECTOR",
+    "effects": [
+      "LIBRARY_ASSET"
+    ],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "uuid",
+      "sourceLibraryUuid",
+      "name",
+      "scope/libraryUuid optional",
+      "classification optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.model3d.create": {
+    "version": "execution.v1",
+    "hash": "739fd21d1154ff5b3717adde31c772f096f2d74f46d08d3ee91f5c9e1145889c",
+    "executor": "CONNECTOR",
+    "effects": [
+      "LIBRARY_ASSET"
+    ],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [
+        "library.model3d.get"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "name",
+      "dataBase64",
+      "fileName optional",
+      "mimeType optional",
+      "unit optional (mm/cm/m/mil/inch)",
+      "scope/libraryUuid optional",
+      "classification optional",
+      "description optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.model3d.delete": {
+    "version": "execution.v1",
+    "hash": "9268bf1eb1c02db55ac84a4e52e8a130c95da53c4b600c3c6b069603db523345",
+    "executor": "CONNECTOR",
+    "effects": [
+      "LIBRARY_ASSET"
+    ],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "uuid",
+      "libraryUuid",
+      "expectedName"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.model3d.get": {
+    "version": "execution.v1",
+    "hash": "f7492b7bdbe4b302dca0047ffed4b6cdc606037e7a204d5519871db4ff45d6c2",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "uuid",
+      "libraryUuid optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.model3d.search": {
+    "version": "execution.v1",
+    "hash": "16bc5952baaa14a77b62f767330d1609ee5a2b1aa095967c6fbe1e92f4bc79d0",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "query",
+      "libraryUuid optional",
+      "classification optional",
+      "limit optional 1..100"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.symbol.build": {
+    "version": "execution.v1",
+    "hash": "b21ce57fdc740886f3d1ea7f023d8966a87277e2a66f61b9b19445972c77f003",
+    "executor": "CONNECTOR",
+    "effects": [
+      "LIBRARY_ASSET"
+    ],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "uuid",
+      "libraryUuid",
+      "outline[] x/y coordinates",
+      "pins[] {number,name,x,y,rotation?,length?,shape?,pinType?}",
+      "circles[] optional {centerX,centerY,radius,lineWidth?}"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.symbol.create": {
+    "version": "execution.v1",
+    "hash": "50e1808f9d4318cf518e7e739e3b4a7fd3645240a0d5c1c974aebb60931010b4",
+    "executor": "CONNECTOR",
+    "effects": [
+      "LIBRARY_ASSET"
+    ],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [
+        "library.symbol.get"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "name",
+      "scope optional",
+      "libraryUuid optional",
+      "classification optional string[]",
+      "symbolType optional",
+      "description optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.symbol.delete": {
+    "version": "execution.v1",
+    "hash": "8ac078069f970be33456a1d08ba65f457cb2660f5157c7d1418a1e5e75edd8e2",
+    "executor": "CONNECTOR",
+    "effects": [
+      "LIBRARY_ASSET"
+    ],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "uuid",
+      "libraryUuid",
+      "expectedName"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "library.symbol.get": {
+    "version": "execution.v1",
+    "hash": "5679385fd9d081a3462033b7f8e5cf13fb6789586f262ed0f191395ebbb74949",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "LIBRARY",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "uuid",
+      "libraryUuid optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.add_component": {
+    "version": "execution.v1",
+    "hash": "f0da92893e21244faa373e4878283aced77d87eacebd6c7f1594dc8888a5a14d",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.components.list",
+        "pcb.nets.list",
+        "pcb.drc.check"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "libraryUuid",
+      "uuid",
+      "x",
+      "y",
+      "layer optional (default 1=TOP)",
+      "rotation optional",
+      "designator optional",
+      "uniqueId optional",
+      "nets optional (object padNumber→net)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.align": {
+    "version": "execution.v1",
+    "hash": "e76c7eced49dc60b66d98074d442aa2461434977b628582d3461b239bedc9bcb",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "mode",
+      "primitiveIds optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.beautify": {
+    "version": "execution.v1",
+    "hash": "1e0d69c478940308ea93026a6d946d74b8748082639e00ac9378028c3c192309",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "preview",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.line.list",
+        "pcb.drc.check",
+        "pcb.snapshot"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "scope (all|selected, default all)",
+      "net optional (single) OR nets optional ([]string — beautify only these nets)",
+      "layer optional",
+      "cornerRadiusRatio optional (default 3)",
+      "forceArc optional (default false)",
+      "mergeTransitionSegments optional (default false)",
+      "protect optional (diff/equal-length, default true)",
+      "drc optional (default true)",
+      "drcRetryCount optional (default 4)",
+      "rebuildPour optional (default true)",
+      "dryRun optional (default false)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.board.info": {
+    "version": "execution.v1",
+    "hash": "b63d37cf834699ade9425a6bd32d255d88ccf61a864806e4ac74b1eb1213f449",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.clear_routing": {
+    "version": "execution.v1",
+    "hash": "634f761f17eeb93d8a67d26058875192beae03485fd370b8a143fbf0ee7de927",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "type optional (all|net|connection, default all)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.component.attrs_backfill": {
+    "version": "execution.v1",
+    "hash": "e34235ae5545f91b56210db42bf37fedb45fece66530552d748766f69ecb61b7",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "overwrite optional (default false)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.component.delete": {
+    "version": "execution.v1",
+    "hash": "5fde4c610fc479c351d904618a392bdd4cd0505c058b69d34beaa6c1497e1cc2",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveIds"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.component.lock": {
+    "version": "execution.v1",
+    "hash": "8b260afb7b30a4d07c02ffcb121428a463ebdc2b683e0320e4c962f86e4f0612",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveIds (string or string[])",
+      "locked optional (default true)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.component.modify": {
+    "version": "execution.v1",
+    "hash": "d346a09f4476a8b726261389f608506443ee6873681bef0eb379c50f8cb7fa19",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveId",
+      "patch"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.components.arrange": {
+    "version": "execution.v1",
+    "hash": "aa88ecbb41db076f867cf24a1f4a758b237f0d5e0c58705020cc7eeec692888b",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "mode optional (cluster|grid, default cluster)",
+      "primitiveIds optional",
+      "pitch optional",
+      "gutter optional",
+      "cols optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.components.list": {
+    "version": "execution.v1",
+    "hash": "4de3d32c103b89ed09a31557fdecebc49908e09481ba10eeafa52470aaca1cd0",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "layer optional",
+      "includeBBox optional",
+      "includePads optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.components.move": {
+    "version": "execution.v1",
+    "hash": "1252d9ee701d65572c43c88bb6b3243c2c9e41970096116da3bfe4a63495207c",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "dx",
+      "dy",
+      "primitiveIds optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.constraint.list": {
+    "version": "execution.v1",
+    "hash": "ff74528a9b147f9b0b97d34d49b8da448fd120f5a4018099fe5f07d50d96abe6",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.differential_pair.create": {
+    "version": "execution.v1",
+    "hash": "e47736f1f04186154361f7d56e51be19e80382ac091d1c5f39931e191df1b70f",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.constraint.list",
+        "pcb.report"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "name",
+      "positiveNet",
+      "negativeNet"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.differential_pair.delete": {
+    "version": "execution.v1",
+    "hash": "f8d6478d100ea1f2be15b23f8c67f0b45c683e8d35e65216423410c99fc21470",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.constraint.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "name"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.differential_pair.rename": {
+    "version": "execution.v1",
+    "hash": "cd0ccaa6d613b92c4d280bcff691801cb0416f56555279220dfdb9675e60b52a",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.constraint.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "name",
+      "newName"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.distribute": {
+    "version": "execution.v1",
+    "hash": "80147091525a46a8f2938e730900e080cc3dae693d82f717ebc328f58bab7a32",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "axis",
+      "primitiveIds optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.documents.list": {
+    "version": "execution.v1",
+    "hash": "d85e8b6c45c359bbc5ef8156aef8f7be7ee39a9af79cbe95672ac1ca87d5282d",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.drc.check": {
+    "version": "execution.v1",
+    "hash": "07e0035da929683182819c7b190d63fa85a9a846a35e7534bbc6a7336fcbf066",
+    "executor": "CONNECTOR",
+    "effects": [
+      "NATIVE_RECOMPUTE"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "strict optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.drc.compare": {
+    "version": "execution.v1",
+    "hash": "b987ebfd0dc3234b53adb3e9566b383316e4c79f8838bf34350b98837017e7fc",
+    "executor": "CLI_COMPOSITE",
+    "effects": [
+      "NATIVE_RECOMPUTE",
+      "ARTIFACT_DELIVERY"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [
+      "board.snapshot_compact",
+      "pcb.drc.check"
+    ],
+    "supported_parameters": [
+      "project_uuid",
+      "document_uuid",
+      "run_native:true",
+      "baseline_id optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.drc.rules": {
+    "version": "execution.v1",
+    "hash": "d43d735373405661978f55456e7ab08d612fa1a6c5a7fd2e02924c63bd62ced4",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.equal_length_group.add_nets": {
+    "version": "execution.v1",
+    "hash": "93d5a108e927f878f48af59c133fb886b82fe4e6919142cf84fb085335c0b933",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.constraint.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "name",
+      "nets[]"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.equal_length_group.create": {
+    "version": "execution.v1",
+    "hash": "ebf3e4f6ca1f09e95f4e716108801ebf216bba0a2bb26f2e31d794efd3a635b0",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.constraint.list",
+        "pcb.report"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "name",
+      "nets[]"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.equal_length_group.delete": {
+    "version": "execution.v1",
+    "hash": "6c8977ec9870f1b04f891e0fc71f8ed610c16eca8bf8ca0f47a3bf1851e8fe27",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.constraint.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "name"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.export.dsn": {
+    "version": "execution.v1",
+    "hash": "9abdc4df0d72aadb11cc0b965b2da1335b5fe5648a53789e4415fec3dd58783d",
+    "executor": "CONNECTOR",
+    "effects": [
+      "ARTIFACT_DELIVERY"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "fileName optional",
+      "injectKeepout optional (default true)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.fill.create": {
+    "version": "execution.v1",
+    "hash": "b9e795bd6cb9d4d9284472bba6ac2b3eb49fb0b30f7ea9e6f6d6ba0146c3269e",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.fill.list",
+        "pcb.drc.check"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "points ([[x,y],...] mil)",
+      "net optional",
+      "layer optional (default 1=TOP)",
+      "fillMode optional (solid|mesh|inner)",
+      "lineWidth optional",
+      "locked optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.fill.delete": {
+    "version": "execution.v1",
+    "hash": "882c7cb6e7f442eb55682177c2d18fc60639d834fd564fea7ee64f0bec552a9b",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.fill.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveIds (string or string[])"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.fill.list": {
+    "version": "execution.v1",
+    "hash": "10505b2dd5a02f5fa37d0137e4210ddaeb47652c40aa0871af1304d9d743c6b1",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "layer optional",
+      "net optional",
+      "includeBBox optional (default false)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.grid_snap": {
+    "version": "execution.v1",
+    "hash": "5f544409a5ad0091de3adf437c7254b64758db046a0ffbcebfd9b41621141919",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "grid",
+      "primitiveIds optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.import_autoroute": {
+    "version": "execution.v1",
+    "hash": "0dc988a7d1ae008e17c0b90a5f11029a6fa4e00576e6e985adbd30a44d2c6312",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "fileBase64",
+      "format optional (ses|json, default ses)",
+      "fileName optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.import_changes": {
+    "version": "execution.v1",
+    "hash": "2c46f222bfb9643360cfbdfaad20f10558805502537224eba9459c9793cf29e3",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.components.list",
+        "pcb.nets.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "schematicUuid optional",
+      "ensureBoard optional (default true)",
+      "recomputeRatline optional (default true)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.layers.list": {
+    "version": "execution.v1",
+    "hash": "ade549511f6a459bf5018fad5d235d8eb42a59aed858ae02d3b364f7ea19d804",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.layers.set_current": {
+    "version": "execution.v1",
+    "hash": "1b264171be5d0ad5ab164cca35b30d644f8b1b1ddbf856c2e0e68f9d85b9ca39",
+    "executor": "CONNECTOR",
+    "effects": [
+      "NAVIGATION_SELECTION"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.layers.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "bounded_navigation",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "layer (id|name|top|bottom|inner1)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.layers.visibility": {
+    "version": "execution.v1",
+    "hash": "4c74d68334145f42a85d1601695bdb02e457f83d88f835960932cba4559c2da8",
+    "executor": "CONNECTOR",
+    "effects": [
+      "NAVIGATION_SELECTION"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.layers.list",
+        "pcb.snapshot"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "bounded_navigation",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "preset optional (top-only|bottom-only|copper-only|silk-only)",
+      "show optional ([]layer specs)",
+      "hide optional ([]layer specs)",
+      "exclusive optional (bool, hide others when showing)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.line.create": {
+    "version": "execution.v1",
+    "hash": "96978d78dc4f0ba7ad602e222c4bde429b1128bde9c6ba2871440630b53f16ce",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.drc.check"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "startX",
+      "startY",
+      "endX",
+      "endY",
+      "layer optional (default 1=TOP)",
+      "lineWidth optional (default 6)",
+      "net optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.line.list": {
+    "version": "execution.v1",
+    "hash": "e672d068f5f30e73c129df78cb802dc82f5dad8c3f7a51649c2c5b809ee3100b",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "net optional",
+      "layer optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.manufacturing.export": {
+    "version": "execution.v1",
+    "hash": "cd278f17dcd093d6b791acc934b526fb65d45792466f337aec0ae6ebaf9fb83a",
+    "executor": "CONNECTOR",
+    "effects": [
+      "ARTIFACT_DELIVERY"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "project_uuid",
+      "document_uuid",
+      "profile:{id,reviewed:true,units:mm,layers:[IDs]}",
+      "verification_ids optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.nets.list": {
+    "version": "execution.v1",
+    "hash": "5b9f1538fa85691349863d073326105b2dbf31681b4bd24bc9ab40eb7dec32e7",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.outline.clear": {
+    "version": "execution.v1",
+    "hash": "e9907acf1ace00cd14e80f65995490ebcff3b25447662b14221757e1ea2bc297",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.outline.get"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.outline.get": {
+    "version": "execution.v1",
+    "hash": "7dd7f451d2178bdf7ad60ab672600d8e2d01fff6d446e560f653ddef0db4a11a",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.outline.set": {
+    "version": "execution.v1",
+    "hash": "74b46dcc4ae811a068e7fda64afb99051388806f0714c2e148d7bc4d8597c16c",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.outline.get"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "points ([[x,y],...] mil)",
+      "replace optional (default true)",
+      "lineWidth optional (default 10)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.page.clear": {
+    "version": "execution.v1",
+    "hash": "5e51b321bcb6881c1a792879408ca646ed3e4879480d16d690828cb93d59bf2e",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "preview",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.components.list",
+        "pcb.report"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "only optional (subset of components,routing,copper,regions,silk — omit = all)",
+      "preserveOutline optional (default true)",
+      "includeLocked optional (default false)",
+      "dryRun optional (default false)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.plane.refresh": {
+    "version": "execution.v1",
+    "hash": "c887790f0000b9e0181641176aaf01db203062cc23b1fa65ea2c87982ab89298",
+    "executor": "CLI_COMPOSITE",
+    "effects": [
+      "NATIVE_RECOMPUTE"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "board.snapshot_compact"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [
+      "board.snapshot_compact",
+      "pcb.pour.list",
+      "pcb.pour.rebuild"
+    ],
+    "supported_parameters": [
+      "project_uuid",
+      "document_uuid",
+      "base_revision",
+      "logical_ids"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.pour.create": {
+    "version": "execution.v1",
+    "hash": "ab8a59a1a89b67751d986125e1ea1db6b8175270cf502a2407f5a427f8b7c1a4",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.pour.list",
+        "pcb.drc.check"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "points ([[x,y],...] mil)",
+      "net optional (default '')",
+      "layer optional (default 1=TOP)",
+      "fill optional (solid|grid|grid45)",
+      "name optional",
+      "priority optional",
+      "lineWidth optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.pour.delete": {
+    "version": "execution.v1",
+    "hash": "a4b142910b418bca46b7bdf34db3fd699ea09fb086ded39ec92a6774b1dd5ecf",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.pour.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveIds (string or string[])"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.pour.list": {
+    "version": "execution.v1",
+    "hash": "c28680a6e1aac21ef6b22354a587d80514b5b749b0ad7602998ed7cf78b800b8",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "net optional",
+      "include_geometry optional boolean (bounded native filled-copper evidence; freshness unverified)",
+      "geometry_limit optional 1..64, default 16"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.pour.rebuild": {
+    "version": "execution.v1",
+    "hash": "4e03bbd0c7da170e7a2113aa41895059301474b390fb5525d838148e83e1ed7e",
+    "executor": "CONNECTOR",
+    "effects": [
+      "NATIVE_RECOMPUTE"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "net optional (legacy)",
+      "logical_ids optional 1..64 handles (explicit refresh)",
+      "project_uuid and document_uuid required with logical_ids"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.region.create": {
+    "version": "execution.v1",
+    "hash": "29b8f6406263a3e26a9fb81f50ecb5104abf131306c72d93ecc6ece49160e7e0",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.region.list",
+        "pcb.drc.check"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "points ([[x,y],...] mil)",
+      "layer optional (default 1=TOP)",
+      "ruleType optional (name|number or list; default keep-out)",
+      "name optional",
+      "lineWidth optional",
+      "locked optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.region.delete": {
+    "version": "execution.v1",
+    "hash": "7a13a269d98d366ee4f1e2a2f3c36d636c7c68a7ba1e384cdc358d80ab98a68f",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.region.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveIds (string or string[])"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.region.list": {
+    "version": "execution.v1",
+    "hash": "da00bb3d2f5784b260d9fbf24c2d44724a0f719e038be1b951aed896c17ea1a9",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "layer optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.report": {
+    "version": "execution.v1",
+    "hash": "c92cdb2cb6a5150c1813e0d799e97b1cf656f795c530a178109dd97c0d96f387",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "telemetry optional boolean: compact local geometry statistics; board or nets scope only, requires project/document identity",
+      "nets optional name array",
+      "pairs optional name array",
+      "groups optional name array",
+      "geometry optional boolean",
+      "project_uuid/document_uuid required for geometry",
+      "paths optional [{net,ids,start,end}]",
+      "profile_id optional",
+      "reference_net optional",
+      "tolerance_mil optional (geometry report)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.route.delete": {
+    "version": "execution.v1",
+    "hash": "da3e2b6b215ad560ea592f3fc81802bb7043eb58c0e5ea1668a58f6e72a0c113",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.line.list",
+        "pcb.via.list",
+        "pcb.drc.check"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveIds (string or string[])",
+      "kind optional (via|track — refuse ids of another kind)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.route.rip_up": {
+    "version": "execution.v1",
+    "hash": "389bb829ce402f64cef81a37848a5283668a221efe9827cd22e60952049583bd",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.line.list",
+        "pcb.via.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "net optional (string or string[]); omit = all"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.route.via_hop": {
+    "version": "execution.v1",
+    "hash": "04d6cc2ce71b9002f6ac6d91517c4b77e780078a0352908947cf3e74e94032d3",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.drc.check",
+        "pcb.via.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "net",
+      "fromX",
+      "fromY",
+      "toX",
+      "toY",
+      "layer optional (default 1=TOP)",
+      "hopLayer optional (default 2=BOTTOM)",
+      "lineWidth optional (default 6)",
+      "holeDiameter optional (default 12)",
+      "viaDiameter optional (default 24)",
+      "stub optional (default 20 mil)",
+      "bondFill optional (default false)",
+      "bondSize optional (default 20 mil)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.routing_profile": {
+    "version": "execution.v1",
+    "hash": "b499671f72a1506dda45a6466a0dcaa82a526d3258243ea0ff7a9e77a2da2425",
+    "executor": "DAEMON",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [
+      "board.snapshot_compact"
+    ],
+    "supported_parameters": [
+      "project_uuid",
+      "document_uuid",
+      "operation:context|put|get",
+      "profile_id for get",
+      "profile for put"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.save": {
+    "version": "execution.v1",
+    "hash": "4cef515c52232b5545ac24b87c6f4c3a21283a630d2ff97e1f864de6ed69a446",
+    "executor": "CONNECTOR",
+    "effects": [
+      "SAVE"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": true
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.silk.add": {
+    "version": "execution.v1",
+    "hash": "66b0d842248f5fd6a6674b27303a6e0c726a611659704d5133d0a1a111d63bf6",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.silk.list",
+        "pcb.snapshot"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "text (required)",
+      "x (mil, required)",
+      "y (mil, required)",
+      "layer optional (3|4, default 3)",
+      "fontSize optional (mil, default 40)",
+      "lineWidth optional (mil, default 6)",
+      "rotation optional (deg, default 0)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.silk.align": {
+    "version": "execution.v1",
+    "hash": "26adb1264b9d38f984fc1b1410b0db64096b73f38c2a394eb60103e6aa1ca31c",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.silk.list",
+        "pcb.snapshot"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "offset optional (base mil gap, default 15, ×spacing)",
+      "spacing optional (coefficient, default 1.5 — scales label drift for assembly/solder room)",
+      "side optional (top|bottom|left|right — soft bias)",
+      "refs optional ([designators]; others frozen)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.silk.import_svg": {
+    "version": "execution.v1",
+    "hash": "906c4e1954c585367ac923f647f30b5bb913a9248142135dc51342a00ca5490a",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.silk.list",
+        "pcb.snapshot"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "polygons (required: complex polygon = array of TPCB_PolygonSourceArray, each [x0,y0,\"L\",x1,y1,…] in mil)",
+      "x (mil, required — artwork top-left)",
+      "y (mil, required)",
+      "layer optional (3|4, default 3)",
+      "width optional (mil — image width hint)",
+      "height optional (mil — image height hint)",
+      "rotation optional (deg, default 0)",
+      "mirror optional (bool, default false — horizontal mirror; auto-true convention for bottom silk handled CLI-side)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.silk.label_pads": {
+    "version": "execution.v1",
+    "hash": "ac004e809d6c39908335602f16b12bedf57b6ab02fab47d94d2d14a3d46eb0be",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.snapshot"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "refs (required: []string — component designators to label, e.g. [J2, U1])",
+      "content optional (pin-number|net-name|both, default both)",
+      "layer optional (3=TOP_SILKSCREEN default, 4=BOTTOM_SILKSCREEN)",
+      "fontSize optional (mil, default 30)",
+      "lineWidth optional (mil, default 4)",
+      "side optional (right|below|above|left|auto, default auto)",
+      "align_axis optional (x|y|auto, default auto) — x: vertical pin array, y: horizontal pin array",
+      "exclude_nets optional ([]string — skip these net names, e.g. [GND])"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.silk.list": {
+    "version": "execution.v1",
+    "hash": "cc831ac938150ee0b707a28b77b5784006800a6aea27e7a728dcfecbda19a8a5",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.silk.netnames": {
+    "version": "execution.v1",
+    "hash": "72d5a61c800e88a1da743b74fa76a92683ea5e4d9891c783c1be310f7b0732ab",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.silk.list",
+        "pcb.snapshot"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "zone_rect (required: {left, top, right, bottom} in mil)",
+      "layer optional (3=TOP_SILKSCREEN default, 4=BOTTOM_SILKSCREEN)",
+      "align optional (left|right, default left — left=left-to-right order, right=right-to-left)",
+      "fontSize optional (mil, default 40)",
+      "lineWidth optional (mil, default 6)",
+      "exclude_nets optional ([]string — skip these net names, e.g. [GND, +5V])"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.silk.set": {
+    "version": "execution.v1",
+    "hash": "dee666bb0a0e5dfb9cebb987483b70d9867799e714ab8ebf1d0ec320716a45ca",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.silk.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveIds (string or [] , required)",
+      "x optional (mil)",
+      "y optional (mil)",
+      "rotation optional (deg)",
+      "fontSize optional (mil)",
+      "lineWidth optional (mil)",
+      "text optional",
+      "align optional (center|mid|centerx|centery|left|right|top|bottom)",
+      "ref optional (designator|board|outline|fill, default board)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.snapshot": {
+    "version": "execution.v1",
+    "hash": "7b9cd88ed2a95fedee6d3243b498d25b391d42ddebf67c7f72ea5e716029c445",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "fit optional (default true)",
+      "tabId optional",
+      "previousSha256 optional (enables stale-frame detection + auto-retry)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.stackup.set": {
+    "version": "execution.v1",
+    "hash": "167243e8fca4c7264d694e6235ad9e1324c524d3e78f7dff53c5e5a089845061",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.layers.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "count optional (2|4|6|…)",
+      "layers optional ([{id, type: signal|plane, name?}])"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.track.lock": {
+    "version": "execution.v1",
+    "hash": "90f6a439f7db61cb1682f770bad1433846e70e0d7b305200522542dfa227f25c",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.line.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "net optional (string or string[])",
+      "primitiveIds optional (string[])",
+      "locked optional (default true)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.via.create": {
+    "version": "execution.v1",
+    "hash": "793dd840bdfde239d19dfca41b137ff54d90fd28e2103e163d139c504bfb4220",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.drc.check"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "x",
+      "y",
+      "holeDiameter optional",
+      "diameter optional",
+      "net optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.via.list": {
+    "version": "execution.v1",
+    "hash": "a76a68b618bdf3fc9b12c25897c1719e68ed3760a2f3668dff9a2c579c03563e",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "net optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "pcb.view.side": {
+    "version": "execution.v1",
+    "hash": "76e3c5b8bca3910e13cfecc0a30b7d5eee1fd12113ad1f92bb1099ed45731301",
+    "executor": "CONNECTOR",
+    "effects": [
+      "NAVIGATION_SELECTION"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "pcb.layers.list",
+        "pcb.snapshot"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "bounded_navigation",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "side (top|bottom)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "project.create": {
+    "version": "execution.v1",
+    "hash": "d4f51e22de03a35e69feb2a066374ebb66d4a153d5efc2d2cd6c558bd4e3934f",
+    "executor": "CONNECTOR",
+    "effects": [
+      "PROJECT_TOPOLOGY"
+    ],
+    "target_scope": "PROJECT",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [
+        "project.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "name",
+      "expected_project_uuid + session_token optional paired guards (Go acquires when omitted)",
+      "client_transaction_id optional (Go generates when acquiring guards)",
+      "team_uuid optional",
+      "folder_uuid optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "project.current": {
+    "version": "execution.v1",
+    "hash": "8d9c24c7acec280d55046ea23674b16cb8d6127f5a9a9dc34b6b4ac4ee64eb31",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "PROJECT",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "project.list": {
+    "version": "execution.v1",
+    "hash": "3d794d164a28b420206979c919ff415600f57f8e49f921c268c0925beb5f27a0",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "PROJECT",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "team_uuid optional",
+      "folder_uuid optional",
+      "workspace_uuid optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "project.open": {
+    "version": "execution.v1",
+    "hash": "79c62d457a370762975e03fd5de7974efbef7d16af29b471b0ec1ea371b61568",
+    "executor": "CONNECTOR",
+    "effects": [
+      "NAVIGATION_SELECTION"
+    ],
+    "target_scope": "PROJECT",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [
+        "project.current"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "bounded_navigation",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "project_uuid",
+      "expected_project_uuid",
+      "saved_current_project:true"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "route.apply_batch": {
+    "operations": [
+      "add_trace",
+      "add_arc",
+      "add_via",
+      "delete_trace",
+      "delete_via"
+    ],
+    "version": "execution.v1",
+    "hash": "eb75d113a16a20af86ee8ded43242570a00c730507167b8f0c36926a1f34f7f9",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "board.snapshot_compact"
+      ],
+      "required": [
+        "net",
+        "layer",
+        "geometry",
+        "width",
+        "hole",
+        "diameter",
+        "deleted_absence",
+        "all_operations",
+        "no_pending_native_write"
+      ],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "existing_fast_owned_compensation; deletions not restorable",
+    "dependencies": [],
+    "supported_parameters": [
+      "document_uuid",
+      "project_uuid",
+      "base_revision",
+      "plan_hash",
+      "client_transaction_id",
+      "operations[{type:add_trace|add_via|delete_trace|delete_via, exact geometry or id}]"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "route.pair_plan": {
+    "version": "execution.v1",
+    "hash": "ab8f20fbe082330952f7a771c4e82d62b32f037f910dc5677a051deb5c8f4133",
+    "executor": "DAEMON",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [
+      "board.snapshot_compact"
+    ],
+    "supported_parameters": [
+      "project_uuid",
+      "document_uuid",
+      "base_revision",
+      "positive_net",
+      "negative_net",
+      "layer",
+      "width mil",
+      "gap mil",
+      "centerline [[x,y],...] mil",
+      "transitions optional [{end:start|end,to_layer,diameter,hole,separation}]",
+      "profile_id optional (verified differential width/gap)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "route.preflight": {
+    "version": "execution.v1",
+    "hash": "6e5b8b8de1152653d8a312dd7f906205ba14dc1d9b50c394e0b36085476325e6",
+    "executor": "DAEMON",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [
+      "board.snapshot_compact"
+    ],
+    "supported_parameters": [
+      "document_uuid",
+      "project_uuid",
+      "base_revision",
+      "routes[{net,layer,width,points:[[x,y],...]}]",
+      "vias[{net,x,y,diameter,hole,from_layer,to_layer}]",
+      "delete_ids[] optional",
+      "protected_nets[] optional",
+      "clearance_profile {clearance,min_width,min_hole,min_diameter,min_annulus} in mil"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "route.tuning_plan": {
+    "version": "execution.v1",
+    "hash": "8203c6128117144bcd183fdf1b88b3f34c84f4813ada26b28be8d6c9d7fd2638",
+    "executor": "DAEMON",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [
+      "board.snapshot_compact"
+    ],
+    "supported_parameters": [
+      "project_uuid",
+      "document_uuid",
+      "base_revision",
+      "net",
+      "span_id",
+      "corridor [minX,minY,maxX,maxY] mil",
+      "target_mode: specified_length|follow_rule",
+      "target_length mil (specified_length)",
+      "corner: line_45|line_90|arc_90",
+      "side: single|bilateral",
+      "spacing_w mil (centerline spacing)",
+      "min_amplitude_h mil",
+      "profile_id optional (verified single-ended)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.bridgeCheck": {
+    "version": "execution.v1",
+    "hash": "bb29a5850705e0f825241535483bf048ffac6cbaeca1e3be933af8f4470d29fe",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "allPages optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.check": {
+    "version": "execution.v1",
+    "hash": "414f5279d1e1fac75b4008141f00ca76502e9a74b4ecb16c412b9821cddb3db8",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "allPages optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.component.delete": {
+    "version": "execution.v1",
+    "hash": "18a2f428960be4cfa08661d70a6794f5844649b77caa48782dff5ee6efd9d09a",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveIds"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.component.modify": {
+    "version": "execution.v1",
+    "hash": "10741fd69c53453db93d45e1d094948ba66d7614ce3a6a465c1042e5ec652426",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveId",
+      "patch"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.component.place": {
+    "version": "execution.v1",
+    "hash": "50639006c265e0dc8f04e4504de42fcd05ef7da6ff3cbdffd752583494695a56",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "libraryUuid",
+      "uuid (device-library uuid, not an instance id)",
+      "x",
+      "y",
+      "rotation optional",
+      "mirror optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.component.replace": {
+    "version": "execution.v1",
+    "hash": "37fd6b6022d7fdeba5444dd6bbe26d5bfd6072e376c557886b009daa172de4c2",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.components.list",
+        "schematic.drc.check"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveId",
+      "lcsc OR deviceUuid (+deviceLibraryUuid) OR query",
+      "keepProperties optional (default false)",
+      "client_transaction_id optional (activation-scoped)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.component.resolve_lcsc": {
+    "version": "execution.v1",
+    "hash": "09bf8a1aaf134d3de9f5a29c3be505484dcbec98147fab5d34c26d5c372e40e0",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveId optional (single part)",
+      "apply optional (default false = dry-run report)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.components.list": {
+    "version": "execution.v1",
+    "hash": "338880e6191e3f62c609f6e9113834d16d70c71bea5370b5e141fbbf4d85af36",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "allPages optional (WARNING: non-active pages return shallow data — pins/bbox may be empty even when wired; switch to the page via document.switch for accurate data)",
+      "includePins optional (adds pinsAvailable and pinsError on failure)",
+      "includeBBox optional",
+      "includeDeviceIdentity optional (resolves instance ids to device-library uuids; unresolved parts report deviceIdentityError)",
+      "includeConnectivitySummary optional (active page only, read-only)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.create": {
+    "version": "execution.v1",
+    "hash": "cfda01dcf5f9c570cd5f1fb9b52410f49622976538697999d211488ae927fa56",
+    "executor": "CONNECTOR",
+    "effects": [
+      "PROJECT_TOPOLOGY"
+    ],
+    "target_scope": "PROJECT",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [
+        "schematic.pages.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "expected_project_uuid",
+      "session_token from project.list",
+      "client_transaction_id",
+      "board_name optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.drc.check": {
+    "version": "execution.v1",
+    "hash": "e8947e38a4f10e1924710e7a360dd262e0d754450606598aa96e877f325e17bb",
+    "executor": "CONNECTOR",
+    "effects": [
+      "NATIVE_RECOMPUTE"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "strict",
+      "includeVerboseError"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.export.bom": {
+    "version": "execution.v1",
+    "hash": "b3c5dfe398ecbdf4722a97cb9dd3508ef5243efb83e45e3ed15f838b4066c4b4",
+    "executor": "CONNECTOR",
+    "effects": [
+      "ARTIFACT_DELIVERY"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "fileType",
+      "template optional",
+      "columns optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.export.image": {
+    "version": "execution.v1",
+    "hash": "fce522c5020e0ae6d9b8edaa9c9892d013fd12139e0443f5b6c6f5eae5da6f6d",
+    "executor": "CONNECTOR",
+    "effects": [
+      "ARTIFACT_DELIVERY"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "format svg|png|pdf (default svg)",
+      "primitiveIds optional (auto-selects them)",
+      "scope selection|page|project",
+      "fileName optional",
+      "theme optional",
+      "lineWidth optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.export.netlist": {
+    "version": "execution.v1",
+    "hash": "d1e38dcb49a41b411c926fe8b4e0586bc305b6e70cd293884e493101c89ed9db",
+    "executor": "CONNECTOR",
+    "effects": [
+      "ARTIFACT_DELIVERY"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "netlistType optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.group.move": {
+    "version": "execution.v1",
+    "hash": "85878ec6701ee4b8bd094a31e6ecc19ae60fcd9bb98a6139f9dda151fa84c267",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveIds (string[], components and/or wires)",
+      "dx",
+      "dy"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.library.get_by_lcsc": {
+    "version": "execution.v1",
+    "hash": "c4f08c1ab84302804572b702583ac1a035ffa854c0222e695b23f1e278ce1114",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "lcscIds (string or string[] of C-numbers)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.library.search": {
+    "version": "execution.v1",
+    "hash": "0a807630c1c67a9410447cd219f80e3b0ad3e73becc1461f09d30d663742f3f1",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "query",
+      "limit optional",
+      "libraryUuid optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.netflag.create": {
+    "version": "execution.v1",
+    "hash": "94a0a87db2f139ba5c000c701a4cd5f54fb37cd351effba20351caed3db5c698",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.export.image"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "kind",
+      "net",
+      "x",
+      "y",
+      "rotation optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.page.clear": {
+    "version": "execution.v1",
+    "hash": "d969dae00722819b6a08ff809a1dc29749b9b94cc316db1bcef9ed5626dbdbe6",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "preview",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "preserveSheet optional (default true)",
+      "dryRun optional (default false)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.page.create": {
+    "version": "execution.v1",
+    "hash": "cef4d890cce8f89219701921167f0d180ff391ac89612fef94ea38db4316bad7",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.pages.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "schematicUuid"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.page.delete": {
+    "version": "execution.v1",
+    "hash": "6a5b6035273df702028b215491918ea1d9917b494b33fcd4cb17613401bd4a6f",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "pageUuid"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.page.open": {
+    "version": "execution.v1",
+    "hash": "d893c574d713288bbeb35c603d2bfc1f3a458c9e8a843694f1d44d5296af520b",
+    "executor": "CONNECTOR",
+    "effects": [
+      "NAVIGATION_SELECTION"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "bounded_navigation",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "schematicPageUuid"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.page.rename": {
+    "version": "execution.v1",
+    "hash": "c175dfefcc6660848f1ee9981de8ec7e9c2fb8b9c64c1e626f6e6e61d2fbbc96",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "pageUuid",
+      "name"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.pages.list": {
+    "version": "execution.v1",
+    "hash": "26cda118c33507b41a01a7e122c92a455fb627761d1af76d9b88658e7fddd515",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.pin.disconnect": {
+    "version": "execution.v1",
+    "hash": "d102bdac151bf54a428d64b61b5d7c639e35927c1e0a9208209534914959818b",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.check"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "designator + pin, OR flagPrimitiveId, OR wirePrimitiveId (at least one)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.pin.set_no_connect": {
+    "version": "execution.v1",
+    "hash": "ab58889392e284c583be8affbd26a9493fbc911c63a5713d13491549a10f7681",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.components.list",
+        "schematic.drc.check"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "designator",
+      "pins",
+      "noConnected optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.power.connect_pin": {
+    "version": "execution.v1",
+    "hash": "d8a2ae0811785985fb6e9c909efe0a92e5c0c50d7675215e600d8c8737461483",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.drc.check"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "pinX",
+      "pinY",
+      "kind",
+      "net",
+      "direction optional",
+      "offset optional",
+      "rotation optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.primitives.delete": {
+    "version": "execution.v1",
+    "hash": "53f0ebedd32de0f265ebd39c9cd2b1c9951df4e3fc6137cabf3e40b1549d0217",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.components.list"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveIds optional (string or string[]; default = current selection)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.read": {
+    "version": "execution.v1",
+    "hash": "c8da28857a978bebf1923e331ff80074cfd7ac8904b0fbef7e45258efe73c001",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "allPages optional",
+      "includeCheck optional (default true)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.rebind.footprint": {
+    "version": "execution.v1",
+    "hash": "dd8961db22356bb5f031247c941ba531de2c6c95cf3f66fe941e3963e1550466",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.components.list",
+        "schematic.drc.check"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveId",
+      "footprint (name) OR footprintUuid (+footprintLibraryUuid)",
+      "scope optional (default project)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.rebind.symbol": {
+    "version": "execution.v1",
+    "hash": "fa836e8efed393652d6e95dfd08f468e516180359ae6190c58d414a0205ffbf0",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.components.list",
+        "schematic.drc.check"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveId",
+      "symbol (name) OR symbolUuid (+symbolLibraryUuid)",
+      "scope optional (default project)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.rename": {
+    "version": "execution.v1",
+    "hash": "058df47adca0359c961c86d09ccf9a8b09b2bed273ceaf33e70e49674aa3bed9",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "schematicUuid",
+      "name"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.save": {
+    "version": "execution.v1",
+    "hash": "08fb813da7cbda53449f2dd5078c1c10a9617aeed3215aaa4478883634d15ac2",
+    "executor": "CONNECTOR",
+    "effects": [
+      "SAVE"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": true
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.select": {
+    "version": "execution.v1",
+    "hash": "2a5789bc6730e0354a1b61f6ca50473649cad4497831e92d729b538cfe7f9cfb",
+    "executor": "CONNECTOR",
+    "effects": [
+      "NAVIGATION_SELECTION"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "bounded_navigation",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "primitiveIds"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.text.list": {
+    "version": "execution.v1",
+    "hash": "186bac92f36ba7417f940255363a76189df26fd19ca5b6bc6d4d2e129ccaabec",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.titleblock.get": {
+    "version": "execution.v1",
+    "hash": "6f4df06ed40be1482664c01c802f978a33e74edb0608cdc748fa58b5442c1f4e",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "pageUuid optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.titleblock.modify": {
+    "version": "execution.v1",
+    "hash": "52bd6e680a123d8edda49f2e3fdeb8d041207b08d88c255ce62a8ef8895f5853",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.titleblock.get"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "showTitleBlock optional",
+      "titleBlockData optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "schematic.wire.create": {
+    "version": "execution.v1",
+    "hash": "f7ff19887f3fb8668b515b2a8775ab8a620e3a22b4cecdd0b746a90e9ed639ee",
+    "executor": "CONNECTOR",
+    "effects": [
+      "DESIGN_CONTENT"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [
+        "schematic.read"
+      ],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "receipt_or_reconcile",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "points",
+      "net optional",
+      "style optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "system.health": {
+    "version": "execution.v1",
+    "hash": "ee614a22f065487b218d6c5584a78ea0474e04e3b5ea31d69396a72fea100de7",
+    "executor": "DAEMON",
+    "effects": [],
+    "target_scope": "HOME",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "system.notify": {
+    "version": "execution.v1",
+    "hash": "848d0ad862fa3b1acf20c8f2e083001388d11fe7cf8aa104d51eee204d840496",
+    "executor": "CONNECTOR",
+    "effects": [],
+    "target_scope": "HOME",
+    "dry_run": "unsupported",
+    "guard": [],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "read_only_retry",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "message (required)",
+      "type optional (info|success|warn|error|question, default info)",
+      "duration optional (seconds, default 3)"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "view.fit": {
+    "version": "execution.v1",
+    "hash": "b8cd33da3538298afc9331141261d31d2923c8011ec5f13f19ba97fc940c0691",
+    "executor": "CONNECTOR",
+    "effects": [
+      "NAVIGATION_SELECTION"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "bounded_navigation",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "view.fit_selection": {
+    "version": "execution.v1",
+    "hash": "2cbfacf91afd30013caf11df55318458957906718fad02409a37ab82af1f2b83",
+    "executor": "CONNECTOR",
+    "effects": [
+      "NAVIGATION_SELECTION"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "bounded_navigation",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "view.region": {
+    "version": "execution.v1",
+    "hash": "86a731c48a3e8d4e1ab336294bb17c92adc436574e4956f311fb105739f51bb5",
+    "executor": "CONNECTOR",
+    "effects": [
+      "NAVIGATION_SELECTION"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "bounded_navigation",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "left",
+      "right",
+      "top",
+      "bottom"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  },
+  "view.zoom": {
+    "version": "execution.v1",
+    "hash": "e4d7ca06487690e20440681c896f529afc7b1e02a5550206339320c84f803728",
+    "executor": "CONNECTOR",
+    "effects": [
+      "NAVIGATION_SELECTION"
+    ],
+    "target_scope": "DOCUMENT",
+    "dry_run": "unsupported",
+    "guard": [
+      "project_uuid",
+      "document_uuid",
+      "document_type",
+      "activation"
+    ],
+    "verification": {
+      "verifier_refs": [],
+      "required": [],
+      "coverage": "COMPLETE",
+      "quantization": "existing verifier only; no generic tolerance",
+      "electrical_mapping": false,
+      "persistence_required": false
+    },
+    "replay_policy": "bounded_navigation",
+    "recovery": "reconcile_only",
+    "dependencies": [],
+    "supported_parameters": [
+      "x optional",
+      "y optional",
+      "scale optional"
+    ],
+    "autonomous_eligibility": "EXCLUDED",
+    "exclusion_reason": "Legacy execution has not completed target, recovery and Host qualification migration"
+  }
+}

@@ -152,6 +152,17 @@ func (s *Server) handleAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if issue := protocol.ValidateContract(&req, "DAEMON"); issue != nil {
+		resp := errorResponse(req.ID, issue.Code, issue.Message, issue.Detail)
+		resp.Execution = protocol.Interpret(&req, &resp, true)
+		s.audit.Append(fromResponse(time.Now().UTC(), &req, &resp))
+		writeJSON(w, http.StatusBadRequest, resp)
+		return
+	}
+
+	contract, _ := protocol.ContractFor(req.Action)
+	req.ContractVersion, req.ContractHash = contract.Version, contract.Hash
+
 	// system.health is answered by the daemon itself; it needs no connector.
 	if req.Action == "system.health" {
 		started := time.Now().UTC()
@@ -334,6 +345,14 @@ func (s *Server) handleAction(w http.ResponseWriter, r *http.Request) {
 			return s.forwardFast(ctx, request, target.dispatch, target.snapshot().Capabilities)
 		}
 	}
+	nativeForward := forward
+	forward = func(ctx context.Context, request protocol.Request) (*protocol.Response, error) {
+		result, dispatchErr := nativeForward(ctx, request)
+		if result != nil {
+			result.Execution = protocol.Interpret(&request, result, false)
+		}
+		return result, dispatchErr
+	}
 	resp, err, _ := forwardWithAdaptiveRetry(ctx, req, forward, hooks)
 	if err != nil {
 		// One timed-out FIFO action is not yet proof of a blocked queue — a light
@@ -342,6 +361,9 @@ func (s *Server) handleAction(w http.ResponseWriter, r *http.Request) {
 		// of silence. See queueblock.go.
 		s.armQueueProbe(target, &req, err)
 		errResp := errorResponse(req.ID, "DISPATCH_FAILED", "connector did not respond", err.Error())
+		errResp.Execution = protocol.Interpret(&req, &errResp, false)
+		s.maybeInvalidateStage(&req, &errResp)
+		s.staleReads.observe(&req, &errResp)
 		s.writeHealth.annotateDegraded(&req, &errResp)
 		s.audit.Append(fromResponse(started, &req, &errResp))
 		writeJSON(w, http.StatusGatewayTimeout, errResp)
@@ -367,14 +389,8 @@ func (s *Server) handleAction(w http.ResponseWriter, r *http.Request) {
 	s.persistArtifacts(resp, s.artifactDir(req.OutputDir))
 	// Catalog-driven stage invalidation: a successful placement/outline mutation
 	// clears stale downstream confirmations, whoever the client was.
-	if req.Action == "route.apply_batch" && !resp.OK && resp.Result["status"] != "stale" && resp.Result["status"] != nil && resp.Result["mutation_started"] != false {
-		// Partial/uncertain effects also invalidate downstream checks. Never autosave
-		// an uncertain in-flight write; preserve the existing stale-read warning.
-		possible := *resp
-		possible.OK = true
-		s.maybeInvalidateStage(&req, &possible)
-		s.staleReads.observe(&req, &possible)
-	}
+	resp.Execution = protocol.Interpret(&req, resp, false)
+
 	s.maybeInvalidateStage(&req, resp)
 	// Stale-read state machine (SKILL iron rule 5): mark the window after a PCB
 	// mutation, clear on reload/pour-rebuild. The REFUSAL happens before dispatch

@@ -22,6 +22,11 @@ export interface HandshakeFrame {
 }
 
 export interface RequestFrame {
+ contractVersion?: string;
+ contractHash?: string;
+ operationId?: string;
+ parentOperationId?: string;
+ expectedTarget?: ResponseContext;
 	type: 'request';
 	id: string;
 	version?: string;
@@ -84,6 +89,8 @@ export interface ResponseContext {
 }
 
 export interface ResponseArtifact {
+ path?: string;
+ sha256?: string;
 	id: string;
 	kind: string;
 	mimeType?: string;
@@ -98,6 +105,7 @@ export interface ResponseError {
 }
 
 export interface ResponseFrame {
+ execution?: Execution;
 	type: 'response';
 	id: string;
 	version: string;
@@ -186,4 +194,24 @@ export class ActionError extends Error {
 		this.code = code;
 		this.detail = detail;
 	}
+}
+
+export type MutationOutcome = 'NO_WRITE' | 'COMPLETE' | 'PARTIAL' | 'UNCERTAIN';
+export interface Evidence {
+ state: 'AVAILABLE' | 'UNAVAILABLE' | 'UNSUPPORTED' | 'INVALID';
+ coverage: 'COMPLETE' | 'PARTIAL';
+ scope?: ResponseContext; source?: string; revision?: string; activation?: string;
+ observed_at?: string; verifier_version?: string;
+ required: string[]; observed: string[]; missing: string[]; evidence_refs: string[];
+}
+export interface Execution {
+ native_settled?: boolean;
+ operation_id?: string; parent_operation_id?: string; request_id: string;
+ contract_version: string; contract_hash: string; payload_hash?: string;
+ expected_target?: ResponseContext; observed_target_before?: ResponseContext; observed_target_after?: ResponseContext;
+ activation?: string; executor_build?: string;
+ mutation_outcome?: MutationOutcome; write_attempted?: boolean; item_results?: unknown;
+ affected_targets?: ResponseContext[]; verification: Evidence;
+ recovery: Record<string, unknown>; persistence: Record<string, unknown>;
+ request_satisfied: boolean; next_action: string; reason: string;
 }

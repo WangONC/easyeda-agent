@@ -8,9 +8,9 @@ test('Fast Path exposes three typed explicit-geometry schemas',()=>{
  const args=buildCallArgs('route.apply_batch',fastInput({project:'p',doc:'uuid',base_revision:'r',plan_hash:'h',client_transaction_id:'t',operations:[]}));
  assert.deepEqual(args.slice(0,6),['--project','p','--doc','uuid','pcb','route-apply-batch']);assert.equal(JSON.parse(args[7]).base_revision,'r');
 });
-test('compact MCP retains structured partial/uncertain and omits envelopes',()=>{
+test('compact MCP retains structured partial/uncertain and preserves envelopes',()=>{
  const raw={ok:true,result:{id:'request',ok:true,result:{board_revision:'r',traces:[],telemetry:{duration_ms:1}}}};
- const r=toMcpResult(compactFastResult(raw));assert.equal(r.isError,false);assert.equal(r.structuredContent.board_revision,'r');assert.equal(r.structuredContent.id,undefined);
+ const r=toMcpResult(compactFastResult(raw));assert.equal(r.isError,false);assert.equal(r.structuredContent.result.board_revision,'r');assert.equal(r.structuredContent.id,'request');
  for(const status of ['partial','stale','uncertain']){const r=toMcpResult(compactFastResult({ok:false,error:{stdout:{ok:false,result:{status,created_ids:['a']},error:{code:'BATCH_UNCERTAIN'}}}}));assert.equal(r.isError,true);assert.match(r.content[0].text,new RegExp(status));assert.match(r.content[0].text,/created_ids/)}
  assert.equal(toMcpResult(compactFastResult({ok:true,result:{ok:true,result:{ok:false,conflicts:[{type:'trace_trace'}]}}})).isError,true);
 });

@@ -203,7 +203,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
     if (FAST_ACTIONS[name]) {
       if (!byName.has(FAST_ACTIONS[name])) throw new Error("CLI upgrade required for Fast Path V0.1");
-      return toMcpResult(compactFastResult(await runEasyeda(buildCallArgs(FAST_ACTIONS[name], fastInput(input)))), { compact: true, structuredErrors: true });
+      return toMcpResult(compactFastResult(authoringResult(FAST_ACTIONS[name], await runEasyeda(buildCallArgs(FAST_ACTIONS[name], fastInput(input))), fastInput(input).payload)), { compact: true, structuredErrors: true });
     }
     if (name.startsWith('easyeda_')) {
       const domain = name.slice('easyeda_'.length);
@@ -217,7 +217,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       if (action.mutates && !bootstrap && (!input.project || !input.doc)) {
         throw new Error(`mutating action ${action.name} requires both project and doc`);
       }
-      const execution = authoringResult(action.name, await runEasyeda(buildCallArgs(action.name, input)));
+      const execution = authoringResult(action.name, await runEasyeda(buildCallArgs(action.name, input)), input.payload);
       const fast = Object.values(FAST_ACTIONS).includes(action.name);
       return toMcpResult(fast ? compactFastResult(execution) : execution, { compact: fast || bootstrap, structuredErrors: true });
     }

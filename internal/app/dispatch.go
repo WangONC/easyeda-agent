@@ -33,9 +33,9 @@ const (
 const defaultActionTimeout = 20 * time.Second
 
 // errActionFailed is returned by dispatch when the daemon responds with
-// ok=false. The response body has already been written to stdout so the
+// an unsatisfied execution. The response body has already been written to stdout so the
 // caller must NOT print an additional error message.
-var errActionFailed = errors.New("action returned ok=false")
+var errActionFailed = errors.New("action request not satisfied; inspect execution and raw evidence")
 
 // appConfig holds the shared host/ports settings threaded through all
 // action subcommands. The fields are bound directly to Cobra persistent
@@ -111,10 +111,8 @@ func dispatchTimed(cfg *appConfig, action, window string, payload any, timeout t
 	}
 	printArtifactPaths(respBody, stderr)
 
-	var parsed struct {
-		OK bool `json:"ok"`
-	}
-	if err := json.Unmarshal(respBody, &parsed); err != nil || !parsed.OK {
+	var parsed protocol.Response
+	if err := json.Unmarshal(respBody, &parsed); err != nil || (parsed.Execution == nil || !parsed.Execution.RequestSatisfied) {
 		return errActionFailed
 	}
 	return nil
@@ -202,13 +200,16 @@ func saveFirstArtifact(res *actionResult, out string, stderr io.Writer) error {
 // commands (sch check/drc/sheet) can re-wrap their typed report in the same
 // {id,type,version,ok,result} envelope the transparent commands stream (#66).
 type actionResult struct {
-	ID        string         `json:"id"`
-	Type      string         `json:"type"`
-	Version   string         `json:"version"`
-	OK        bool           `json:"ok"`
-	Result    map[string]any `json:"result"`
-	Artifacts []artifactRef  `json:"artifacts"`
-	Context   *actionContext `json:"context"`
+	Execution *protocol.Execution `json:"execution,omitempty"`
+	Raw       json.RawMessage     `json:"-"`
+	Error     *protocol.ErrorInfo `json:"error,omitempty"`
+	ID        string              `json:"id"`
+	Type      string              `json:"type"`
+	Version   string              `json:"version"`
+	OK        bool                `json:"ok"`
+	Result    map[string]any      `json:"result"`
+	Artifacts []artifactRef       `json:"artifacts"`
+	Context   *actionContext      `json:"context"`
 	// Seq is the connector's FIFO ordering evidence carried on this response
 	// (connector ≥ 1.0.3). Known=false means the connector is older and sent no
 	// such fields — callers MUST then fall back to a weaker judgement rather
@@ -272,6 +273,16 @@ func requestActionOnce(cfg *appConfig, action, window string, payload any, timeo
 		return nil, fmt.Errorf("decode %s response: %w", action, err)
 	}
 	res := &actionResult{ID: parsed.ID, Type: parsed.Type, Version: parsed.Version, OK: parsed.OK, Result: parsed.Result, Artifacts: parsed.Artifacts, Context: parsed.Context, Seq: parseSeqCounters(respBody)}
+	var wire protocol.Response
+	_ = json.Unmarshal(respBody, &wire)
+	var params map[string]any
+	payloadBytes, _ := json.Marshal(payload)
+	_ = json.Unmarshal(payloadBytes, &params)
+	res.Execution = protocol.Interpret(&protocol.Request{Envelope: protocol.Envelope{ID: wire.ID}, Action: action, Payload: params}, &wire, false)
+	res.Raw = append(json.RawMessage(nil), respBody...)
+	res.Error = wire.Error
+	// Internal composite steps retain invocation semantics so their existing independent
+	// readback/compensation can run. Execution remains explicit and never grants eligibility.
 	if !parsed.OK {
 		msg := "ok=false"
 		code := ""
@@ -311,6 +322,15 @@ func encodeResultEnvelope(res *actionResult, report any, stdout io.Writer) error
 	if res.Version != "" {
 		env["version"] = res.Version
 	}
+	if res.Execution != nil {
+		env["execution"] = res.Execution
+	}
+	if res.Error != nil {
+		env["error"] = res.Error
+	}
+	if (!res.OK || (res.Execution != nil && !res.Execution.RequestSatisfied)) && len(res.Raw) > 0 {
+		env["evidence"] = res.Raw
+	}
 	enc := json.NewEncoder(stdout)
 	enc.SetIndent("", "  ")
 	return enc.Encode(env)
@@ -332,15 +352,18 @@ func dispatchCapture(cfg *appConfig, action, window string, payload any, stdout 
 	}
 	printArtifactPaths(respBody, os.Stderr)
 
-	var parsed struct {
-		OK        bool           `json:"ok"`
-		Result    map[string]any `json:"result"`
-		Artifacts []artifactRef  `json:"artifacts"`
+	var parsed protocol.Response
+	if err := json.Unmarshal(respBody, &parsed); err != nil {
+		return nil, err
 	}
-	if err := json.Unmarshal(respBody, &parsed); err != nil || !parsed.OK {
-		return nil, errActionFailed
+	res := &actionResult{Raw: respBody}
+	if err := json.Unmarshal(respBody, res); err != nil {
+		return nil, err
 	}
-	return &actionResult{OK: parsed.OK, Result: parsed.Result, Artifacts: parsed.Artifacts}, nil
+	if parsed.Execution == nil || !parsed.Execution.RequestSatisfied {
+		return res, errActionFailed
+	}
+	return res, nil
 }
 
 // healthWindow is the subset of a /health window entry the doc commands need to
@@ -810,6 +833,20 @@ func postAction(cfg *appConfig, action, window string, payload any, timeout time
 		return nil, err
 	}
 
+	// Reject unsupported previews before identity discovery or navigation, so a
+	// dry-run refusal cannot itself cause a native call through a CLI preflight.
+	var contractPayload map[string]any
+	encodedPayload, _ := json.Marshal(payload)
+	_ = json.Unmarshal(encodedPayload, &contractPayload)
+	if _, known := protocol.ContractFor(action); known {
+		request := protocol.Request{Action: action, Payload: contractPayload}
+		if issue := protocol.ValidateContract(&request, "CLI"); issue != nil {
+			response := protocol.Response{OK: false, Error: issue}
+			response.Execution = protocol.Interpret(&request, &response, true)
+			return json.Marshal(response)
+		}
+	}
+
 	if action == "project.create" {
 		prepared, err := prepareProjectCreate(cfg, window, payload)
 		if err != nil {
@@ -872,6 +909,10 @@ func postAction(cfg *appConfig, action, window string, payload any, timeout time
 	}
 
 	body := map[string]any{"action": action}
+	if c, ok := protocol.ContractFor(action); ok {
+		body["contractVersion"] = c.Version
+		body["contractHash"] = c.Hash
+	}
 	// Identify this client process for audit attribution and the daemon's
 	// concurrent-writer advisory (issue #108).
 	body["clientId"] = cliClientID()
@@ -953,7 +994,21 @@ func postAction(cfg *appConfig, action, window string, payload any, timeout time
 	connSeqObserve(window, cfg.project, respBody)
 	// Old connectors confuse placed footprint handles with library UUIDs.
 	// Adapt fresh identity evidence for every consumer, including Apply guards.
-	return hydrateSchematicIdentityCompatibility(cfg, action, window, payload, respBody, timeout)
+	adapted, err := hydrateSchematicIdentityCompatibility(cfg, action, window, payload, respBody, timeout)
+	if err != nil {
+		return adapted, err
+	}
+	var wire protocol.Response
+	var raw map[string]json.RawMessage
+	var params map[string]any
+	pb, _ := json.Marshal(payload)
+	_ = json.Unmarshal(pb, &params)
+	if json.Unmarshal(adapted, &wire) == nil && json.Unmarshal(adapted, &raw) == nil && raw != nil {
+		wire.Execution = protocol.Interpret(&protocol.Request{Envelope: protocol.Envelope{ID: wire.ID}, Action: action, Payload: params}, &wire, false)
+		raw["execution"], _ = json.Marshal(wire.Execution)
+		return json.Marshal(raw)
+	}
+	return adapted, nil
 }
 
 // parsePortRange parses "start-end" into two ints.

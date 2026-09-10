@@ -15,16 +15,17 @@ const (
 )
 
 type ActionSpec struct {
-	Name         string   `json:"name"`
-	Domain       Domain   `json:"domain"`
-	Phase        int      `json:"phase"`
-	Mutates      bool     `json:"mutates"`
-	NeedsWindow  bool     `json:"needsWindow"`
-	NeedsConfirm bool     `json:"needsConfirm"`
-	Description  string   `json:"description"`
-	Inputs       []string `json:"inputs,omitempty"`
-	Outputs      []string `json:"outputs,omitempty"`
-	VerifyWith   []string `json:"verifyWith,omitempty"`
+	Contract     ActionContract `json:"contract"`
+	Name         string         `json:"name"`
+	Domain       Domain         `json:"domain"`
+	Phase        int            `json:"phase"`
+	Mutates      bool           `json:"mutates"`
+	NeedsWindow  bool           `json:"needsWindow"`
+	NeedsConfirm bool           `json:"needsConfirm"`
+	Description  string         `json:"description"`
+	Inputs       []string       `json:"inputs,omitempty"`
+	Outputs      []string       `json:"outputs,omitempty"`
+	VerifyWith   []string       `json:"verifyWith,omitempty"`
 
 	// RequiresGate names a workflow gate that must pass before the daemon
 	// dispatches this action ("routing" = outline_confirmed + pre_route_passed
@@ -41,7 +42,7 @@ type ActionSpec struct {
 const GateRouting = "routing"
 
 func AllActions() []ActionSpec {
-	return append(closureActions(), []ActionSpec{
+	return withContracts(append(closureActions(), []ActionSpec{
 		{Name: "board.snapshot_compact", Domain: DomainPcb, Phase: 1, NeedsWindow: true,
 			Description: "Fast manual PCB routing snapshot; structured geometry only, no DRC or reload. Requires pcb.fast_manual.v0.1.",
 			Inputs:      []string{"document_uuid", "project_uuid", "nets[] optional", "bbox [minX,minY,maxX,maxY] optional (mil)", "layers[] optional", "include {components,pads,traces,vias,fills} optional"}, Outputs: []string{"board_revision", "geometry_hash", "scope", "components[]", "pads[]", "traces[]", "vias[]", "fills[]", "telemetry"}},
@@ -1487,5 +1488,5 @@ func AllActions() []ActionSpec {
 			Inputs:       []string{"code"},
 			Outputs:      []string{"value"},
 		},
-	}...)
+	}...))
 }

@@ -224,7 +224,6 @@ func responseErrorCode(resp *protocol.Response) string {
 	return resp.Error.Code
 }
 
-
 // ActionWriteHealth is one action's slice of a window's health — the bucket that
 // keeps "this one road is not working" from being averaged away.
 type ActionWriteHealth struct {
@@ -391,6 +390,10 @@ func (t *writeHealthTracker) verify(windowID string, v WriteVerification) {
 				}
 			}
 		}
+		// Preserve attribution when backfilling an aged-out addressed request. A
+		// repeated report must amend this sample, not create another batch count.
+		st.push(&healthSample{action: v.Action, requestID: v.RequestID, ok: ok, verdict: verdict, at: time.Now().UTC()})
+		return
 	}
 
 	assign := func(n int, verdict effectVerdict) {
@@ -564,11 +567,21 @@ func (t *writeHealthTracker) all() map[string]WindowWriteHealth {
 // verified delete) — that evidence used to die in the JSON while the daemon
 // counted the call as a clean success.
 //
-// Only NEGATIVE evidence lives in a response: "ok plus no complaint" is not
+// Structured execution is reduced first. For legacy results, only negative
+// evidence is inferred: "ok plus no complaint" is not
 // proof the write landed, so the absence of these keys stays effectUnknown.
-// Positive (landed) verdicts come from 通道 B, where a command actually read the
+// Positive legacy (landed) verdicts come from 通道 B, where a command actually read the
 // canvas back.
 func effectFromResponse(req *protocol.Request, resp *protocol.Response) effectVerdict {
+	if req != nil && resp != nil && requestMutates(req) {
+		e := protocol.Interpret(req, resp, false)
+		if e.MutationOutcome == protocol.Complete {
+			return effectLanded
+		}
+		if e.MutationOutcome == protocol.Partial || protocol.NegativeResult(resp.Result) {
+			return effectNotLanded
+		}
+	}
 	if req == nil || resp == nil || !resp.OK || resp.Result == nil {
 		return effectUnknown
 	}

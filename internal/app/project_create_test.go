@@ -21,7 +21,7 @@ func TestNameOnlyPersonalCreateAcquiresGuardsWithoutOwner(t *testing.T) {
 	})
 	defer done()
 	var out, errout bytes.Buffer
-	if err := dispatch(cfg, "project.create", "w1", map[string]any{"name": "Personal"}, &out, &errout); err != nil {
+	if err := dispatch(cfg, "project.create", "w1", map[string]any{"name": "Personal"}, &out, &errout); err != errActionFailed {
 		t.Fatal(err)
 	}
 	calls := d.snapshot()

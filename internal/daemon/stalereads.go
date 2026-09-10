@@ -179,15 +179,15 @@ func (g *staleGuard) observe(req *protocol.Request, resp *protocol.Response) {
 		return
 	}
 
-	// Only successful actions move the state machine.
-	if !resp.OK {
+	// Structured possible effects mark stale even when the invocation failed.
+	if !protocol.PossibleMutation(req, resp) && !resp.OK {
 		return
 	}
-	if pcbStaleClears(req) {
+	if pcbStaleClears(req) && resp.OK {
 		delete(g.last, req.WindowID)
 		return
 	}
-	if pcbStaleMarks(req) {
+	if pcbStaleMarks(req) && protocol.PossibleMutation(req, resp) {
 		g.last[req.WindowID] = req.Action
 	}
 }

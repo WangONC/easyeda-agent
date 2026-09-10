@@ -9,7 +9,6 @@ import (
 	"github.com/zhoushoujianwork/easyeda-agent/internal/workflow"
 	"slices"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -156,30 +155,6 @@ func (s *Server) forwardFast(ctx context.Context, req protocol.Request, forward 
 		if err != nil {
 			return resp, err
 		}
-		status, _ := resp.Result["status"].(string)
-		if status == "complete" && resp.Result["readback_verified"] != true {
-			status = "uncertain"
-			resp.Result["status"] = status
-		}
-		if status != "complete" {
-			resp.OK = false
-			if status == "" {
-				resp.Result = uncertainBatch(base)
-				if resp.Error != nil {
-					code := resp.Error.Code
-					// The queue/handler explicitly refused BEFORE starting native writes.
-					if code == "QUEUE_OVERFLOW" || code == "BATCH_EXPIRED" || code == "DOCUMENT_GUARD" || code == "FAST_STATE_BUSY" || code == "TRANSACTION_ID_REUSED" || code == "TRANSACTION_LEDGER_FULL" || strings.HasPrefix(code, "INVALID_") {
-						resp.Result["status"] = "partial"
-						resp.Result["mutation_started"] = false
-						resp.Result["warnings"] = []string{"Connector refused before starting mutation: " + code}
-					}
-				}
-				status, _ = resp.Result["status"].(string)
-			}
-			if resp.Error == nil {
-				resp.Error = &protocol.ErrorInfo{Code: "BATCH_" + strings.ToUpper(status), Message: "Batch not complete; inspect structured result. Never blindly retry with a new transaction id."}
-			}
-		}
 		if resp.Result == nil {
 			resp.Result = map[string]any{}
 		}
@@ -188,6 +163,11 @@ func (s *Server) forwardFast(ctx context.Context, req protocol.Request, forward 
 	}
 	wire := req
 	wire.Action = "board.snapshot_compact"
+	if req.ContractVersion != "" || req.ContractHash != "" {
+		c, _ := protocol.ContractFor(wire.Action)
+		wire.ContractVersion = c.Version
+		wire.ContractHash = c.Hash
+	}
 	wire.Payload = map[string]any{"document_uuid": doc, "project_uuid": project}
 	resp, err = forward(ctx, wire)
 	if err != nil || !resp.OK {

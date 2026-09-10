@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"testing"
 
@@ -118,7 +119,7 @@ func TestDisabledActionsTypedWrapper(t *testing.T) {
 				if requests.Load() != 0 {
 					t.Fatalf("%v accessed daemon %d times", path, requests.Load())
 				}
-			} else if code != 0 || actions.Load() != 1 {
+			} else if code != 1 || actions.Load() != 1 || !strings.Contains(out.String(), "UNCERTAIN") {
 				t.Fatalf("enabled %v: code=%d actions=%d output=%s stderr=%s", path, code, actions.Load(), out.String(), stderr.String())
 			}
 		}

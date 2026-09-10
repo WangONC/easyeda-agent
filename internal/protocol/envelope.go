@@ -12,7 +12,12 @@ type Envelope struct {
 
 type Request struct {
 	Envelope
-	Action string `json:"action"`
+	Action            string   `json:"action"`
+	ContractVersion   string   `json:"contractVersion,omitempty"`
+	ContractHash      string   `json:"contractHash,omitempty"`
+	OperationID       string   `json:"operationId,omitempty"`
+	ParentOperationID string   `json:"parentOperationId,omitempty"`
+	ExpectedTarget    *Context `json:"expectedTarget,omitempty"`
 	// Project is an optional stable routing hint: a project name or uuid the
 	// daemon resolves to the current windowId. Use instead of WindowID when the
 	// ephemeral windowId churns (reconnects) — multi-window/multi-agent routing.
@@ -51,6 +56,7 @@ type Request struct {
 }
 
 type Response struct {
+	Execution *Execution `json:"execution,omitempty"`
 	Envelope
 	OK        bool           `json:"ok"`
 	Result    map[string]any `json:"result,omitempty"`

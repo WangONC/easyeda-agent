@@ -43,7 +43,11 @@ func TestStructuredPossibleMutationDoesNotRewriteOK(t *testing.T) {
 	req := &protocol.Request{Envelope: protocol.Envelope{WindowID: "w"}, Action: "pcb.component.modify"}
 	for _, o := range []protocol.MutationOutcome{protocol.Complete, protocol.Partial, protocol.Uncertain, protocol.NoWrite} {
 		g := newStaleGuard()
-		resp := &protocol.Response{OK: false, Execution: &protocol.Execution{MutationOutcome: o}}
+		resp := &protocol.Response{OK: false}
+		resp.Execution = protocol.Interpret(req, resp, o == protocol.NoWrite)
+		if o != protocol.NoWrite {
+			resp.Execution.MutationOutcome = o
+		}
 		g.observe(req, resp)
 		if resp.OK {
 			t.Fatal("OK changed")

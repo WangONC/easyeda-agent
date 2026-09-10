@@ -72,12 +72,12 @@ func TestStaleGuard_PourRebuildClears(t *testing.T) {
 	}
 }
 
-func TestStaleGuard_FailedMutationDoesNotMark(t *testing.T) {
+func TestStaleGuard_FailedMutationRetainsPossibleEffect(t *testing.T) {
 	g := newStaleGuard()
 	runStale(g, "pcb.route.rip_up", "w1", false, nil)
 
-	if resp := runStale(g, "pcb.line.list", "w1", true, nil); resp.StaleRisk != "" {
-		t.Errorf("failed mutation must not mark stale, got %q", resp.StaleRisk)
+	if resp := runStale(g, "pcb.line.list", "w1", true, nil); resp.StaleRisk == "" {
+		t.Error("a dispatched failure must retain possible stale state")
 	}
 }
 

@@ -1943,8 +1943,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "mutation_outcome": "UNCERTAIN",
         "native_settled": false,
         "verification": {
@@ -2020,8 +2020,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "mutation_outcome": "UNCERTAIN",
         "native_settled": false,
         "verification": {
@@ -2069,8 +2069,8 @@
       ],
       "execution": {
         "request_id": "delivery",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "98a9aca1fab87a5b43f7d6105abf2c31836e67a2c28b3e57b0747ecfcd908a2b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "43f831d635615f2755a31f33177836bc94da4ede4842070dde8d6c14466567d8",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2112,8 +2112,8 @@
       ],
       "execution": {
         "request_id": "delivery",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "98a9aca1fab87a5b43f7d6105abf2c31836e67a2c28b3e57b0747ecfcd908a2b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "43f831d635615f2755a31f33177836bc94da4ede4842070dde8d6c14466567d8",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2156,8 +2156,8 @@
       ],
       "execution": {
         "request_id": "delivery",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "98a9aca1fab87a5b43f7d6105abf2c31836e67a2c28b3e57b0747ecfcd908a2b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "43f831d635615f2755a31f33177836bc94da4ede4842070dde8d6c14466567d8",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2198,8 +2198,8 @@
       "execution": {
         "operation_id": "parent-op",
         "request_id": "parent",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "1f27876f077f025ea5ef7d955365c4146b599bf0119af344360c4a5c8cdd3f75",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "854537c125d54e7874fddaac2ffa4d50f07f953d5c40b642c422ac1aff12dba3",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2228,8 +2228,8 @@
               "operation_id": "child-op",
               "parent_operation_id": "parent-op",
               "request_id": "child",
-              "contract_version": "execution.v1.1",
-              "contract_hash": "e140602896dbbf9edb486ac09d5af2219f3fe839bbe2d61c9fd827841636bc42",
+              "contract_version": "execution.v1.3",
+              "contract_hash": "e862d91454dc23a93bd5b6950f9fbd5be49f9c81fbae3ad73b6ff31bab703d94",
               "verification": {
                 "state": "UNAVAILABLE",
                 "coverage": "PARTIAL",
@@ -2273,8 +2273,8 @@
       "execution": {
         "operation_id": "parent-op",
         "request_id": "parent",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "cbd068c456906fff6f94a6e74c4d4765018d1f6dd94c5f28339e3da6c0113aa0",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "e603295649732e0667e0083351a37057654c8ebe535126c8681213ad3bbb638b",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2303,8 +2303,8 @@
               "operation_id": "child-op",
               "parent_operation_id": "parent-op",
               "request_id": "child",
-              "contract_version": "execution.v1.1",
-              "contract_hash": "e140602896dbbf9edb486ac09d5af2219f3fe839bbe2d61c9fd827841636bc42",
+              "contract_version": "execution.v1.3",
+              "contract_hash": "e862d91454dc23a93bd5b6950f9fbd5be49f9c81fbae3ad73b6ff31bab703d94",
               "verification": {
                 "state": "UNAVAILABLE",
                 "coverage": "PARTIAL",
@@ -2348,8 +2348,8 @@
       "execution": {
         "operation_id": "parent-op",
         "request_id": "parent",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "883be37676e913c0459fb2edf687c4c90da7e16b9c8edd218b7f7fba3990630f",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "87d222397bb30362107deba148561a7817fa1af56da1a6436ef1d9c96d7438ae",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2378,8 +2378,8 @@
               "operation_id": "child-op",
               "parent_operation_id": "parent-op",
               "request_id": "child",
-              "contract_version": "execution.v1.1",
-              "contract_hash": "e140602896dbbf9edb486ac09d5af2219f3fe839bbe2d61c9fd827841636bc42",
+              "contract_version": "execution.v1.3",
+              "contract_hash": "e862d91454dc23a93bd5b6950f9fbd5be49f9c81fbae3ad73b6ff31bab703d94",
               "verification": {
                 "state": "UNAVAILABLE",
                 "coverage": "PARTIAL",
@@ -2423,8 +2423,8 @@
       "execution": {
         "operation_id": "parent-op",
         "request_id": "parent",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "78916a69a5545554fbf8f44c8b13e1c94cf301660955da6a8d1a5cfa5011141c",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "f0b6f222c3c988397131d9c81d4d04957263271abef2f376e5967bea177ff575",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2453,8 +2453,8 @@
               "operation_id": "child-op",
               "parent_operation_id": "parent-op",
               "request_id": "child",
-              "contract_version": "execution.v1.1",
-              "contract_hash": "e140602896dbbf9edb486ac09d5af2219f3fe839bbe2d61c9fd827841636bc42",
+              "contract_version": "execution.v1.3",
+              "contract_hash": "e862d91454dc23a93bd5b6950f9fbd5be49f9c81fbae3ad73b6ff31bab703d94",
               "verification": {
                 "state": "UNAVAILABLE",
                 "coverage": "PARTIAL",
@@ -2734,8 +2734,8 @@
         "operation_id": "op",
         "parent_operation_id": "parent",
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -2835,8 +2835,8 @@
         "operation_id": "op",
         "parent_operation_id": "parent",
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2934,8 +2934,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -3012,8 +3012,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -3090,8 +3090,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -3168,8 +3168,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -3246,8 +3246,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -3324,8 +3324,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "recovery": {
           "state": "NOT_REQUESTED"
         },
@@ -3391,8 +3391,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": null,
         "recovery": {
           "state": "NOT_REQUESTED"
@@ -3459,8 +3459,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": [],
         "recovery": {
           "state": "NOT_REQUESTED"
@@ -3527,8 +3527,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": false,
         "recovery": {
           "state": "NOT_REQUESTED"
@@ -3595,8 +3595,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": 4,
         "recovery": {
           "state": "NOT_REQUESTED"
@@ -3663,8 +3663,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": "invalid",
         "recovery": {
           "state": "NOT_REQUESTED"
@@ -3731,8 +3731,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {},
         "recovery": {
           "state": "NOT_REQUESTED"
@@ -3799,8 +3799,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -3874,8 +3874,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -3950,8 +3950,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -4026,8 +4026,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -4102,8 +4102,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -4178,8 +4178,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -4254,8 +4254,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -4330,8 +4330,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -4405,8 +4405,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -4481,8 +4481,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -4557,8 +4557,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -4633,8 +4633,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -4709,8 +4709,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -4785,8 +4785,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -4861,8 +4861,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -4938,8 +4938,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -5016,8 +5016,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -5094,8 +5094,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -5172,8 +5172,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -5252,8 +5252,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -5329,8 +5329,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -5407,8 +5407,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -5485,8 +5485,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -5563,8 +5563,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -5643,8 +5643,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -5720,8 +5720,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -5798,8 +5798,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -5876,8 +5876,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -5954,8 +5954,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -6034,8 +6034,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -6109,8 +6109,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -6185,8 +6185,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -6261,8 +6261,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -6337,8 +6337,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -6415,8 +6415,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -6493,8 +6493,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -6571,8 +6571,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -6649,8 +6649,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -6727,8 +6727,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -6805,8 +6805,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -6883,8 +6883,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -6962,8 +6962,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -7025,8 +7025,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "bfd762cdb23355997b49ef03dc721700d6b980c05503eee346623cdd1673f624",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "cee7b1ad220d2d7ddb96ba3eaec69b77fa8adf1ec7ccbd4d4c3ae167d687c0e4",
         "recovery": {
           "state": "NOT_REQUESTED"
         },
@@ -7081,8 +7081,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "98a9aca1fab87a5b43f7d6105abf2c31836e67a2c28b3e57b0747ecfcd908a2b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "43f831d635615f2755a31f33177836bc94da4ede4842070dde8d6c14466567d8",
         "recovery": {
           "state": "NOT_REQUESTED"
         },
@@ -7155,8 +7155,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -7233,8 +7233,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -7311,8 +7311,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.2",
-        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -7346,6 +7346,462 @@
       }
     },
     "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r3_01_explicit_missing",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [
+            "geometry"
+          ],
+          "observed": [],
+          "missing": [
+            "geometry"
+          ],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "possible_effect": true,
+        "autosave_eligible": true,
+        "health_effect": "LANDED",
+        "freshness_restored": false,
+        "mutation_outcome": "COMPLETE",
+        "write_attempted": true,
+        "native_settled": true,
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ]
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "request": {
+      "id": "r",
+      "action": "pcb.page.clear",
+      "payload": {
+        "dryRun": true
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "mutation_started": true,
+        "deleted_ids": [
+          "sentinel"
+        ]
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "a93b5c61598d3185458b0215012c462af3c5fad4bc7f4c88bfc772cf33155af9",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": []
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": false,
+        "next_action": "reconcile_without_replay",
+        "reason": "legacy evidence does not prove semantic completion",
+        "possible_effect": true,
+        "autosave_eligible": true,
+        "health_effect": "UNKNOWN",
+        "freshness_restored": false,
+        "mutation_outcome": "UNCERTAIN",
+        "write_attempted": true,
+        "native_settled": false
+      }
+    },
+    "before": false,
+    "name": "r3_02_preview_actual_write",
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "request": {
+      "id": "r",
+      "action": "pcb.page.clear",
+      "payload": {
+        "dryRun": true
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "mutation_started": true,
+        "deleted_ids": [
+          "sentinel"
+        ]
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "mismatch",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": []
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": false,
+        "next_action": "reconcile_without_replay",
+        "reason": "legacy evidence does not prove semantic completion",
+        "possible_effect": true,
+        "autosave_eligible": true,
+        "health_effect": "UNKNOWN",
+        "freshness_restored": false,
+        "mutation_outcome": "UNCERTAIN",
+        "write_attempted": true,
+        "native_settled": false
+      }
+    },
+    "before": false,
+    "name": "r3_02_preview_actual_write_mismatch",
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "request": {
+      "id": "r",
+      "action": "document.current",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {},
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "580769f805d8bf17b1a86718f543e48ba1f66cfb7108688d9eb139fed11e0e30",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": []
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": "false",
+        "next_action": "continue",
+        "reason": "request satisfied",
+        "possible_effect": false,
+        "autosave_eligible": false,
+        "health_effect": "UNKNOWN",
+        "freshness_restored": false
+      }
+    },
+    "before": false,
+    "name": "r3_03_top_type_request_satisfied",
+    "want_outcome": "",
+    "want_satisfied": false
+  },
+  {
+    "request": {
+      "id": "r",
+      "action": "document.current",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {},
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "580769f805d8bf17b1a86718f543e48ba1f66cfb7108688d9eb139fed11e0e30",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": []
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "request satisfied",
+        "possible_effect": false,
+        "autosave_eligible": false,
+        "health_effect": "UNKNOWN",
+        "freshness_restored": false,
+        "native_settled": "false"
+      }
+    },
+    "before": false,
+    "name": "r3_03_top_type_native_settled",
+    "want_outcome": "",
+    "want_satisfied": false
+  },
+  {
+    "request": {
+      "id": "r",
+      "action": "document.open",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {},
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "40ac13d6f7aad52feb11f48b611584d697f2629cfc50a47955bcb933d7d9e136",
+        "verification": {
+          "state": "UNAVAILABLE",
+          "coverage": "PARTIAL",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": []
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "request satisfied",
+        "possible_effect": true,
+        "autosave_eligible": false,
+        "health_effect": "UNKNOWN",
+        "freshness_restored": false,
+        "mutation_outcome": "UNCERTAIN",
+        "native_settled": false
+      }
+    },
+    "before": false,
+    "name": "r3_03_outcome_effects",
+    "want_outcome": "",
+    "want_satisfied": false
+  },
+  {
+    "name": "r3_04_downgrade_permission",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": false,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "4b46f58b27d5b26a0e9db233abe28b0b03c51de3cfd4ce507c808869872df415",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "possible_effect": true,
+        "autosave_eligible": true,
+        "health_effect": "LANDED",
+        "freshness_restored": false,
+        "mutation_outcome": "COMPLETE",
+        "write_attempted": true,
+        "native_settled": true,
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ]
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {},
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.3",
+        "contract_hash": "1db0df6324444661773ccb07f05c83f796ca8012434dedfb9c1685a97187bbf5",
+        "verification": null,
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": false,
+        "next_action": "reconcile_without_replay",
+        "reason": "legacy evidence does not prove semantic completion",
+        "possible_effect": true,
+        "autosave_eligible": true,
+        "health_effect": "UNKNOWN",
+        "freshness_restored": false,
+        "mutation_outcome": "UNCERTAIN",
+        "native_settled": false
+      }
+    },
+    "before": false,
+    "name": "r3_05_invalid_unsettled",
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "uncertain"
+      }
+    },
+    "before": false,
+    "name": "r3_05_status_uncertain_health",
     "want_outcome": "UNCERTAIN",
     "want_satisfied": false
   }

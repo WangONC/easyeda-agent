@@ -59,7 +59,8 @@ func TestR2RecomputePossibleEffectIsNotRequestSatisfaction(t *testing.T) {
 		}
 	}
 	req := &protocol.Request{Action: "pcb.pour.rebuild"}
-	resp := &protocol.Response{OK: true, Execution: &protocol.Execution{MutationOutcome: protocol.NoWrite}}
+	resp := &protocol.Response{OK: false}
+	resp.Execution = protocol.Interpret(req, resp, true)
 	if protocol.PossibleMutation(req, resp) {
 		t.Fatal("NO_WRITE has effects")
 	}

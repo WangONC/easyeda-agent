@@ -153,14 +153,14 @@ func TestMaybeInvalidateStage(t *testing.T) {
 		t.Fatalf("invalidation must surface as a response warning, got %v", resp.Warnings)
 	}
 
-	// A failed action must not invalidate.
+	// A dispatched failure has unknown effects and must invalidate.
 	st2, _ := workflow.Load("inv-proj2")
 	st2.Confirm(workflow.StagePlacementConfirmed, "confirm", "")
 	_ = workflow.Save(st2)
 	s.maybeInvalidateStage(&protocol.Request{Action: "pcb.components.move", Project: "inv-proj2"},
 		&protocol.Response{OK: false})
 	got2, _ := workflow.Load("inv-proj2")
-	if !got2.Has(workflow.StagePlacementConfirmed) {
-		t.Fatal("a failed action must not invalidate confirmations")
+	if got2.Has(workflow.StagePlacementConfirmed) {
+		t.Fatal("a dispatched failure must invalidate confirmations")
 	}
 }

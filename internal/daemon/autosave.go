@@ -232,25 +232,10 @@ func (s *Server) dispatchSave(windowID, saveAction string) {
 	s.logf("autosave: %s on %s (ok=%v)", saveAction, windowID, resp.OK)
 }
 
-// Keep the legacy safety net while explicitly refusing unsettled Fast writes.
-// This predicate does not introduce a save barrier or authorize semantic completion.
+// Scheduling consumes the canonical permission; the reducer owns legacy compatibility.
 func shouldAutosave(req *protocol.Request, resp *protocol.Response) bool {
-	if req == nil || resp == nil || isDryRunRequest(req) {
+	if req == nil || resp == nil {
 		return false
 	}
-	e := resp.Execution
-	if e != nil && (e.MutationOutcome == protocol.NoWrite || e.NativeSettled != nil && !*e.NativeSettled) {
-		return false
-	}
-	if req.Action == "route.apply_batch" {
-		return e != nil && e.NativeSettled != nil && *e.NativeSettled && (e.MutationOutcome == protocol.Complete || e.MutationOutcome == protocol.Partial)
-	}
-	c, _ := protocol.ContractFor(req.Action)
-	if !c.ContentMutation() && req.Action != "pcb.pour.rebuild" {
-		return false
-	}
-	if c.HasEffect("NATIVE_RECOMPUTE") && !c.ContentMutation() {
-		return e != nil && e.RequestSatisfied
-	}
-	return resp.OK || e != nil && (e.MutationOutcome == protocol.Complete || e.MutationOutcome == protocol.Partial)
+	return protocol.CanonicalConclusion(req, resp).AutosaveEligible
 }

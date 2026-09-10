@@ -311,15 +311,14 @@ func TestStaleReadGate_ScopeIsPcbReadsOnly(t *testing.T) {
 	}
 }
 
-// TestStaleReadGate_FailedMutationDoesNotArmIt: only a successful mutation can
-// dirty the engine state.
-func TestStaleReadGate_FailedMutationDoesNotArmIt(t *testing.T) {
+// A dispatched failure cannot establish NO_WRITE.
+func TestStaleReadGate_FailedMutationRetainsPossibleEffect(t *testing.T) {
 	s, _ := gateServer(t)
 	req := &protocol.Request{Envelope: protocol.Envelope{WindowID: "w1"}, Action: "pcb.line.create"}
 	s.staleReads.observe(req, &protocol.Response{OK: false})
 
-	if resp := s.checkStaleRead(gateReq("pcb.line.list", "w1", "")); resp != nil {
-		t.Fatalf("a failed mutation must not refuse later reads, got %+v", resp.Error)
+	if resp := s.checkStaleRead(gateReq("pcb.line.list", "w1", "")); resp == nil {
+		t.Fatal("a dispatched failure must retain possible stale state")
 	}
 }
 

@@ -430,5 +430,121 @@
       "mcp/test/execution.test.mjs"
     ],
     "deferred": "All Stage B–E work remains deferred; no Host mutation or G474 operations"
+  },
+  "stage_a_r3": {
+    "parent_commit": "daaaef934e97d84705989785c170c54b5a544d5f",
+    "scope": "A-R3-01..05; unified Validate/Reconcile/Derive; OFFLINE_ONLY; candidate pending independent acceptance",
+    "contract_version": "execution.v1.3",
+    "shared_fixtures": 147,
+    "historical_fixtures_preserved": 138,
+    "fixture_sha256": "29bfaba4def3eeb3be93ddce1fea43873eb978152090d578acbfb51584ba969c",
+    "property": {
+      "seed": "0x53a3c0de",
+      "seed_decimal": 1403240670,
+      "cases": 4096,
+      "generator": "scripts/execution-properties.cjs",
+      "generator_sha256": "db939d24c31318875a1423809b7b9275ed74f76d94177a009b0288593a5a682c",
+      "coverage": "8 mutation families; full execution Go/TS parity, both round trips, repeated interpretation; real TS and MCP authoringResult; malformed/uncertain/intent/permissions assertions",
+      "refusal_phase_regression": true,
+      "consumer_ast_boundary": true
+    },
+    "tests": [
+      {
+        "name": "Go unfiltered",
+        "command": "D:/Environment/go/bin/go.exe test -json -count=1 ./...",
+        "result": "FAIL: four known Windows baseline tests only",
+        "log": ".easyeda/r3-go-final-unfiltered.jsonl",
+        "sha256": "bee895afa2ed069fe2f6d59eb2f06d333219076430b1ff7333b215a50ef91415"
+      },
+      {
+        "name": "Go filtered",
+        "command": "D:/Environment/go/bin/go.exe test -json -count=1 ./... -skip '^(TestStripArtifactNesting|TestResolveEnrichScriptPriority|TestResolveEnrichScriptNotFoundListsProbedPaths|TestUpdateCLIReplacesBinaryAndVerifiesChecksum)$'",
+        "result": "PASS: 11 tested packages",
+        "log": ".easyeda/r3-go-final-filtered.jsonl",
+        "sha256": "e93b0bcf849740586d9e93e13858a97049f20ed0354f0539e2f2ecba91a0a2c5"
+      },
+      {
+        "name": "Connector",
+        "command": "npm --prefix extension test",
+        "result": "PASS: 491 tests, 0 skipped",
+        "log": ".easyeda/r3-extension-final.log",
+        "sha256": "24ea4c1babf5f8b6e8bb6831148a21851fe98b8af4ab39cd6f1e066ee0089e25"
+      },
+      {
+        "name": "TypeScript",
+        "command": "npm --prefix extension run typecheck",
+        "result": "PASS",
+        "log": ".easyeda/r3-typecheck-final.log",
+        "sha256": "73cdf70247e975272156bf142e5925d20389cb3ea60afdd201dc9fb44c4da341"
+      },
+      {
+        "name": "MCP",
+        "command": "EASYEDA_BIN=.easyeda/stage-a-r3-easyeda.exe npm --prefix mcp test",
+        "result": "PASS: 185 tests, 1 Host skip",
+        "log": ".easyeda/r3-mcp-final.log",
+        "sha256": "1b5b51f3e9ccf1fbaff7cbc3aa1e377cfba53b64569861c89c24eaed84dd68a6"
+      },
+      {
+        "name": "Generated projection",
+        "command": "node scripts/generate-execution-mcp.cjs --check",
+        "result": "PASS",
+        "log": ".easyeda/r3-generator-final.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "Skill",
+        "command": "D:/Environment/miniconda3/python.exe scripts/pack-skill.py --check",
+        "result": "PASS: 58 tracked files",
+        "log": ".easyeda/r3-skill-final.log",
+        "sha256": "f5cb43343b02e06e9882dbcbd47e7fe6e0b821bfc3c015d47a807aff6f47a792"
+      },
+      {
+        "name": "Daemon final source confirmation",
+        "command": "D:/Environment/go/bin/go.exe test -count=1 ./internal/daemon",
+        "result": "PASS",
+        "log": ".easyeda/r3-daemon-poststage.log",
+        "sha256": "1bd02f833211c174accfe1d1f7d5ae4c562c63005a75bcf92db708eb55de6d67"
+      }
+    ],
+    "unfiltered_failed_tests": [
+      "TestUpdateCLIReplacesBinaryAndVerifiesChecksum",
+      "TestStripArtifactNesting",
+      "TestResolveEnrichScriptPriority/3_installed_skill_dir_is_found_from_an_unrelated_cwd_(#115)",
+      "TestResolveEnrichScriptPriority",
+      "TestResolveEnrichScriptNotFoundListsProbedPaths"
+    ],
+    "filtered_pass_events": 3219,
+    "autonomous_eligibility": "151/151 EXCLUDED",
+    "isolated_cli_sha256": "3ccbd3fe3c116809771395cc8b5775da36f1c7deeccc73de53ef1d17a03e26f1",
+    "changed_files": [
+      "docs/STAGE_A_EXECUTION_CONTRACT.md",
+      "docs/STAGE_A_R3_RESULTS.md",
+      "docs/STAGE_A_TEST_RESULTS.json",
+      "extension/src/action-contracts.json",
+      "extension/src/execution-properties.test.ts",
+      "extension/src/execution.ts",
+      "extension/src/protocol.ts",
+      "internal/daemon/autosave.go",
+      "internal/daemon/execution_r1_test.go",
+      "internal/daemon/execution_r2_test.go",
+      "internal/daemon/execution_r3_test.go",
+      "internal/daemon/execution_test.go",
+      "internal/daemon/stagegate_test.go",
+      "internal/daemon/stale_read_gate_test.go",
+      "internal/daemon/stalereads.go",
+      "internal/daemon/stalereads_test.go",
+      "internal/daemon/writehealth.go",
+      "internal/protocol/execution.go",
+      "internal/protocol/execution_parity_test.go",
+      "internal/protocol/execution_properties_test.go",
+      "internal/protocol/execution_reducer.go",
+      "internal/protocol/execution_shape.go",
+      "internal/protocol/testdata/execution.json",
+      "mcp/src/execution.generated.mjs",
+      "mcp/test/execution-properties.test.mjs",
+      "scripts/execution-properties.cjs",
+      "skills/easyeda-agent/references/actions.md"
+    ],
+    "deferred": "All Stage B–E implementation and Host qualification remain deferred. No Host mutation, G474, push, PR or tag."
   }
 }

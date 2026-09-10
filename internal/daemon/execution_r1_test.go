@@ -153,8 +153,8 @@ func TestR1ConsumersContractAndExecution(t *testing.T) {
 		if len(s.autosave.timers) != 0 {
 			t.Fatal("uncertain/no-write armed autosave")
 		}
-		if state == protocol.NoWrite && protocol.PossibleMutation(req, resp) {
-			t.Fatal("NO_WRITE invalidates")
+		if !protocol.PossibleMutation(req, resp) {
+			t.Fatal("malformed or conflicting NO_WRITE must retain possible effects")
 		}
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const ContractVersion = "execution.v1.2"
+const ContractVersion = "execution.v1.3"
 
 type ActionContract struct {
 	Operations            []string             `json:"operations,omitempty"`
@@ -180,30 +180,40 @@ type Evidence struct {
 	EvidenceRefs    []string `json:"evidence_refs"`
 }
 type Execution struct {
-	InvalidEvidence      any             `json:"invalid_evidence,omitempty"`
-	ChildResponses       []Response      `json:"child_responses,omitempty"`
-	NativeSettled        *bool           `json:"native_settled,omitempty"`
-	OperationID          string          `json:"operation_id,omitempty"`
-	ParentOperationID    string          `json:"parent_operation_id,omitempty"`
-	RequestID            string          `json:"request_id"`
-	ContractVersion      string          `json:"contract_version"`
-	ContractHash         string          `json:"contract_hash"`
-	PayloadHash          string          `json:"payload_hash,omitempty"`
-	ExpectedTarget       *Context        `json:"expected_target,omitempty"`
-	ObservedTargetBefore *Context        `json:"observed_target_before,omitempty"`
-	ObservedTargetAfter  *Context        `json:"observed_target_after,omitempty"`
-	Activation           string          `json:"activation,omitempty"`
-	ExecutorBuild        string          `json:"executor_build,omitempty"`
-	MutationOutcome      MutationOutcome `json:"mutation_outcome,omitempty"`
-	WriteAttempted       *bool           `json:"write_attempted,omitempty"`
-	ItemResults          any             `json:"item_results,omitempty"`
-	AffectedTargets      []Context       `json:"affected_targets,omitempty"`
-	Verification         Evidence        `json:"verification"`
-	Recovery             map[string]any  `json:"recovery"`
-	Persistence          map[string]any  `json:"persistence"`
-	RequestSatisfied     bool            `json:"request_satisfied"`
-	NextAction           string          `json:"next_action"`
-	Reason               string          `json:"reason"`
+	wireMetadata            map[string]any
+	decodedInvalid          bool
+	childResponseEvidence   json.RawMessage
+	presentConclusionFields map[string]bool
+	PriorEvidence           any             `json:"prior_evidence,omitempty"`
+	DecisionBasis           string          `json:"decision_basis,omitempty"`
+	PossibleEffect          bool            `json:"possible_effect,omitempty"`
+	AutosaveEligible        bool            `json:"autosave_eligible,omitempty"`
+	HealthEffect            string          `json:"health_effect,omitempty"`
+	FreshnessRestored       bool            `json:"freshness_restored,omitempty"`
+	InvalidEvidence         any             `json:"invalid_evidence,omitempty"`
+	ChildResponses          []Response      `json:"child_responses,omitempty"`
+	NativeSettled           *bool           `json:"native_settled,omitempty"`
+	OperationID             string          `json:"operation_id,omitempty"`
+	ParentOperationID       string          `json:"parent_operation_id,omitempty"`
+	RequestID               string          `json:"request_id"`
+	ContractVersion         string          `json:"contract_version"`
+	ContractHash            string          `json:"contract_hash"`
+	PayloadHash             string          `json:"payload_hash,omitempty"`
+	ExpectedTarget          *Context        `json:"expected_target,omitempty"`
+	ObservedTargetBefore    *Context        `json:"observed_target_before,omitempty"`
+	ObservedTargetAfter     *Context        `json:"observed_target_after,omitempty"`
+	Activation              string          `json:"activation,omitempty"`
+	ExecutorBuild           string          `json:"executor_build,omitempty"`
+	MutationOutcome         MutationOutcome `json:"mutation_outcome,omitempty"`
+	WriteAttempted          *bool           `json:"write_attempted,omitempty"`
+	ItemResults             any             `json:"item_results,omitempty"`
+	AffectedTargets         []Context       `json:"affected_targets,omitempty"`
+	Verification            Evidence        `json:"verification"`
+	Recovery                map[string]any  `json:"recovery"`
+	Persistence             map[string]any  `json:"persistence"`
+	RequestSatisfied        bool            `json:"request_satisfied"`
+	NextAction              string          `json:"next_action"`
+	Reason                  string          `json:"reason"`
 }
 
 func nonempty(v any) bool {
@@ -238,274 +248,20 @@ func NegativeResult(r map[string]any) bool {
 	return false
 }
 
-// Interpret only projects evidence. It never changes OK, native status, receipts or health.
-// beforeDispatch is supplied by a known control-flow boundary, NEVER an error code.
+// Interpret has one path: validate evidence, reconcile it, then derive all conclusions.
 func Interpret(req *Request, resp *Response, beforeDispatch bool) *Execution {
-	c, _ := ContractFor(req.Action)
-	e := &Execution{OperationID: req.OperationID, ParentOperationID: req.ParentOperationID, RequestID: req.ID, ContractVersion: c.Version, ContractHash: c.Hash, ExpectedTarget: req.ExpectedTarget, Verification: Evidence{State: "UNAVAILABLE", Coverage: "PARTIAL", Required: []string{}, Observed: []string{}, Missing: []string{}, EvidenceRefs: []string{}}, Recovery: map[string]any{"state": "NOT_REQUESTED"}, Persistence: map[string]any{"state": "NOT_REQUESTED"}, NextAction: "inspect", Reason: "legacy evidence does not prove semantic completion"}
-	if e.OperationID == "" {
-		e.OperationID, _ = req.Payload["client_transaction_id"].(string)
-	}
-	mutation := c.ContentMutation()
-	if mutation {
-		e.MutationOutcome = Uncertain
-		e.NextAction = "reconcile_without_replay"
-	}
-	if beforeDispatch {
-		if mutation {
-			e.MutationOutcome = NoWrite
-		}
-		b := false
-		e.WriteAttempted = &b
-		e.Reason = "refused before dispatch"
-		return e
-	}
-	if resp == nil {
-		return e
-	}
-	if prior := resp.Execution; prior != nil {
-		raw := prior.InvalidEvidence
-		if raw == nil {
-			raw = jsonValue(prior)
-		}
-		if prior.InvalidEvidence != nil || !validExecutionShape(raw) {
-			e.InvalidEvidence = raw
-			e.Verification.State = "INVALID"
-			e.Reason = "invalid execution structure"
-			return e
-		}
-	}
-	if Preview(req) {
-		e.MutationOutcome = NoWrite
-		b := false
-		e.WriteAttempted = &b
-		e.RequestSatisfied = resp.OK && !NegativeResult(resp.Result)
-		e.Reason = "declared no-write preview"
-		return e
-	}
-	// Structured producer claims are checked, not trusted as verified booleans.
-	if prior := resp.Execution; prior != nil {
-		copy := *prior
-		copy.Recovery = map[string]any{}
-		for k, v := range prior.Recovery {
-			copy.Recovery[k] = v
-		}
-		copy.Persistence = map[string]any{}
-		for k, v := range prior.Persistence {
-			copy.Persistence[k] = v
-		}
-		e = &copy
-		cvalid := prior.ContractVersion == c.Version && prior.ContractHash == c.Hash && prior.RequestID == resp.ID && (req.ID == "" || req.ID == resp.ID)
-		if mutation && req.Action != "route.apply_batch" {
-			valid := cvalid
-			switch prior.MutationOutcome {
-			case NoWrite:
-				valid = valid && prior.WriteAttempted != nil && !*prior.WriteAttempted && resp.Result["mutation_started"] != true && !nonempty(resp.Result["created_ids"]) && !nonempty(resp.Result["deleted_ids"])
-				if prior.RequestSatisfied {
-					valid = valid && completeEvidence(prior.Verification)
-				}
-			case Complete:
-				valid = valid && prior.NativeSettled != nil && *prior.NativeSettled && len(c.Verification.Required) > 0 && completeEvidence(prior.Verification) && !NegativeResult(resp.Result) && prior.Recovery["state"] != "RESTORED"
-			case Partial:
-				valid = valid && prior.NativeSettled != nil && *prior.NativeSettled && prior.WriteAttempted != nil && *prior.WriteAttempted && completeEvidence(prior.Verification)
-				e.RequestSatisfied = false
-			case Uncertain:
-				e.RequestSatisfied = false
-			default:
-				valid = false
-			}
-			if !valid {
-				e.MutationOutcome = Uncertain
-				e.RequestSatisfied = false
-				e.Reason = "incomplete or conflicting execution evidence"
-				e.NextAction = "reconcile_without_replay"
-			}
-			return e
-		}
-	}
-	if prior := resp.Execution; prior != nil {
-		valid := prior.ContractVersion == c.Version && prior.ContractHash == c.Hash && prior.RequestID == resp.ID && (req.ID == "" || req.ID == resp.ID)
-		blocked := !valid || prior.Verification.State == "INVALID" || prior.Verification.State == "UNSUPPORTED"
-		if req.Action == "route.apply_batch" {
-			if valid && prior.MutationOutcome == NoWrite && prior.WriteAttempted != nil && !*prior.WriteAttempted && prior.Reason == "refused before dispatch" && resp.Result == nil {
-				return e
-			}
-			if prior.WriteAttempted != nil && !*prior.WriteAttempted && resp.Result["mutation_started"] == true {
-				blocked = true
-			}
-			if prior.MutationOutcome == NoWrite && resp.Result["mutation_started"] == true {
-				blocked = true
-			}
-			if (resp.Result["status"] == "complete" && prior.Recovery["state"] != "NOT_REQUESTED") || (prior.Recovery["state"] == "RESTORED" && (resp.Result["rollback_attempted"] != true || resp.Result["rollback_complete"] != true)) {
-				e.Reason = "recovery conflicts with Fast receipt"
-				blocked = true
-			}
-			if prior.ItemResults != nil {
-				a, _ := json.Marshal(prior.ItemResults)
-				b, _ := json.Marshal(resp.Result["item_results"])
-				if string(a) != string(b) {
-					blocked = true
-				}
-			}
-			blocked = blocked || prior.NativeSettled != nil && !*prior.NativeSettled || prior.MutationOutcome == Uncertain || ((prior.MutationOutcome == Complete || prior.MutationOutcome == Partial) && (prior.NativeSettled == nil || !*prior.NativeSettled))
-		} else if !mutation && !prior.RequestSatisfied {
-			// Only this explicit intermediate delivery state can acquire later evidence.
-			blocked = blocked || !(c.HasEffect("ARTIFACT_DELIVERY") && prior.Persistence["state"] == "PENDING_DELIVERY")
-		}
-		if blocked {
-			e.RequestSatisfied = false
-			if mutation {
-				e.MutationOutcome = Uncertain
-				e.NextAction = "reconcile_without_replay"
-			}
-			return e
-		}
-	}
-	if e.ObservedTargetAfter == nil {
-		e.ObservedTargetAfter = resp.Context
-	}
-	r := resp.Result
-	if mutation {
-		// Fast Path owns its status and readback semantics. Keep its complete historical
-		// receipt intact but never treat a cached receipt as fresh current proof.
-		if req.Action == "route.apply_batch" {
-			e.MutationOutcome = Uncertain
-			e.RequestSatisfied = false
-			e.ItemResults = r["item_results"]
-			if b, ok := r["mutation_started"].(bool); ok {
-				e.WriteAttempted = &b
-			}
-			switch r["status"] {
-			case "stale", "partial":
-				if r["mutation_started"] == false && fastNoWrite(r) {
-					e.MutationOutcome = NoWrite
-				} else if r["status"] == "partial" && fastSettled(r, req.Payload, false) {
-					e.MutationOutcome = Partial
-					b := true
-					e.NativeSettled = &b
-				}
-			case "complete":
-				if fastComplete(r, req.Payload) {
-					e.MutationOutcome = Complete
-					b := true
-					e.NativeSettled = &b
-					e.RequestSatisfied = true
-					e.Verification.State = "AVAILABLE"
-					e.Verification.Coverage = "COMPLETE"
-					if e.Verification.Source == "" {
-						e.Verification.Source = "FastPath.matchesOperation"
-					}
-					if len(e.Verification.EvidenceRefs) == 0 {
-						e.Verification.EvidenceRefs = []string{"result"}
-					}
-					e.NextAction = "continue"
-					e.Reason = "Fast Path semantic readback"
-				}
-			}
-			if r["rollback_complete"] == true && e.MutationOutcome == Partial {
-				e.Recovery["state"] = "RESTORED"
-				if _, ok := e.Recovery["evidence_refs"]; !ok {
-					e.Recovery["evidence_refs"] = []string{"result"}
-				}
-				if e.MutationOutcome != Uncertain {
-					e.MutationOutcome = Partial
-					e.RequestSatisfied = false
-				}
-			}
-		}
-	} else {
-		e.RequestSatisfied = c.Version != "" && resp.OK && !NegativeResult(r) && r["ok"] != false && r["saved"] != false
-		if c.HasEffect("SAVE") {
-			e.RequestSatisfied = e.RequestSatisfied && r["saved"] == true
-			if e.RequestSatisfied {
-				e.Persistence["state"] = "SAVE_ACKNOWLEDGED"
-			} else {
-				e.Persistence["state"] = "UNKNOWN"
-			}
-		}
-		if c.HasEffect("ARTIFACT_DELIVERY") {
-			invocationOK := e.RequestSatisfied
-			e.RequestSatisfied = e.RequestSatisfied && len(resp.Artifacts) > 0
-			for _, a := range resp.Artifacts {
-				if a.Path == "" || a.SHA256 == "" {
-					e.RequestSatisfied = false
-				}
-			}
-			if e.RequestSatisfied {
-				e.Persistence["state"] = "DELIVERED"
-				e.Reason = "artifact delivery completed"
-			} else if invocationOK && pendingArtifacts(resp) {
-				e.Persistence["state"] = "PENDING_DELIVERY"
-				e.Reason = "artifact delivery evidence pending"
-			} else {
-				e.Persistence["state"] = "DELIVERY_FAILED"
-				e.Reason = "artifact delivery failed"
-			}
-		}
-	}
-	if Preview(req) {
-		e.MutationOutcome = NoWrite
-		b := false
-		e.WriteAttempted = &b
-		e.RequestSatisfied = resp.OK && !NegativeResult(r)
-		e.Reason = "declared no-write preview"
-	}
-	// Stage A accepts only this reducer's proof; arbitrary verified/outcome fields
-	// are not an authorization channel. Future migrated producers need a verifier.
-	return e
+	return deriveExecution(reconcileExecution(validateExecution(req, resp, beforeDispatch)))
 }
 func RequestSatisfied(req *Request, resp *Response) bool {
 	return Interpret(req, resp, false).RequestSatisfied
 }
-func PossibleMutation(req *Request, resp *Response) bool {
-	if resp == nil || req == nil || Preview(req) {
-		return false
-	}
-	c, ok := ContractFor(req.Action)
-	if !ok {
-		return false
-	}
-	if resp.Execution != nil && resp.Execution.MutationOutcome == NoWrite {
-		return false
-	}
-	if c.HasEffect("NATIVE_RECOMPUTE") && !c.ContentMutation() {
-		// Recompute can invalidate prior checks even when its request is unsatisfied.
-		// Only an explicit pre-dispatch/no-write boundary proves no effect.
-		if resp.Execution != nil && resp.Execution.WriteAttempted != nil && !*resp.Execution.WriteAttempted && resp.Execution.Reason == "refused before dispatch" {
-			return false
-		}
-		return true
-	}
-	if !c.ContentMutation() {
-		return false
-	}
-	if resp.Execution != nil {
-		return resp.Execution.MutationOutcome == Complete || resp.Execution.MutationOutcome == Partial || resp.Execution.MutationOutcome == Uncertain
-	}
-	return resp.OK
-}
 
-func completeEvidence(v Evidence) bool {
-	if v.State != "AVAILABLE" || v.Coverage != "COMPLETE" || len(v.Required) == 0 || v.Missing == nil || len(v.Missing) > 0 || len(v.EvidenceRefs) == 0 || v.Activation == "" || v.Revision == "" || v.ObservedAt == "" || v.VerifierVersion == "" || v.Source == "" || v.Scope == nil {
-		return false
-	}
-	for _, value := range append(append(append([]string{}, v.Required...), v.Observed...), v.EvidenceRefs...) {
-		if value == "" {
-			return false
-		}
-	}
-	for _, field := range v.Required {
-		found := false
-		for _, observed := range v.Observed {
-			if field == observed {
-				found = true
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-	return true
+// CanonicalConclusion is the only legacy adapter used by downstream consumers.
+// It normalizes every input without mutating the raw response.
+func CanonicalConclusion(req *Request, resp *Response) *Execution { return Interpret(req, resp, false) }
+
+func PossibleMutation(req *Request, resp *Response) bool {
+	return CanonicalConclusion(req, resp).PossibleEffect
 }
 
 func pendingArtifacts(resp *Response) bool {

@@ -205,6 +205,8 @@ export interface Evidence {
  required: string[]; observed: string[]; missing: string[]; evidence_refs: string[];
 }
 export interface Execution {
+ prior_evidence?: unknown;
+ decision_basis?: string; possible_effect: boolean; autosave_eligible: boolean; health_effect: string; freshness_restored: boolean;
  invalid_evidence?: unknown;
  child_responses?: ResponseFrame[];
  native_settled?: boolean;

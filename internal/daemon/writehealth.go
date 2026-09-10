@@ -561,79 +561,21 @@ func (t *writeHealthTracker) all() map[string]WindowWriteHealth {
 
 // ── 通道 A:从响应里挖回读证据 ────────────────────────────────────────────────
 
-// effectFromResponse mines the response ITSELF for the connector's own read-back
-// verdict. Several handlers already re-read the page after writing and report
-// what survived / was not applied (the #151 partial convention, issue #164's
-// verified delete) — that evidence used to die in the JSON while the daemon
-// counted the call as a clean success.
-//
-// Structured execution is reduced first. For legacy results, only negative
-// evidence is inferred: "ok plus no complaint" is not
-// proof the write landed, so the absence of these keys stays effectUnknown.
-// Positive legacy (landed) verdicts come from 通道 B, where a command actually read the
-// canvas back.
+// effectFromResponse projects canonical effect evidence into the existing health
+// tracker. Invocation OK is counted separately; all raw legacy readback adaptation
+// belongs to protocol.Interpret, never to this consumer.
 func effectFromResponse(req *protocol.Request, resp *protocol.Response) effectVerdict {
-	if req != nil && resp != nil && requestMutates(req) {
-		e := protocol.Interpret(req, resp, false)
-		if e.MutationOutcome == protocol.Complete {
-			return effectLanded
-		}
-		if e.MutationOutcome == protocol.Partial || protocol.NegativeResult(resp.Result) {
-			return effectNotLanded
-		}
-	}
-	if req == nil || resp == nil || !resp.OK || resp.Result == nil {
+	if req == nil || resp == nil {
 		return effectUnknown
 	}
-	if !requestMutates(req) {
-		return effectUnknown // a read has no "effect" to verify
-	}
-	// #151 partial-application convention: the canvas changed, but not fully.
-	if b, ok := resp.Result["partial"].(bool); ok && b {
+	switch protocol.CanonicalConclusion(req, resp).HealthEffect {
+	case "LANDED":
+		return effectLanded
+	case "NOT_LANDED":
 		return effectNotLanded
+	default:
+		return effectUnknown
 	}
-	// issue #164: primitives.delete re-reads and reports the survivors.
-	if n, ok := numberField(resp.Result["survivedTotal"]); ok && n > 0 {
-		return effectNotLanded
-	}
-	if nonEmptyCollection(resp.Result["survived"]) || nonEmptyCollection(resp.Result["survivedIds"]) {
-		return effectNotLanded
-	}
-	if nonEmptyCollection(resp.Result["notApplied"]) {
-		return effectNotLanded
-	}
-	// component.delete / pin.disconnect report a plain boolean verdict.
-	for _, key := range []string{"deleted", "disconnected"} {
-		if b, ok := resp.Result[key].(bool); ok && !b {
-			return effectNotLanded
-		}
-	}
-	return effectUnknown
-}
-
-func numberField(v any) (float64, bool) {
-	switch n := v.(type) {
-	case float64:
-		return n, true
-	case int:
-		return float64(n), true
-	case json.Number:
-		f, err := n.Float64()
-		return f, err == nil
-	}
-	return 0, false
-}
-
-func nonEmptyCollection(v any) bool {
-	switch c := v.(type) {
-	case []any:
-		return len(c) > 0
-	case []string:
-		return len(c) > 0
-	case map[string]any:
-		return len(c) > 0
-	}
-	return false
 }
 
 // ── 通道 B:/writeverify 上报端点 ─────────────────────────────────────────────

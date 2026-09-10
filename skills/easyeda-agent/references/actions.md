@@ -169,6 +169,11 @@ ActionSpec 的 contract 是正式定义；Connector/MCP 使用由它生成并校
 调用层 ok 与 execution.mutation_outcome 分开读取：NO_WRITE、COMPLETE、PARTIAL、UNCERTAIN。
 没有完整证据的 legacy 写入是 UNCERTAIN，不能以 ok=true 或 verified=true 单独判定完成。
 直接 CLI 的退出码与 MCP isError 按 execution.request_satisfied 解释，并保留原始 result/error。
+execution.v1.3 先验证结构，再仲裁请求与证据，最后统一派生结论。request_satisfied 与
+possible_effect 分开：请求未完成仍可能产生副作用；dryRun 意图不能推翻实际写入或未 settle 证据。
+无效结构和冲突保留原证据并拒绝继续。重复解释不得把 UNCERTAIN 升级为完成或无写。
+stage/stale/autosave/writeHealth 消费同一结论；普通 legacy autosave 兜底不是完成证明，
+显式 invalid/unsettled 不会被 ok=true 放行，status:uncertain 也不代表已验证的 not-landed。
 Fast 原 status、item_results、IDs、revision、rollback 和 telemetry 保留；历史 duplicate receipt
 不能用作当前新鲜读回。部分失败和不确定结果先对账，禁止换 transaction ID 盲重发。
 

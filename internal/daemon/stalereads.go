@@ -35,7 +35,7 @@ import (
 // the CLI. `forceReason` is the audited escape hatch.
 //
 // State machine (per windowId, in-memory):
-//   SET    — a PCB-domain action with Mutates=true succeeds (catalog-driven,
+//   SET    — a PCB content action may have effects (catalog-driven,
 //            same source of truth as autosave), except the exempt sets below.
 //   CLEAR  — a `doc reload` completes. Reload is a CLI composite (save → close
 //            via debug.exec_js closeDocument → reopen), so the daemon keys on
@@ -54,7 +54,7 @@ import (
 //     bypasses /action entirely (dispatchSave), so neither path false-flags.
 //   - pcb.pour.rebuild: it is the FIX for stale pour connectivity, not a new
 //     hazard — it clears instead.
-//   - any request carrying `dryRun:true`: the catalog's Mutates flag is
+//   - a declared `dryRun:true` preview with no contrary write evidence: the catalog's Mutates flag is
 //     action-name granular and cannot see that a preview enumerates without
 //     touching the board. `pcb clear --dry-run` used to arm the flag and make
 //     every later read cry stale on an untouched board (issue #112).
@@ -152,7 +152,7 @@ func pcbStaleClears(req *protocol.Request) bool {
 // concurrent use.
 type staleGuard struct {
 	mu sync.Mutex
-	// last maps windowId → the name of the last successful PCB mutation not yet
+	// last maps windowId → the name of the last possibly applied PCB mutation not yet
 	// followed by a reload ("" / absent = no stale risk).
 	last map[string]string
 }
@@ -163,7 +163,7 @@ func newStaleGuard() *staleGuard {
 
 // observe applies one completed action to the state machine: it may annotate
 // resp with a staleRisk advisory (reads while stale) and updates the per-window
-// flag (successful mutations set it, reload/pour-rebuild clear it). Call it
+// flag (possible content effects set it, canonical freshness evidence clears it). Call it
 // with the connector's response before writing it to the caller.
 func (g *staleGuard) observe(req *protocol.Request, resp *protocol.Response) {
 	if g == nil || req == nil || resp == nil {
@@ -172,23 +172,21 @@ func (g *staleGuard) observe(req *protocol.Request, resp *protocol.Response) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
-	// Annotate reads first: the read itself never changes the state.
-	if pcbStaleRead(req) {
+	e := protocol.CanonicalConclusion(req, resp)
+	c, _ := protocol.ContractFor(req.Action)
+	possibleContent := c.ContentMutation() && e.PossibleEffect
+	// Preview intent cannot suppress observed content effects.
+	if pcbStaleRead(req) && !possibleContent {
 		if mutation := g.last[req.WindowID]; mutation != "" {
 			resp.StaleRisk = staleRiskMessage(mutation, req.Action)
 		}
 		return
 	}
-
-	// Structured possible effects mark stale even when the invocation failed.
-	if !protocol.PossibleMutation(req, resp) && !resp.OK {
-		return
-	}
-	if pcbStaleClears(req) && resp.OK && (resp.Execution == nil || resp.Execution.MutationOutcome != protocol.NoWrite && (resp.Execution.NativeSettled == nil || *resp.Execution.NativeSettled)) && (req.Action != "pcb.pour.rebuild" || resp.Execution == nil || resp.Execution.RequestSatisfied) {
+	if e.FreshnessRestored {
 		delete(g.last, req.WindowID)
 		return
 	}
-	if pcbStaleMarks(req) && protocol.PossibleMutation(req, resp) {
+	if possibleContent && docTypeForAction(req.Action) == "pcb" && !staleExemptActions[req.Action] && !staleViewOnlyActions[req.Action] {
 		g.last[req.WindowID] = req.Action
 	}
 }

@@ -20,6 +20,10 @@ func staleReq(action, windowID string, payload map[string]any) *protocol.Request
 // returns the response so callers can assert on StaleRisk.
 func runStale(g *staleGuard, action, windowID string, ok bool, payload map[string]any) *protocol.Response {
 	resp := &protocol.Response{OK: ok}
+	// This mock models the handler-confirmed no-write preview receipt.
+	if payload["dryRun"] == true {
+		resp.Result = map[string]any{"dryRun": true, "write_attempted": false, "native_settled": true}
+	}
 	g.observe(staleReq(action, windowID, payload), resp)
 	return resp
 }

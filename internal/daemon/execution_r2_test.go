@@ -50,6 +50,7 @@ func TestR2RecomputePossibleEffectIsNotRequestSatisfaction(t *testing.T) {
 		if preview {
 			req.Action = "pcb.page.clear"
 			req.Payload = map[string]any{"dryRun": true}
+			resp.Result = map[string]any{"dryRun": true, "write_attempted": false, "native_settled": true}
 			resp.Execution = protocol.Interpret(req, resp, false)
 		} else {
 			resp.Execution = protocol.Interpret(req, resp, true)

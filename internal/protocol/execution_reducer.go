@@ -2,8 +2,6 @@ package protocol
 
 import (
 	"encoding/json"
-	"reflect"
-	"strings"
 )
 
 // These are ephemeral facts for one projection, not persisted execution state.
@@ -12,6 +10,8 @@ type executionFacts struct {
 	resp                                                                                *Response
 	contract                                                                            ActionContract
 	raw                                                                                 map[string]any
+	receipt                                                                             receiptFacts
+	possible, incomplete, absence                                                       bool
 	prior                                                                               *Execution
 	meta                                                                                *Execution
 	invalid                                                                             any
@@ -39,7 +39,9 @@ func validateExecution(req *Request, resp *Response, before bool) *executionFact
 		f.prior = resp.Execution
 		f.meta.ObservedTargetAfter = resp.Context
 	}
-	f.observed, f.unsettled = sideEffectEvidence(jsonValue(f.raw))
+	f.receipt = normalizeReceipt(f)
+	f.observed, f.unsettled = f.receipt.side["write"], f.receipt.side["unsettled"]
+	f.possible, f.incomplete, f.absence = f.receipt.side["possible"], f.receipt.side["incomplete"], f.receipt.side["absence"]
 	if f.prior != nil {
 		f.effectful = f.effectful || f.prior.PossibleEffect
 		// A validated pre-dispatch conclusion carries its phase to later projections.
@@ -51,7 +53,10 @@ func validateExecution(req *Request, resp *Response, before bool) *executionFact
 		if evidence == nil {
 			evidence = jsonValue(f.prior)
 		}
-		wrote, pending := sideEffectEvidence(evidence)
+		side := adaptEvidence(evidence)
+		wrote, pending := side["write"], side["unsettled"]
+		f.possible = f.possible || side["possible"]
+		f.incomplete = f.incomplete || side["incomplete"]
 		f.observed = f.observed || wrote
 		f.unsettled = f.unsettled || pending
 		if f.prior.InvalidEvidence != nil || !validExecutionShape(evidence) {
@@ -98,10 +103,10 @@ func validateExecution(req *Request, resp *Response, before bool) *executionFact
 	if req.Payload["dryRun"] == true && c.DryRun != "preview" && !before {
 		f.issue = "CONFLICT"
 	}
-	if f.observed || f.unsettled {
+	if f.observed || f.unsettled || f.possible || f.incomplete {
 		f.effectful = true
 	}
-	f.negative = NegativeResult(f.raw)
+	f.negative = f.receipt.side["negative"]
 	return f
 }
 func requestResponseID(resp *Response) string {
@@ -114,8 +119,9 @@ func requestResponseID(resp *Response) string {
 // Reconcile has one evidence precedence: invalid/conflict/unresolved dominates intent
 // and weaker status. Only the explicit delivery-pending state can acquire new evidence.
 func reconcileExecution(f *executionFacts) *executionFacts {
-	p, r := f.prior, f.raw
-	if f.before && !f.observed && !f.unsettled && !f.priorUncertain {
+	p, n := f.prior, f.receipt
+	risk := f.observed || f.possible || f.incomplete || f.unsettled
+	if f.before && !risk && !f.priorUncertain {
 		f.basis = "REFUSED"
 		return f
 	}
@@ -127,7 +133,7 @@ func reconcileExecution(f *executionFacts) *executionFacts {
 		f.basis = f.issue
 		return f
 	}
-	if (f.preview || f.before) && (f.observed || f.unsettled) {
+	if ((f.preview || f.before) && risk) || (f.absence && risk) {
 		f.basis = "CONFLICT"
 		return f
 	}
@@ -163,26 +169,26 @@ func reconcileExecution(f *executionFacts) *executionFacts {
 			f.basis = "UNRESOLVED"
 			return f
 		}
-		if p.MutationOutcome == NoWrite && f.observed {
+		if p.MutationOutcome == NoWrite && risk {
 			f.basis = "CONFLICT"
 			return f
 		}
-		if p.WriteAttempted != nil && !*p.WriteAttempted && f.observed {
+		if p.WriteAttempted != nil && !*p.WriteAttempted && risk {
 			f.basis = "CONFLICT"
 			return f
 		}
 		if f.req.Action == "route.apply_batch" {
-			if (r["status"] == "complete" && p.Recovery["state"] != "NOT_REQUESTED") || (p.Recovery["state"] == "RESTORED" && (r["rollback_attempted"] != true || r["rollback_complete"] != true)) {
+			if n.recoveryConflict {
 				f.basis = "CONFLICT"
 				return f
 			}
-			if p.ItemResults != nil && !reflect.DeepEqual(jsonValue(p.ItemResults), jsonValue(r["item_results"])) {
+			if n.itemsConflict {
 				f.basis = "CONFLICT"
 				return f
 			}
 		}
 	}
-	if f.unsettled || r["status"] == "uncertain" || r["duplicate"] == true {
+	if f.unsettled {
 		f.basis = "UNRESOLVED"
 		return f
 	}
@@ -200,38 +206,45 @@ func reconcileExecution(f *executionFacts) *executionFacts {
 		f.basis = "UNRESOLVED"
 		return f
 	}
-	if p != nil && p.DecisionBasis == "REFUSED" && p.WriteAttempted != nil && !*p.WriteAttempted && !f.observed {
+	if p != nil && p.DecisionBasis == "REFUSED" && p.WriteAttempted != nil && !*p.WriteAttempted && !risk {
 		f.basis = "REFUSED"
 		return f
 	}
-	if f.preview {
-		f.basis = "PREVIEW"
+	if n.side["unknown"] && (f.preview || f.absence) {
+		f.basis = "UNRESOLVED"
 		return f
 	}
-	if p != nil && p.MutationOutcome == NoWrite && p.WriteAttempted != nil && !*p.WriteAttempted && !f.observed {
+	if f.preview {
+		f.basis = "UNRESOLVED"
+		if f.absence || (p != nil && p.MutationOutcome == NoWrite && p.WriteAttempted != nil && !*p.WriteAttempted) {
+			f.basis = "PREVIEW"
+		}
+		return f
+	}
+	if p != nil && p.MutationOutcome == NoWrite && p.WriteAttempted != nil && !*p.WriteAttempted && !risk {
 		f.basis = "NO_WRITE"
 		if p.DecisionBasis == "REFUSED" {
 			f.basis = "REFUSED"
 		}
 		return f
 	}
+	if f.absence && !risk {
+		f.basis = "NO_WRITE"
+		return f
+	}
 	if f.mutation {
 		if f.req.Action == "route.apply_batch" {
-			switch r["status"] {
-			case "stale", "partial":
-				if r["mutation_started"] == false && fastNoWrite(r) {
-					f.basis = "NO_WRITE"
-					return f
-				}
-				if r["status"] == "partial" && fastSettled(r, f.req.Payload, false) {
-					f.basis = "FAST_PARTIAL"
-					return f
-				}
-			case "complete":
-				if fastComplete(r, f.req.Payload) {
-					f.basis = "FAST_COMPLETE"
-					return f
-				}
+			if n.fastNoWrite {
+				f.basis = "NO_WRITE"
+				return f
+			}
+			if n.fastPartial {
+				f.basis = "FAST_PARTIAL"
+				return f
+			}
+			if n.fastComplete {
+				f.basis = "FAST_COMPLETE"
+				return f
 			}
 			f.basis = "UNRESOLVED"
 			return f
@@ -244,27 +257,22 @@ func reconcileExecution(f *executionFacts) *executionFacts {
 		}
 		return f
 	}
-	if f.observed && len(f.contract.Effects) == 0 {
+	if risk && len(f.contract.Effects) == 0 {
 		f.basis = "CONFLICT"
 		return f
 	}
-	satisfied := f.resp != nil && f.resp.OK && !f.negative && r["ok"] != false && r["saved"] != false
+	satisfied := n.acknowledged && !f.negative
 	if p != nil && !p.RequestSatisfied && p.Persistence["state"] != "PENDING_DELIVERY" {
 		satisfied = false
 	}
 	if f.contract.HasEffect("SAVE") {
-		satisfied = satisfied && r["saved"] == true
+		satisfied = satisfied && n.saveAcknowledged
 	}
 	if f.contract.HasEffect("ARTIFACT_DELIVERY") {
-		delivered := satisfied && f.resp != nil && len(f.resp.Artifacts) > 0
-		if f.resp != nil {
-			for _, a := range f.resp.Artifacts {
-				delivered = delivered && a.Path != "" && a.SHA256 != ""
-			}
-		}
+		delivered := satisfied && n.delivered
 		if delivered {
 			f.basis = "DELIVERED"
-		} else if satisfied && pendingArtifacts(f.resp) {
+		} else if satisfied && n.pending {
 			f.basis = "PENDING_DELIVERY"
 		} else {
 			f.basis = "DELIVERY_FAILED"
@@ -306,6 +314,9 @@ func deriveExecution(f *executionFacts) *Execution {
 		v := false
 		e.NativeSettled = &v
 	}
+	if (f.possible || f.incomplete || f.unsettled) && e.WriteAttempted != nil && !*e.WriteAttempted {
+		e.WriteAttempted = nil
+	}
 	if f.observed {
 		v := true
 		e.WriteAttempted = &v
@@ -336,7 +347,7 @@ func deriveExecution(f *executionFacts) *Execution {
 			e.Reason = "refused before dispatch"
 		}
 		if b == "PREVIEW" {
-			e.RequestSatisfied = f.resp != nil && f.resp.OK && !f.negative
+			e.RequestSatisfied = f.receipt.acknowledged && !f.negative
 			e.Reason = "declared no-write preview"
 		}
 	case "FAST_COMPLETE", "FAST_PARTIAL":
@@ -344,7 +355,7 @@ func deriveExecution(f *executionFacts) *Execution {
 		v := true
 		e.NativeSettled = &v
 		e.WriteAttempted = &v
-		e.ItemResults = f.raw["item_results"]
+		e.ItemResults = f.receipt.items
 		e.MutationOutcome = Partial
 		e.HealthEffect = "NOT_LANDED"
 		e.NextAction = "reconcile_without_replay"
@@ -363,7 +374,7 @@ func deriveExecution(f *executionFacts) *Execution {
 				e.Verification.EvidenceRefs = []string{"result"}
 			}
 		}
-		if f.raw["rollback_complete"] == true {
+		if f.receipt.restored {
 			e.Recovery["state"] = "RESTORED"
 			if _, ok := e.Recovery["evidence_refs"]; !ok {
 				e.Recovery["evidence_refs"] = []string{"result"}
@@ -375,8 +386,8 @@ func deriveExecution(f *executionFacts) *Execution {
 		e.Reason = "legacy evidence does not prove semantic completion"
 		// This keeps the ordinary legacy safety net; an explicit pending/invalid state
 		// never reaches here. Exact negative readback retains historical health diagnostics.
-		e.AutosaveEligible = f.resp != nil && f.resp.OK
-		if b == "LEGACY_NEGATIVE" && verifiedNegative(f.raw) {
+		e.AutosaveEligible = f.receipt.acknowledged
+		if b == "LEGACY_NEGATIVE" && f.receipt.side["verifiedNegative"] {
 			e.HealthEffect = "NOT_LANDED"
 		}
 	case "SATISFIED", "DELIVERED":
@@ -408,9 +419,8 @@ func deriveExecution(f *executionFacts) *Execution {
 		e.FreshnessRestored = true
 	}
 	// Existing reload recognizer remains a legacy adapter, not a new save barrier.
-	if f.req.Action == "debug.exec_js" && b == "UNVERIFIED" && f.resp != nil && f.resp.OK {
-		code, _ := f.req.Payload["code"].(string)
-		e.FreshnessRestored = strings.Contains(code, "closeDocument")
+	if f.req.Action == "debug.exec_js" && b == "UNVERIFIED" && f.receipt.acknowledged {
+		e.FreshnessRestored = f.receipt.reload
 	}
 	return e
 }
@@ -427,24 +437,4 @@ func containsAll(observed, required []string) bool {
 		}
 	}
 	return true
-}
-func verifiedNegative(r map[string]any) bool {
-	return r["partial"] == true || r["deleted"] == false || r["disconnected"] == false || nonempty(r["notApplied"]) || nonempty(r["survived"]) || nonempty(r["survivedIds"]) || positiveNumber(r["survivedTotal"])
-}
-func positiveNumber(v any) bool { n, ok := jsonValue(v).(float64); return ok && n > 0 }
-func sideEffectEvidence(v any) (bool, bool) {
-	o, ok := v.(map[string]any)
-	if !ok {
-		return false, false
-	}
-	wrote := o["mutation_started"] == true || o["write_attempted"] == true || nonempty(o["created_ids"]) || nonempty(o["deleted_ids"])
-	pending := o["native_settled"] == false
-	if items, ok := o["item_results"].([]any); ok {
-		for _, v := range items {
-			if item, ok := v.(map[string]any); ok && item["status"] == "applied" {
-				wrote = true
-			}
-		}
-	}
-	return wrote, pending
 }

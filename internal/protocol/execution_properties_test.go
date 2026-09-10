@@ -11,7 +11,16 @@ import (
 // The generator varies evidence, intent and acknowledgements independently. Its
 // seed and case number identify every failure; it does not derive expected outcomes.
 func TestExecutionSeededPropertiesAndParity(t *testing.T) {
-	cmd := exec.Command("node", "../../scripts/execution-properties.cjs", "--json")
+	executionProperties(t, "execution-properties.cjs", 4096)
+}
+func TestEvidenceInventoryIndependentOracleAndParity(t *testing.T) {
+	executionProperties(t, "execution-evidence-properties.cjs", 0)
+}
+func TestActualPreviewReceiptsParity(t *testing.T) {
+	executionProperties(t, "execution-preview-fixtures.cjs", 0)
+}
+func executionProperties(t *testing.T, script string, size int) {
+	cmd := exec.Command("node", "../../scripts/"+script, "--json")
 	raw, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("generator: %v %s", err, raw)
@@ -21,11 +30,12 @@ func TestExecutionSeededPropertiesAndParity(t *testing.T) {
 		Request                           Request
 		Response                          Response
 		Before, Locked, Effect, Malformed bool
+		Semantic                          map[string]bool
 	}
 	if err = json.Unmarshal(raw, &cases); err != nil {
 		t.Fatal(err)
 	}
-	if len(cases) != 4096 {
+	if size > 0 && len(cases) != size {
 		t.Fatalf("unexpected scale %d", len(cases))
 	}
 	cmd = exec.Command("node", "../../scripts/test-execution-parity.mjs")
@@ -41,6 +51,7 @@ func TestExecutionSeededPropertiesAndParity(t *testing.T) {
 	normalize := func(x any) any { b, _ := json.Marshal(x); var v any; _ = json.Unmarshal(b, &v); return v }
 	for i, c := range cases {
 		e := Interpret(&c.Request, &c.Response, c.Before)
+		checkIndependentSemantics(t, c.Name, c.Semantic, e)
 		expected := normalize(e)
 		r := c.Response
 		r.Execution = e
@@ -86,7 +97,7 @@ func TestExecutionSeededPropertiesAndParity(t *testing.T) {
 			t.Fatal(c.Name, "inconsistent NO_WRITE")
 		}
 	}
-	t.Logf("seed=0x53a3c0de cases=%d; complete JSON Go/TS, both round trips, repeated interpretation", len(cases))
+	t.Logf(script+" cases=%d; complete JSON Go/TS, both round trips, repeated interpretation", len(cases))
 }
 
 func TestRefusalKeepsCanonicalPhaseAcrossConsumers(t *testing.T) {
@@ -111,5 +122,24 @@ func TestRefusalKeepsCanonicalPhaseAcrossConsumers(t *testing.T) {
 		if !conflict.PossibleEffect || conflict.MutationOutcome == NoWrite || conflict.RequestSatisfied {
 			t.Fatal("refusal suppressed actual effects")
 		}
+	}
+}
+
+func checkIndependentSemantics(t *testing.T, name string, s map[string]bool, e *Execution) {
+	t.Helper()
+	if s == nil {
+		return
+	}
+	if s["risk"] && (!e.PossibleEffect || e.MutationOutcome == NoWrite) {
+		t.Fatal(name, "risk suppressed")
+	}
+	if (s["unsettled"] || s["locked"]) && (e.MutationOutcome == Complete || e.HealthEffect != "UNKNOWN") {
+		t.Fatal(name, "unresolved evidence upgraded")
+	}
+	if (s["invalid"] || s["conflict"] || s["blocked"]) && e.MutationOutcome == Complete {
+		t.Fatal(name, "blocker promoted complete")
+	}
+	if e.MutationOutcome == NoWrite && (!s["proof"] || s["risk"] || s["invalid"] || s["conflict"] || s["locked"]) {
+		t.Fatal(name, "no-write without uncontradicted proof")
 	}
 }

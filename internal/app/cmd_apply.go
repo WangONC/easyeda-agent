@@ -1055,14 +1055,7 @@ func (r *applyRunner) runAction(action string, payload map[string]any, timeout t
 	if err != nil {
 		return nil, err
 	}
-	var parsed struct {
-		OK     bool           `json:"ok"`
-		Result map[string]any `json:"result"`
-		Error  *struct {
-			Message string `json:"message"`
-			Detail  string `json:"detail"`
-		} `json:"error"`
-	}
+	var parsed protocol.Response
 	if err := json.Unmarshal(respBody, &parsed); err != nil {
 		return nil, fmt.Errorf("decode %s response: %w", action, err)
 	}
@@ -1076,19 +1069,12 @@ func (r *applyRunner) runAction(action string, payload map[string]any, timeout t
 		}
 		return nil, fmt.Errorf("%s: %s", action, msg)
 	}
-	// Partial-application convention (#151): a mutating action may return
-	// ok:true (so the daemon autosaves the applied subset) while flagging
-	// result.partial / non-empty result.notApplied. Replay must treat that as a
-	// step failure — before #151 a partial application errored at wire level
-	// and failed the step; the ok:true re-shaping must not silently weaken the
-	// record-replay regression gate.
-	if parsed.Result != nil {
-		partial, _ := parsed.Result["partial"].(bool)
-		na, _ := parsed.Result["notApplied"].([]any)
-		if partial || len(na) > 0 {
-			return nil, fmt.Errorf("%s: partial application (notApplied: %v)", action, na)
-		}
+	conclusion := protocol.Interpret(&protocol.Request{Envelope: protocol.Envelope{ID: parsed.ID}, Action: action, Payload: payload}, &parsed, false)
+	switch conclusion.DecisionBasis {
+	case "LEGACY_NEGATIVE", "INVALID", "CONFLICT", "UNRESOLVED":
+		return nil, fmt.Errorf("%s: partial application or unresolved execution: %s", action, conclusion.Reason)
 	}
+
 	return anyResult(parsed.Result), nil
 }
 

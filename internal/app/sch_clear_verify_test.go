@@ -78,6 +78,8 @@ func TestSchClearCLIExpectEmptyHonorsEnumerationFailure(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r := schClearVerifiedFixture()
 			r["remaining"] = tc.remaining
+			// Actual supported preview handlers now attest that no native write ran.
+			r["dryRun"], r["write_attempted"], r["native_settled"] = true, false, true
 			if tc.warning {
 				r["warnings"] = []any{"enumerate texts failed"}
 			}

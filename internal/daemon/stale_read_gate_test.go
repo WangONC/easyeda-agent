@@ -47,7 +47,11 @@ func gateMark(s *Server, action, windowID string, payload map[string]any) {
 		Action:   action,
 		Payload:  payload,
 	}
-	s.staleReads.observe(req, &protocol.Response{OK: true})
+	resp := &protocol.Response{OK: true}
+	if payload["dryRun"] == true {
+		resp.Result = map[string]any{"dryRun": true, "write_attempted": false, "native_settled": true}
+	}
+	s.staleReads.observe(req, resp)
 }
 
 // gateAuditRows reads every audit row written to dir (all days).

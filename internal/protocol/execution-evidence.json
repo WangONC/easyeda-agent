@@ -1,0 +1,315 @@
+[
+  {
+    "field": "mutation_started",
+    "test": "true",
+    "facts": [
+      "write"
+    ],
+    "sample": true,
+    "shape": "boolean"
+  },
+  {
+    "field": "write_attempted",
+    "test": "true",
+    "facts": [
+      "write"
+    ],
+    "sample": true,
+    "shape": "boolean"
+  },
+  {
+    "field": "created_ids",
+    "test": "nonempty",
+    "facts": [
+      "write"
+    ],
+    "sample": [
+      "observed"
+    ],
+    "shape": "collection"
+  },
+  {
+    "field": "deleted_ids",
+    "test": "nonempty",
+    "facts": [
+      "write"
+    ],
+    "sample": [
+      "observed"
+    ],
+    "shape": "collection"
+  },
+  {
+    "field": "applied",
+    "test": "nonempty",
+    "facts": [
+      "write"
+    ],
+    "sample": [
+      "observed"
+    ],
+    "shape": "collection"
+  },
+  {
+    "field": "item_results",
+    "test": "applied",
+    "facts": [
+      "write"
+    ],
+    "sample": [
+      {
+        "index": 0,
+        "status": "applied",
+        "id": "observed"
+      }
+    ],
+    "shape": "items"
+  },
+  {
+    "field": "partial",
+    "test": "true",
+    "facts": [
+      "incomplete",
+      "negative",
+      "verifiedNegative"
+    ],
+    "sample": true,
+    "shape": "boolean"
+  },
+  {
+    "field": "notApplied",
+    "test": "nonempty",
+    "facts": [
+      "incomplete",
+      "negative",
+      "verifiedNegative"
+    ],
+    "sample": [
+      "remaining"
+    ],
+    "shape": "collection"
+  },
+  {
+    "field": "survived",
+    "test": "nonempty",
+    "facts": [
+      "incomplete",
+      "negative",
+      "verifiedNegative"
+    ],
+    "sample": [
+      "remaining"
+    ],
+    "shape": "collection"
+  },
+  {
+    "field": "survivedIds",
+    "test": "nonempty",
+    "facts": [
+      "incomplete",
+      "negative",
+      "verifiedNegative"
+    ],
+    "sample": [
+      "remaining"
+    ],
+    "shape": "collection"
+  },
+  {
+    "field": "survivedTotal",
+    "test": "positive",
+    "facts": [
+      "incomplete",
+      "negative",
+      "verifiedNegative"
+    ],
+    "sample": 1,
+    "shape": "count"
+  },
+  {
+    "field": "deleted",
+    "test": "false",
+    "facts": [
+      "incomplete",
+      "negative",
+      "verifiedNegative"
+    ],
+    "sample": false,
+    "shape": "boolean-or-collection"
+  },
+  {
+    "field": "disconnected",
+    "test": "false",
+    "facts": [
+      "incomplete",
+      "negative",
+      "verifiedNegative"
+    ],
+    "sample": false,
+    "shape": "boolean"
+  },
+  {
+    "field": "native_settled",
+    "test": "false",
+    "facts": [
+      "unsettled"
+    ],
+    "sample": false,
+    "shape": "boolean"
+  },
+  {
+    "field": "native_settled",
+    "test": "true",
+    "facts": [
+      "settled"
+    ],
+    "sample": true,
+    "shape": "boolean"
+  },
+  {
+    "field": "write_attempted",
+    "test": "false",
+    "facts": [
+      "absence"
+    ],
+    "sample": false,
+    "shape": "boolean"
+  },
+  {
+    "field": "verified",
+    "test": "false",
+    "facts": [
+      "unknown",
+      "negative"
+    ],
+    "sample": false,
+    "shape": "boolean"
+  },
+  {
+    "field": "unverified",
+    "test": "nonempty",
+    "facts": [
+      "unknown",
+      "negative"
+    ],
+    "sample": [
+      "field"
+    ],
+    "shape": "collection"
+  },
+  {
+    "field": "duplicate",
+    "test": "true",
+    "facts": [
+      "unsettled"
+    ],
+    "sample": true,
+    "shape": "boolean"
+  },
+  {
+    "field": "status",
+    "test": "uncertain",
+    "facts": [
+      "unsettled",
+      "negative"
+    ],
+    "sample": "uncertain",
+    "shape": "string"
+  },
+  {
+    "field": "status",
+    "test": "partial",
+    "facts": [
+      "possible",
+      "negative"
+    ],
+    "sample": "partial",
+    "shape": "string"
+  },
+  {
+    "field": "status",
+    "test": "stale",
+    "facts": [
+      "unknown",
+      "negative"
+    ],
+    "sample": "stale",
+    "shape": "string"
+  },
+  {
+    "field": "status",
+    "test": "failed",
+    "facts": [
+      "unknown",
+      "negative"
+    ],
+    "sample": "failed",
+    "shape": "string"
+  },
+  {
+    "field": "status",
+    "test": "unverified",
+    "facts": [
+      "unknown",
+      "negative"
+    ],
+    "sample": "unverified",
+    "shape": "string"
+  },
+  {
+    "field": "rollback_attempted",
+    "test": "true",
+    "facts": [
+      "possible"
+    ],
+    "sample": true,
+    "shape": "boolean"
+  },
+  {
+    "field": "rollbackAttempted",
+    "test": "true",
+    "facts": [
+      "possible"
+    ],
+    "sample": true,
+    "shape": "boolean"
+  },
+  {
+    "field": "rollback_complete",
+    "test": "true",
+    "facts": [
+      "possible"
+    ],
+    "sample": true,
+    "shape": "boolean"
+  },
+  {
+    "field": "rollbackComplete",
+    "test": "true",
+    "facts": [
+      "possible"
+    ],
+    "sample": true,
+    "shape": "boolean"
+  },
+  {
+    "field": "visibilityApplied",
+    "test": "false",
+    "facts": [
+      "incomplete",
+      "negative",
+      "verifiedNegative"
+    ],
+    "sample": false,
+    "shape": "boolean"
+  },
+  {
+    "field": "readback_verified",
+    "test": "false",
+    "facts": [
+      "unknown"
+    ],
+    "sample": false,
+    "shape": "boolean"
+  }
+]

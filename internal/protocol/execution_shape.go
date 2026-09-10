@@ -247,7 +247,10 @@ func validItems(x any) bool {
 }
 func validRawEvidence(raw map[string]any, action string) bool {
 	r, _ := jsonValue(raw).(map[string]any)
-	for _, k := range []string{"ok", "saved", "partial", "verified", "disconnected", "mutation_started", "readback_verified", "rollback_attempted", "rollback_complete", "duplicate", "native_settled", "write_attempted"} {
+	if !validAdapterFields(r) {
+		return false
+	}
+	for _, k := range []string{"ok", "saved", "dryRun", "partial", "verified", "disconnected", "mutation_started", "readback_verified", "rollback_attempted", "rollback_complete", "duplicate", "native_settled", "write_attempted"} {
 		if x, has := r[k]; has {
 			if _, ok := x.(bool); !ok {
 				return false

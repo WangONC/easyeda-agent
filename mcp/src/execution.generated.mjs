@@ -1,4 +1,319 @@
 // Generated from extension/src/execution.ts and the Go ActionSpec catalog. Do not edit.
+const evidenceInventory = [
+    {
+        "field": "mutation_started",
+        "test": "true",
+        "facts": [
+            "write"
+        ],
+        "sample": true,
+        "shape": "boolean"
+    },
+    {
+        "field": "write_attempted",
+        "test": "true",
+        "facts": [
+            "write"
+        ],
+        "sample": true,
+        "shape": "boolean"
+    },
+    {
+        "field": "created_ids",
+        "test": "nonempty",
+        "facts": [
+            "write"
+        ],
+        "sample": [
+            "observed"
+        ],
+        "shape": "collection"
+    },
+    {
+        "field": "deleted_ids",
+        "test": "nonempty",
+        "facts": [
+            "write"
+        ],
+        "sample": [
+            "observed"
+        ],
+        "shape": "collection"
+    },
+    {
+        "field": "applied",
+        "test": "nonempty",
+        "facts": [
+            "write"
+        ],
+        "sample": [
+            "observed"
+        ],
+        "shape": "collection"
+    },
+    {
+        "field": "item_results",
+        "test": "applied",
+        "facts": [
+            "write"
+        ],
+        "sample": [
+            {
+                "index": 0,
+                "status": "applied",
+                "id": "observed"
+            }
+        ],
+        "shape": "items"
+    },
+    {
+        "field": "partial",
+        "test": "true",
+        "facts": [
+            "incomplete",
+            "negative",
+            "verifiedNegative"
+        ],
+        "sample": true,
+        "shape": "boolean"
+    },
+    {
+        "field": "notApplied",
+        "test": "nonempty",
+        "facts": [
+            "incomplete",
+            "negative",
+            "verifiedNegative"
+        ],
+        "sample": [
+            "remaining"
+        ],
+        "shape": "collection"
+    },
+    {
+        "field": "survived",
+        "test": "nonempty",
+        "facts": [
+            "incomplete",
+            "negative",
+            "verifiedNegative"
+        ],
+        "sample": [
+            "remaining"
+        ],
+        "shape": "collection"
+    },
+    {
+        "field": "survivedIds",
+        "test": "nonempty",
+        "facts": [
+            "incomplete",
+            "negative",
+            "verifiedNegative"
+        ],
+        "sample": [
+            "remaining"
+        ],
+        "shape": "collection"
+    },
+    {
+        "field": "survivedTotal",
+        "test": "positive",
+        "facts": [
+            "incomplete",
+            "negative",
+            "verifiedNegative"
+        ],
+        "sample": 1,
+        "shape": "count"
+    },
+    {
+        "field": "deleted",
+        "test": "false",
+        "facts": [
+            "incomplete",
+            "negative",
+            "verifiedNegative"
+        ],
+        "sample": false,
+        "shape": "boolean-or-collection"
+    },
+    {
+        "field": "disconnected",
+        "test": "false",
+        "facts": [
+            "incomplete",
+            "negative",
+            "verifiedNegative"
+        ],
+        "sample": false,
+        "shape": "boolean"
+    },
+    {
+        "field": "native_settled",
+        "test": "false",
+        "facts": [
+            "unsettled"
+        ],
+        "sample": false,
+        "shape": "boolean"
+    },
+    {
+        "field": "native_settled",
+        "test": "true",
+        "facts": [
+            "settled"
+        ],
+        "sample": true,
+        "shape": "boolean"
+    },
+    {
+        "field": "write_attempted",
+        "test": "false",
+        "facts": [
+            "absence"
+        ],
+        "sample": false,
+        "shape": "boolean"
+    },
+    {
+        "field": "verified",
+        "test": "false",
+        "facts": [
+            "unknown",
+            "negative"
+        ],
+        "sample": false,
+        "shape": "boolean"
+    },
+    {
+        "field": "unverified",
+        "test": "nonempty",
+        "facts": [
+            "unknown",
+            "negative"
+        ],
+        "sample": [
+            "field"
+        ],
+        "shape": "collection"
+    },
+    {
+        "field": "duplicate",
+        "test": "true",
+        "facts": [
+            "unsettled"
+        ],
+        "sample": true,
+        "shape": "boolean"
+    },
+    {
+        "field": "status",
+        "test": "uncertain",
+        "facts": [
+            "unsettled",
+            "negative"
+        ],
+        "sample": "uncertain",
+        "shape": "string"
+    },
+    {
+        "field": "status",
+        "test": "partial",
+        "facts": [
+            "possible",
+            "negative"
+        ],
+        "sample": "partial",
+        "shape": "string"
+    },
+    {
+        "field": "status",
+        "test": "stale",
+        "facts": [
+            "unknown",
+            "negative"
+        ],
+        "sample": "stale",
+        "shape": "string"
+    },
+    {
+        "field": "status",
+        "test": "failed",
+        "facts": [
+            "unknown",
+            "negative"
+        ],
+        "sample": "failed",
+        "shape": "string"
+    },
+    {
+        "field": "status",
+        "test": "unverified",
+        "facts": [
+            "unknown",
+            "negative"
+        ],
+        "sample": "unverified",
+        "shape": "string"
+    },
+    {
+        "field": "rollback_attempted",
+        "test": "true",
+        "facts": [
+            "possible"
+        ],
+        "sample": true,
+        "shape": "boolean"
+    },
+    {
+        "field": "rollbackAttempted",
+        "test": "true",
+        "facts": [
+            "possible"
+        ],
+        "sample": true,
+        "shape": "boolean"
+    },
+    {
+        "field": "rollback_complete",
+        "test": "true",
+        "facts": [
+            "possible"
+        ],
+        "sample": true,
+        "shape": "boolean"
+    },
+    {
+        "field": "rollbackComplete",
+        "test": "true",
+        "facts": [
+            "possible"
+        ],
+        "sample": true,
+        "shape": "boolean"
+    },
+    {
+        "field": "visibilityApplied",
+        "test": "false",
+        "facts": [
+            "incomplete",
+            "negative",
+            "verifiedNegative"
+        ],
+        "sample": false,
+        "shape": "boolean"
+    },
+    {
+        "field": "readback_verified",
+        "test": "false",
+        "facts": [
+            "unknown"
+        ],
+        "sample": false,
+        "shape": "boolean"
+    }
+];
 const contracts = {
     "board.copy": {
         "version": "execution.v1.3",
@@ -5090,7 +5405,7 @@ export function validateContract(req, executor = 'CONNECTOR') {
 }
 const nonempty = (x) => !!x && typeof x === 'object' && Object.keys(x).length > 0;
 export function negativeResult(r) {
-    return r.partial === true || r.verified === false || r.deleted === false || r.disconnected === false || nonempty(r.notApplied) || nonempty(r.survived) || nonempty(r.survivedIds) || (typeof r.survivedTotal === 'number' && r.survivedTotal > 0) || ['partial', 'uncertain', 'stale', 'failed', 'unverified'].includes(String(r.status));
+    return !!adaptEvidence(r).negative;
 }
 export function interpret(req, resp, before = false) {
     return deriveExecution(reconcileExecution(validateExecution(req, resp, before)));
@@ -5102,14 +5417,21 @@ function validateExecution(req, resp, before) {
     const c = contractFor(req.action), meta = emptyExecution(req, c);
     meta.observed_target_after = resp?.context;
     const f = { req, resp, c, raw: resp?.result || {}, prior: resp?.execution, meta, before, preview: req.payload?.dryRun === true && c?.dry_run === 'preview', mutation: !!c?.effects.some(e => ['DESIGN_CONTENT', 'PROJECT_TOPOLOGY', 'LIBRARY_ASSET'].includes(e)), effectful: !!c?.effects.length, observed: false, unsettled: false, priorUncertain: false, negative: false, issue: '', basis: '' };
-    [f.observed, f.unsettled] = sideEffectEvidence(f.raw);
+    f.receipt = normalizeReceipt(f);
+    f.observed = !!f.receipt.side.write;
+    f.unsettled = !!f.receipt.side.unsettled;
+    f.possible = !!f.receipt.side.possible;
+    f.incomplete = !!f.receipt.side.incomplete;
+    f.absence = !!f.receipt.side.absence;
     if (f.prior != null) {
         f.effectful ||= f.prior.possible_effect === true;
         const prior = f.prior;
         if (validExecutionShape(prior) && prior.decision_basis === 'REFUSED' && prior.contract_version === (c?.version || '') && prior.contract_hash === (c?.hash || '') && prior.request_id === (req.id || '') && prior.request_id === (resp?.id || '') && prior.write_attempted === false && prior.possible_effect === false && !prior.request_satisfied && (prior.mutation_outcome === 'NO_WRITE' || !f.mutation && !prior.mutation_outcome))
             f.before = true;
         const p = f.prior, evidence = validExecutionShape(p) ? (p.invalid_evidence ?? p) : p;
-        const [wrote, pending] = sideEffectEvidence(evidence);
+        const side = adaptEvidence(evidence), wrote = !!side.write, pending = !!side.unsettled;
+        f.possible ||= !!side.possible;
+        f.incomplete ||= !!side.incomplete;
         f.observed ||= wrote;
         f.unsettled ||= pending;
         if (p.invalid_evidence != null || !validExecutionShape(evidence)) {
@@ -5143,21 +5465,22 @@ function validateExecution(req, resp, before) {
     }
     if (req.payload?.dryRun === true && c?.dry_run !== 'preview' && !before)
         f.issue = 'CONFLICT';
-    if (f.observed || f.unsettled)
+    if (f.observed || f.unsettled || f.possible || f.incomplete)
         f.effectful = true;
-    f.negative = negativeResult(f.raw);
+    f.negative = !!f.receipt.side.negative;
     return f;
 }
 function reconcileExecution(f) {
-    const p = f.prior, r = f.raw;
+    const p = f.prior, n = f.receipt;
+    const risk = f.observed || f.possible || f.incomplete || f.unsettled;
     const choose = (basis) => { f.basis = basis; return f; };
-    if (f.before && !f.observed && !f.unsettled && !f.priorUncertain)
+    if (f.before && !risk && !f.priorUncertain)
         return choose('REFUSED');
     if (p?.decision_basis === 'CONFLICT' && f.issue !== 'INVALID')
         return choose('CONFLICT');
     if (f.issue)
         return choose(f.issue);
-    if ((f.preview || f.before) && (f.observed || f.unsettled))
+    if (((f.preview || f.before) && risk) || (f.absence && risk))
         return choose('CONFLICT');
     if (p) {
         const v = p.verification;
@@ -5173,52 +5496,54 @@ function reconcileExecution(f) {
             return choose('INVALID');
         if (v.state === 'UNSUPPORTED' || missing)
             return choose('UNRESOLVED');
-        if ((p.mutation_outcome === 'NO_WRITE' || p.write_attempted === false) && f.observed)
+        if ((p.mutation_outcome === 'NO_WRITE' || p.write_attempted === false) && risk)
             return choose('CONFLICT');
         if (f.req.action === 'route.apply_batch') {
-            if ((r.status === 'complete' && p.recovery.state !== 'NOT_REQUESTED') || (p.recovery.state === 'RESTORED' && (r.rollback_attempted !== true || r.rollback_complete !== true)))
+            if (n.recoveryConflict)
                 return choose('CONFLICT');
-            if (p.item_results != null && canonical(p.item_results) !== canonical(r.item_results))
+            if (n.itemsConflict)
                 return choose('CONFLICT');
         }
     }
-    if (f.unsettled || r.status === 'uncertain' || r.duplicate === true)
+    if (f.unsettled)
         return choose('UNRESOLVED');
     if (f.priorUncertain) {
         if (['UNVERIFIED', 'LEGACY_NEGATIVE'].includes(p?.decision_basis || '') && f.req.action !== 'route.apply_batch' && !f.preview)
             return choose(f.negative ? 'LEGACY_NEGATIVE' : 'UNVERIFIED');
         return choose('UNRESOLVED');
     }
-    if (p?.decision_basis === 'REFUSED' && p.write_attempted === false && !f.observed)
+    if (p?.decision_basis === 'REFUSED' && p.write_attempted === false && !risk)
         return choose('REFUSED');
+    if (n.side.unknown && (f.preview || f.absence))
+        return choose('UNRESOLVED');
     if (f.preview)
-        return choose('PREVIEW');
-    if (p?.mutation_outcome === 'NO_WRITE' && p.write_attempted === false && !f.observed)
+        return choose(f.absence || (p?.mutation_outcome === 'NO_WRITE' && p.write_attempted === false) ? 'PREVIEW' : 'UNRESOLVED');
+    if (p?.mutation_outcome === 'NO_WRITE' && p.write_attempted === false && !risk)
         return choose(p.decision_basis === 'REFUSED' ? 'REFUSED' : 'NO_WRITE');
+    if (f.absence && !risk)
+        return choose('NO_WRITE');
     if (f.mutation) {
         if (f.req.action === 'route.apply_batch') {
-            if (['stale', 'partial'].includes(r.status)) {
-                if (r.mutation_started === false && fastNoWrite(r))
-                    return choose('NO_WRITE');
-                if (r.status === 'partial' && fastSettled(r, f.req.payload || {}, false))
-                    return choose('FAST_PARTIAL');
-            }
-            if (r.status === 'complete' && fastComplete(r, f.req.payload || {}))
+            if (n.fastNoWrite)
+                return choose('NO_WRITE');
+            if (n.fastPartial)
+                return choose('FAST_PARTIAL');
+            if (n.fastComplete)
                 return choose('FAST_COMPLETE');
             return choose('UNRESOLVED');
         }
         return choose(f.negative ? 'LEGACY_NEGATIVE' : 'UNVERIFIED');
     }
-    if (f.observed && !f.c?.effects.length)
+    if (risk && !f.c?.effects.length)
         return choose('CONFLICT');
-    let satisfied = f.resp?.ok === true && !f.negative && r.ok !== false && r.saved !== false;
+    let satisfied = n.acknowledged && !f.negative;
     if (p && !p.request_satisfied && p.persistence.state !== 'PENDING_DELIVERY')
         satisfied = false;
     if (f.c?.effects.includes('SAVE'))
-        satisfied &&= r.saved === true;
+        satisfied &&= n.saveAcknowledged;
     if (f.c?.effects.includes('ARTIFACT_DELIVERY')) {
-        const delivered = satisfied && !!f.resp?.artifacts?.length && f.resp.artifacts.every(a => !!a.path && !!a.sha256);
-        const pending = !!f.resp?.artifacts?.length && f.resp.artifacts.every(a => (!!a.path && !!a.sha256) || !!a.inlineBase64);
+        const delivered = satisfied && n.delivered;
+        const pending = n.pending;
         return choose(delivered ? 'DELIVERED' : satisfied && pending ? 'PENDING_DELIVERY' : 'DELIVERY_FAILED');
     }
     return choose(satisfied ? 'SATISFIED' : 'REJECTED');
@@ -5244,6 +5569,8 @@ function deriveExecution(f) {
     }
     if (f.unsettled)
         e.native_settled = false;
+    if ((f.possible || f.incomplete || f.unsettled) && e.write_attempted === false)
+        delete e.write_attempted;
     if (f.observed)
         e.write_attempted = true;
     e.observed_target_after ??= f.resp?.context;
@@ -5267,7 +5594,7 @@ function deriveExecution(f) {
             if (b === 'REFUSED')
                 e.reason = 'refused before dispatch';
             if (b === 'PREVIEW') {
-                e.request_satisfied = f.resp?.ok === true && !f.negative;
+                e.request_satisfied = f.receipt.acknowledged && !f.negative;
                 e.reason = 'declared no-write preview';
             }
             break;
@@ -5276,7 +5603,7 @@ function deriveExecution(f) {
             e.possible_effect = true;
             e.native_settled = true;
             e.write_attempted = true;
-            e.item_results = f.raw.item_results;
+            e.item_results = f.receipt.items;
             e.mutation_outcome = 'PARTIAL';
             e.health_effect = 'NOT_LANDED';
             e.next_action = 'reconcile_without_replay';
@@ -5293,7 +5620,7 @@ function deriveExecution(f) {
                 if (!e.verification.evidence_refs.length)
                     e.verification.evidence_refs = ['result'];
             }
-            if (f.raw.rollback_complete === true) {
+            if (f.receipt.restored) {
                 e.recovery.state = 'RESTORED';
                 if (!('evidence_refs' in e.recovery))
                     e.recovery.evidence_refs = ['result'];
@@ -5304,8 +5631,8 @@ function deriveExecution(f) {
         case 'LEGACY_NEGATIVE':
             e.next_action = 'reconcile_without_replay';
             e.reason = 'legacy evidence does not prove semantic completion';
-            e.autosave_eligible = f.resp?.ok === true;
-            if (b === 'LEGACY_NEGATIVE' && verifiedNegative(f.raw))
+            e.autosave_eligible = f.receipt.acknowledged;
+            if (b === 'LEGACY_NEGATIVE' && f.receipt.side.verifiedNegative)
                 e.health_effect = 'NOT_LANDED';
             break;
         case 'SATISFIED':
@@ -5331,17 +5658,49 @@ function deriveExecution(f) {
         e.autosave_eligible = true;
         e.freshness_restored = true;
     }
-    if (f.req.action === 'debug.exec_js' && b === 'UNVERIFIED' && f.resp?.ok === true)
-        e.freshness_restored = typeof f.req.payload?.code === 'string' && f.req.payload.code.includes('closeDocument');
+    if (f.req.action === 'debug.exec_js' && b === 'UNVERIFIED' && f.receipt.acknowledged)
+        e.freshness_restored = f.receipt.reload;
     return JSON.parse(JSON.stringify(e));
 }
-function verifiedNegative(r) { return r.partial === true || r.deleted === false || r.disconnected === false || nonempty(r.notApplied) || nonempty(r.survived) || nonempty(r.survivedIds) || (typeof r.survivedTotal === 'number' && r.survivedTotal > 0); }
-function sideEffectEvidence(v) {
+// Shared inventory: composable input facts, never request intent or outcomes.
+function adaptEvidence(v, prewriteFast = false) {
+    const facts = {};
     if (!v || typeof v !== 'object' || Array.isArray(v))
-        return [false, false];
-    const o = v;
-    const wrote = o.mutation_started === true || o.write_attempted === true || nonempty(o.created_ids) || nonempty(o.deleted_ids) || (Array.isArray(o.item_results) && o.item_results.some(x => x && x.status === 'applied'));
-    return [wrote, o.native_settled === false];
+        return facts;
+    const r = v;
+    for (const a of evidenceInventory) {
+        if (prewriteFast && ((a.field === 'status' && ['partial', 'stale'].includes(a.test)) || a.field === 'readback_verified'))
+            continue;
+        if (!(a.field in r))
+            continue;
+        const value = r[a.field];
+        const matched = a.test === 'true' ? value === true : a.test === 'false' ? value === false : a.test === 'nonempty' ? nonempty(value) : a.test === 'positive' ? typeof value === 'number' && value > 0 : a.test === 'applied' ? Array.isArray(value) && value.some(x => x && x.status === 'applied') : value === a.test;
+        if (matched)
+            for (const fact of a.facts)
+                facts[fact] = true;
+    }
+    return facts;
+}
+function normalizeReceipt(f) {
+    const r = f.raw, p = f.prior, fast = f.req.action === 'route.apply_batch';
+    const noWrite = fast && ['stale', 'partial'].includes(r.status) && r.mutation_started === false && fastNoWrite(r);
+    const side = adaptEvidence(r, noWrite);
+    if (!(f.c?.dry_run === 'preview' && f.preview && r.dryRun === true && r.native_settled === true))
+        delete side.absence;
+    if (noWrite)
+        side.absence = true;
+    return {
+        side, fastNoWrite: noWrite,
+        fastPartial: fast && r.status === 'partial' && fastSettled(r, f.req.payload || {}, false),
+        fastComplete: fast && r.status === 'complete' && fastComplete(r, f.req.payload || {}),
+        recoveryConflict: fast && !!p && ((r.status === 'complete' && p.recovery?.state !== 'NOT_REQUESTED') || (p.recovery?.state === 'RESTORED' && (r.rollback_attempted !== true || r.rollback_complete !== true))),
+        itemsConflict: fast && p?.item_results != null && canonical(p.item_results) !== canonical(r.item_results),
+        acknowledged: f.resp?.ok === true && r.ok !== false && r.saved !== false,
+        saveAcknowledged: r.saved === true, restored: r.rollback_complete === true, items: r.item_results,
+        delivered: !!f.resp?.artifacts?.length && f.resp.artifacts.every(a => !!a.path && !!a.sha256),
+        pending: !!f.resp?.artifacts?.length && f.resp.artifacts.every(a => (!!a.path && !!a.sha256) || !!a.inlineBase64),
+        reload: f.req.action === 'debug.exec_js' && typeof f.req.payload?.code === 'string' && f.req.payload.code.includes('closeDocument'),
+    };
 }
 const ids = (v) => Array.isArray(v) && v.every(x => typeof x === 'string' && x.length > 0) && new Set(v).size === v.length;
 function fastNoWrite(r) {
@@ -5490,7 +5849,15 @@ function validRawEvidence(raw, action) {
     if (typeof raw !== 'object' || Array.isArray(raw))
         return false;
     const r = raw;
-    for (const k of ['ok', 'saved', 'partial', 'verified', 'disconnected', 'mutation_started', 'readback_verified', 'rollback_attempted', 'rollback_complete', 'duplicate', 'native_settled', 'write_attempted'])
+    for (const a of evidenceInventory) {
+        if (!(a.field in r))
+            continue;
+        const v = r[a.field], collection = !!v && typeof v === 'object';
+        const valid = a.shape === 'boolean' ? typeof v === 'boolean' : a.shape === 'string' ? typeof v === 'string' : a.shape === 'collection' ? collection : a.shape === 'boolean-or-collection' ? typeof v === 'boolean' || collection : a.shape === 'count' ? typeof v === 'number' && Number.isInteger(v) && v >= 0 : a.shape === 'items' && validItems(v);
+        if (!valid)
+            return false;
+    }
+    for (const k of ['ok', 'saved', 'dryRun', 'partial', 'verified', 'disconnected', 'mutation_started', 'readback_verified', 'rollback_attempted', 'rollback_complete', 'duplicate', 'native_settled', 'write_attempted'])
         if (k in r && typeof r[k] !== 'boolean')
             return false;
     if ('deleted' in r && typeof r.deleted !== 'boolean' && (!r.deleted || typeof r.deleted !== 'object'))

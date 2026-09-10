@@ -183,5 +183,9 @@ Fast 原 status、item_results、IDs、revision、rollback 和 telemetry 保留�
 保存确认不代表重开验证，artifact 路径/hash 不代表制造源一致性。
 
 仅 catalog 声明 preview 的 action 支持 payload.dryRun=true；其他 action 执行前拒绝。
+preview 意图不是无写证明：正常 handler 必须同时返回 dryRun:true、write_attempted:false、
+native_settled:true。缺少凭证保持 UNCERTAIN；裸 legacy write_attempted:false 不具备全局证明力。
+partial/notApplied/survived*/applied、写入 ID、未 settle 和 rollback 等先经统一 evidence adapter
+归一化；副作用或不完整效果与无写证明冲突时，不能返回 NO_WRITE，也不能清除 stage/stale 风险。
 显式合同版本/hash 不匹配或执行入口不承接时也拒绝。CLI_COMPOSITE 不允许 raw daemon
 /action 盲转 Connector。writeHealth/writeverify 仍是同一个有界统计通道，不授予恢复许可。

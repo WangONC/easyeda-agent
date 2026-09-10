@@ -28,7 +28,7 @@ func TestR3ConsumersPreserveUnresolvedEvidence(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, c := range cases {
-		if !strings.HasPrefix(c.Name, "r3_") {
+		if !strings.HasPrefix(c.Name, "r3_") && c.Name != "r4_preview_legacy_partial" {
 			continue
 		}
 		t.Run(c.Name, func(t *testing.T) {
@@ -45,7 +45,7 @@ func TestR3ConsumersPreserveUnresolvedEvidence(t *testing.T) {
 					t.Fatal("unresolved evidence became verified health failure")
 				}
 			}
-			if strings.HasPrefix(c.Name, "r3_02") {
+			if strings.HasPrefix(c.Name, "r3_02") || c.Name == "r4_preview_legacy_partial" {
 				g := newStaleGuard()
 				g.observe(&c.Request, &c.Response)
 				if g.last["w"] != "pcb.page.clear" {

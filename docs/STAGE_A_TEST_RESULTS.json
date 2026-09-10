@@ -546,5 +546,136 @@
       "skills/easyeda-agent/references/actions.md"
     ],
     "deferred": "All Stage B–E implementation and Host qualification remain deferred. No Host mutation, G474, push, PR or tag."
+  },
+  "stage_a_r4": {
+    "parent_commit": "b3f22ac042720efe0d982d18915e33507328223b",
+    "scope": "A-R4 evidence adaptation closure; R3 phases preserved; OFFLINE_ONLY; pending independent acceptance",
+    "status": "STAGE A EXECUTION CONTRACT CLOSED CANDIDATE",
+    "contract_version": "execution.v1.3",
+    "contract_shape_and_frozen_semantics_unchanged": true,
+    "shared_fixtures": 151,
+    "historical_inputs_preserved": 147,
+    "historical_expectation_change": "preview: request intent without handler proof is UNCERTAIN/false; raw input unchanged",
+    "fixture_sha256": "d45f15ce4661ea0f8006b6f8304ab72422a96ff4e5843b04309aff5f7f0fe524",
+    "adapters": 30,
+    "inventory_sha256": "870c50d381e9383e1095cfb9fd95d4648c75079b884aa5b45a361b2c20bedb32",
+    "oracle_sha256": "a5387266a19173971d09cae7c0ccee91df009d76a760406dbf3833196a27450a",
+    "property": {
+      "original_seed": "0x53a3c0de",
+      "original_cases": 4096,
+      "independent_seeds": [
+        "0x53a3c0de",
+        "0x14a4e001",
+        "0x76c0ffee"
+      ],
+      "independent_cases": 3294,
+      "actual_preview_closure_cases": 144,
+      "preview_actions": 3,
+      "unsupported_dry_run_actions": 148,
+      "production_facts_used_by_oracle": false,
+      "full_canonical_parity": true,
+      "round_trip": true,
+      "idempotence": true
+    },
+    "tests": [
+      {
+        "name": "Go unfiltered",
+        "command": "go test -json -count=1 ./...",
+        "result": "FAIL: four reproduced Windows baseline failures only",
+        "log": ".easyeda/r4-go-final.jsonl",
+        "sha256": "0fd24efdbd2f30a8b881b69f1b092aeb7d1163d0f069ab2568e1a384b0d86841"
+      },
+      {
+        "name": "Go filtered",
+        "command": "go test -json -count=1 ./... -skip '^(TestStripArtifactNesting|TestResolveEnrichScriptPriority|TestResolveEnrichScriptNotFoundListsProbedPaths|TestUpdateCLIReplacesBinaryAndVerifiesChecksum)$'",
+        "result": "PASS: 11 tested packages",
+        "log": ".easyeda/r4-go-filtered-final.jsonl",
+        "sha256": "31b897274e5e79a694f5951c9bf906a597564539e9ba34f9940db1890800535c"
+      },
+      {
+        "name": "R3 baseline reproduction",
+        "command": "go test -json -count=1 ./internal/app ./internal/selfupdate -run four-known-tests (cwd .easyeda/r4-baseline; git archive b3f22ac)",
+        "result": "FAIL: same four test roots and one nested path subtest",
+        "log": ".easyeda/r4-baseline-tests.jsonl",
+        "sha256": "deb8f6880bae289ee9d33af150848f05add940a8a606a9597e0277f0b069c831"
+      },
+      {
+        "name": "Connector",
+        "command": "npm --prefix extension test",
+        "result": "PASS: 498; 0 skipped",
+        "log": ".easyeda/r4-connector-final.log",
+        "sha256": "67b626dc8d48ab2a7e460da6e66d190b9e54ee267ac5c399ab0072fd0db7a89c"
+      },
+      {
+        "name": "MCP",
+        "command": "EASYEDA_BIN=.easyeda/stage-a-r4-easyeda.exe npm --prefix mcp test",
+        "result": "PASS: 191; 1 Host test skipped",
+        "log": ".easyeda/r4-mcp-final.log",
+        "sha256": "a8cd0ead25016c30e785bb7fd4800657e0f6a2918c9dc3b5bea0cca324eb3086"
+      },
+      {
+        "name": "TypeScript / generated / Skill / diff",
+        "command": "npm --prefix extension run typecheck; node scripts/generate-execution-mcp.cjs --check; python scripts/pack-skill.py --check; git diff --check",
+        "result": "PASS; 58 tracked Skill files",
+        "log": ".easyeda/r4-checks.log",
+        "sha256": "2d05e0c8daac7274c72436e52d3e149dfb065618e903b9d2913182b1023ed1ed"
+      }
+    ],
+    "windows_baseline_failures": [
+      "TestResolveEnrichScriptNotFoundListsProbedPaths",
+      "TestResolveEnrichScriptPriority",
+      "TestStripArtifactNesting",
+      "TestUpdateCLIReplacesBinaryAndVerifiesChecksum"
+    ],
+    "baseline_archive_sha256": "ed4ab78879590265d5d0f240604d90cf79e57c25e1656b644259682ea6be5149",
+    "invariants": {
+      "idempotence": "PASS",
+      "cross_language_parity": "PASS",
+      "invalid_missing_conflict_fail_closed": "PASS",
+      "evidence_dominance": "PASS",
+      "complete_strictness": "PASS",
+      "uncertain_monotonicity": "PASS",
+      "atomic_derivation": "PASS",
+      "canonical_consumers": "PASS",
+      "no_write_positive_proof_authority": "PASS",
+      "independent_oracle_inventory_coverage": "PASS",
+      "preview_contract_closure": "PASS"
+    },
+    "all_actions_excluded": 151,
+    "host_mutation": false,
+    "g474_modified": false,
+    "push_pr_tag": false,
+    "known_stage_a_blockers": [],
+    "changed_files": [
+      "docs/STAGE_A_R4_RESULTS.md",
+      "docs/STAGE_A_TEST_RESULTS.json",
+      "extension/src/actions.ts",
+      "extension/src/execution-evidence.test.ts",
+      "extension/src/execution-preview-fixtures.ts",
+      "extension/src/execution.ts",
+      "internal/app/cmd_apply.go",
+      "internal/app/sch_clear_verify_test.go",
+      "internal/daemon/execution_r2_test.go",
+      "internal/daemon/execution_r3_test.go",
+      "internal/daemon/stale_read_gate_test.go",
+      "internal/daemon/stalereads_test.go",
+      "internal/protocol/execution-evidence.json",
+      "internal/protocol/execution.go",
+      "internal/protocol/execution_evidence.go",
+      "internal/protocol/execution_evidence_test.go",
+      "internal/protocol/execution_properties_test.go",
+      "internal/protocol/execution_reducer.go",
+      "internal/protocol/execution_shape.go",
+      "internal/protocol/testdata/execution.json",
+      "mcp/src/execution.generated.mjs",
+      "mcp/src/fast-path.mjs",
+      "mcp/test/execution-evidence.test.mjs",
+      "mcp/test/fast-path.test.mjs",
+      "scripts/execution-evidence-properties.cjs",
+      "scripts/execution-preview-fixtures.cjs",
+      "scripts/execution-semantic-oracle.cjs",
+      "scripts/generate-execution-mcp.cjs",
+      "skills/easyeda-agent/references/actions.md"
+    ]
   }
 }

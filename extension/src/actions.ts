@@ -2106,6 +2106,7 @@ const schematicPageClear: Handler = async (payload) => {
 			result: {
 				deleted: planned, total: initialTotal, deletedIds: firstPass,
 				passes: 0, remaining: initialTotal, preserveSheet, dryRun,
+                write_attempted: false, native_settled: true,
 				...(warnings.length ? { warnings } : {}),
 			},
 		};
@@ -10036,6 +10037,7 @@ export const pcbPageClear: Handler = async (payload) => {
 			preserveOutline,
 			includeLocked,
 			dryRun,
+            ...(dryRun ? { write_attempted: false, native_settled: true } : {}),
 			...(warnings.length ? { warnings } : {}),
 		},
 	};
@@ -10660,7 +10662,7 @@ const pcbBeautify: Handler = async (payload) => {
 	catch (err) {
 		throw edaError(err, 'Failed to beautify PCB routing (ensure the PCB document is the active/foreground tab).');
 	}
-	return { result: summary };
+	return { result: { ...summary, ...(opts.dryRun ? { write_attempted: false, native_settled: true } : {}) } };
 };
 
 // ─── PCB region (禁止区域 / 规则区域 keep-out) ────────────────────────

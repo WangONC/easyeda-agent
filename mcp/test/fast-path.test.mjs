@@ -1,3 +1,4 @@
+import { authoringResult } from '../src/authoring-result.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fastTools, fastInput, compactFastResult } from '../src/fast-path.mjs';
@@ -10,7 +11,7 @@ test('Fast Path exposes three typed explicit-geometry schemas',()=>{
 });
 test('compact MCP retains structured partial/uncertain and preserves envelopes',()=>{
  const raw={ok:true,result:{id:'request',ok:true,result:{board_revision:'r',traces:[],telemetry:{duration_ms:1}}}};
- const r=toMcpResult(compactFastResult(raw));assert.equal(r.isError,false);assert.equal(r.structuredContent.result.board_revision,'r');assert.equal(r.structuredContent.id,'request');
+ const r=toMcpResult(compactFastResult(authoringResult('board.snapshot_compact',raw)));assert.equal(r.isError,false);assert.equal(r.structuredContent.result.board_revision,'r');assert.equal(r.structuredContent.id,'request');
  for(const status of ['partial','stale','uncertain']){const r=toMcpResult(compactFastResult({ok:false,error:{stdout:{ok:false,result:{status,created_ids:['a']},error:{code:'BATCH_UNCERTAIN'}}}}));assert.equal(r.isError,true);assert.match(r.content[0].text,new RegExp(status));assert.match(r.content[0].text,/created_ids/)}
  assert.equal(toMcpResult(compactFastResult({ok:true,result:{ok:true,result:{ok:false,conflicts:[{type:'trace_trace'}]}}})).isError,true);
 });

@@ -903,8 +903,9 @@
       }
     },
     "before": false,
-    "want_outcome": "NO_WRITE",
-    "want_satisfied": true
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false,
+    "r4_note": "Historical input retained: request intent alone is not positive no-write proof."
   },
   {
     "name": "unsupported_preview_never_suppresses_write",
@@ -7802,6 +7803,86 @@
     },
     "before": false,
     "name": "r3_05_status_uncertain_health",
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r4_preview_legacy_partial",
+    "request": {
+      "id": "r",
+      "action": "pcb.page.clear",
+      "payload": {
+        "dryRun": true
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "partial": true
+      }
+    },
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r4_preview_handler_no_write_proof",
+    "request": {
+      "id": "r",
+      "action": "pcb.page.clear",
+      "payload": {
+        "dryRun": true
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "dryRun": true,
+        "write_attempted": false,
+        "native_settled": true
+      }
+    },
+    "want_outcome": "NO_WRITE",
+    "want_satisfied": true
+  },
+  {
+    "name": "r4_unscoped_legacy_absence_not_authoritative",
+    "request": {
+      "id": "r",
+      "action": "pcb.component.modify",
+      "payload": {}
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "write_attempted": false,
+        "native_settled": true
+      }
+    },
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r4_preview_proof_conflicting_partial",
+    "request": {
+      "id": "r",
+      "action": "pcb.page.clear",
+      "payload": {
+        "dryRun": true
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "dryRun": true,
+        "write_attempted": false,
+        "native_settled": true,
+        "partial": true
+      }
+    },
     "want_outcome": "UNCERTAIN",
     "want_satisfied": false
   }

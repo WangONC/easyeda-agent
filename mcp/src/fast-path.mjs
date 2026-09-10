@@ -39,8 +39,6 @@ export function compactFastResult(execution) {
  const value = execution.ok ? execution.result : execution.error?.stdout ?? execution.error;
  if (!value || typeof value !== 'object') return execution;
  // Compact JSON spacing is sufficient; never strip the evidence envelope.
- const status = value.result?.status ?? value.status;
- const satisfied = value.execution?.request_satisfied;
- const ok = satisfied !== undefined ? satisfied === true : execution.ok && value.ok !== false && value.result?.ok !== false && (!status || status === 'complete');
+ const ok = value.execution?.request_satisfied === true;
  return ok ? {ok:true,result:value} : {ok:false,error:value};
 }

@@ -227,26 +227,7 @@ func nonempty(v any) bool {
 	}
 	return false
 }
-func NegativeResult(r map[string]any) bool {
-	if r["partial"] == true || r["verified"] == false || r["deleted"] == false || r["disconnected"] == false || nonempty(r["notApplied"]) || nonempty(r["survived"]) || nonempty(r["survivedIds"]) {
-		return true
-	}
-	switch n := r["survivedTotal"].(type) {
-	case int:
-		if n > 0 {
-			return true
-		}
-	case float64:
-		if n > 0 {
-			return true
-		}
-	}
-	switch r["status"] {
-	case "partial", "uncertain", "stale", "failed", "unverified":
-		return true
-	}
-	return false
-}
+func NegativeResult(r map[string]any) bool { return adaptEvidence(r)["negative"] }
 
 // Interpret has one path: validate evidence, reconcile it, then derive all conclusions.
 func Interpret(req *Request, resp *Response, beforeDispatch bool) *Execution {

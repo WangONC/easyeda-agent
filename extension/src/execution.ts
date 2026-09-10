@@ -45,6 +45,15 @@ export function interpret(req: Partial<RequestFrame> & {
     }
     if (!resp)
         return e;
+    if (resp.execution !== undefined && resp.execution !== null) {
+        const prior = resp.execution;
+        if (prior.invalid_evidence != null || !validExecutionShape(prior)) {
+            e.invalid_evidence = prior.invalid_evidence ?? prior;
+            e.verification.state = 'INVALID';
+            e.reason = 'invalid execution structure';
+            return e;
+        }
+    }
     if (req.payload?.dryRun === true && c?.dry_run === 'preview') {
         e.mutation_outcome = 'NO_WRITE';
         e.write_attempted = false;
@@ -94,6 +103,7 @@ export function interpret(req: Partial<RequestFrame> & {
         let blocked = !valid || ['INVALID','UNSUPPORTED'].includes(prior.verification?.state);
         if (req.action === 'route.apply_batch' && valid && prior.mutation_outcome === 'NO_WRITE' && prior.write_attempted === false && prior.reason === 'refused before dispatch' && !resp.result) return e;
         if (req.action === 'route.apply_batch' && ((prior.write_attempted === false || prior.mutation_outcome === 'NO_WRITE') && resp.result?.mutation_started === true)) blocked = true;
+        if (req.action === 'route.apply_batch' && ((resp.result?.status === 'complete' && prior.recovery.state !== 'NOT_REQUESTED') || (prior.recovery.state === 'RESTORED' && (resp.result?.rollback_attempted !== true || resp.result?.rollback_complete !== true)))) { blocked = true; e.reason = 'recovery conflicts with Fast receipt'; }
         if (req.action === 'route.apply_batch' && prior.item_results != null && canonical(prior.item_results) !== canonical(resp.result?.item_results)) blocked = true;
         if (req.action === 'route.apply_batch') blocked ||= prior.native_settled === false || prior.mutation_outcome === 'UNCERTAIN' || (['COMPLETE','PARTIAL'].includes(prior.mutation_outcome || '') && prior.native_settled !== true);
         else if (!mutation && !prior.request_satisfied) blocked ||= !(c?.effects.includes('ARTIFACT_DELIVERY') && prior.persistence?.state === 'PENDING_DELIVERY');
@@ -205,4 +215,23 @@ function canonical(value: unknown): string {
  if (Array.isArray(value)) return '['+value.map(canonical).join(',')+']';
  if (value && typeof value === 'object') return '{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+canonical((value as Record<string,unknown>)[k])).join(',')+'}';
  return JSON.stringify(value) ?? 'undefined';
+}
+
+function validExecutionShape(raw: unknown): boolean {
+ const object = (x: unknown): x is Record<string,unknown> => x !== null && typeof x === 'object' && !Array.isArray(x);
+ const list = (x: unknown) => Array.isArray(x) && x.every(v=>typeof v === 'string');
+ if (!object(raw) || !object(raw.verification)) return false;
+ const v=raw.verification;
+ if (!['AVAILABLE','UNAVAILABLE','INVALID','UNSUPPORTED'].includes(v.state as string) || !['COMPLETE','PARTIAL'].includes(v.coverage as string)) return false;
+ for (const k of ['required','observed','missing','evidence_refs']) if (!list(v[k])) return false;
+ for (const k of ['source','revision','activation','observed_at','verifier_version']) if (k in v && typeof v[k] !== 'string') return false;
+ if ('scope' in v) {
+  if (!object(v.scope)) return false;
+  for (const k of ['projectUuid','projectName','documentUuid','documentType','tabId','unit']) if (k in v.scope && typeof v.scope[k] !== 'string') return false;
+ }
+ for (const k of ['recovery','persistence']) {
+  const obj=raw[k];if (!object(obj) || typeof obj.state !== 'string' || !obj.state) return false;
+  if ('evidence_refs' in obj && !list(obj.evidence_refs)) return false;
+ }
+ return true;
 }

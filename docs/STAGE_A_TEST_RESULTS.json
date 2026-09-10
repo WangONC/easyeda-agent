@@ -362,5 +362,73 @@
       "scripts/test-execution-parity.mjs"
     ],
     "deferred": "All Stage B–E findings remain deferred; no new Host qualification"
+  },
+  "stage_a_r2": {
+    "parent_commit": "da46d819d64297125e0037d3450c3836be8e582b",
+    "scope": "A-R2-01..03 only; OFFLINE_ONLY; pending independent acceptance",
+    "contract_version": "execution.v1.2",
+    "shared_fixtures": 138,
+    "tests": [
+      {
+        "name": "Go unfiltered",
+        "command": "D:/Environment/go/bin/go.exe test ./...",
+        "result": "FAIL: four known Windows baseline failures only",
+        "log": ".easyeda/r2-go-final-unfiltered.log",
+        "sha256": "cd9b547950f29299397d3804f51025054de594c5e8e51b89edf81391a87338d2"
+      },
+      {
+        "name": "Go filtered",
+        "command": "D:/Environment/go/bin/go.exe test ./... -skip '^(TestStripArtifactNesting|TestResolveEnrichScriptPriority|TestResolveEnrichScriptNotFoundListsProbedPaths|TestUpdateCLIReplacesBinaryAndVerifiesChecksum)$'",
+        "result": "PASS",
+        "log": ".easyeda/r2-go-final-filtered.log",
+        "sha256": "033e4e62fdfc8001854721a5adbb21efde1f1ed1acc3fccc79b7c16e896bac7d"
+      },
+      {
+        "name": "Connector",
+        "command": "npm --prefix extension test",
+        "result": "481 passed",
+        "log": ".easyeda/r2-extension-final.log",
+        "sha256": "45292363c470dafef201974438da9c0484c37be1597d859abdad109d2a06d343"
+      },
+      {
+        "name": "TypeScript",
+        "command": "npm --prefix extension run typecheck",
+        "result": "PASS",
+        "log": ".easyeda/r2-typecheck.log",
+        "sha256": "73cdf70247e975272156bf142e5925d20389cb3ea60afdd201dc9fb44c4da341"
+      },
+      {
+        "name": "MCP",
+        "command": "EASYEDA_BIN=.easyeda/stage-a-r2-easyeda.exe npm --prefix mcp test",
+        "result": "175 passed; 1 Host skip",
+        "log": ".easyeda/r2-mcp-final.log",
+        "sha256": "c8e657887918947c3d9f90fcfbeba03ca260cee1f2a8fdf0660d9ff9525a50fc"
+      },
+      {
+        "name": "Skill",
+        "command": "D:/Environment/miniconda3/python.exe scripts/pack-skill.py --check",
+        "result": "PASS: 58 files",
+        "log": ".easyeda/r2-skill.log",
+        "sha256": "f5cb43343b02e06e9882dbcbd47e7fe6e0b821bfc3c015d47a807aff6f47a792"
+      }
+    ],
+    "generator_check": "node scripts/generate-execution-mcp.cjs --check: PASS",
+    "full_execution_parity": "original JSON + Go decoded + Go interpreted -> TS first/repeated -> Go; entire normalized execution comparison",
+    "changed_files": [
+      "docs/STAGE_A_EXECUTION_CONTRACT.md",
+      "docs/STAGE_A_R2_RESULTS.md",
+      "docs/STAGE_A_TEST_RESULTS.json",
+      "extension/src/action-contracts.json",
+      "extension/src/execution.ts",
+      "extension/src/protocol.ts",
+      "internal/daemon/execution_r2_test.go",
+      "internal/protocol/execution.go",
+      "internal/protocol/execution_parity_test.go",
+      "internal/protocol/execution_shape.go",
+      "internal/protocol/testdata/execution.json",
+      "mcp/src/execution.generated.mjs",
+      "mcp/test/execution.test.mjs"
+    ],
+    "deferred": "All Stage B–E work remains deferred; no Host mutation or G474 operations"
   }
 }

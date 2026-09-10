@@ -22,3 +22,16 @@ test('metadata and pending artifact evidence survive repeated action projection'
  const again=authoringResult(request.action,first);
  assert.deepEqual(again.result.execution,first.result.execution);
 });
+
+test('R2 malformed nested evidence stays failed across repeated MCP projections',()=>{
+ for (const c of cases.filter(c=>c.name.startsWith('r2_'))) {
+  const first=authoringResult(c.request.action,{ok:true,result:c.response},c.request.payload);
+  assert.equal(first.ok,false,c.name);
+  assert.equal(toMcpResult(first,{structuredErrors:true}).isError,true,c.name);
+  const second=authoringResult(c.request.action,{ok:true,result:first.error},c.request.payload);
+  assert.equal(second.ok,false,c.name);
+  assert.deepEqual(second.error.execution,first.error.execution,c.name);
+  const processFailure=authoringResult(c.request.action,{ok:false,error:{code:1,stdout:c.response}},c.request.payload);
+  assert.equal(processFailure.ok,false,c.name);
+ }
+});

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const ContractVersion = "execution.v1.1"
+const ContractVersion = "execution.v1.2"
 
 type ActionContract struct {
 	Operations            []string             `json:"operations,omitempty"`
@@ -180,6 +180,7 @@ type Evidence struct {
 	EvidenceRefs    []string `json:"evidence_refs"`
 }
 type Execution struct {
+	InvalidEvidence      any             `json:"invalid_evidence,omitempty"`
 	ChildResponses       []Response      `json:"child_responses,omitempty"`
 	NativeSettled        *bool           `json:"native_settled,omitempty"`
 	OperationID          string          `json:"operation_id,omitempty"`
@@ -262,6 +263,18 @@ func Interpret(req *Request, resp *Response, beforeDispatch bool) *Execution {
 	if resp == nil {
 		return e
 	}
+	if prior := resp.Execution; prior != nil {
+		raw := prior.InvalidEvidence
+		if raw == nil {
+			raw = jsonValue(prior)
+		}
+		if prior.InvalidEvidence != nil || !validExecutionShape(raw) {
+			e.InvalidEvidence = raw
+			e.Verification.State = "INVALID"
+			e.Reason = "invalid execution structure"
+			return e
+		}
+	}
 	if Preview(req) {
 		e.MutationOutcome = NoWrite
 		b := false
@@ -321,6 +334,10 @@ func Interpret(req *Request, resp *Response, beforeDispatch bool) *Execution {
 				blocked = true
 			}
 			if prior.MutationOutcome == NoWrite && resp.Result["mutation_started"] == true {
+				blocked = true
+			}
+			if (resp.Result["status"] == "complete" && prior.Recovery["state"] != "NOT_REQUESTED") || (prior.Recovery["state"] == "RESTORED" && (resp.Result["rollback_attempted"] != true || resp.Result["rollback_complete"] != true)) {
+				e.Reason = "recovery conflicts with Fast receipt"
 				blocked = true
 			}
 			if prior.ItemResults != nil {
@@ -452,7 +469,12 @@ func PossibleMutation(req *Request, resp *Response) bool {
 		return false
 	}
 	if c.HasEffect("NATIVE_RECOMPUTE") && !c.ContentMutation() {
-		return resp.Execution != nil && resp.Execution.RequestSatisfied || resp.Execution == nil && resp.OK
+		// Recompute can invalidate prior checks even when its request is unsatisfied.
+		// Only an explicit pre-dispatch/no-write boundary proves no effect.
+		if resp.Execution != nil && resp.Execution.WriteAttempted != nil && !*resp.Execution.WriteAttempted && resp.Execution.Reason == "refused before dispatch" {
+			return false
+		}
+		return true
 	}
 	if !c.ContentMutation() {
 		return false

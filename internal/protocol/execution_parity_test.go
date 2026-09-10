@@ -43,15 +43,24 @@ func TestExecutionFullCrossLanguageParity(t *testing.T) {
 		Response Response `json:"response"`
 		Before   bool     `json:"before"`
 	}
-	inputs := []input{}
+	var rawInputs []map[string]any
+	if err := json.Unmarshal(raw, &rawInputs); err != nil {
+		t.Fatal(err)
+	}
+	inputs := []any{}
 	expected := []*Execution{}
-	for _, c := range cases {
+	for i, c := range cases {
 		e := Interpret(&c.Request, &c.Response, c.Before)
 		expected = append(expected, e)
 		inputs = append(inputs, input{c.Request, c.Response, c.Before})
 		r := c.Response
 		r.Execution = e
 		inputs = append(inputs, input{c.Request, r, c.Before})
+		if i < len(rawInputs) {
+			inputs = append(inputs, rawInputs[i])
+		} else {
+			inputs = append(inputs, input{c.Request, c.Response, c.Before})
+		}
 	}
 	b, _ := json.Marshal(inputs)
 	cmd := exec.Command("node", "../../scripts/test-execution-parity.mjs")
@@ -71,8 +80,8 @@ func TestExecutionFullCrossLanguageParity(t *testing.T) {
 	for i, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
 			want := normalize(expected[i])
-			for j := 0; j < 2; j++ {
-				for _, raw := range []json.RawMessage{results[2*i+j].First, results[2*i+j].Repeated} {
+			for j := 0; j < 3; j++ {
+				for _, raw := range []json.RawMessage{results[3*i+j].First, results[3*i+j].Repeated} {
 					var got Execution
 					if err := json.Unmarshal(raw, &got); err != nil {
 						t.Fatal(err)

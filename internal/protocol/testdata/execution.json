@@ -1943,8 +1943,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.1",
-        "contract_hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
         "mutation_outcome": "UNCERTAIN",
         "native_settled": false,
         "verification": {
@@ -2020,8 +2020,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.1",
-        "contract_hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
         "mutation_outcome": "UNCERTAIN",
         "native_settled": false,
         "verification": {
@@ -2069,8 +2069,8 @@
       ],
       "execution": {
         "request_id": "delivery",
-        "contract_version": "execution.v1.1",
-        "contract_hash": "f19ddf514345e33f042cd6c57eb28865abccd0a39f2bcd7ccfbd2cbae497f3ed",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "98a9aca1fab87a5b43f7d6105abf2c31836e67a2c28b3e57b0747ecfcd908a2b",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2112,8 +2112,8 @@
       ],
       "execution": {
         "request_id": "delivery",
-        "contract_version": "execution.v1.1",
-        "contract_hash": "f19ddf514345e33f042cd6c57eb28865abccd0a39f2bcd7ccfbd2cbae497f3ed",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "98a9aca1fab87a5b43f7d6105abf2c31836e67a2c28b3e57b0747ecfcd908a2b",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2156,8 +2156,8 @@
       ],
       "execution": {
         "request_id": "delivery",
-        "contract_version": "execution.v1.1",
-        "contract_hash": "f19ddf514345e33f042cd6c57eb28865abccd0a39f2bcd7ccfbd2cbae497f3ed",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "98a9aca1fab87a5b43f7d6105abf2c31836e67a2c28b3e57b0747ecfcd908a2b",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2198,8 +2198,8 @@
       "execution": {
         "operation_id": "parent-op",
         "request_id": "parent",
-        "contract_version": "execution.v1.1",
-        "contract_hash": "34a6a7de635e19b43cc0023132ee0735fa8dba61c42bdc54ce673887d70cdbce",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "1f27876f077f025ea5ef7d955365c4146b599bf0119af344360c4a5c8cdd3f75",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2273,8 +2273,8 @@
       "execution": {
         "operation_id": "parent-op",
         "request_id": "parent",
-        "contract_version": "execution.v1.1",
-        "contract_hash": "7d208b4c543b74b18e4b1b0c28fa1bb835b2a8b5bd8dc507e6a2bd617dc55d83",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "cbd068c456906fff6f94a6e74c4d4765018d1f6dd94c5f28339e3da6c0113aa0",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2348,8 +2348,8 @@
       "execution": {
         "operation_id": "parent-op",
         "request_id": "parent",
-        "contract_version": "execution.v1.1",
-        "contract_hash": "bc890f7fe2ff6007893778a3fe1ed25ef0caae5a6d7b28729f6aaa572ede1c24",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "883be37676e913c0459fb2edf687c4c90da7e16b9c8edd218b7f7fba3990630f",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2423,8 +2423,8 @@
       "execution": {
         "operation_id": "parent-op",
         "request_id": "parent",
-        "contract_version": "execution.v1.1",
-        "contract_hash": "bcd96319e949c0763682021f31e50048f0b45d1b628ffd48e8e30cac3fbc6302",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "78916a69a5545554fbf8f44c8b13e1c94cf301660955da6a8d1a5cfa5011141c",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2734,8 +2734,8 @@
         "operation_id": "op",
         "parent_operation_id": "parent",
         "request_id": "r",
-        "contract_version": "execution.v1.1",
-        "contract_hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -2835,8 +2835,8 @@
         "operation_id": "op",
         "parent_operation_id": "parent",
         "request_id": "r",
-        "contract_version": "execution.v1.1",
-        "contract_hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
         "verification": {
           "state": "UNAVAILABLE",
           "coverage": "PARTIAL",
@@ -2934,8 +2934,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.1",
-        "contract_hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -3012,8 +3012,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.1",
-        "contract_hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -3090,8 +3090,8 @@
       },
       "execution": {
         "request_id": "r",
-        "contract_version": "execution.v1.1",
-        "contract_hash": "49b2ccf3cd0d88f88336d8d7e085bddedd67eea4e6aa853d9e19cd5389fd81da",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
         "verification": {
           "state": "AVAILABLE",
           "coverage": "COMPLETE",
@@ -3122,6 +3122,4227 @@
         ],
         "write_attempted": true,
         "native_settled": null
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_restored_complete",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "RESTORED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_restored_complete_with_raw_rollback",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": true,
+        "rollback_complete": true,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "RESTORED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_missing",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_null",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": null,
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_[]",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": [],
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_false",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": false,
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_4",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": 4,
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_\"invalid\"",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": "invalid",
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_{}",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {},
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_recovery_missing",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_recovery_null",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": null,
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_recovery_[]",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": [],
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_recovery_false",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": false,
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_recovery_4",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": 4,
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_recovery_\"invalid\"",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": "invalid",
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_recovery_{}",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {},
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_persistence_missing",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_persistence_null",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": null,
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_persistence_[]",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": [],
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_persistence_false",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": false,
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_persistence_4",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": 4,
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_persistence_\"invalid\"",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": "invalid",
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_persistence_{}",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {},
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_required_missing",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_required_null",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": null,
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_required_\"x\"",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": "x",
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_required_{}",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": {},
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_required_[2]",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [
+            2
+          ],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_observed_missing",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_observed_null",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": null,
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_observed_\"x\"",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": "x",
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_observed_{}",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": {},
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_observed_[2]",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [
+            2
+          ],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_missing_missing",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_missing_null",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": null,
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_missing_\"x\"",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": "x",
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_missing_{}",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": {},
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_missing_[2]",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [
+            2
+          ],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_evidence_refs_missing",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_evidence_refs_null",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": null,
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_evidence_refs_\"x\"",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": "x",
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_evidence_refs_{}",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": {},
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_verification_evidence_refs_[2]",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            2
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_recovery_state_null",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": null
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_recovery_state_4",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": 4
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_recovery_state_[]",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": []
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_persistence_state_null",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": null
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_persistence_state_4",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": 4
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_persistence_state_[]",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": []
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_recovery_refs_wrong_type",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED",
+          "evidence_refs": "receipt"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_scope_wrong_type",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation",
+          "scope": {
+            "documentUuid": 4
+          }
+        },
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_invalid_nested_pcb.save",
+    "request": {
+      "id": "r",
+      "action": "pcb.save",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "saved": true
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "bfd762cdb23355997b49ef03dc721700d6b980c05503eee346623cdd1673f624",
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      },
+      "artifacts": [
+        {
+          "id": "a",
+          "path": "file",
+          "sha256": "hash"
+        }
+      ]
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_invalid_nested_schematic.export.bom",
+    "request": {
+      "id": "r",
+      "action": "schematic.export.bom",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "saved": true
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "98a9aca1fab87a5b43f7d6105abf2c31836e67a2c28b3e57b0747ecfcd908a2b",
+        "recovery": {
+          "state": "NOT_REQUESTED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      },
+      "artifacts": [
+        {
+          "id": "a",
+          "path": "file",
+          "sha256": "hash"
+        }
+      ]
+    },
+    "before": false,
+    "want_outcome": "",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_recovery_FAILED",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "FAILED"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_recovery_PENDING",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "PENDING"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
+      }
+    },
+    "before": false,
+    "want_outcome": "UNCERTAIN",
+    "want_satisfied": false
+  },
+  {
+    "name": "r2_recovery_UNKNOWN",
+    "request": {
+      "id": "r",
+      "action": "route.apply_batch",
+      "payload": {
+        "operations": [
+          {
+            "type": "add_trace"
+          }
+        ],
+        "base_revision": "v1"
+      }
+    },
+    "response": {
+      "id": "r",
+      "ok": true,
+      "result": {
+        "status": "complete",
+        "mutation_started": true,
+        "readback_verified": true,
+        "revision_before": "v1",
+        "revision_after": "v2",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "created_ids": [
+          "line"
+        ],
+        "deleted_ids": [],
+        "rollback_attempted": false,
+        "rollback_complete": false,
+        "failed_index": null
+      },
+      "execution": {
+        "request_id": "r",
+        "contract_version": "execution.v1.2",
+        "contract_hash": "8a408a297440ac33fcb924fbec4680aeffc35f3f46c1a7e9a4df61674ae07f3b",
+        "verification": {
+          "state": "AVAILABLE",
+          "coverage": "COMPLETE",
+          "required": [],
+          "observed": [],
+          "missing": [],
+          "evidence_refs": [
+            "result"
+          ],
+          "source": "FastPath.matchesOperation"
+        },
+        "recovery": {
+          "state": "UNKNOWN"
+        },
+        "persistence": {
+          "state": "NOT_REQUESTED"
+        },
+        "request_satisfied": true,
+        "next_action": "continue",
+        "reason": "Fast Path semantic readback",
+        "mutation_outcome": "COMPLETE",
+        "item_results": [
+          {
+            "index": 0,
+            "status": "applied",
+            "id": "line"
+          }
+        ],
+        "write_attempted": true,
+        "native_settled": true
       }
     },
     "before": false,

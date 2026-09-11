@@ -3,12 +3,18 @@ package daemon
 import (
 	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
 	"github.com/zhoushoujianwork/easyeda-agent/internal/protocol"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
 
 func TestV2StartupFenceAllNativeEffectScopes(t *testing.T) {
-	s := New(Options{})
+	path := filepath.Join(t.TempDir(), "receipts.json")
+	if err := os.WriteFile(path+".active", []byte("unclean"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	s := New(Options{V2ReceiptFile: path})
 	tested := 0
 	for _, action := range protocol.AllActions() {
 		v := action.V2
@@ -62,9 +68,9 @@ func TestV2StartupFenceAllNativeEffectScopes(t *testing.T) {
 	}
 	// A second daemon lifetime cannot inherit an old operator assertion.
 	ready := New(Options{V2HostStartupConfirmed: true})
-	restarted := New(Options{})
+	restarted := New(Options{V2ReceiptFile: path})
 	if !ready.opts.V2HostStartupConfirmed || restarted.opts.V2HostStartupConfirmed {
 		t.Fatal("startup trust inherited")
 	}
-	t.Logf("%d native Host effects default fenced, reads remain admissible", tested)
+	t.Logf("%d native Host effects fenced after unclean exit, reads remain admissible", tested)
 }

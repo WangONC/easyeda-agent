@@ -21,8 +21,8 @@ const Service = "easyeda-agent"
 // Options configures a daemon Server.
 type Options struct {
 	// V2HostStartupConfirmed is an explicit operator assertion for this daemon
-	// lifetime. Receipt memory cannot prove that a previous lifetime left no
-	// native effects pending. Never infer this from reconnect or a new window ID.
+	// lifetime after an unclean exit. It never releases restored receipt ownership.
+	// Never infer this from reconnect or a new window ID.
 	V2HostStartupConfirmed bool
 	V2ReceiptFile          string
 
@@ -52,11 +52,13 @@ type Options struct {
 // connector WebSockets on /connect, and forwards typed actions on /action.
 // Artifact storage and audit logging come later.
 type Server struct {
-	v2StartupErr error
-	v2Session    string
-	v2           *executionv2.Coordinator
-	v2Mu         sync.Mutex
-	v2Pending    map[string]v2Pending
+	v2StartupErr    error
+	v2UncleanStart  bool
+	v2RestoredOwner string
+	v2Session       string
+	v2              *executionv2.Coordinator
+	v2Mu            sync.Mutex
+	v2Pending       map[string]v2Pending
 
 	fastPlans fastPlans
 	opts      Options
@@ -170,6 +172,10 @@ func New(opts Options) *Server {
 	s.v2.OnResolved(s.releaseV2)
 	s.v2.OnResult(s.consumeV2Effects)
 	s.v2StartupErr = s.restoreV2Handoff()
+	if s.v2StartupErr == nil {
+		s.v2RestoredOwner = s.v2.EffectOwner()
+		s.v2StartupErr = s.inspectV2Lifecycle()
+	}
 	return s
 }
 
@@ -215,7 +221,7 @@ func (s *Server) routes(port int) *http.ServeMux {
 		_ = enc.Encode(health{
 			V2Session:       s.v2Session,
 			V2EffectOwner:   s.v2.EffectOwner(),
-			V2StartupFenced: !s.opts.V2HostStartupConfirmed,
+			V2StartupFenced: s.v2StartupFenced(),
 			Service:         Service,
 			Version:         s.opts.Version,
 			Status:          "ok",
@@ -269,6 +275,10 @@ func (s *Server) Run(ctx context.Context, log io.Writer) error {
 		return err
 	}
 
+	if err := s.markV2Running(); err != nil {
+		listener.Close()
+		return fmt.Errorf("V2_LIFECYCLE_MARK_FAILED: %w", err)
+	}
 	s.log = log
 	s.connCtx, s.connCancel = context.WithCancel(context.Background())
 	defer s.connCancel()
@@ -292,7 +302,7 @@ func (s *Server) Run(ctx context.Context, log io.Writer) error {
 	case <-ctx.Done():
 		fmt.Fprintf(log, "%s daemon shutting down\n", Service)
 		if s.opts.V2ReceiptFile != "" {
-			if err := s.v2.SaveHandoff(s.opts.V2ReceiptFile); err != nil {
+			if err := s.saveV2Handoff(); err != nil {
 				listener.Close()
 				return fmt.Errorf("V2_HANDOFF_SAVE_FAILED: %w", err)
 			}

@@ -45,7 +45,7 @@ func (s *Server) validateV2(r executionv2.Request) (executionv2.Admission, error
 	if e != nil {
 		return a, e
 	}
-	if a.EffectScope != "NONE" && !s.opts.V2HostStartupConfirmed {
+	if a.EffectScope != "NONE" && s.v2UncleanStart && !s.opts.V2HostStartupConfirmed {
 		return a, errors.New("V2_HOST_STARTUP_RECONCILIATION_REQUIRED")
 	}
 	if protocol.ActionDisabled(r.Action) {

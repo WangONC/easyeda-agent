@@ -46,7 +46,7 @@ func (s *Server) handleV2Handoff(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "V2_RECEIPT_FILE_REQUIRED", 409)
 		return
 	}
-	if err := s.v2.SaveHandoff(s.opts.V2ReceiptFile); err != nil {
+	if err := s.saveV2Handoff(); err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}

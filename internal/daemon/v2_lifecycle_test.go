@@ -1,0 +1,179 @@
+package daemon
+
+import (
+	"context"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/protocol"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync/atomic"
+	"testing"
+	"time"
+)
+
+func startupRequest(action, id string) executionv2.Request {
+	for _, a := range protocol.AllActions() {
+		if a.Name == action {
+			return executionv2.Request{Protocol: executionv2.Version, Action: action, ActionRevision: a.V2.Revision, Schema: a.V2.SchemaID(), RequestID: id, OperationID: id, BudgetMS: 100,
+				Target: executionv2.Target{Scope: "DOCUMENT", Session: "s", Activation: "a", ProjectUUID: "p", DocumentUUID: "d", DocumentType: "pcb", TabID: "t"}, Input: map[string]any{}}
+		}
+	}
+	panic(action)
+}
+func startupConn(s *Server) {
+	c := newConn(nil, time.Now())
+	c.windowID = "s"
+	c.activationID = "a"
+	c.caps = []string{"execution.v2"}
+	c.ctx = protocol.Context{ProjectUUID: "p", DocumentUUID: "d", DocumentType: "pcb", TabID: "t"}
+	s.hub.add(c)
+}
+func startupExecutor(calls *atomic.Int32, settled, satisfied bool) executionv2.Executor {
+	return func(r executionv2.Request, d string) <-chan executionv2.HandlerResult {
+		calls.Add(1)
+		ch := make(chan executionv2.HandlerResult, 1)
+		scope := "SAVE"
+		if r.Action == "document.current" {
+			scope = "NONE"
+		}
+		v := executionv2.Verification{Verdict: "unavailable"}
+		if satisfied || scope == "NONE" {
+			v = executionv2.Verification{Verdict: "satisfied", Complete: true, Required: 1, Satisfied: 1, Checked: []string{"native_save_ack_or_fresh_target"}}
+		}
+		ch <- executionv2.HandlerResult{Protocol: executionv2.Version, OperationID: r.OperationID, Digest: d, Target: r.Target, Effects: executionv2.Effects{Started: executionv2.Bool(scope != "NONE"), Changed: executionv2.Bool(false), Settled: settled, Scope: scope}, Verification: v}
+		return ch
+	}
+}
+func TestV2CleanStartupAllowsReadsAndWrites(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "receipts.json")
+	s := New(Options{V2ReceiptFile: path})
+	startupConn(s)
+	var calls atomic.Int32
+	s.v2 = executionv2.New(20, s.validateV2, startupExecutor(&calls, true, true))
+	if s.v2StartupFenced() {
+		t.Fatal("fresh installation fenced")
+	}
+	if err := s.markV2Running(); err != nil {
+		t.Fatal(err)
+	}
+	for _, action := range []string{"document.current", "pcb.save"} {
+		r, e := s.v2.Submit(context.Background(), startupRequest(action, action))
+		if e != nil || r.Outcome != executionv2.Succeeded {
+			t.Fatal(action, r, e)
+		}
+	}
+	if calls.Load() != 2 {
+		t.Fatal(calls.Load())
+	}
+	if err := s.saveV2Handoff(); err != nil {
+		t.Fatal(err)
+	}
+	next := New(Options{V2ReceiptFile: path})
+	startupConn(next)
+	if next.v2StartupErr != nil || next.v2StartupFenced() {
+		t.Fatal("clean restart fenced", next.v2StartupErr)
+	}
+	if _, err := next.validateV2(startupRequest("pcb.save", "new")); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.v2.Submit(context.Background(), startupRequest("pcb.save", "after-handoff")); err == nil {
+		t.Fatal("handoff reopened writes")
+	}
+}
+func TestV2UncleanStartupPersistsUntilExplicitConfirmation(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "receipts.json")
+	old := New(Options{V2ReceiptFile: path})
+	if e := old.markV2Running(); e != nil {
+		t.Fatal(e)
+	}
+	for i := 0; i < 2; i++ {
+		s := New(Options{V2ReceiptFile: path})
+		startupConn(s)
+		if !s.v2StartupFenced() {
+			t.Fatal("unclean startup not fenced")
+		}
+		if _, e := s.validateV2(startupRequest("pcb.save", "write")); e == nil || !strings.Contains(e.Error(), "STARTUP") {
+			t.Fatal(e)
+		}
+		if _, e := s.validateV2(startupRequest("document.current", "read")); e != nil {
+			t.Fatal(e)
+		}
+		if e := s.saveV2Handoff(); e != nil {
+			t.Fatal(e)
+		}
+	}
+	confirmed := New(Options{V2ReceiptFile: path, V2HostStartupConfirmed: true})
+	startupConn(confirmed)
+	if confirmed.v2StartupFenced() {
+		t.Fatal("explicit confirmation ignored")
+	}
+	if _, e := confirmed.validateV2(startupRequest("pcb.save", "write")); e != nil {
+		t.Fatal(e)
+	}
+	if e := confirmed.saveV2Handoff(); e != nil {
+		t.Fatal(e)
+	}
+	if _, e := os.Stat(path + ".active"); !os.IsNotExist(e) {
+		t.Fatal(e)
+	}
+}
+func TestV2RestoredUnknownOwnerCannotBeBypassed(t *testing.T) {
+	for _, settled := range []bool{false, true} {
+		path := filepath.Join(t.TempDir(), "receipts.json")
+		old := New(Options{})
+		startupConn(old)
+		var calls atomic.Int32
+		old.v2 = executionv2.New(20, old.validateV2, startupExecutor(&calls, settled, false))
+		original := startupRequest("pcb.save", "original")
+		result, e := old.v2.Submit(context.Background(), original)
+		if e != nil || result.Outcome != executionv2.Unknown {
+			t.Fatal(result, e)
+		}
+		if e := old.v2.SaveHandoff(path); e != nil {
+			t.Fatal(e)
+		}
+		for _, confirmed := range []bool{false, true} {
+			s := New(Options{V2ReceiptFile: path, V2HostStartupConfirmed: confirmed})
+			startupConn(s)
+			if s.v2StartupErr != nil || !s.v2StartupFenced() {
+				t.Fatal("owner lost", s.v2StartupErr)
+			}
+			if _, e := s.v2.Submit(context.Background(), startupRequest("pcb.save", "new")); e == nil || e.Error() != "V2_EFFECT_BARRIER" {
+				t.Fatal(e)
+			}
+			if _, e := s.v2.Submit(context.Background(), original); e != nil || calls.Load() != 1 {
+				t.Fatal("replayed", e, calls.Load())
+			}
+		}
+		if settled {
+			read := startupRequest("document.current", "fresh")
+			if _, e := old.v2.Submit(context.Background(), read); e == nil {
+				t.Fatal("handoff allowed fresh read")
+			}
+			// Restore into an isolated fake executor for readback, using existing release semantics.
+			recovered := New(Options{})
+			startupConn(recovered)
+			recovered.v2 = executionv2.New(20, recovered.validateV2, startupExecutor(&calls, true, false))
+			if _, e := recovered.v2.RestoreHandoff(path); e != nil {
+				t.Fatal(e)
+			}
+			recovered.v2RestoredOwner = "original"
+			if _, e := recovered.v2.Submit(context.Background(), read); e != nil {
+				t.Fatal(e)
+			}
+			if r, e := recovered.v2.ReleaseSettled("original", "fresh"); e != nil || r.Outcome != executionv2.Unknown {
+				t.Fatal(r, e)
+			}
+			if recovered.v2StartupFenced() || calls.Load() != 2 {
+				t.Fatal("recovery did not clear fence or replayed")
+			}
+			if e := recovered.v2.SaveHandoff(path); e != nil {
+				t.Fatal(e)
+			}
+			if s := New(Options{V2ReceiptFile: path}); s.v2StartupErr != nil || s.v2StartupFenced() {
+				t.Fatal("released historical UNKNOWN fenced", s.v2StartupErr)
+			}
+		}
+	}
+}

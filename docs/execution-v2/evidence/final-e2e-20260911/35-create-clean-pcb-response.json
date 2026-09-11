@@ -1,0 +1,19 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "513d4628-28b2-4f4b-9dd7-9f56265c9100",
+  "outcome": "SUCCEEDED",
+  "effects": {
+    "effect_started": true,
+    "state_changed": true,
+    "native_settled": true,
+    "effect_scope": "PROJECT_TOPOLOGY",
+    "reconciled": false
+  },
+  "value": {
+    "boardName": "Board1_2",
+    "pcbName": "PCB3",
+    "pcbUuid": "115441ce50dc4b90",
+    "schematicUuid": "ea6fd5190f3547d1"
+  },
+  "evidence_ref": "513d4628-28b2-4f4b-9dd7-9f56265c9100"
+}

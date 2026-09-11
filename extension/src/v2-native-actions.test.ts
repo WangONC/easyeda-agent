@@ -247,12 +247,12 @@ test('late DRC completion reconciles its own report without a second recompute',
  executor.release(req.operation_id,'digest');
 });
 
-for(const mode of ['normal','missing-return-id','wrong-return-id','foreign-new','unrelated-changed','duplicate','late'] as const)test('pour create requires returned identity and complete residual '+mode,async()=>{
+for(const mode of ['normal','missing-return-id','wrong-return-id','foreign-new','unrelated-changed','duplicate','geometry-mismatch','late'] as const)test('pour create requires returned identity and complete residual '+mode,async()=>{
  const {pourCreate}=await import('./v2-native-actions');let created=false,writes=0,release!:()=>void;
  const source=[0,0,'L',10,0,0,10,0,0];
- const primitive=(id:string)=>({getState_PrimitiveId:()=>id,getState_PourName:()=> 'shared',getState_Net:()=>created&&mode==='unrelated-changed'&&id==='old'?'OTHER':'GND',getState_Layer:()=>1,getState_PourFillMethod:()=> 'solid',getState_ComplexPolygon:()=>({getSource:()=>source}),getState_PourPriority:()=>0,getState_LineWidth:()=>0,rebuildCopperRegion:async()=>false});
+ const primitive=(id:string)=>({getState_PrimitiveId:()=>id,getState_PourName:()=> 'shared',getState_Net:()=>created&&mode==='unrelated-changed'&&id==='old'?'OTHER':'GND',getState_Layer:()=>1,getState_PourFillMethod:()=> 'solid',getState_ComplexPolygon:()=>({getSource:()=>mode==='geometry-mismatch'&&id==='new'?[99,...source.slice(1)]:source}),getState_PourPriority:()=>0,getState_LineWidth:()=>0,rebuildCopperRegion:async()=>false});
  host({pcb_MathPolygon:{createPolygon:()=>({getSource:()=>source})},pcb_PrimitivePour:{getAll:async()=>created?[primitive('old'),primitive('new'),...(mode==='foreign-new'?[primitive('foreign')]:mode==='duplicate'?[primitive('new')]:[])]:[primitive('old')],create:async()=>{writes++;if(mode==='late')await new Promise<void>(r=>release=r);created=true;return mode==='missing-return-id'?undefined:primitive(mode==='wrong-return-id'?'wrong':'new');}}});
  const ex=new ControlledExecutor(()=>pourCreate,async()=>target),req={...request({points:[[0,0],[10,0],[0,10]],net:'GND',name:'shared'}),budget_ms:mode==='late'?5:1000};
  const pending=ex.execute(req,'d');if(mode==='late'){await new Promise(r=>setTimeout(r,20));assert.ok(release);await assert.rejects(ex.execute({...req,operation_id:'second'},'different'),/BARRIER/);release();}
- const h=await pending;assert.equal(h.verification.verdict==='satisfied',mode==='normal'||mode==='late');await ex.reconcile(req.operation_id);await ex.execute(req,'d');assert.equal(writes,1);
+ const h=await pending;if(mode==='geometry-mismatch'){const e=h.evidence as any;assert.deepEqual(e.expected_source,source);assert.equal(e.actual_source[0],99);}assert.equal(h.verification.verdict==='satisfied',mode==='normal'||mode==='late');await ex.reconcile(req.operation_id);await ex.execute(req,'d');assert.equal(writes,1);
 });

@@ -1,0 +1,400 @@
+{
+  "request": {
+    "protocol": "execution.v2",
+    "action": "schematic.read",
+    "action_revision": "1",
+    "schema": "2236e25bde2c18eb2f206af24176a7174cf973d2dc3fa13fdf83dcb5ba9f8f37",
+    "request_id": "10028d97f7a5574bce565c5c55b879f0",
+    "operation_id": "10028d97f7a5574bce565c5c55b879f0",
+    "target_ref": {
+      "scope": "DOCUMENT",
+      "session": "9f6c0b84-19d8-4fa8-85e5-081e5f4848eb",
+      "activation": "easyeda-agent-c8aa68fd-2ee5-42cb-96fa-4aad23131a71",
+      "project_uuid": "e7c288be345149da97a48a8b908c2049",
+      "document_uuid": "6c1d9afdceb80680",
+      "document_type": "schematic",
+      "tab_id": "6c1d9afdceb80680@e7c288be345149da97a48a8b908c2049"
+    },
+    "input": {
+      "includeCheck": false
+    },
+    "budget_ms": 20000
+  },
+  "digest": "90a4d95e1c7857643f0e2fbae0dd36bea9ca78fd2309066a5af73d8c8e508f41",
+  "result": {
+    "protocol": "execution.v2",
+    "operation_id": "10028d97f7a5574bce565c5c55b879f0",
+    "outcome": "SUCCEEDED",
+    "effects": {
+      "effect_started": false,
+      "state_changed": false,
+      "native_settled": true,
+      "effect_scope": "NONE",
+      "reconciled": false
+    },
+    "value": {
+      "components": [
+        {
+          "designator": "",
+          "primitiveId": "2601bf0ecea294ee",
+          "componentType": "sheet",
+          "name": "",
+          "uniqueId": "",
+          "footprint": "",
+          "supplierId": "",
+          "x": 0,
+          "y": 0,
+          "pins": []
+        },
+        {
+          "designator": "R1",
+          "primitiveId": "52212bec74e2e5a7",
+          "componentType": "part",
+          "name": "={Value}",
+          "uniqueId": "gge1",
+          "footprint": {
+            "uuid": "3a81065a370c9e11",
+            "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+            "name": "R0603"
+          },
+          "supplierId": "C25804",
+          "x": 200,
+          "y": 100,
+          "pins": [
+            {
+              "number": "2",
+              "name": "2",
+              "net": "QUAL_VCC"
+            },
+            {
+              "number": "1",
+              "name": "1",
+              "net": null
+            }
+          ]
+        },
+        {
+          "designator": "RQUAL3",
+          "primitiveId": "ed2be78e1e576a89",
+          "componentType": "part",
+          "name": "={Value}",
+          "uniqueId": "",
+          "footprint": {
+            "uuid": "3a81065a370c9e11",
+            "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+            "name": "R0603"
+          },
+          "supplierId": "C25804",
+          "x": 800,
+          "y": 400,
+          "pins": [
+            {
+              "number": "2",
+              "name": "2",
+              "net": null
+            },
+            {
+              "number": "1",
+              "name": "1",
+              "net": null
+            }
+          ]
+        },
+        {
+          "designator": "",
+          "primitiveId": "b2b588e2a5071514",
+          "componentType": "netflag",
+          "name": "QUAL_VCC",
+          "uniqueId": "",
+          "footprint": "",
+          "supplierId": "",
+          "x": 270,
+          "y": 100,
+          "pins": [
+            {
+              "number": "1",
+              "name": "Pin1",
+              "net": null
+            }
+          ]
+        },
+        {
+          "designator": "RQUAL",
+          "primitiveId": "8cc427ccad371b27",
+          "componentType": "part",
+          "name": "={Value}",
+          "uniqueId": "gge2",
+          "footprint": {
+            "uuid": "ffd4edabf77f207f",
+            "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+            "name": "R0805"
+          },
+          "supplierId": "C17513",
+          "x": 400,
+          "y": 400,
+          "pins": [
+            {
+              "number": "2",
+              "name": "2",
+              "net": null
+            },
+            {
+              "number": "1",
+              "name": "1",
+              "net": null
+            }
+          ]
+        },
+        {
+          "designator": "RQUAL2",
+          "primitiveId": "b96f02fb7d6a5fc4",
+          "componentType": "part",
+          "name": "={Value}",
+          "uniqueId": "gge3",
+          "footprint": {
+            "uuid": "ffd4edabf77f207f",
+            "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+            "name": "R0805"
+          },
+          "supplierId": "C17513",
+          "x": 600,
+          "y": 400,
+          "pins": [
+            {
+              "number": "2",
+              "name": "2",
+              "net": null
+            },
+            {
+              "number": "1",
+              "name": "1",
+              "net": null
+            }
+          ]
+        }
+      ],
+      "componentCount": 6,
+      "nets": [
+        {
+          "net": "QUAL_VCC",
+          "pins": [
+            "R1.2"
+          ],
+          "degree": 1,
+          "isGlobal": true
+        }
+      ],
+      "netCount": 1,
+      "floatingPins": [
+        "R1.1",
+        "RQUAL3.2",
+        "RQUAL3.1",
+        "RQUAL.2",
+        "RQUAL.1",
+        "RQUAL2.2",
+        "RQUAL2.1"
+      ],
+      "floatingPinCount": 7,
+      "check": null
+    },
+    "evidence_ref": "10028d97f7a5574bce565c5c55b879f0"
+  },
+  "evidence": {
+    "protocol": "execution.v2",
+    "operation_id": "10028d97f7a5574bce565c5c55b879f0",
+    "digest": "90a4d95e1c7857643f0e2fbae0dd36bea9ca78fd2309066a5af73d8c8e508f41",
+    "target_ref": {
+      "scope": "DOCUMENT",
+      "session": "9f6c0b84-19d8-4fa8-85e5-081e5f4848eb",
+      "activation": "easyeda-agent-c8aa68fd-2ee5-42cb-96fa-4aad23131a71",
+      "project_uuid": "e7c288be345149da97a48a8b908c2049",
+      "document_uuid": "6c1d9afdceb80680",
+      "document_type": "schematic",
+      "tab_id": "6c1d9afdceb80680@e7c288be345149da97a48a8b908c2049"
+    },
+    "effects": {
+      "effect_started": false,
+      "state_changed": false,
+      "native_settled": true,
+      "effect_scope": "NONE",
+      "reconciled": false
+    },
+    "verification": {
+      "verdict": "satisfied",
+      "checked": [
+        "fresh_native_query"
+      ],
+      "complete": true,
+      "required": 1,
+      "satisfied": 1,
+      "residual": 0
+    },
+    "value": {
+      "components": [
+        {
+          "designator": "",
+          "primitiveId": "2601bf0ecea294ee",
+          "componentType": "sheet",
+          "name": "",
+          "uniqueId": "",
+          "footprint": "",
+          "supplierId": "",
+          "x": 0,
+          "y": 0,
+          "pins": []
+        },
+        {
+          "designator": "R1",
+          "primitiveId": "52212bec74e2e5a7",
+          "componentType": "part",
+          "name": "={Value}",
+          "uniqueId": "gge1",
+          "footprint": {
+            "uuid": "3a81065a370c9e11",
+            "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+            "name": "R0603"
+          },
+          "supplierId": "C25804",
+          "x": 200,
+          "y": 100,
+          "pins": [
+            {
+              "number": "2",
+              "name": "2",
+              "net": "QUAL_VCC"
+            },
+            {
+              "number": "1",
+              "name": "1",
+              "net": null
+            }
+          ]
+        },
+        {
+          "designator": "RQUAL3",
+          "primitiveId": "ed2be78e1e576a89",
+          "componentType": "part",
+          "name": "={Value}",
+          "uniqueId": "",
+          "footprint": {
+            "uuid": "3a81065a370c9e11",
+            "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+            "name": "R0603"
+          },
+          "supplierId": "C25804",
+          "x": 800,
+          "y": 400,
+          "pins": [
+            {
+              "number": "2",
+              "name": "2",
+              "net": null
+            },
+            {
+              "number": "1",
+              "name": "1",
+              "net": null
+            }
+          ]
+        },
+        {
+          "designator": "",
+          "primitiveId": "b2b588e2a5071514",
+          "componentType": "netflag",
+          "name": "QUAL_VCC",
+          "uniqueId": "",
+          "footprint": "",
+          "supplierId": "",
+          "x": 270,
+          "y": 100,
+          "pins": [
+            {
+              "number": "1",
+              "name": "Pin1",
+              "net": null
+            }
+          ]
+        },
+        {
+          "designator": "RQUAL",
+          "primitiveId": "8cc427ccad371b27",
+          "componentType": "part",
+          "name": "={Value}",
+          "uniqueId": "gge2",
+          "footprint": {
+            "uuid": "ffd4edabf77f207f",
+            "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+            "name": "R0805"
+          },
+          "supplierId": "C17513",
+          "x": 400,
+          "y": 400,
+          "pins": [
+            {
+              "number": "2",
+              "name": "2",
+              "net": null
+            },
+            {
+              "number": "1",
+              "name": "1",
+              "net": null
+            }
+          ]
+        },
+        {
+          "designator": "RQUAL2",
+          "primitiveId": "b96f02fb7d6a5fc4",
+          "componentType": "part",
+          "name": "={Value}",
+          "uniqueId": "gge3",
+          "footprint": {
+            "uuid": "ffd4edabf77f207f",
+            "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+            "name": "R0805"
+          },
+          "supplierId": "C17513",
+          "x": 600,
+          "y": 400,
+          "pins": [
+            {
+              "number": "2",
+              "name": "2",
+              "net": null
+            },
+            {
+              "number": "1",
+              "name": "1",
+              "net": null
+            }
+          ]
+        }
+      ],
+      "componentCount": 6,
+      "nets": [
+        {
+          "net": "QUAL_VCC",
+          "pins": [
+            "R1.2"
+          ],
+          "degree": 1,
+          "isGlobal": true
+        }
+      ],
+      "netCount": 1,
+      "floatingPins": [
+        "R1.1",
+        "RQUAL3.2",
+        "RQUAL3.1",
+        "RQUAL.2",
+        "RQUAL.1",
+        "RQUAL2.2",
+        "RQUAL2.1"
+      ],
+      "floatingPinCount": 7,
+      "check": null
+    }
+  },
+  "scope": "NONE",
+  "timed_out": false
+}

@@ -1,0 +1,31 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "017760c2-9356-40be-9b76-e09b76b9a136",
+  "outcome": "SUCCEEDED",
+  "effects": {
+    "effect_started": true,
+    "state_changed": true,
+    "native_settled": true,
+    "effect_scope": "DESIGN_CONTENT",
+    "reconciled": false
+  },
+  "value": {
+    "primitiveId": "1517949109a274b4",
+    "startX": 279.7,
+    "startY": 150,
+    "endX": 279.7,
+    "endY": 300,
+    "net": "VCC",
+    "layer": 1,
+    "lineWidth": 10,
+    "start": {
+      "x": 279.7,
+      "y": 150
+    },
+    "end": {
+      "x": 279.7,
+      "y": 300
+    }
+  },
+  "evidence_ref": "017760c2-9356-40be-9b76-e09b76b9a136"
+}

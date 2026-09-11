@@ -1,3 +1,5 @@
+import { netlistDiagnostic } from './netlist-diagnostic';
+import { readPourSource } from './pour-source';
 import { nativeWireSegments } from './wire-geometry';
 import { silkCreate,type SilkAuthor } from './v2-silk-create';
 import { groupMove } from './v2-group-move';
@@ -3149,13 +3151,15 @@ function collectWireSegments(wires: Array<{ getState_Line: () => unknown; getSta
 // this flag an uncompiled/missing netlist would look like "every pin has no net"
 // and manufacture geom-net-mismatch false reports.
 interface NetlistPinNets {
+ channelByUniqueId: Map<string,string>;
 	byDesignator: Map<string, Map<string, string>>;
 	available: boolean;
 }
 
 async function collectNetlistPinNets(_allPages = false): Promise<NetlistPinNets> {
 	const byDesignator = new Map<string, Map<string, string>>();
-	const muted = (): NetlistPinNets => ({ byDesignator, available: false });
+	const channelByUniqueId = new Map<string,string>();
+ const muted = (): NetlistPinNets => ({ byDesignator, channelByUniqueId, available: false });
 	let file: File | undefined;
 	try { file = await eda.sch_ManufactureData.getNetlistFile(); }
 	catch { return muted(); }
@@ -3165,7 +3169,9 @@ async function collectNetlistPinNets(_allPages = false): Promise<NetlistPinNets>
 	catch { return muted(); }
 	const components = (parsed as { components?: Record<string, NetlistComponentInfo> })?.components;
 	if (!components || typeof components !== 'object') return muted();
-	for (const comp of Object.values(components)) {
+	for (const [uniqueId, comp] of Object.entries(components)) {
+        const channel=comp.props?.['Channel ID'];
+        if(typeof channel==='string') channelByUniqueId.set(uniqueId,channel);
 		const designator = String(comp.props?.Designator ?? '');
 		if (!designator || !comp.pinInfoMap) continue;
 		const pins = byDesignator.get(designator) ?? new Map<string, string>();
@@ -3176,7 +3182,7 @@ async function collectNetlistPinNets(_allPages = false): Promise<NetlistPinNets>
 		}
 		byDesignator.set(designator, pins);
 	}
-	return { byDesignator, available: true };
+	return { byDesignator, channelByUniqueId, available: true };
 }
 
 // ─── Polarity-convention outlier (#183 phase 1) ─────────────────────────────
@@ -4126,7 +4132,7 @@ const schematicReadData = async (payload: Payload) => {
 	}
 
 	// JSON-authoritative pin→net per designator (same source as schematic.check).
- const { byDesignator: pinNets,available:netlistAvailable } = await collectNetlistPinNets(allPages);
+ const { byDesignator: pinNets,available:netlistAvailable,channelByUniqueId } = await collectNetlistPinNets(allPages);
  if(!netlistAvailable)throw new ActionError('V2_NETLIST_UNAVAILABLE','Cannot read authoritative pin/net state.');
 
 	const netToPins = new Map<string, Array<string>>();
@@ -4165,7 +4171,8 @@ const schematicReadData = async (payload: Payload) => {
 			primitiveId: c.getState_PrimitiveId?.() ?? '',
 			componentType: c.getState_ComponentType?.() ?? '',
 			name: c.getState_Name?.() ?? '',
-			uniqueId: c.getState_UniqueId?.() ?? '', // sch↔PCB link key (for pcb.add_component) — NOT a primitiveId
+			channelId: channelByUniqueId.get(c.getState_UniqueId?.() ?? '') ?? null,
+            uniqueId: c.getState_UniqueId?.() ?? '', // sch↔PCB link key (for pcb.add_component) — NOT a primitiveId
 			footprint: c.getState_Footprint?.() ?? '',
 			supplierId: c.getState_SupplierId?.() ?? '', // LCSC C-number when present
 			x: c.getState_X?.(),
@@ -4196,6 +4203,7 @@ const schematicReadData = async (payload: Payload) => {
 			floatingPins: floating,
 			floatingPinCount: floating.length,
 			check,
+            ...(payload.includeNetlistDiagnostic === true ? {netlist_diagnostic:await netlistDiagnostic('schematic',comps)} : {}),
 		};
 };
 
@@ -7026,7 +7034,7 @@ const pcbComponentsListData = async (payload: Record<string, unknown>) => {
         }
         serialized.push(record);
     }
-    return { components: serialized, count: serialized.length };
+    return { components: serialized, count: serialized.length, ...(payload.includeNetlistDiagnostic===true?{netlist_diagnostic:await netlistDiagnostic('pcb',components)}:{}) };
 };
 
 /**
@@ -10941,7 +10949,8 @@ const pcbPourListData = async (payload: Record<string, unknown>) => {
         locked: p.getState_PrimitiveLock(),
     }));
     const geometry = payload.include_geometry === true ? await readPourGeometry(pours ?? [], optionalNumber(payload, 'geometry_limit') ?? 16) : undefined;
-    return { pours: list, count: list.length, ...(geometry ? { geometry } : {}) };
+    const source_probe = payload.source_probe === undefined ? undefined : readPourSource(v2Native.array(pours), payload.source_probe);
+    return { pours: list, count: list.length, ...(geometry ? { geometry } : {}), ...(source_probe ? { source_probe } : {}) };
 };
 
 const pcbPourDelete: Handler = async (payload) => {

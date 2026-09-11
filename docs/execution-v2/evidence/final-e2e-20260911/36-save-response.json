@@ -1,0 +1,18 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "7eb31725-9ea3-4dfe-a242-c0ba08be7859",
+  "outcome": "SUCCEEDED",
+  "effects": {
+    "effect_started": true,
+    "state_changed": null,
+    "native_settled": true,
+    "effect_scope": "SAVE",
+    "reconciled": false
+  },
+  "value": {
+    "saved": true,
+    "completion": "native_save_acknowledged",
+    "checkpoint_proven": false
+  },
+  "evidence_ref": "7eb31725-9ea3-4dfe-a242-c0ba08be7859"
+}

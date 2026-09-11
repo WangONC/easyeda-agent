@@ -809,13 +809,14 @@
     }
   },
   "schematic.read": {
-    "schema": "2236e25bde2c18eb2f206af24176a7174cf973d2dc3fa13fdf83dcb5ba9f8f37",
+    "schema": "090e7f0557d8120bb8c006391fad7aaecc6d1344016f6d75c7b204b04106c881",
     "revision": "1",
     "effect_scope": "NONE",
     "target": "schematic",
     "input": {
       "allPages": "boolean",
-      "includeCheck": "boolean"
+      "includeCheck": "boolean",
+      "includeNetlistDiagnostic": "boolean"
     }
   },
   "schematic.save": {
@@ -872,12 +873,13 @@
     "input": {}
   },
   "pcb.components.list": {
-    "schema": "eac25f2a4d728fe729ce8a4fb946960c2e91bc9a64518fc1b856ba0adccfa4a8",
+    "schema": "37da874ee63694d3bf9bfd3f8d6b9a5ecbfdbffd36a0973fbdec9ac1bb1847ed",
     "revision": "1",
     "effect_scope": "NONE",
     "target": "pcb",
     "input": {
       "includeBBox": "boolean",
+      "includeNetlistDiagnostic": "boolean",
       "includePads": "boolean",
       "layer": "number"
     }
@@ -1224,11 +1226,12 @@
     }
   },
   "pcb.add_component": {
-    "schema": "18b025994ef38591621ebe1b9aa91698225262bd969009500f0c2e504a404404",
+    "schema": "16fd8e0733f408621a56e7e1486d264a47dea0af448383106836341aed17710b",
     "revision": "1",
     "effect_scope": "DESIGN_CONTENT",
     "target": "pcb",
     "input": {
+      "channelId": "string",
       "designator": "string",
       "device": "object",
       "layer": "number",
@@ -1499,14 +1502,15 @@
     }
   },
   "pcb.pour.list": {
-    "schema": "d25513275371ab588b0c7606a933df64eb06ac68634d5da7e8ab1dfb9bed51d0",
+    "schema": "a81b8af5efa00f42318b2a9cd9421d264fae064257fecdd6132f16385d2dbcfc",
     "revision": "1",
     "effect_scope": "NONE",
     "target": "pcb",
     "input": {
       "geometry_limit": "number",
       "include_geometry": "boolean",
-      "net": "string"
+      "net": "string",
+      "source_probe": "object"
     }
   },
   "pcb.pour.delete": {

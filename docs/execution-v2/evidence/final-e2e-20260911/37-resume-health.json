@@ -1,0 +1,31 @@
+{
+  "v2_session": "daemon-1789133816028616700",
+  "v2_startup_fenced": false,
+  "service": "easyeda-agent",
+  "version": "dev",
+  "status": "ok",
+  "port": 60832,
+  "windows": [
+    {
+      "activationId": "easyeda-agent-2cb3d0ef-83bf-4df5-9921-d71b36d6172f",
+      "windowId": "e9cb0643-6bc1-4b94-9f7b-1fa2a0ad9d16",
+      "connectorVersion": "1.4.15",
+      "easyedaVersion": "3.2.186",
+      "capabilities": [
+        "execution.v2",
+        "schematic.v1",
+        "pcb.v1",
+        "pcb.fast_manual.v0.1"
+      ],
+      "context": {
+        "projectUuid": "4ee4ae36b1a34b719b5960dded4f327e",
+        "projectName": "ExecutionV2_Final_E2E_20260911",
+        "documentUuid": "115441ce50dc4b90",
+        "documentType": "pcb",
+        "tabId": "115441ce50dc4b90@4ee4ae36b1a34b719b5960dded4f327e"
+      },
+      "connectedAt": "2026-09-11T13:47:17.6268862Z",
+      "lastSeen": "2026-09-11T13:48:35.1054389Z"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "563d730b-b5e7-4a75-98a0-d37e0ac50837",
+  "outcome": "SUCCEEDED",
+  "effects": {
+    "effect_started": true,
+    "state_changed": true,
+    "native_settled": true,
+    "effect_scope": "DESIGN_CONTENT",
+    "reconciled": false
+  },
+  "value": {
+    "primitiveId": "b792f3246384b04d",
+    "designator": "R1",
+    "uniqueId": "V2_E2E_R1",
+    "channelId": "$1I2",
+    "padCount": 2,
+    "assignedNets": 2,
+    "unmatchedPads": []
+  },
+  "evidence_ref": "563d730b-b5e7-4a75-98a0-d37e0ac50837"
+}

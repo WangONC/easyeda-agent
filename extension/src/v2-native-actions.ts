@@ -1,3 +1,4 @@
+import { createPourPolygon } from './pour-source';
 import { cloneWireData } from './wire-geometry';
 import { wireGeometry, wireSegments, wireAdditionProof, type WireSnapshot } from './wire-geometry';
 import { fastPath } from './fast-path';
@@ -140,23 +141,41 @@ async function reloadDocument(c:NativeContext):Promise<Observation> {
  // teardown exception. This is navigation only, resolved by UUID in this project.
  const siblings=t.document_type==='schematic'?array(await eda.dmt_Pcb.getAllPcbsInfo()):array(await eda.dmt_Schematic.getAllSchematicPagesInfo());
  const companion=siblings.map(row=>row.uuid).filter(uuid=>typeof uuid==='string'&&uuid!==id).sort()[0];
- let saved=false,closed=false,opened:string|undefined,closeAck:unknown,closeError:unknown;const closeObservations:string[][]=[];
+ let saved=false,closed=false,opened:string|undefined,closeAck:unknown,closeError:unknown;
+ let nativeDurationMs:number|undefined,closeStartedAt:string|undefined,preClose:unknown;
+ const closeObservations:unknown[]=[];
+ const capture=async()=>{
+  const sample:Record<string,unknown>={observed_at:new Date().toISOString(),stable_target:t,split_id:split};
+  for(const [key,read] of Object.entries({project:()=>eda.dmt_Project.getCurrentProjectInfo(),current:()=>eda.dmt_SelectControl.getCurrentDocumentInfo(),tab_tree:()=>eda.dmt_EditorControl.getSplitScreenTree(),split_tabs:()=>eda.dmt_EditorControl.getTabsBySplitScreenId(split),schematic_documents:()=>eda.dmt_Schematic.getAllSchematicPagesInfo(),pcb_documents:()=>eda.dmt_Pcb.getAllPcbsInfo()})){
+   try{const value=await read();sample[key]=value===undefined?{unavailable:true}:JSON.parse(JSON.stringify(value));}catch(error){sample[key]={error:String(error)};}
+  }
+  return sample;
+ };
+ const closeEvidence=()=>({saved,closed,opened,closeAck,closeError,close_argument:t.tab_id,nativeDurationMs,closeStartedAt,preClose,closeObservations});
  c.prepare(async()=>{
   const after=await eda.dmt_SelectControl.getCurrentDocumentInfo();
   if(saved&&closed&&opened&&after?.uuid===id&&after.tabId===opened&&after.documentType===originalType&&(await tabs()).includes(opened))
-   return observed({tabId:opened,reloaded:true,saved:true,checkpoint_proven:false,...(companion?{companion_uuid:companion}:{})},['save_ack','observed_old_tab_absence','native_open_returned_tab','fresh_document_uuid_type_tab'],true);
-  return {changed:null,verification:unavailable(),evidence:{saved,closed,opened,after,closeAck,closeError,closeObservations}};
+   return {...observed({tabId:opened,reloaded:true,saved:true,checkpoint_proven:false,...(companion?{companion_uuid:companion}:{})},['save_ack','observed_old_tab_absence','native_open_returned_tab','fresh_document_uuid_type_tab'],true),evidence:closeEvidence()};
+  return {changed:null,verification:unavailable(),evidence:{...closeEvidence(),after}};
  });
  await c.effect(async()=>{saved=(t.document_type==='pcb'?await eda.pcb_Document.save():await eda.sch_Document.save())===true;});
  if(!saved)return c.verify();
  if(companion){
   await c.effect(()=>eda.dmt_EditorControl.openDocument(companion));
   if((await eda.dmt_SelectControl.getCurrentDocumentInfo())?.uuid!==companion)throw Error('V2_CHECKPOINT_COMPANION_MISMATCH');
+  await c.effect(()=>eda.dmt_EditorControl.activateDocument(t.tab_id!));
+  const active=await eda.dmt_SelectControl.getCurrentDocumentInfo();
+  if(active?.uuid!==id||active.tabId!==t.tab_id)throw Error('V2_RELOAD_TARGET_MISMATCH');
  }
- try{closeAck=await c.effect(()=>eda.dmt_EditorControl.closeDocument(id as string));}catch(error){closeError=String(error);/* fresh absence only */}
- for(const delay of [0,100,250,500,1000]){
-  if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
-  const liveTabs=await tabs();closeObservations.push(liveTabs);closed=!liveTabs.includes(t.tab_id!);if(closed)break;
+ // The official signature takes tabId; UUID is an explicitly supported alternative.
+ preClose=await capture();
+ try{closeAck=await c.effect(async()=>{closeStartedAt=new Date().toISOString();const start=Date.now();try{return await eda.dmt_EditorControl.closeDocument(t.tab_id!);}finally{nativeDurationMs=Date.now()-start;}});}catch(error){closeError=String(error);}
+ const settledAt=Date.now();
+ for(const offset of [200,1000,2000,5000]){
+  const wait=offset-(Date.now()-settledAt);if(wait>0)await new Promise(resolve=>setTimeout(resolve,wait));
+  const sample=await capture();sample.elapsed_since_settlement_ms=Date.now()-settledAt;sample.requested_offset_ms=offset;
+  try{const liveTabs=await tabs();closed=!liveTabs.includes(t.tab_id!);sample.original_tab_present=!closed;}catch(error){closed=false;sample.tab_presence_error=String(error);}
+  closeObservations.push(sample);
  }
  if(!closed)return c.verify();
  await c.effect(async()=>{opened=await eda.dmt_EditorControl.openDocument(id as string);});
@@ -616,7 +635,7 @@ export const pourCreate: NativeAction = { mode:'V2_NATIVE',scope:'DESIGN_CONTENT
  const p=c.request.input,points=polygonPoints(p.points),net=String(p.net).trim(),layer=(p.layer as number|undefined)??1;
  const name=p.name as string|undefined;
  const fill=({solid:'solid',grid:'90grid',grid45:'45grid'} as Record<string,string>)[String(p.fill??'solid')]??'solid';
- const polygon=eda.pcb_MathPolygon.createPolygon([points[0][0],points[0][1],'L',...points.slice(1).flat(),...points[0]] as TPCB_PolygonSourceArray);
+ const polygon=createPourPolygon(points);
  if(!polygon)throw Error('V2_INVALID_POLYGON');
  const before=array(await eda.pcb_PrimitivePour.getAll());
  const beforeIds=new Set(before.map(x=>x.getState_PrimitiveId()));
@@ -631,11 +650,13 @@ export const pourCreate: NativeAction = { mode:'V2_NATIVE',scope:'DESIGN_CONTENT
   if(byId.size!==after.length||byId.has('')||after.some(x=>!beforeIds.has(x.getState_PrimitiveId())&&x.getState_PrimitiveId()!==id)||[...previous].some(([key,value])=>!byId.has(key)||signature(byId.get(key)!)!==value))return {changed:null,verification:unavailable()};
   const fresh=byId.get(id);
   if(!fresh || name!==undefined&&fresh.getState_PourName()!==name)return {changed:null,verification:unavailable()};
-  const complete=fresh.getState_Net()===net&&fresh.getState_Layer()===layer&&fresh.getState_PourFillMethod()===fill&&JSON.stringify(fresh.getState_ComplexPolygon().getSource())===JSON.stringify(polygon.getSource())&&(p.priority===undefined||fresh.getState_PourPriority()===p.priority)&&(p.lineWidth===undefined||fresh.getState_LineWidth()===p.lineWidth);
+  const expected_source=polygon.getSource(),actual_source=fresh.getState_ComplexPolygon().getSource();
+  const evidence={created_id:id,current_id:fresh.getState_PrimitiveId(),expected_source,actual_source,expected:{net,layer,fill,name,priority:p.priority,lineWidth:p.lineWidth},actual:{net:fresh.getState_Net(),layer:fresh.getState_Layer(),fill:fresh.getState_PourFillMethod(),name:fresh.getState_PourName(),priority:fresh.getState_PourPriority(),lineWidth:fresh.getState_LineWidth()}};
+  const complete=fresh.getState_Net()===net&&fresh.getState_Layer()===layer&&fresh.getState_PourFillMethod()===fill&&JSON.stringify(actual_source)===JSON.stringify(expected_source)&&(p.priority===undefined||fresh.getState_PourPriority()===p.priority)&&(p.lineWidth===undefined||fresh.getState_LineWidth()===p.lineWidth);
   // Completion proves the region, not successful copper computation. Rebuild
   // remains best-effort as in a583; its return is business data, never proof.
-  if(!complete)return {changed:null,verification:unavailable(),evidence:{created_id:id,current_id:fresh.getState_PrimitiveId()}};
-  return observed({primitiveId:fresh.getState_PrimitiveId(),logical_id:logicalPlaneId(fresh),net,layer,fill,poured},['fresh_new_pour_identity','fresh_pour_exact_geometry'],true);
+  if(!complete)return {changed:null,verification:unavailable(),evidence};
+  return {...observed({primitiveId:fresh.getState_PrimitiveId(),logical_id:logicalPlaneId(fresh),net,layer,fill,poured},['fresh_new_pour_identity','fresh_pour_exact_geometry'],true),evidence};
  });
  let made:IPCB_PrimitivePour|undefined;
  await c.effect(async()=>{made=await eda.pcb_PrimitivePour.create(net,layer as TPCB_LayersOfCopper,polygon,fill as EPCB_PrimitivePourFillMethod,undefined,name,p.priority as number|undefined,p.lineWidth as number|undefined);id=made?.getState_PrimitiveId();});

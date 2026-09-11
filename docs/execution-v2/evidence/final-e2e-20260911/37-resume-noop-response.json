@@ -1,0 +1,34 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "670a77c2-af4a-4597-b88a-62ce7c52b37e",
+  "outcome": "SUCCEEDED",
+  "effects": {
+    "effect_started": false,
+    "state_changed": false,
+    "native_settled": true,
+    "effect_scope": "DESIGN_CONTENT",
+    "reconciled": false
+  },
+  "value": {
+    "component": {
+      "primitiveId": "b792f3246384b04d",
+      "uniqueId": "V2_E2E_R1",
+      "designator": "R1",
+      "name": "={Value}",
+      "layer": 1,
+      "x": 250,
+      "y": 150,
+      "rotation": 0,
+      "locked": false,
+      "addIntoBom": true,
+      "manufacturerId": "0603WAF1002T5E",
+      "supplierId": "C25804"
+    },
+    "applied": [],
+    "alreadySet": [
+      "x",
+      "y"
+    ]
+  },
+  "evidence_ref": "670a77c2-af4a-4597-b88a-62ce7c52b37e"
+}

@@ -1,0 +1,31 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "5ba15915-b8fc-4614-a9f7-530a2221563f",
+  "outcome": "SUCCEEDED",
+  "effects": {
+    "effect_started": true,
+    "state_changed": true,
+    "native_settled": true,
+    "effect_scope": "DESIGN_CONTENT",
+    "reconciled": false
+  },
+  "value": {
+    "primitiveId": "bdab4daa8003e44d",
+    "startX": 220.3,
+    "startY": 150,
+    "endX": 220.3,
+    "endY": 300,
+    "net": "GND",
+    "layer": 1,
+    "lineWidth": 10,
+    "start": {
+      "x": 220.3,
+      "y": 150
+    },
+    "end": {
+      "x": 220.3,
+      "y": 300
+    }
+  },
+  "evidence_ref": "5ba15915-b8fc-4614-a9f7-530a2221563f"
+}

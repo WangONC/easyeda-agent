@@ -1,0 +1,31 @@
+{
+  "protocol": "execution.v2",
+  "action": "pcb.add_component",
+  "action_revision": "1",
+  "schema": "16fd8e0733f408621a56e7e1486d264a47dea0af448383106836341aed17710b",
+  "request_id": "85285b3c-caba-434e-8e21-76850a88ad22",
+  "operation_id": "11046e73-cec9-4e53-a6d7-cd994f191955",
+  "target_ref": {
+    "scope": "DOCUMENT",
+    "session": "2fa1e4e9-991b-4f47-9f19-8276129fa982",
+    "activation": "easyeda-agent-0aa1025f-7a4b-4a92-9376-055c1041b1c5",
+    "project_uuid": "4ee4ae36b1a34b719b5960dded4f327e",
+    "document_uuid": "115441ce50dc4b90",
+    "document_type": "pcb",
+    "tab_id": "115441ce50dc4b90@4ee4ae36b1a34b719b5960dded4f327e"
+  },
+  "input": {
+    "uuid": "b948db94476e4027ac8953235755ec96",
+    "libraryUuid": "0819f05c4eef4c71ace90d822a990e87",
+    "x": 250,
+    "y": 300,
+    "designator": "R2",
+    "uniqueId": "V2_E2E_R2",
+    "nets": {
+      "2": "VCC",
+      "1": "GND"
+    },
+    "channelId": "$1I3"
+  },
+  "budget_ms": 60000
+}

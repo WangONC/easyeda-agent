@@ -2,6 +2,7 @@ package executionv2
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"sync"
 	"time"
@@ -203,10 +204,54 @@ func SameRecoveryDocument(a, b Target) bool {
 	return a.Validate() == nil && b.Validate() == nil && a.Scope == "DOCUMENT" && b.Scope == "DOCUMENT" && a.ProjectUUID == b.ProjectUUID && a.DocumentUUID == b.DocumentUUID && a.DocumentType == b.DocumentType
 }
 
+// SameRecoveryProject permits only an exact project identity, never a name.
+func SameRecoveryProject(a, b Target) bool {
+	return a.Validate() == nil && b.Validate() == nil && a.Scope == "PROJECT" && b.Scope == "PROJECT" && a.ProjectUUID == b.ProjectUUID
+}
+
+// Project PCB release uses the formal fresh board inventory. The selected PCB
+// must be the unique binding of the original explicitly requested schematic.
+// This proves ownership can end, not that optional naming succeeded.
+func projectPCBRecoveryProof(original Request, read Request, h HandlerResult, pcb string) bool {
+	if original.Action != "board.new_pcb" || read.Action != "board.list" || pcb == "" || !SameRecoveryProject(original.Target, read.Target) {
+		return false
+	}
+	schematic, _ := original.Input["schematicUuid"].(string)
+	if schematic == "" {
+		schematic, _ = original.Input["schematic"].(string)
+	}
+	if schematic == "" {
+		return false
+	}
+	var value struct {
+		Boards []struct {
+			Project   string `json:"parentProjectUuid"`
+			Schematic string `json:"schematicUuid"`
+			PCB       string `json:"pcbUuid"`
+		} `json:"boards"`
+	}
+	if json.Unmarshal(h.Value, &value) != nil || value.Boards == nil {
+		return false
+	}
+	bindings, matches := 0, 0
+	for _, b := range value.Boards {
+		if b.Project != original.Target.ProjectUUID {
+			return false
+		}
+		if b.Schematic == schematic {
+			bindings++
+			if b.PCB == pcb {
+				matches++
+			}
+		}
+	}
+	return bindings == 1 && matches == 1
+}
+
 // ReleaseSettled ends effect ownership, not the semantic operation conclusion.
 // The original terminal HandlerResult proves the handler/native chain settled.
 // A new, exact-document read proves current binding. Neither may be client facts.
-func (c *Coordinator) ReleaseSettled(id, readbackID string) (Result, error) {
+func (c *Coordinator) ReleaseSettled(id, readbackID string, expectedPCB ...string) (Result, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if c.handingOff {
@@ -216,7 +261,14 @@ func (c *Coordinator) ReleaseSettled(id, readbackID string) (Result, error) {
 	if rec == nil || read == nil || read == rec {
 		return Result{}, errors.New("V2_RECOVERY_RECORD_REQUIRED")
 	}
-	if read.request.Action != "document.current" || read.scope != "NONE" || read.result.Outcome != Succeeded || read.result.Effects.Started == nil || *read.result.Effects.Started || !read.result.Effects.Settled || !SameRecoveryDocument(rec.request.Target, read.request.Target) {
+	identity := read.request.Action == "document.current" && SameRecoveryDocument(rec.request.Target, read.request.Target)
+	if len(expectedPCB) == 1 {
+		identity = projectPCBRecoveryProof(rec.request, read.request, read.evidence, expectedPCB[0])
+	}
+	if len(expectedPCB) > 1 {
+		identity = false
+	}
+	if !identity || read.scope != "NONE" || read.result.Outcome != Succeeded || read.result.Effects.Started == nil || *read.result.Effects.Started || !read.result.Effects.Settled {
 		return Result{}, errors.New("V2_RECOVERY_TARGET_UNPROVEN")
 	}
 	h := rec.evidence

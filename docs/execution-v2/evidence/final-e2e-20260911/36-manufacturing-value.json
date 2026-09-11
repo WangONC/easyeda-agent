@@ -1,0 +1,179 @@
+{
+  "artifact_delivery": "complete",
+  "content_qualification": "NOT_CERTIFIED",
+  "document_uuid": "115441ce50dc4b90",
+  "export_profile": {
+    "id": "final-e2e-two-layer",
+    "layers": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      11
+    ],
+    "reviewed": true,
+    "units": "mm"
+  },
+  "files": [
+    {
+      "bytes": 6621,
+      "count_semantics": "unique coordinate/diameter hits per plating category; aggregate/via subset programs deduplicated",
+      "drill_files": [],
+      "file": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-1c014714491babfbca46bd20f9dc4bf4",
+      "file_name": "manufacturing",
+      "format": "manufacturing_gerber",
+      "gerber_files": [
+        "Gerber_TopLayer.GTL",
+        "Gerber_BottomLayer.GBL",
+        "Gerber_TopSilkscreenLayer.GTO",
+        "Gerber_BottomSilkscreenLayer.GBO",
+        "Gerber_TopSolderMaskLayer.GTS",
+        "Gerber_BottomSolderMaskLayer.GBS",
+        "Gerber_TopPasteMaskLayer.GTP",
+        "Gerber_BoardOutlineLayer.GKO"
+      ],
+      "layer_mapping": "requires review of native filenames/FileFunction against requested profile",
+      "members": [
+        {
+          "artifact": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-1c014714491babfbca46bd20f9dc4bf4",
+          "category": "Gerber",
+          "member": "Gerber_TopLayer.GTL",
+          "sha256": "20cc6c8856a8236fd078991a8d1e44ebf4076b38c3e4eb15abdd3f00377ef6fb",
+          "status": "structure_verified"
+        },
+        {
+          "artifact": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-1c014714491babfbca46bd20f9dc4bf4",
+          "category": "Gerber",
+          "member": "Gerber_BottomLayer.GBL",
+          "sha256": "a6b4d73c38e63b616a3258c875c04d84d6101e5336202867fc4a5ee40082ef02",
+          "status": "structure_verified"
+        },
+        {
+          "artifact": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-1c014714491babfbca46bd20f9dc4bf4",
+          "category": "Gerber",
+          "member": "Gerber_TopSilkscreenLayer.GTO",
+          "sha256": "b95526b2c234fbfcafe959dffdd916ff76d2ea88090c61bddc88d2014495af45",
+          "status": "structure_verified"
+        },
+        {
+          "artifact": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-1c014714491babfbca46bd20f9dc4bf4",
+          "category": "Gerber",
+          "member": "Gerber_BottomSilkscreenLayer.GBO",
+          "sha256": "9887eccc1367e3014c283b4ad0c79e0ba2a07799b89bc562dcd39c1d9583cfb8",
+          "status": "structure_verified"
+        },
+        {
+          "artifact": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-1c014714491babfbca46bd20f9dc4bf4",
+          "category": "Gerber",
+          "member": "Gerber_TopSolderMaskLayer.GTS",
+          "sha256": "c77e975820c9b82c8ecde0146795304bac0d9bda1f19a6cb95298ffa8b6a7f94",
+          "status": "structure_verified"
+        },
+        {
+          "artifact": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-1c014714491babfbca46bd20f9dc4bf4",
+          "category": "Gerber",
+          "member": "Gerber_BottomSolderMaskLayer.GBS",
+          "sha256": "ae6a3cf575ff26188b44b6108eb74fddf729f6eafaba855ae2b857241b82392f",
+          "status": "structure_verified"
+        },
+        {
+          "artifact": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-1c014714491babfbca46bd20f9dc4bf4",
+          "category": "Gerber",
+          "member": "Gerber_TopPasteMaskLayer.GTP",
+          "sha256": "e01094dde7bea98b5e00ce6d72b0fb57b8add3a536bbac18726a6942dc3d9b11",
+          "status": "structure_verified"
+        },
+        {
+          "artifact": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-1c014714491babfbca46bd20f9dc4bf4",
+          "category": "Gerber",
+          "member": "Gerber_BoardOutlineLayer.GKO",
+          "sha256": "4dac5cb81fb0325b6bfe333447922321a8bc6ab4d11b218d25ddf2c5b1a34878",
+          "status": "structure_verified"
+        }
+      ],
+      "non_plated_drill_files": [],
+      "npth_hole_count": 0,
+      "npth_zero_observed": true,
+      "plated_drill_files": [],
+      "pth_hole_count": 0,
+      "pth_zero_observed": true,
+      "sha256": "957c4d3069fe1db0db775bcfd564ffb40ddc9096bf0f63b982beaf432cefe6a7",
+      "structure_verified": true
+    },
+    {
+      "bytes": 426,
+      "columns": [
+        "编号",
+        "Quantity",
+        "Comment",
+        "Designator",
+        "Package",
+        "Value",
+        "MPN",
+        "Manufacturer",
+        "立创商城 SPN",
+        "Category",
+        "Name",
+        "Device",
+        "Unique ID"
+      ],
+      "component_count": 2,
+      "delimiter": "tab",
+      "encoding": "UTF-16LE",
+      "file": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-3573cc47da79febdcc62d84f0685ffa6.csv",
+      "file_name": "bom.csv",
+      "format": "manufacturing_bom",
+      "row_count": 1,
+      "sha256": "1db6f186ba7dcefcd8db5319556ede20991aecd10f2ef7a06cbb612525d39164",
+      "structure_verified": true
+    },
+    {
+      "bytes": 1032,
+      "columns": [
+        "Designator",
+        "Device",
+        "Footprint",
+        "Mid X",
+        "Mid Y",
+        "Ref X",
+        "Ref Y",
+        "Pad X",
+        "Pad Y",
+        "Pins",
+        "Layer",
+        "Rotation",
+        "SMD",
+        "Comment",
+        "Value",
+        "Type",
+        "Supplier",
+        "Datasheet"
+      ],
+      "delimiter": "tab",
+      "encoding": "UTF-16LE",
+      "file": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-b7ce4db086f6a18bb26962e84b61ee3a",
+      "file_name": "pnp",
+      "format": "manufacturing_pnp",
+      "placement_count": 2,
+      "row_count": 2,
+      "sha256": "648a492d9e38fc7dbf40e33fab49ca4f945bd6cf55ec34c89db8ea50bacfe081",
+      "structure_verified": true,
+      "units": "mm"
+    }
+  ],
+  "manifest_file": "C:\\Users\\24985\\.easyeda-agent\\workflow\\export-manifests\\75b98f9410afc7a6f8f986074af7725147fba76ebf37016489f42efdc5e48419.json",
+  "manifest_id": "75b98f9410afc7a6f8f986074af7725147fba76ebf37016489f42efdc5e48419",
+  "native_api_call_count": 36,
+  "project_uuid": "4ee4ae36b1a34b719b5960dded4f327e",
+  "relevant_verification_ids": null,
+  "revision": "mtx03dtm-moi6t0uskaq:2",
+  "revision_before": "mtx03dtm-moi6t0uskaq:2",
+  "status": "structure_verified",
+  "warnings": [
+    "Basic structure inspection does not certify DFM or fabrication correctness; review native layer mapping against export profile."
+  ]
+}

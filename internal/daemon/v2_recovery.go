@@ -21,7 +21,7 @@ func (s *Server) handleV2Recovery(w http.ResponseWriter, r *http.Request, id str
 		http.Error(w, "V2_INVALID_RECOVERY: "+err.Error(), 400)
 		return
 	}
-	if read.OperationID == id || read.ParentOperationID != "" || !executionv2.SameRecoveryDocument(p.request.Target, read.Target) {
+	if read.OperationID == id || read.ParentOperationID != "" || !(executionv2.SameRecoveryDocument(p.request.Target, read.Target) || executionv2.SameRecoveryProject(p.request.Target, read.Target)) {
 		http.Error(w, "V2_RECOVERY_TARGET_MISMATCH", 409)
 		return
 	}
@@ -31,7 +31,8 @@ func (s *Server) handleV2Recovery(w http.ResponseWriter, r *http.Request, id str
 		return
 	}
 	release := r.URL.Query().Get("view") == "release"
-	if release && read.Action != "document.current" {
+	projectRelease := release && p.request.Target.Scope == "PROJECT"
+	if release && ((!projectRelease && read.Action != "document.current") || (projectRelease && (p.request.Action != "board.new_pcb" || read.Action != "board.list" || r.URL.Query().Get("pcb_uuid") == ""))) {
 		http.Error(w, "V2_RECOVERY_IDENTITY_READ_REQUIRED", 409)
 		return
 	}
@@ -53,7 +54,7 @@ func (s *Server) handleV2Recovery(w http.ResponseWriter, r *http.Request, id str
 			return
 		}
 		snap := recipient.snapshot()
-		if snap.ActivationID != read.Target.Activation || snap.Context.ProjectUUID != read.Target.ProjectUUID || snap.Context.DocumentUUID != read.Target.DocumentUUID || snap.Context.DocumentType != read.Target.DocumentType || snap.Context.TabID != read.Target.TabID {
+		if snap.ActivationID != read.Target.Activation || snap.Context.ProjectUUID != read.Target.ProjectUUID || (read.Target.Scope == "DOCUMENT" && (snap.Context.DocumentUUID != read.Target.DocumentUUID || snap.Context.DocumentType != read.Target.DocumentType || snap.Context.TabID != read.Target.TabID)) {
 			http.Error(w, "V2_RECOVERY_TARGET_MISMATCH", 409)
 			return
 		}
@@ -62,7 +63,11 @@ func (s *Server) handleV2Recovery(w http.ResponseWriter, r *http.Request, id str
 		p.releaseConn = recipient
 		s.v2Pending[id] = p
 		s.v2Mu.Unlock()
-		original, err = s.v2.ReleaseSettled(id, read.OperationID)
+		if projectRelease {
+			original, err = s.v2.ReleaseSettled(id, read.OperationID, r.URL.Query().Get("pcb_uuid"))
+		} else {
+			original, err = s.v2.ReleaseSettled(id, read.OperationID)
+		}
 		if err != nil {
 			http.Error(w, err.Error(), 409)
 			return

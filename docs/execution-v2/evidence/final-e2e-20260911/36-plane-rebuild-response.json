@@ -1,0 +1,17 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "e2c2725a-7640-42fe-a987-fadbd3445179",
+  "outcome": "SUCCEEDED",
+  "effects": {
+    "effect_started": true,
+    "state_changed": true,
+    "native_settled": true,
+    "effect_scope": "NATIVE_RECOMPUTE",
+    "reconciled": false
+  },
+  "value": {
+    "pours": 1,
+    "rebuilt": 1
+  },
+  "evidence_ref": "e2c2725a-7640-42fe-a987-fadbd3445179"
+}

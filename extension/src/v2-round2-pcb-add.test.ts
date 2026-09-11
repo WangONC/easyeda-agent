@@ -28,3 +28,39 @@ for (const mode of ['normal', 'wrong', 'late', 'foreign-via', 'drift'] as const)
         if (mode === 'late')
             assert.equal(writes, 1);
     });
+
+for (const ignored of [false, true])
+    test('PCB creation preserves and verifies native Channel ID; ignored=' + ignored, async () => {
+        let created = false, creates = 0, modifies = 0;
+        const state = { otherProperty: { keep: 'retained' } as Record<string, string> };
+        const comp = { getState_PrimitiveId: () => 'c', getState_X: () => 1, getState_Y: () => 2,
+            getState_Layer: () => 1, getState_Rotation: () => 0, getState_Designator: () => 'R1',
+            getState_UniqueId: () => 'u', getState_OtherProperty: () => state.otherProperty };
+        (globalThis as any).eda = {
+            lib_Device: { get: async () => ({ uuid: 'device', libraryUuid: 'lib' }) },
+            pcb_PrimitiveComponent: {
+                getAll: async () => created ? [comp] : [],
+                create: async () => { creates++; created = true; return comp; },
+                getAllPinsByPrimitiveId: async () => [],
+                modify: async (_id: string, patch: any) => {
+                    modifies++;
+                    assert.equal(patch.otherProperty.keep, 'retained');
+                    assert.equal(patch.otherProperty['Channel ID'], '$1I2');
+                    if (!ignored) state.otherProperty = patch.otherProperty;
+                    return comp;
+                }
+            },
+            pcb_PrimitiveVia: { getAll: async () => [] },
+            pcb_Document: { startCalculatingRatline: async () => true }
+        };
+        const req: Request = { protocol: V2, action: 'pcb.add_component', action_revision: '1', schema: 'test',
+            request_id: 'r', operation_id: 'channel', target_ref: target,
+            input: { device: { uuid: 'device', libraryUuid: 'lib' }, x: 1, y: 2, channelId: '$1I2' }, budget_ms: 1000 };
+        const ex = new ControlledExecutor(() => addPcbComponent(() => null), async () => target);
+        const result = await ex.execute(req, 'channel-digest');
+        assert.equal(result.verification.verdict, ignored ? 'partial' : 'satisfied');
+        await ex.reconcile('channel');
+        assert.equal(creates, 1);
+        assert.equal(modifies, 1);
+        assert.equal(state.otherProperty.keep, 'retained');
+    });

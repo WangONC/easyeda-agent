@@ -1,0 +1,21 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "9ec021f2-61e0-4af6-8925-f08309274154",
+  "outcome": "SUCCEEDED",
+  "effects": {
+    "effect_started": true,
+    "state_changed": true,
+    "native_settled": true,
+    "effect_scope": "DESIGN_CONTENT",
+    "reconciled": false
+  },
+  "value": {
+    "primitiveId": "583b25c82af8269e",
+    "logical_id": "E2E_GND",
+    "net": "GND",
+    "layer": 1,
+    "fill": "solid",
+    "poured": true
+  },
+  "evidence_ref": "9ec021f2-61e0-4af6-8925-f08309274154"
+}

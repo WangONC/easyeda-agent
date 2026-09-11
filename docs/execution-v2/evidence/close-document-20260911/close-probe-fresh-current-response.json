@@ -1,0 +1,2 @@
+{"protocol":"execution.v2","operation_id":"d39b5bf0-2230-43f9-aeca-3bbbd85d0c18","outcome":"SUCCEEDED","effects":{"effect_started":false,"state_changed":false,"native_settled":true,"effect_scope":"NONE","reconciled":false},"value":{"uuid":"6c1d9afdceb80680","tabId":"6c1d9afdceb80680@e7c288be345149da97a48a8b908c2049","documentType":"schematic","documentTypeCode":1,"parentProjectUuid":"e7c288be345149da97a48a8b908c2049"},"evidence_ref":"d39b5bf0-2230-43f9-aeca-3bbbd85d0c18"}
+

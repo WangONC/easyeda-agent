@@ -46,7 +46,7 @@ func newV2CheckpointCmd(base *string, out io.Writer) *cobra.Command {
 		if _, e := checkpointCall(*base, target, target.DocumentType+".save", map[string]any{}); e != nil {
 			return e
 		}
-		action, input := "pcb.snapshot", map[string]any{}
+		action, input := "board.snapshot_compact", map[string]any{}
 		if target.DocumentType == "schematic" {
 			action = "schematic.read"
 			input["includeCheck"] = false
@@ -106,17 +106,18 @@ func newV2CheckpointCmd(base *string, out io.Writer) *cobra.Command {
 		if e != nil {
 			return e
 		}
-		if !reflect.DeepEqual(baseline, fresh) {
+		normalized, identityMaterialization, equal := checkpointEquivalent(target.DocumentType, baseline, fresh)
+		if !equal {
 			return fmt.Errorf("V2_CHECKPOINT_SEMANTIC_MISMATCH: reload operation %s; inspect fresh evidence before resume", receipt.OperationID)
 		}
-		encoded, _ := json.Marshal(baseline)
+		encoded, _ := json.Marshal(normalized)
 		hash := sha256.Sum256(encoded)
 		fields := []string{}
 		for k := range baseline {
 			fields = append(fields, k)
 		}
 		sort.Strings(fields)
-		return json.NewEncoder(out).Encode(map[string]any{"checkpoint_proven": true, "old_target": target, "target_ref": next, "reload_operation_id": receipt.OperationID, "semantic_fields": fields, "semantic_sha256": hex.EncodeToString(hash[:]), "resume_ready": true})
+		return json.NewEncoder(out).Encode(map[string]any{"checkpoint_proven": true, "old_target": target, "target_ref": next, "reload_operation_id": receipt.OperationID, "semantic_fields": fields, "semantic_sha256": hex.EncodeToString(hash[:]), "resume_ready": true, "identity_materialization": identityMaterialization})
 	}}
 }
 func checkpointCall(base string, target executionv2.Target, action string, input map[string]any) (executionv2.Result, error) {
@@ -214,4 +215,69 @@ func checkpointSemantic(kind string, value map[string]any) (map[string]any, erro
 		out[key] = v
 	}
 	return out, nil
+}
+
+// A Host may materialize a previously explicit empty uniqueId at persistence.
+// This is directional evidence alignment, never removal of existing identity.
+// All other fields, ordering and collections remain byte-for-value equivalent.
+func checkpointEquivalent(kind string, before, after map[string]any) (map[string]any, []map[string]string, bool) {
+	changes := []map[string]string{}
+	if reflect.DeepEqual(before, after) {
+		return after, changes, true
+	}
+	if kind != "schematic" {
+		return before, changes, false
+	}
+	raw, err := json.Marshal(before)
+	if err != nil {
+		return before, changes, false
+	}
+	var aligned map[string]any
+	if json.Unmarshal(raw, &aligned) != nil {
+		return before, changes, false
+	}
+	old, ok := aligned["components"].([]any)
+	if !ok {
+		return before, changes, false
+	}
+	next, ok := after["components"].([]any)
+	if !ok || len(old) != len(next) {
+		return before, changes, false
+	}
+	ids := map[string]bool{}
+	primitives := map[string]bool{}
+	for _, item := range next {
+		c, ok := item.(map[string]any)
+		if !ok {
+			return before, changes, false
+		}
+		id, ok := c["primitiveId"].(string)
+		if !ok || id == "" || primitives[id] {
+			return before, changes, false
+		}
+		primitives[id] = true
+		if uid, ok := c["uniqueId"].(string); ok && uid != "" {
+			if ids[uid] {
+				return before, changes, false
+			}
+			ids[uid] = true
+		}
+	}
+	for i, item := range old {
+		c, ok := item.(map[string]any)
+		if !ok {
+			return before, changes, false
+		}
+		n := next[i].(map[string]any)
+		uid, explicit := c["uniqueId"].(string)
+		assigned, valid := n["uniqueId"].(string)
+		if explicit && uid == "" && valid && assigned != "" && c["componentType"] == "part" && c["primitiveId"] == n["primitiveId"] {
+			c["uniqueId"] = assigned
+			changes = append(changes, map[string]string{"primitive_id": c["primitiveId"].(string), "before": "", "after": assigned})
+		}
+	}
+	if !reflect.DeepEqual(aligned, after) {
+		return before, []map[string]string{}, false
+	}
+	return aligned, changes, true
 }

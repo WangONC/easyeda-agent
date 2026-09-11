@@ -46,6 +46,7 @@ export function addPcbComponent(extent: (pad: unknown) => {
                     checks.push(comp.getState_Designator() === p.designator);
                 if (p.uniqueId)
                     checks.push(comp.getState_UniqueId() === p.uniqueId);
+                if (p.channelId !== undefined) checks.push(comp.getState_OtherProperty()?.['Channel ID'] === p.channelId);
                 const unmatched: string[] = [];
                 for (const [number, net] of Object.entries(nets).filter(([, v]) => v)) {
                     const found = pads.filter(x => String(x.getState_PadNumber()) === number);
@@ -75,7 +76,7 @@ export function addPcbComponent(extent: (pad: unknown) => {
                     else
                         failed.push(key);
                 }
-                return covered({ primitiveId: id, designator: comp.getState_Designator() ?? null, uniqueId: comp.getState_UniqueId() ?? null, padCount: pads.length, assignedNets: pads.filter(x => nets[String(x.getState_PadNumber())] && x.getState_Net() === nets[String(x.getState_PadNumber())]).length, unmatchedPads: unmatched, ...(wantedVias.size ? { embeddedVias: { assigned: wantedVias.size, verified: verifiedVias, failed } } : {}) }, checks.length + 1, 1 + checks.filter(Boolean).length, true, ['fresh_created_component_pose_and_link', 'exact_component_pad_lookup_and_nets', 'native_parent_identity_for_embedded_vias', 'unrelated_board_identity']);
+                return covered({ primitiveId: id, designator: comp.getState_Designator() ?? null, uniqueId: comp.getState_UniqueId() ?? null, ...(p.channelId !== undefined ? {channelId: comp.getState_OtherProperty()?.['Channel ID'] ?? null} : {}), padCount: pads.length, assignedNets: pads.filter(x => nets[String(x.getState_PadNumber())] && x.getState_Net() === nets[String(x.getState_PadNumber())]).length, unmatchedPads: unmatched, ...(wantedVias.size ? { embeddedVias: { assigned: wantedVias.size, verified: verifiedVias, failed } } : {}) }, checks.length + 1, 1 + checks.filter(Boolean).length, true, ['fresh_created_component_pose_and_link', 'exact_component_pad_lookup_and_nets', 'native_parent_identity_for_embedded_vias', 'unrelated_board_identity']);
             });
             await c.effect(async () => { id = (await eda.pcb_PrimitiveComponent.create({ libraryUuid: lib, uuid }, layer as TPCB_LayersOfComponent, p.x as number, p.y as number, p.rotation as number | undefined, false))?.getState_PrimitiveId(); });
             await pull();
@@ -84,6 +85,7 @@ export function addPcbComponent(extent: (pad: unknown) => {
                 patch.designator = p.designator;
             if (p.uniqueId)
                 patch.uniqueId = p.uniqueId;
+            if (p.channelId !== undefined) patch.otherProperty = { ...(await pull()).getState_OtherProperty(), 'Channel ID': p.channelId };
             if (Object.keys(patch).length)
                 try {
                     await c.effect(() => eda.pcb_PrimitiveComponent.modify(id!, patch));

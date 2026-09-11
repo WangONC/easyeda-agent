@@ -1,0 +1,13 @@
+{
+  "identity": "1789134437626886200",
+  "target_ref": {
+    "scope": "DOCUMENT",
+    "session": "e9cb0643-6bc1-4b94-9f7b-1fa2a0ad9d16",
+    "activation": "easyeda-agent-2cb3d0ef-83bf-4df5-9921-d71b36d6172f",
+    "project_uuid": "4ee4ae36b1a34b719b5960dded4f327e",
+    "document_uuid": "115441ce50dc4b90",
+    "document_type": "pcb",
+    "tab_id": "115441ce50dc4b90@4ee4ae36b1a34b719b5960dded4f327e"
+  },
+  "verification": "connector_fresh_guard_required"
+}

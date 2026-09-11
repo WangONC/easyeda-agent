@@ -1,8 +1,8 @@
 {
-	"name": "easyeda-agent-connector",
-	"version": "1.4.15",
+	"name": "jlceda-agent",
+	"version": "2.0.0",
 	"description": "EasyEDA Pro extension that bridges the easyeda-agent Go daemon to the official eda.* API over WebSocket.",
-	"author": "easyeda-agent",
+	"author": "WangONC",
 	"license": "(MIT AND Apache-2.0)",
 	"private": true,
 	"engines": {
@@ -29,5 +29,13 @@
 		"ts-node": "^10.9.2",
 		"typescript": "^5.7.3",
 		"ws": "^8.18.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/WangONC/easyeda-agent.git"
+	},
+	"homepage": "https://github.com/WangONC/easyeda-agent",
+	"bugs": {
+		"url": "https://github.com/WangONC/easyeda-agent/issues"
 	}
 }

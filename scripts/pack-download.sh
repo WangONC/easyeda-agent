@@ -18,7 +18,7 @@ ASSETS=(
   easyeda_darwin_amd64 easyeda_darwin_arm64
   easyeda_linux_amd64  easyeda_linux_arm64
   easyeda_windows_amd64.exe
-  easyeda-agent-connector.eext skills.tar.gz install.sh
+  jlceda-agent.eext skills.tar.gz install.sh
 )
 
 for f in "${ASSETS[@]}"; do

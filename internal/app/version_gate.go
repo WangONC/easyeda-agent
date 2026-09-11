@@ -177,7 +177,7 @@ const fixConnectorStale = `重装连接器 .eext(同版才严格对齐):
   (插件市场版可原地自动更新但**滞后**于 CLI;要严格同版走 GitHub Release。)`
 
 // versionGateRepoSlug is the GitHub owner/repo shipping the connector .eext.
-const versionGateRepoSlug = "zhoushoujianwork/easyeda-agent"
+const versionGateRepoSlug = "WangONC/easyeda-agent"
 
 // sameMajorMinor reports whether two semver cores share major.minor.
 func sameMajorMinor(a, b string) bool {

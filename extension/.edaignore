@@ -16,3 +16,5 @@
 .eslintcache
 debug.log
 ws-file-server.mjs
+
+/images/logo.jpg

@@ -28,7 +28,7 @@ import (
 
 const (
 	// RepoSlug is the GitHub owner/repo the release assets live under.
-	RepoSlug = "zhoushoujianwork/easyeda-agent"
+	RepoSlug = "WangONC/easyeda-agent"
 	// SkillName is the skill slug (dir name under each client's skills/).
 	SkillName = "easyeda-agent"
 	// versionMarker records the installed skill version inside a skill dir.

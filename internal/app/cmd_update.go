@@ -381,7 +381,7 @@ func updateNotes(rep updateReport) []string {
 	if rep.Connector != nil && rep.Connector.Status == "behind" {
 		notes = append(notes, fmt.Sprintf(
 			"connector %s is behind v%s and cannot be updated from here — re-import the .eext "+
-				"(https://github.com/%s/releases/download/v%s/easyeda-agent-connector.eext), "+
+				"(https://github.com/%s/releases/download/v%s/jlceda-agent.eext), "+
 				"then fully quit and relaunch EasyEDA so open windows load it",
 			strings.Join(rep.Connector.Versions, ","), rep.Target, selfupdate.RepoSlug, rep.Target))
 	}

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<title>JLCEDA Agent independent circuit-node icon</title>
+<rect width="256" height="256" rx="48" fill="#172B3A"/>
+<path d="M48 168H72V88H184V168H208M128 88V48" fill="none" stroke="#41D3AD" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="88" y="112" width="80" height="72" rx="20" fill="#41D3AD"/>
+<circle cx="112" cy="144" r="8" fill="#172B3A"/><circle cx="144" cy="144" r="8" fill="#172B3A"/>
+<circle cx="48" cy="168" r="15" fill="#F2F6F8"/><circle cx="208" cy="168" r="15" fill="#F2F6F8"/><circle cx="128" cy="48" r="15" fill="#F2F6F8"/>
+</svg>

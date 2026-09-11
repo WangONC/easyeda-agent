@@ -79,7 +79,7 @@ class ReleaseSmokeTests(unittest.TestCase):
 
     def test_connector_identity_version_and_entry(self):
         path = self.root / "connector.eext"
-        manifest = {"name": "easyeda-agent-connector", "version": "1.4.2", "uuid": "a" * 32,
+        manifest = {"name": "jlceda-agent", "version": "1.4.2", "uuid": "a" * 32,
                     "entry": "./dist/index", "engines": {"eda": "~3.2.0"}}
         for key, bad in [(None, None), ("version", "1.3.2"), ("uuid", ""), ("entry", "missing"), ("name", "other")]:
             with self.subTest(key=key):

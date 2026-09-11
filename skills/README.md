@@ -21,7 +21,7 @@ Install the `easyeda` CLI/daemon first, then import the EasyEDA connector URL pr
 by the installer:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zhoushoujianwork/easyeda-agent/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/WangONC/easyeda-agent/main/install.sh | sh
 ```
 
 The installer auto-detects your AI clients and installs/updates the

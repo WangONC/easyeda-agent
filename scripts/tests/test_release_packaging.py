@@ -92,6 +92,10 @@ class ReleaseVersionAndAssetTests(unittest.TestCase):
         self.repo = Path(self.temp.name)
         (self.repo / "extension").mkdir()
         (self.repo / "skills/easyeda-agent").mkdir(parents=True)
+        (self.repo / "mcp").mkdir()
+        self.write_json("package.json", {"version": "1.4.2"})
+        self.write_json("mcp/package.json", {"version": "1.4.2"})
+        self.write_json("mcp/package-lock.json", {"version": "1.4.2", "packages": {"": {"version": "1.4.2"}}})
         self.uuid = "a" * 32
         self.write_json("extension/extension.json", {"version": "1.4.2", "uuid": self.uuid})
         self.write_json("extension/package.json", {"version": "1.4.2"})
@@ -116,6 +120,11 @@ class ReleaseVersionAndAssetTests(unittest.TestCase):
         self.write_json("extension/package-lock.json", {"version": "1.4.2", "packages": {"": {"version": "1.4.2"}}})
         (self.repo / "extension/CHANGELOG.md").write_text("## [1.4.1]\n")
         with self.assertRaisesRegex(ValueError, "no ##"):
+            release.check_sources(self.repo, "v1.4.2")
+
+    def test_mcp_version_drift_is_rejected(self):
+        self.write_json("mcp/package.json", {"version": "0.18.5"})
+        with self.assertRaisesRegex(ValueError, "mcp/package.json"):
             release.check_sources(self.repo, "v1.4.2")
 
     def test_connector_must_contain_exact_target_manifest(self):

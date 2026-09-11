@@ -581,7 +581,7 @@ func staleConnectorNotice(connector, daemon string) string {
 }
 
 // releaseRepoSlug is the GitHub owner/repo that ships the connector .eext.
-const releaseRepoSlug = "zhoushoujianwork/easyeda-agent"
+const releaseRepoSlug = "WangONC/easyeda-agent"
 
 // isCleanRelease reports whether v is a bare release tag (vX.Y.Z with no
 // pre-release/build suffix) — i.e. its semver core is the whole string.

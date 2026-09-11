@@ -11,7 +11,7 @@ EasyEDA Pro 是宿主，不参与项目版本号对齐。
 发布版安装 CLI 和 Skill：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zhoushoujianwork/easyeda-agent/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/WangONC/easyeda-agent/main/install.sh | bash
 easyeda update --check
 easyeda update
 ```
@@ -47,7 +47,7 @@ Git Bash/WSL 与原生 Windows 是不同运行环境，选择相应的二进制�
 | 渠道 | 安装/升级方法 |
 |---|---|
 | GitHub Release `.eext` 侧载 | 下载与 CLI 对应的包，在 EasyEDA 扩展管理器卸载旧项，再导入新包。平台按 UUID 去重，侧载没有自动更新。 |
-| [立创插件市场](https://jlc-ext.com/item/zhoushoujian/easyeda-agent-connector) | 在市场安装，平台支持原地自动更新；市场版本可能落后于发布版，按 health 的版本检查处理。 |
+| [立创插件市场](https://jlc-ext.com/item/zhoushoujian/jlceda-agent) | 在市场安装，平台支持原地自动更新；市场版本可能落后于发布版，按 health 的版本检查处理。 |
 
 开发连接器：`make connector` 按当前版本/UUID 构建，`make eext` 升 patch 后构建同 UUID
 安装包。更换连接器后保存文档，完全退出并重开 EasyEDA，让所有旧页面运行时停止。

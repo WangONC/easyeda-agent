@@ -118,7 +118,7 @@ eext: ## bump patch + build importable .eext (STABLE uuid; uninstall old → imp
 	node extension/scripts/bump.mjs patch
 	npm --prefix extension run typecheck
 	npm --prefix extension run build
-	@printf '\n✅ uninstall old in 已安装, then import → extension/build/dist/easyeda-agent-connector_v%s.eext\n' "$$(node -p "require('./extension/extension.json').version")"
+	@printf '\n✅ uninstall old in 已安装, then import → extension/build/dist/jlceda-agent_v%s.eext\n' "$$(node -p "require('./extension/extension.json').version")"
 
 # Fallback only: mint a FRESH uuid so it imports as a NEW extension with no
 # uninstall — but it leaves a duplicate "EasyEDA Agent" entry you must delete
@@ -127,7 +127,7 @@ eext-fresh: ## bump patch + FRESH uuid (imports as new entry; delete the old one
 	node extension/scripts/bump.mjs patch --uuid
 	npm --prefix extension run typecheck
 	npm --prefix extension run build
-	@printf '\n✅ fresh-uuid build → import extension/build/dist/easyeda-agent-connector_v%s.eext, then DELETE the old entry\n' "$$(node -p "require('./extension/extension.json').version")"
+	@printf '\n✅ fresh-uuid build → import extension/build/dist/jlceda-agent_v%s.eext, then DELETE the old entry\n' "$$(node -p "require('./extension/extension.json').version")"
 
 # ── Release ───────────────────────────────────────────────────────────────────
 # Usage: make release VERSION=v0.2.0
@@ -164,7 +164,7 @@ release-build: release-check ## build and verify all release assets locally; no 
 	mkdir -p "$(DIST)"
 	npm --prefix extension run typecheck
 	npm --prefix extension run build
-	python3 scripts/release-check.py "$(VERSION)" --connector "extension/build/dist/easyeda-agent-connector_$(VERSION).eext"
+	python3 scripts/release-check.py "$(VERSION)" --connector "extension/build/dist/jlceda-agent_$(VERSION).eext"
 	@echo "  compiling CLI..."
 	GOOS=darwin  GOARCH=amd64  go build -ldflags "$(_LDFLAGS)" -o $(DIST)/easyeda_darwin_amd64      ./cmd/easyeda
 	GOOS=darwin  GOARCH=arm64  go build -ldflags "$(_LDFLAGS)" -o $(DIST)/easyeda_darwin_arm64      ./cmd/easyeda
@@ -172,7 +172,7 @@ release-build: release-check ## build and verify all release assets locally; no 
 	GOOS=linux   GOARCH=arm64  go build -ldflags "$(_LDFLAGS)" -o $(DIST)/easyeda_linux_arm64       ./cmd/easyeda
 	GOOS=windows GOARCH=amd64  go build -ldflags "$(_LDFLAGS)" -o $(DIST)/easyeda_windows_amd64.exe ./cmd/easyeda
 	@echo "  packaging connector..."
-	cp "extension/build/dist/easyeda-agent-connector_$(VERSION).eext" "$(DIST)/easyeda-agent-connector.eext"
+	cp "extension/build/dist/jlceda-agent_$(VERSION).eext" "$(DIST)/jlceda-agent.eext"
 	@echo "  packaging skills..."
 	python3 scripts/pack-skill.py --out "$(DIST)/skills.tar.gz"
 	cp install.sh $(DIST)/install.sh
@@ -190,7 +190,7 @@ release: ## build reviewed sources, tag and publish GitHub Release (explicit pub
 	@awk '/^## \[$(VERSION:v%=%)\]/{f=1} f&&/^## \[/&&!/^## \[$(VERSION:v%=%)\]/{exit} f' extension/CHANGELOG.md > $(DIST)/changelog-section.md
 	@{ \
 		cat $(DIST)/changelog-section.md; \
-		printf '\n---\n\nAlready installed? Upgrade in place:\n```\neasyeda update          # CLI binary (sha256-verified) + skill dirs\neasyeda update --check  # report only\n```\n\nFirst install:\n```\ncurl -fsSL https://raw.githubusercontent.com/zhoushoujianwork/easyeda-agent/main/install.sh | bash\n```\n\nInstalls/updates:\n- easyeda CLI/daemon\n- easyeda-agent skill for Codex (~/.codex/skills) and/or Claude Code (~/.claude/skills) when detected\n- prints EasyEDA connector .eext import URL\n\nThe connector .eext is never auto-updated for sideloads — `easyeda update` reports a stale one and prints the re-import URL.\n\nSkill targets: set `EASYEDA_INSTALL_SKILLS=codex,claude` to force targets, `none` to skip, or `EASYEDA_SKILL_PRESERVE=1` to keep local edits.\n\n`checksums.txt` lists sha256 for every asset above.\n'; \
+		printf '\n---\n\nAlready installed? Upgrade in place:\n```\neasyeda update          # CLI binary (sha256-verified) + skill dirs\neasyeda update --check  # report only\n```\n\nFirst install:\n```\ncurl -fsSL https://raw.githubusercontent.com/WangONC/easyeda-agent/main/install.sh | bash\n```\n\nInstalls/updates:\n- easyeda CLI/daemon\n- easyeda-agent skill for Codex (~/.codex/skills) and/or Claude Code (~/.claude/skills) when detected\n- prints EasyEDA connector .eext import URL\n\nThe connector .eext is never auto-updated for sideloads — `easyeda update` reports a stale one and prints the re-import URL.\n\nSkill targets: set `EASYEDA_INSTALL_SKILLS=codex,claude` to force targets, `none` to skip, or `EASYEDA_SKILL_PRESERVE=1` to keep local edits.\n\n`checksums.txt` lists sha256 for every asset above.\n'; \
 	} > $(DIST)/release-notes.md
 	gh release create $(VERSION) \
 		$(DIST)/easyeda_darwin_amd64 \
@@ -198,7 +198,7 @@ release: ## build reviewed sources, tag and publish GitHub Release (explicit pub
 		$(DIST)/easyeda_linux_amd64 \
 		$(DIST)/easyeda_linux_arm64 \
 		$(DIST)/easyeda_windows_amd64.exe \
-		$(DIST)/easyeda-agent-connector.eext \
+		$(DIST)/jlceda-agent.eext \
 		$(DIST)/skills.tar.gz \
 		$(DIST)/install.sh \
 		$(DIST)/checksums.txt \
@@ -207,7 +207,7 @@ release: ## build reviewed sources, tag and publish GitHub Release (explicit pub
 	@echo "  publishing skill to ClawHub..."
 	@$(MAKE) publish-skill VERSION=$(VERSION) \
 		|| echo "  ⚠️  ClawHub publish failed — retry with: clawhub login && make publish-skill VERSION=$(VERSION)"
-	@echo "✅ Released: https://github.com/zhoushoujianwork/easyeda-agent/releases/tag/$(VERSION)"
+	@echo "✅ Released: https://github.com/WangONC/easyeda-agent/releases/tag/$(VERSION)"
 
 # 单独发布 skill 到 ClawHub(release 失败后重试用)。
 # 注意:必须传临时包的绝对路径 —— clawhub 的 workdir 可能被全局配置(如 ~/clawd)
@@ -232,7 +232,7 @@ endif
 	tar -xzf "$$STAGE/skills.tar.gz" -C "$$STAGE"; \
 	clawhub publish "$$STAGE/easyeda-agent" --slug easyeda-agent --version $(VERSION:v%=%) \
 		--tags "$(CLAWHUB_TAGS)" \
-		--changelog "easyeda-agent $(VERSION) — https://github.com/zhoushoujianwork/easyeda-agent/releases/tag/$(VERSION)"
+		--changelog "easyeda-agent $(VERSION) — https://github.com/WangONC/easyeda-agent/releases/tag/$(VERSION)"
 
 # ── skillhub.cn ───────────────────────────────────────────────────────────────
 # 正常路径是 CI 自动发:`gh release create`(make release 的一步)发出 release →
@@ -258,12 +258,9 @@ endif
 # 幂等性:同 slug 同 version 重复发会被服务端拒(和 ClawHub 一样版本不可覆盖),
 #   补发请升版本号。发布后进 pending_review 审核队列,不是立刻可见。
 SKILLHUB_HOST ?= https://api.skillhub.cn
-# slug 与立创插件市场的连接器条目同名(jlc-ext 的 easyeda-agent-connector,displayName
-# "EDA Agent Connector")——品牌统一。**slug 一旦发布就锁死,改不了**,覆盖用
-# `make publish-skill-hub SKILLHUB_SLUG=…`。原 `easyeda-agent` 在 skillhub 上是
-# 发不进去又查不到的孤儿记录(publish 报 already exists / verify 报 404),故换名。
-SKILLHUB_SLUG ?= eda-agent-connector
-SKILLHUB_DISPLAY_NAME ?= EDA Agent Connector
+# Skill 保持 easyeda-agent 身份；与独立 EDA 插件 jlceda-agent 分开。
+SKILLHUB_SLUG ?= easyeda-agent
+SKILLHUB_DISPLAY_NAME ?= easyeda-agent
 # SKILLHUB_DRY_RUN=1 只做本地预检(不需要 token、不发 HTTP),用来验证打包/元数据。
 SKILLHUB_DRY_RUN ?=
 # SKILLHUB_BIN=/path/to/skillhub 显式指定用哪个 CLI(仍然要过身份校验,不是后门)。
@@ -414,4 +411,4 @@ endif
 	if [ -n "$(SKILLHUB_DRY_RUN)" ]; then echo "  SKILLHUB_DRY_RUN=1 — 到此为止,未发布"; exit 0; fi; \
 	echo "  publishing to $(SKILLHUB_HOST)..."; \
 	$$SH publish "$$STAGE/$(SKILLHUB_SLUG)" --version $(VERSION:v%=%) --host $(SKILLHUB_HOST) \
-		--changelog "easyeda-agent $(VERSION) — https://github.com/zhoushoujianwork/easyeda-agent/releases/tag/$(VERSION)"
+		--changelog "easyeda-agent $(VERSION) — https://github.com/WangONC/easyeda-agent/releases/tag/$(VERSION)"

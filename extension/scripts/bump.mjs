@@ -53,7 +53,9 @@ function nextVersion(current, mode) {
 }
 
 function writeJsonTabs(file, obj) {
-	fs.writeFileSync(file, `${JSON.stringify(obj, null, '\t')}\n`, 'utf-8');
+	const previous = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+	const indent = previous.includes('\n\t') ? '\t' : 2;
+	fs.writeFileSync(file, `${JSON.stringify(obj, null, indent)}\n`, 'utf-8');
 }
 
 const args = process.argv.slice(2);
@@ -82,8 +84,22 @@ ext.version = to;
 ext.uuid = toUuid;
 pkg.version = to;
 
+if (requireChangelog && !changelogHasEntry(to)) throw new Error(`Missing CHANGELOG entry for ${to}`);
 writeJsonTabs(extPath, ext);
 writeJsonTabs(pkgPath, pkg);
+// The manifest remains the release version authority. Synchronize all shipped
+// package metadata; dependency versions and internal IDs are untouched.
+const root = path.resolve(here, '../..');
+for (const relative of ['extension/package-lock.json', 'package.json', 'package-lock.json', 'mcp/package.json', 'mcp/package-lock.json']) {
+ const file = path.join(root, relative);
+ if (!fs.existsSync(file)) continue;
+ const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+ data.version = to;
+ if (data.packages?.['']) data.packages[''].version = to;
+ writeJsonTabs(file, data);
+}
+const skillPath = path.join(root, 'skills/easyeda-agent/SKILL.md');
+fs.writeFileSync(skillPath, fs.readFileSync(skillPath, 'utf8').replace(/^(  version:\s*)"[^"]*"$/m, `$1"${to}"`));
 
 console.log(`version ${from} -> ${to}  (extension.json + package.json)`);
 console.log(freshUuid

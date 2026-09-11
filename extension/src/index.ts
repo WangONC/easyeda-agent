@@ -1,5 +1,5 @@
 /**
- * EasyEDA Agent Connector — extension entry point.
+ * EDA Agent — extension entry point.
  *
  * Bridges the easyeda-agent Go daemon to the official `eda.*` API over a local
  * WebSocket. On startup it scans ports 60832-60841 (0xEDA0-0xEDA9), validates the daemon
@@ -19,6 +19,8 @@ resolvePorts,
 	stop as transportStop,
 } from './transport';
 
+import { showReconnectResult } from './menu-feedback';
+let feedbackGeneration = 0;
 import { readAboutConnection } from './about-status';
 import { readResponseContext } from './eda-context';
 
@@ -49,30 +51,35 @@ export function deactivate(): void {
 /**
  * Manually reconnect (menu item).
  */
-export function reconnect(): void {
-	transportReconnect();
+export async function reconnect(): Promise<void> {
+ const generation = ++feedbackGeneration;
+ await showReconnectResult(transportReconnect, getConnectionStatus, message => eda.sys_Message.showToastMessage(message), () => generation === feedbackGeneration);
 }
 
 /**
  * Stop the connection and cancel retries (menu item).
  */
 export function stopConnection(): void {
+ ++feedbackGeneration;
 	transportStop();
+	eda.sys_Message.showToastMessage('已停止连接');
 }
 
 /**
  * Toggle the auto-connect-on-startup preference (menu item).
  */
 export async function toggleAutoConnect(): Promise<void> {
-	const current = eda.sys_Storage.getExtensionUserConfig(STORAGE_KEY_AUTO_CONNECT);
-	const currentlyEnabled = current !== false;
-	await eda.sys_Storage.setExtensionUserConfig(STORAGE_KEY_AUTO_CONNECT, !currentlyEnabled);
-	const msgKey = currentlyEnabled ? 'Auto-Connect disabled' : 'Auto-Connect enabled';
-	console.info(`[easyeda-agent] ${msgKey}`);
+ try {
+  const currentlyEnabled = eda.sys_Storage.getExtensionUserConfig(STORAGE_KEY_AUTO_CONNECT) !== false;
+  await eda.sys_Storage.setExtensionUserConfig(STORAGE_KEY_AUTO_CONNECT, !currentlyEnabled);
+  eda.sys_Message.showToastMessage(currentlyEnabled ? '已关闭自动连接' : '已开启自动连接');
+ } catch {
+  eda.sys_Message.showToastMessage('自动连接设置失败，请稍后重试');
+ }
 }
 
 /**
- * Log connection status without issuing an uncoordinated Host UI effect.
+ * User-invoked local menu feedback only; never a typed action or design effect.
  */
 export async function about(): Promise<void> {
  const status = getConnectionStatus();
@@ -84,5 +91,5 @@ export async function about(): Promise<void> {
   if (!response.ok) throw new Error(`health HTTP ${response.status}`);
   return response.json();
  }, port);
- console.info(`EasyEDA Agent Connector v${extensionConfig.version}\n${statusLine}`);
+ eda.sys_Dialog.showInformationMessage(`EDA Agent\n版本：${extensionConfig.version}\n连接状态：${statusLine.split('\n')[0]}`, '关于', '确定');
 }

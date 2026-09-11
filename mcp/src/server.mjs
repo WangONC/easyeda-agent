@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { readFileSync } from 'node:fs';
+const packageVersion = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version;
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
@@ -7,7 +9,7 @@ import { projectV2 } from './v2-projection.mjs';
 const loaded=await runEasyeda(['v2','catalog']);
 if(!loaded.ok || !Array.isArray(loaded.result)) throw Error('V2_CATALOG_UNAVAILABLE');
 const catalog=loaded.result;
-const server=new Server({name:'easyeda-agent-mcp',version:'2.0.0'},{capabilities:{tools:{}}});
+const server=new Server({name:'easyeda-agent-mcp',version:packageVersion},{capabilities:{tools:{}}});
 const requestProperties={protocol:{const:'execution.v2'},action:{type:'string'},action_revision:{type:'string'},schema:{type:'string'},request_id:{type:'string'},operation_id:{type:'string'},target_ref:{type:'object'},input:{type:'object'},parent_operation_id:{type:'string'},expected_revision:{type:'integer',minimum:0},budget_ms:{type:'integer',minimum:1,maximum:600000}};
 server.setRequestHandler(ListToolsRequestSchema,async()=>({tools:[
  ...[...DOMAIN_NAMES,'library'].map(domain=>({name:'easyeda_'+domain,description:'Execution V2 '+domain+' actions. Inspect catalog before calling. Never replay an UNKNOWN operation.',inputSchema:{type:'object',properties:{...requestProperties,action:{enum:catalog.filter(a=>a.domain===domain).map(a=>a.name)}},required:['protocol','action','action_revision','schema','request_id','operation_id','target_ref','input','budget_ms'],additionalProperties:false}})),

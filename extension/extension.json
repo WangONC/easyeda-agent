@@ -1,19 +1,19 @@
 {
-	"name": "easyeda-agent-connector",
-	"uuid": "4dae27407c1d43be98e8e210d45fe587",
-	"displayName": "EDA Agent Connector",
-	"description": "Bridges the local agent daemon to the official eda.* API over a local WebSocket, dispatching typed schematic and PCB actions.",
-	"version": "1.4.15",
-	"publisher": "zhoushoujian",
+	"name": "jlceda-agent",
+	"uuid": "2d9eaf157def4e1da312a15852404d71",
+	"displayName": "EDA Agent",
+	"description": "连接本地 AI Agent 与嘉立创 EDA 的开源工具。",
+	"version": "2.0.0",
+	"publisher": "WangONC",
 	"engines": {
 		"eda": "~3.2.0"
 	},
 	"license": "MIT",
 	"repository": {
 		"type": "github",
-		"url": "https://github.com/zhoushoujianwork/easyeda-agent"
+		"url": "https://github.com/WangONC/easyeda-agent"
 	},
-	"homepage": "https://github.com/zhoushoujianwork/easyeda-agent",
+	"homepage": "https://github.com/WangONC/easyeda-agent",
 	"categories": "Other",
 	"keywords": [
 		"agent",
@@ -23,7 +23,7 @@
 		"AI"
 	],
 	"images": {
-		"logo": "./images/logo.jpg"
+		"logo": "./images/jlceda-agent.png"
 	},
 	"activationEvents": {
 		"onStartupFinished": true
@@ -38,22 +38,22 @@
 				"menuItems": [
 					{
 						"id": "Reconnect",
-						"title": "Reconnect",
+						"title": "重新连接",
 						"registerFn": "reconnect"
 					},
 					{
 						"id": "StopConnection",
-						"title": "Stop",
+						"title": "停止连接",
 						"registerFn": "stopConnection"
 					},
 					{
 						"id": "ToggleAutoConnect",
-						"title": "Toggle Auto-Connect",
+						"title": "自动连接",
 						"registerFn": "toggleAutoConnect"
 					},
 					{
 						"id": "About",
-						"title": "About...",
+						"title": "关于",
 						"registerFn": "about"
 					}
 				]
@@ -66,22 +66,22 @@
 				"menuItems": [
 					{
 						"id": "Reconnect",
-						"title": "Reconnect",
+						"title": "重新连接",
 						"registerFn": "reconnect"
 					},
 					{
 						"id": "StopConnection",
-						"title": "Stop",
+						"title": "停止连接",
 						"registerFn": "stopConnection"
 					},
 					{
 						"id": "ToggleAutoConnect",
-						"title": "Toggle Auto-Connect",
+						"title": "自动连接",
 						"registerFn": "toggleAutoConnect"
 					},
 					{
 						"id": "About",
-						"title": "About...",
+						"title": "关于",
 						"registerFn": "about"
 					}
 				]
@@ -94,22 +94,22 @@
 				"menuItems": [
 					{
 						"id": "Reconnect",
-						"title": "Reconnect",
+						"title": "重新连接",
 						"registerFn": "reconnect"
 					},
 					{
 						"id": "StopConnection",
-						"title": "Stop",
+						"title": "停止连接",
 						"registerFn": "stopConnection"
 					},
 					{
 						"id": "ToggleAutoConnect",
-						"title": "Toggle Auto-Connect",
+						"title": "自动连接",
 						"registerFn": "toggleAutoConnect"
 					},
 					{
 						"id": "About",
-						"title": "About...",
+						"title": "关于",
 						"registerFn": "about"
 					}
 				]
@@ -122,22 +122,22 @@
 				"menuItems": [
 					{
 						"id": "Reconnect",
-						"title": "Reconnect",
+						"title": "重新连接",
 						"registerFn": "reconnect"
 					},
 					{
 						"id": "StopConnection",
-						"title": "Stop",
+						"title": "停止连接",
 						"registerFn": "stopConnection"
 					},
 					{
 						"id": "ToggleAutoConnect",
-						"title": "Toggle Auto-Connect",
+						"title": "自动连接",
 						"registerFn": "toggleAutoConnect"
 					},
 					{
 						"id": "About",
-						"title": "About...",
+						"title": "关于",
 						"registerFn": "about"
 					}
 				]
@@ -150,22 +150,22 @@
 				"menuItems": [
 					{
 						"id": "Reconnect",
-						"title": "Reconnect",
+						"title": "重新连接",
 						"registerFn": "reconnect"
 					},
 					{
 						"id": "StopConnection",
-						"title": "Stop",
+						"title": "停止连接",
 						"registerFn": "stopConnection"
 					},
 					{
 						"id": "ToggleAutoConnect",
-						"title": "Toggle Auto-Connect",
+						"title": "自动连接",
 						"registerFn": "toggleAutoConnect"
 					},
 					{
 						"id": "About",
-						"title": "About...",
+						"title": "关于",
 						"registerFn": "about"
 					}
 				]
@@ -178,22 +178,22 @@
 				"menuItems": [
 					{
 						"id": "Reconnect",
-						"title": "Reconnect",
+						"title": "重新连接",
 						"registerFn": "reconnect"
 					},
 					{
 						"id": "StopConnection",
-						"title": "Stop",
+						"title": "停止连接",
 						"registerFn": "stopConnection"
 					},
 					{
 						"id": "ToggleAutoConnect",
-						"title": "Toggle Auto-Connect",
+						"title": "自动连接",
 						"registerFn": "toggleAutoConnect"
 					},
 					{
 						"id": "About",
-						"title": "About...",
+						"title": "关于",
 						"registerFn": "about"
 					}
 				]

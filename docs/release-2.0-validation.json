@@ -1,0 +1,20 @@
+{
+  "name": "jlceda-agent",
+  "displayName": "EDA Agent",
+  "uuid": "2d9eaf157def4e1da312a15852404d71",
+  "publisher": "WangONC",
+  "version": "2.0.0",
+  "logo": "./images/jlceda-agent.png",
+  "repository": "https://github.com/WangONC/easyeda-agent",
+  "sha256": "54c171d8ff8d05e57ddfd19781c79f41bd343013f0bf4dc1ad46e5f355b3ea76",
+  "tests": {
+    "connector_full_pass": 863,
+    "final_menu_targeted_pass": 10,
+    "release_wsl_pass": 41,
+    "typecheck": "PASS",
+    "package_check": "PASS",
+    "go_selfupdate_app_daemon": "PASS on isolated retry; initial Windows runtime signal failure"
+  },
+  "git_main": "diverged; no force push; remote codex branch retained",
+  "host_smoke": "User confirmed final reconnect Toast; daemon observes connected 2.0.0; multiple activation registrations retained, no design operations"
+}

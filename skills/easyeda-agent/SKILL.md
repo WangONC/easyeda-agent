@@ -4,9 +4,9 @@ description: "通过本地 easyeda CLI、daemon 和连接器操作嘉立创EDA�
 license: MIT
 compatibility: "Requires the local easyeda CLI/daemon and EasyEDA Agent Connector with Allow external interaction enabled. Python 3 is used by bundled helpers; online library lookup and updates need network access."
 metadata:
-  author: zhoushoujianwork
-  version: "1.4.15"
-  homepage: "https://github.com/zhoushoujianwork/easyeda-agent"
+  author: WangONC
+  version: "2.0.0"
+  homepage: "https://github.com/WangONC/easyeda-agent"
 ---
 
 # EasyEDA Agent

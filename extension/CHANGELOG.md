@@ -1,3 +1,9 @@
+## [2.0.0]
+
+- 发布已完成的 Execution V2；本次整理仅更新产品信息与菜单。
+- JLCEDA Agent 独立插件身份、新 UUID 和原创图标；中文菜单与可见连接信息。
+- 当前维护者 WangONC，更新源统一到 WangONC/easyeda-agent。
+
 ## [1.4.15]
 
 - Reuse placement library-property projection during schematic replacement; verify staged and final property readback before reporting complete/verified.

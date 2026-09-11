@@ -8,16 +8,17 @@ interface Health { service?: string; status?: string; windows?: HealthWindow[] }
 // Never use another document's registration as proof of this document's connection.
 export function connectionStatusText(raw: unknown, local: ConnectionStatus, context: ResponseContext, port: number, now = Date.now()): string {
  const health = raw as Health | null;
- if (health?.service !== 'easyeda-agent' || health.status !== 'ok' || !Array.isArray(health.windows)) return 'Connection status unavailable (invalid daemon response)';
+ if (health?.service !== 'easyeda-agent' || health.status !== 'ok' || !Array.isArray(health.windows)) return '连接状态不可用（daemon 响应无效）';
  const matches = health.windows.filter(w => (local.windowId && w.windowId === local.windowId) ||
   (context.projectUuid && context.documentUuid && w.context?.projectUuid === context.projectUuid && w.context.documentUuid === context.documentUuid &&
-   (!context.tabId || w.context.tabId === context.tabId)));
+   (!context.tabId || w.context.tabId === context.tabId)) ||
+  (!context.projectUuid && context.documentType === 'home' && context.tabId && !w.context?.projectUuid && w.context?.documentType === 'home' && w.context?.tabId === context.tabId));
  const live = matches.find(w => { const seen = Date.parse(w.lastSeen ?? ''); return Number.isFinite(seen) && now - seen >= 0 && now - seen <= 15000; });
- if (live) return `Connected (port ${port})\nWindow ID: ${live.windowId}\nVerified by daemon heartbeat`;
- if (matches.length) return 'Connection status unconfirmed (daemon heartbeat is stale)';
- if (local.connecting) return 'Connecting... (not yet registered with daemon)';
- if (!health.windows.length) return 'Disconnected (daemon is running; no Connector registered)';
- return 'Current document connection unconfirmed (daemon has other registrations)';
+ if (live) return `已连接（端口 ${port}）\n窗口 ID：${live.windowId}\n已通过 daemon 心跳核实`;
+ if (matches.length) return '连接状态未确认（daemon 心跳已过期）';
+ if (local.connecting) return '正在连接（尚未向 daemon 注册）';
+ if (!health.windows.length) return '未连接（daemon 已运行，但没有 Connector 注册）';
+ return '当前文档连接未确认（daemon 中有其它注册）';
 }
 
 export async function readAboutConnection(
@@ -31,8 +32,8 @@ export async function readAboutConnection(
  try {
   return await Promise.race([
    Promise.all([readContext(), readHealth()]).then(([context, health]) => connectionStatusText(health, local, context, port)),
-   new Promise<string>(resolve => { timer = setTimeout(() => resolve('Connection status unavailable (check timed out)'), timeoutMs); }),
+   new Promise<string>(resolve => { timer = setTimeout(() => resolve('连接状态不可用（检查超时）'), timeoutMs); }),
   ]);
- } catch { return 'Connection status unavailable (cannot query daemon; check service / external interaction permission)'; }
+ } catch { return '连接状态不可用（无法访问 daemon，请检查服务及外部交互权限）'; }
  finally { if (timer) clearTimeout(timer); }
 }

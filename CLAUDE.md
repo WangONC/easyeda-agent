@@ -143,7 +143,7 @@ make release VERSION=vX.Y.Z
 用户安装和升级：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zhoushoujianwork/easyeda-agent/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/WangONC/easyeda-agent/main/install.sh | bash
 easyeda update            # CLI + 已安装 Skill → latest
 easyeda update --check    # 只读 CLI / Skill / connector 版本表
 ```
@@ -240,7 +240,7 @@ reaches the daemon.
   then import the new `.eext`. `make eext-fresh` is a fallback that creates a separate
   entry; remove the stale one afterward. Save documents and fully quit/relaunch
   EasyEDA to stop old connector code in already-open windows.
-  The marketplace listing is https://jlc-ext.com/item/zhoushoujian/easyeda-agent-connector.
+  The marketplace listing is https://jlc-ext.com/item/zhoushoujian/jlceda-agent.
   Keep its approved internal `name` and UUID stable; the approved display name is
   "EDA Agent Connector" (marketplace names must not contain "easyeda"). Marketplace
   installs can auto-update, but publishing still requires the web portal and may lag

@@ -24,7 +24,7 @@ import zipfile
 ASSETS = (
     "easyeda_darwin_amd64", "easyeda_darwin_arm64", "easyeda_linux_amd64",
     "easyeda_linux_arm64", "easyeda_windows_amd64.exe",
-    "easyeda-agent-connector.eext", "skills.tar.gz", "install.sh",
+    "jlceda-agent.eext", "skills.tar.gz", "install.sh",
 )
 # These helpers are directly executable in the public package. Other Python
 # helpers are intentionally invoked via python3 and need only read permission.
@@ -69,7 +69,7 @@ def check_connector(path, version):
         require(len(names) == len(set(names)), "duplicate connector ZIP entries")
         manifest = json.loads(archive.read("extension.json"))
         require(isinstance(manifest, dict), "connector manifest must be a JSON object")
-        require(manifest.get("name") == "easyeda-agent-connector", "wrong connector name")
+        require(manifest.get("name") == "jlceda-agent", "wrong connector name")
         require(manifest.get("version") == version, "connector version mismatch")
         require(re.fullmatch(r"[0-9a-fA-F]{32}", manifest.get("uuid", "")), "invalid connector UUID")
         require(manifest.get("entry") == "./dist/index", "unexpected connector entry")
@@ -251,7 +251,7 @@ def main():
             if args.assets:
                 assets = args.assets.resolve()
                 report["assetsIntegrityVerified"] = check_assets(assets)
-                report["connector"] = check_connector(assets / "easyeda-agent-connector.eext", args.version[1:])
+                report["connector"] = check_connector(assets / "jlceda-agent.eext", args.version[1:])
                 skill, modes = extract_skill(assets / "skills.tar.gz", work / "archive")
                 report["packagedSkill"] = check_skill(skill, args.version[1:], modes)
                 binary = args.binary or assets / native_asset()

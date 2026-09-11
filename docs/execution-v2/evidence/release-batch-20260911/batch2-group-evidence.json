@@ -1,0 +1,43 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "00d83834-aee1-45cf-8bcb-3cca88c7dd05",
+  "digest": "a1f9815afd00d98ab46fb1c35e083c6538c448657f5d7a10e7958e4e6013358c",
+  "target_ref": {
+    "scope": "DOCUMENT",
+    "session": "6a63456e-ff40-4c44-98e2-b3253eceb784",
+    "activation": "easyeda-agent-71a419a0-7cb0-4021-8946-7e2a4e95fa9b",
+    "project_uuid": "e7c288be345149da97a48a8b908c2049",
+    "document_uuid": "6c1d9afdceb80680",
+    "document_type": "schematic",
+    "tab_id": "6c1d9afdceb80680@e7c288be345149da97a48a8b908c2049"
+  },
+  "effects": {
+    "effect_started": true,
+    "state_changed": true,
+    "native_settled": true,
+    "effect_scope": "DESIGN_CONTENT",
+    "reconciled": false
+  },
+  "verification": {
+    "verdict": "partial",
+    "checked": [
+      "fresh_element_pose_and_fields",
+      "fresh_flag_identity_net_pose",
+      "complete_owned_wire_segment_coverage",
+      "probe_absence",
+      "unrelated_scope_unchanged"
+    ],
+    "complete": true,
+    "required": 1,
+    "satisfied": 0,
+    "residual": 1
+  },
+  "value": {
+    "dx": 0,
+    "dy": 50,
+    "movedComponents": [],
+    "movedFlags": [],
+    "movedWires": [],
+    "count": 0
+  }
+}

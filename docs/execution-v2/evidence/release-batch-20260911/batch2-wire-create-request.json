@@ -1,0 +1,27 @@
+{
+  "action": "schematic.wire.create",
+  "schema": "0e0d428e2921e049deb917be98cbb6c84b41eece3c9cd261a4f33412ed551259",
+  "protocol": "execution.v2",
+  "budget_ms": 30000,
+  "input": {
+    "points": [
+      600,
+      100,
+      500,
+      100
+    ],
+    "net": "QUAL_WIRE"
+  },
+  "action_revision": "1",
+  "target_ref": {
+    "project_uuid": "e7c288be345149da97a48a8b908c2049",
+    "scope": "DOCUMENT",
+    "activation": "easyeda-agent-71a419a0-7cb0-4021-8946-7e2a4e95fa9b",
+    "session": "6a63456e-ff40-4c44-98e2-b3253eceb784",
+    "document_uuid": "6c1d9afdceb80680",
+    "document_type": "schematic",
+    "tab_id": "6c1d9afdceb80680@e7c288be345149da97a48a8b908c2049"
+  },
+  "request_id": "8d8d1eac-2da8-4f44-ab78-5f1291ad1aa8",
+  "operation_id": "008d239a-90cb-4f39-8e3b-733d759bf268"
+}

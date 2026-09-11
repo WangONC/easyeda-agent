@@ -1,0 +1,2 @@
+{"protocol":"execution.v2","operation_id":"8e324533-1aea-49c7-918e-037328af8529","outcome":"SUCCEEDED","effects":{"effect_started":true,"state_changed":null,"native_settled":true,"effect_scope":"SAVE","reconciled":false},"value":{"saved":true,"completion":"native_save_acknowledged","checkpoint_proven":false},"evidence_ref":"8e324533-1aea-49c7-918e-037328af8529"}
+

@@ -1,0 +1,2 @@
+{"protocol":"execution.v2","operation_id":"64a391de-c8e2-4403-8119-ace8b1c03d3f","outcome":"SUCCEEDED","effects":{"effect_started":true,"state_changed":true,"native_settled":true,"effect_scope":"DESIGN_CONTENT","reconciled":false},"value":{"primitiveId":"423e24259c0a40e7","net":"QUAL_WIRE","line":[500,100,650,100]},"evidence_ref":"64a391de-c8e2-4403-8119-ace8b1c03d3f"}
+

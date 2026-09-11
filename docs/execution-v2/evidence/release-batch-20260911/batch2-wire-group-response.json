@@ -1,0 +1,2 @@
+{"protocol":"execution.v2","operation_id":"00d83834-aee1-45cf-8bcb-3cca88c7dd05","outcome":"PARTIAL","effects":{"effect_started":true,"state_changed":true,"native_settled":true,"effect_scope":"DESIGN_CONTENT","reconciled":false},"value":{"dx":0,"dy":50,"movedComponents":[],"movedFlags":[],"movedWires":[],"count":0},"evidence_ref":"00d83834-aee1-45cf-8bcb-3cca88c7dd05"}
+

@@ -1,0 +1,23 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "008d239a-90cb-4f39-8e3b-733d759bf268",
+  "outcome": "SUCCEEDED",
+  "effects": {
+    "effect_started": true,
+    "state_changed": true,
+    "native_settled": true,
+    "effect_scope": "DESIGN_CONTENT",
+    "reconciled": true
+  },
+  "value": {
+    "primitiveId": "423e24259c0a40e7",
+    "net": "QUAL_WIRE",
+    "line": [
+      500,
+      100,
+      600,
+      100
+    ]
+  },
+  "evidence_ref": "008d239a-90cb-4f39-8e3b-733d759bf268"
+}

@@ -1,0 +1,26 @@
+{
+  "action_revision": "1",
+  "action": "schematic.power.connect_pin",
+  "request_id": "20c9abe5-bb91-4bca-a1e7-3b73a5118d79",
+  "input": {
+    "pinX": 180,
+    "pinY": 100,
+    "kind": "ground",
+    "net": "GND",
+    "direction": "left",
+    "offset": 50
+  },
+  "budget_ms": 30000,
+  "schema": "9e56dafb00314ef3be651147be42859a4b22cf8612aee627ac09a02ee25b90a9",
+  "target_ref": {
+    "project_uuid": "e7c288be345149da97a48a8b908c2049",
+    "scope": "DOCUMENT",
+    "activation": "easyeda-agent-71a419a0-7cb0-4021-8946-7e2a4e95fa9b",
+    "session": "6a63456e-ff40-4c44-98e2-b3253eceb784",
+    "document_uuid": "6c1d9afdceb80680",
+    "document_type": "schematic",
+    "tab_id": "6c1d9afdceb80680@e7c288be345149da97a48a8b908c2049"
+  },
+  "operation_id": "081c1424-0abf-4629-9c0f-386d2dbc2a4c",
+  "protocol": "execution.v2"
+}

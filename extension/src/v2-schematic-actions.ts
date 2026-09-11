@@ -150,7 +150,12 @@ export function connectPin(plan: (p: Record<string, unknown>) => ConnectPlan): N
                 const wire = wires.find(x => x.getState_PrimitiveId() === wireId), flag = flags.find(x => x.getState_PrimitiveId() === flagId);
                 const afterWireSnapshots=wires.map(wireSnapshot);
 
-                const wireOK=!!wireId&&wireAdditionProof(beforeWireSnapshots,afterWireSnapshots,wireId,[p.pinGX,p.pinGY,p.endX,p.endY],flagId?{net:p.net}:{},!!flagId);
+                // Wire Net is an explicit primitive label, not the compiled pin net.
+                // A native flag can name the connected wire while its raw Net remains ''.
+                // Still reject a conflicting explicit label; geometry and the separately
+                // checked flag identity/net/endpoint prove this stub+marker operation.
+                const labelOK=!flagId || !!wire && (wire.getState_Net()==='' || wire.getState_Net()===p.net);
+                const wireOK=!!wireId&&labelOK&&wireAdditionProof(beforeWireSnapshots,afterWireSnapshots,wireId,[p.pinGX,p.pinGY,p.endX,p.endY],{},!!flagId);
                 if(attemptedWire&&!wireOK)return {changed:null,verification:unavailable(),evidence:{before:beforeWireSnapshots,after:afterWireSnapshots}};
                 const norm = (v: number) => (v % 360 + 360) % 360;
                 const flagOK = !!flagId && !beforeComponents.has(flagId) && !!flag && flag.getState_Net() === p.net && flag.getState_X() === p.endX && flag.getState_Y() === p.endY && norm(flag.getState_Rotation()) === norm(p.rotation);

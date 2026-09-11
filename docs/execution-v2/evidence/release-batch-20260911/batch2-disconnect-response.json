@@ -1,0 +1,2 @@
+{"protocol":"execution.v2","operation_id":"3c38e333-a7e3-41c2-a5f0-5c957aeb3b34","outcome":"SUCCEEDED","effects":{"effect_started":true,"state_changed":true,"native_settled":true,"effect_scope":"DESIGN_CONTENT","reconciled":false},"value":{"disconnected":true,"deletedWires":["5a1c926fa560d5b3"],"deletedFlags":["51eff385481cf60b"],"notApplied":[],"survivedIds":[],"alsoDisconnectedPins":["R1:1"]},"evidence_ref":"3c38e333-a7e3-41c2-a5f0-5c957aeb3b34"}
+

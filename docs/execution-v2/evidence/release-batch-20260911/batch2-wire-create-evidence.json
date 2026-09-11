@@ -1,0 +1,29 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "008d239a-90cb-4f39-8e3b-733d759bf268",
+  "digest": "53d301618ce9095d7f73f2dd7b7c47bcb0f56de30433f0f8206575fc75b85413",
+  "target_ref": {
+    "scope": "DOCUMENT",
+    "session": "6a63456e-ff40-4c44-98e2-b3253eceb784",
+    "activation": "easyeda-agent-71a419a0-7cb0-4021-8946-7e2a4e95fa9b",
+    "project_uuid": "e7c288be345149da97a48a8b908c2049",
+    "document_uuid": "6c1d9afdceb80680",
+    "document_type": "schematic",
+    "tab_id": "6c1d9afdceb80680@e7c288be345149da97a48a8b908c2049"
+  },
+  "effects": {
+    "effect_started": true,
+    "state_changed": null,
+    "native_settled": true,
+    "effect_scope": "DESIGN_CONTENT",
+    "reconciled": false
+  },
+  "verification": {
+    "verdict": "unavailable",
+    "checked": [],
+    "complete": false,
+    "required": 0,
+    "satisfied": 0,
+    "residual": 0
+  }
+}

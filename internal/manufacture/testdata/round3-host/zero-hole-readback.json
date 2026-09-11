@@ -1,0 +1,2526 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "cc323647-a10e-411c-b54c-b4760ee3349c",
+  "digest": "92f2241f692010da217c850b97cbc5715dcc2aa4bd64acead565f30d50c22d3a",
+  "target_ref": {
+    "scope": "DOCUMENT",
+    "session": "6a63456e-ff40-4c44-98e2-b3253eceb784",
+    "activation": "easyeda-agent-71a419a0-7cb0-4021-8946-7e2a4e95fa9b",
+    "project_uuid": "e7c288be345149da97a48a8b908c2049",
+    "document_uuid": "a61d7f82ce7bb900",
+    "document_type": "pcb",
+    "tab_id": "a61d7f82ce7bb900@e7c288be345149da97a48a8b908c2049"
+  },
+  "effects": {
+    "effect_started": false,
+    "state_changed": false,
+    "native_settled": true,
+    "effect_scope": "NONE",
+    "reconciled": false
+  },
+  "verification": {
+    "verdict": "satisfied",
+    "checked": [
+      "fresh_native_query",
+      "fast_business_computation"
+    ],
+    "complete": true,
+    "required": 1,
+    "satisfied": 1,
+    "residual": 0
+  },
+  "value": {
+    "board_revision": "mtwp51fi-ptafku8mhbi:1",
+    "components": [
+      {
+        "designator": "R1",
+        "id": "6cf26af7a6f8fa15",
+        "kind": "component",
+        "layer": 1,
+        "x": 200,
+        "y": 200
+      },
+      {
+        "designator": "R2",
+        "id": "dd41fcf5c223eea3",
+        "kind": "component",
+        "layer": 1,
+        "x": 400,
+        "y": 200
+      }
+    ],
+    "copper_layers": [
+      1,
+      2
+    ],
+    "coverage": {
+      "complete": true,
+      "conservative": 5,
+      "supported": 0,
+      "unsupported": 0
+    },
+    "fills": [
+      {
+        "coverage": "conservative",
+        "id": "78a44efe715c44f3",
+        "kind": "board_edge",
+        "layer": 12,
+        "projection_error": 0.05,
+        "rings": [
+          [
+            [
+              0,
+              0
+            ],
+            [
+              0,
+              400
+            ],
+            [
+              600,
+              400
+            ],
+            [
+              600,
+              0
+            ]
+          ]
+        ]
+      }
+    ],
+    "geometry_hash": "71bbe47836809d6f622b5d9961e39b5204533e844d3ac06bc4ca4361992d672c",
+    "observation_hash": "e037511bcf9255ec40562cd0b231883c958b826da3fe90dff659b619d5e9a343",
+    "pads": [
+      {
+        "bbox": [
+          213.79999999999998,
+          183,
+          245.6,
+          217
+        ],
+        "component_id": "6cf26af7a6f8fa15",
+        "coverage": "conservative",
+        "id": "6cf26af7a6f8fa15e7",
+        "kind": "pad",
+        "layer": 1,
+        "net": "SMOKE_SIGNAL",
+        "x": 229.7,
+        "y": 200
+      },
+      {
+        "bbox": [
+          154.4,
+          183,
+          186.20000000000002,
+          217
+        ],
+        "component_id": "6cf26af7a6f8fa15",
+        "coverage": "conservative",
+        "id": "6cf26af7a6f8fa15e8",
+        "kind": "pad",
+        "layer": 1,
+        "net": "GND",
+        "x": 170.3,
+        "y": 200
+      },
+      {
+        "bbox": [
+          413.8,
+          183,
+          445.59999999999997,
+          217
+        ],
+        "component_id": "dd41fcf5c223eea3",
+        "coverage": "conservative",
+        "id": "dd41fcf5c223eea3e7",
+        "kind": "pad",
+        "layer": 1,
+        "net": "GND",
+        "x": 429.7,
+        "y": 200
+      },
+      {
+        "bbox": [
+          354.40000000000003,
+          183,
+          386.2,
+          217
+        ],
+        "component_id": "dd41fcf5c223eea3",
+        "coverage": "conservative",
+        "id": "dd41fcf5c223eea3e8",
+        "kind": "pad",
+        "layer": 1,
+        "net": "SMOKE_SIGNAL",
+        "x": 370.3,
+        "y": 200
+      }
+    ],
+    "rule_profile": {
+      "clearance": 11.810999999952754,
+      "min_annulus": 6.003999999975983,
+      "min_diameter": 24.015799999903933,
+      "min_hole": 12.007799999951967,
+      "min_width": 4.99999999998
+    },
+    "rules_hash": "654ad9c62e8cd5b8bc4f1f8c7a00e000571f3bbf1fddbad2ef70f56dd652bed0",
+    "scope": {},
+    "telemetry": {
+      "affected_nets_count": 0,
+      "board_revision_after": "mtwp51fi-ptafku8mhbi:1",
+      "board_revision_before": "mtwp51fi-ptafku8mhbi:1",
+      "duration_ms": 24,
+      "error_code": "",
+      "native_api_call_count": 18,
+      "operation_id": "cc323647-a10e-411c-b54c-b4760ee3349c",
+      "operation_name": "board.snapshot_compact",
+      "request_bytes": 2,
+      "response_bytes": 2173,
+      "retry_count": 0
+    },
+    "traces": [],
+    "vias": [],
+    "warnings": [
+      "Observable geometry only; native plane/connectivity indexes may be stale. No reload or DRC is performed."
+    ]
+  },
+  "evidence": {
+    "fast_observation": "v2",
+    "snapshot": {
+      "components": [
+        {
+          "id": "6cf26af7a6f8fa15",
+          "kind": "component",
+          "designator": "R1",
+          "x": 200,
+          "y": 200,
+          "rotation": 0,
+          "layer": 1,
+          "locked": false
+        },
+        {
+          "id": "dd41fcf5c223eea3",
+          "kind": "component",
+          "designator": "R2",
+          "x": 400,
+          "y": 200,
+          "rotation": 0,
+          "layer": 1,
+          "locked": false
+        }
+      ],
+      "pads": [
+        {
+          "id": "6cf26af7a6f8fa15e7",
+          "kind": "pad",
+          "net": "SMOKE_SIGNAL",
+          "layer": 1,
+          "x": 229.7,
+          "y": 200,
+          "bbox": [
+            213.79999999999998,
+            183,
+            245.6,
+            217
+          ],
+          "unsupported": false,
+          "coverage": "conservative",
+          "locked": false,
+          "component_id": "6cf26af7a6f8fa15"
+        },
+        {
+          "id": "6cf26af7a6f8fa15e8",
+          "kind": "pad",
+          "net": "GND",
+          "layer": 1,
+          "x": 170.3,
+          "y": 200,
+          "bbox": [
+            154.4,
+            183,
+            186.20000000000002,
+            217
+          ],
+          "unsupported": false,
+          "coverage": "conservative",
+          "locked": false,
+          "component_id": "6cf26af7a6f8fa15"
+        },
+        {
+          "id": "dd41fcf5c223eea3e7",
+          "kind": "pad",
+          "net": "GND",
+          "layer": 1,
+          "x": 429.7,
+          "y": 200,
+          "bbox": [
+            413.8,
+            183,
+            445.59999999999997,
+            217
+          ],
+          "unsupported": false,
+          "coverage": "conservative",
+          "locked": false,
+          "component_id": "dd41fcf5c223eea3"
+        },
+        {
+          "id": "dd41fcf5c223eea3e8",
+          "kind": "pad",
+          "net": "SMOKE_SIGNAL",
+          "layer": 1,
+          "x": 370.3,
+          "y": 200,
+          "bbox": [
+            354.40000000000003,
+            183,
+            386.2,
+            217
+          ],
+          "unsupported": false,
+          "coverage": "conservative",
+          "locked": false,
+          "component_id": "dd41fcf5c223eea3"
+        }
+      ],
+      "traces": [],
+      "vias": [],
+      "fills": [
+        {
+          "id": "78a44efe715c44f3",
+          "kind": "board_edge",
+          "layer": 12,
+          "rings": [
+            [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                400
+              ],
+              [
+                600,
+                400
+              ],
+              [
+                600,
+                0
+              ]
+            ]
+          ],
+          "projection_error": 0.05,
+          "unsupported": false,
+          "coverage": "conservative"
+        }
+      ],
+      "copper_layers": [
+        1,
+        2
+      ],
+      "rules": {
+        "config": {
+          "Spacing": {
+            "Safe Spacing": {
+              "copperThickness1oz": {
+                "editName": "copperThickness1oz",
+                "unit": "mm",
+                "isSetDefault": true,
+                "column": [
+                  "Track",
+                  "SMD Pad",
+                  "TH Pad",
+                  "SMD Test Point",
+                  "TH Test Point",
+                  "Via",
+                  "Fill Region/Teardrop",
+                  "Copper/Plane Zone",
+                  "Slot Region",
+                  "Line",
+                  "Text/Image",
+                  "Board Outline"
+                ],
+                "row": [
+                  "Track",
+                  "SMD Pad",
+                  "TH Pad",
+                  "SMD Test Point",
+                  "TH Test Point",
+                  "Via",
+                  "Fill Region/Teardrop",
+                  "Copper/Plane Zone",
+                  "Slot Region",
+                  "Line",
+                  "Text/Image",
+                  "Board Outline",
+                  "Hole"
+                ],
+                "status": 0,
+                "tables": {
+                  "1": {
+                    "status": 1,
+                    "content": [
+                      [
+                        0.10199878
+                      ],
+                      [
+                        0.15200122,
+                        0.15200122
+                      ],
+                      [
+                        0.15200122,
+                        0.15200122,
+                        0.15200122
+                      ],
+                      [
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122
+                      ],
+                      [
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122
+                      ],
+                      [
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122
+                      ],
+                      [
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122
+                      ],
+                      [
+                        0.254,
+                        0.254,
+                        0.254,
+                        0.254,
+                        0.254,
+                        0.254,
+                        0.254,
+                        0.254
+                      ],
+                      [
+                        0.29999939999999997,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.254,
+                        0.15239999999999998
+                      ],
+                      [
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.254,
+                        0.29999939999999997,
+                        0.15239999999999998
+                      ],
+                      [
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.254,
+                        0.15239999999999998,
+                        0.15239999999999998,
+                        0.15239999999999998
+                      ],
+                      [
+                        0.29972,
+                        0.29972,
+                        0.29972,
+                        0.29972,
+                        0.29972,
+                        0.29972,
+                        0.29972,
+                        0.254,
+                        0.29972,
+                        0.29972,
+                        0.29972
+                      ],
+                      [
+                        0.1759966,
+                        0.1759966,
+                        0.1759966,
+                        0.1759966,
+                        0.1759966,
+                        0.1759966,
+                        0.1759966,
+                        0.254,
+                        0.1759966,
+                        0.1759966,
+                        0.1759966,
+                        0.1759966
+                      ]
+                    ]
+                  }
+                }
+              },
+              "copperThickness2oz": {
+                "editName": "copperThickness2oz",
+                "unit": "mm",
+                "isSetDefault": false,
+                "column": [
+                  "Track",
+                  "SMD Pad",
+                  "TH Pad",
+                  "SMD Test Point",
+                  "TH Test Point",
+                  "Via",
+                  "Fill Region/Teardrop",
+                  "Copper/Plane Zone",
+                  "Slot Region",
+                  "Line",
+                  "Text/Image",
+                  "Board Outline"
+                ],
+                "row": [
+                  "Track",
+                  "SMD Pad",
+                  "TH Pad",
+                  "SMD Test Point",
+                  "TH Test Point",
+                  "Via",
+                  "Fill Region/Teardrop",
+                  "Copper/Plane Zone",
+                  "Slot Region",
+                  "Line",
+                  "Text/Image",
+                  "Board Outline",
+                  "Hole"
+                ],
+                "status": 0,
+                "tables": {
+                  "1": {
+                    "status": 1,
+                    "content": [
+                      [
+                        0.20299933999999997
+                      ],
+                      [
+                        0.15200122,
+                        0.15200122
+                      ],
+                      [
+                        0.15200122,
+                        0.15200122,
+                        0.15200122
+                      ],
+                      [
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122
+                      ],
+                      [
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122
+                      ],
+                      [
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122
+                      ],
+                      [
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122
+                      ],
+                      [
+                        0.254,
+                        0.254,
+                        0.254,
+                        0.254,
+                        0.254,
+                        0.254,
+                        0.254,
+                        0.254
+                      ],
+                      [
+                        0.29999939999999997,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.254,
+                        0.15200122
+                      ],
+                      [
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.254,
+                        0.15200122,
+                        0.15200122
+                      ],
+                      [
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122,
+                        0.254,
+                        0.15200122,
+                        0.15200122,
+                        0.15200122
+                      ],
+                      [
+                        0.29999939999999997,
+                        0.29999939999999997,
+                        0.29999939999999997,
+                        0.29999939999999997,
+                        0.29999939999999997,
+                        0.29999939999999997,
+                        0.29999939999999997,
+                        0.254,
+                        0.29999939999999997,
+                        0.29999939999999997,
+                        0.29999939999999997
+                      ],
+                      [
+                        0.1759966,
+                        0.1759966,
+                        0.1759966,
+                        0.1759966,
+                        0.1759966,
+                        0.1759966,
+                        0.1759966,
+                        0.254,
+                        0.1759966,
+                        0.1759966,
+                        0.1759966,
+                        0.1759966
+                      ]
+                    ]
+                  }
+                }
+              }
+            },
+            "Other Spacing": {
+              "otherClearance": {
+                "editName": "otherClearance",
+                "unit": "mm",
+                "isSetDefault": true,
+                "form": {
+                  "device2device": 0,
+                  "thru2Smd": 0,
+                  "hole2Hole": 0.29999939999999997
+                }
+              }
+            },
+            "Creepage Distance": {
+              "creepage": {
+                "editName": "creepage",
+                "unit": "mm",
+                "isSetDefault": true,
+                "form": {
+                  "creepageDistance": 0,
+                  "ignoreLayer": true
+                }
+              }
+            }
+          },
+          "Physics": {
+            "Track": {
+              "copperThickness1oz": {
+                "editName": "copperThickness1oz",
+                "unit": "mm",
+                "isSetDefault": true,
+                "form": {
+                  "status": 1,
+                  "data": {
+                    "1": {
+                      "minValue": 0.127,
+                      "defaultValue": 0.254,
+                      "maxValue": 2.54
+                    }
+                  }
+                }
+              },
+              "copperThickness2oz": {
+                "editName": "copperThickness2oz",
+                "unit": "mm",
+                "isSetDefault": false,
+                "form": {
+                  "status": 1,
+                  "data": {
+                    "1": {
+                      "minValue": 0.20299933999999997,
+                      "defaultValue": 0.254,
+                      "maxValue": 2.54
+                    }
+                  }
+                }
+              }
+            },
+            "Net Length Range": {
+              "netLength": {
+                "editName": "netLength",
+                "unit": "mm",
+                "isSetDefault": true,
+                "form": {
+                  "netLengthMin": 0,
+                  "netLengthMax": 0
+                }
+              }
+            },
+            "Net Length Tolerance": {
+              "netLengthTolerance": {
+                "editName": "netLengthTolerance",
+                "unit": "mm",
+                "isSetDefault": true,
+                "form": {
+                  "netLengthTolerance": 25.4
+                }
+              }
+            },
+            "Differential Pair": {
+              "differentialPair": {
+                "editName": "differentialPair",
+                "unit": "mm",
+                "isSetDefault": true,
+                "form": {
+                  "strokeWidthTables": {
+                    "status": 1,
+                    "data": {
+                      "1": {
+                        "minValue": 0.127,
+                        "defaultValue": 0.254,
+                        "maxValue": 2.54
+                      }
+                    }
+                  },
+                  "diffPairSpacingTables": {
+                    "status": 1,
+                    "data": {
+                      "1": {
+                        "minValue": 0.15239999999999998,
+                        "defaultValue": 0.15239999999999998,
+                        "maxValue": null
+                      }
+                    }
+                  },
+                  "differentailPairLenTolerMax": 0.254
+                }
+              }
+            },
+            "Blind/Buried Via": {
+              "blindVia": {
+                "editName": "blindVia",
+                "isSetDefault": true,
+                "table": []
+              }
+            },
+            "Via Size": {
+              "viaSize": {
+                "editName": "viaSize",
+                "unit": "mm",
+                "isSetDefault": true,
+                "form": {
+                  "viaOuterdiameterMin": 0.49999899999999997,
+                  "viaOuterdiameterMax": 10.00000032,
+                  "viaOuterdiameterDefault": 0.61000132,
+                  "viaInnerdiameterMin": 0.29999939999999997,
+                  "viaInnerdiameterMax": 6.2999975599999996,
+                  "viaInnerdiameterDefault": 0.30499812
+                }
+              }
+            }
+          },
+          "Plane": {
+            "Plane Zone": {
+              "innerPlane": {
+                "editName": "innerPlane",
+                "unit": "mm",
+                "isSetDefault": true,
+                "form": {
+                  "status": 1,
+                  "data": {
+                    "1": {
+                      "connectMode": 0,
+                      "lineClearance": 0.254,
+                      "lineWidth": 0.254,
+                      "lineAngle": 90
+                    }
+                  }
+                }
+              }
+            },
+            "Copper Zone": {
+              "copperRegion": {
+                "editName": "copperRegion",
+                "unit": "mm",
+                "isSetDefault": true,
+                "form": {
+                  "singleLayerPadModel": {
+                    "status": 1,
+                    "data": {
+                      "1": {
+                        "connectMode": 0,
+                        "lineClearance": 0.254,
+                        "lineWidth": 0.254,
+                        "lineAngle": 90
+                      }
+                    }
+                  },
+                  "multiLayerPadModel": {
+                    "status": 1,
+                    "data": {
+                      "1": {
+                        "connectMode": 0,
+                        "lineClearance": 0.254,
+                        "lineWidth": 0.254,
+                        "lineAngle": 90
+                      }
+                    }
+                  },
+                  "trackConnectModel": {
+                    "status": 1,
+                    "data": {
+                      "1": {
+                        "trackConnectMode": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "Expansion": {
+            "Solder Mask Expansion": {
+              "solderMaskExpansion": {
+                "editName": "solderMaskExpansion",
+                "unit": "mm",
+                "isSetDefault": true,
+                "form": {
+                  "padToplayerExpansion": 0.0508,
+                  "padBottomlayerExpansion": 0.0508,
+                  "viaToplayerExpansion": -25.4,
+                  "viaBottomlayerExpansion": -25.4,
+                  "testPointToplayerExpansion": 0.0508,
+                  "testPointBottomlayerExpansion": 0.0508
+                }
+              }
+            },
+            "Paste Mask Expansion": {
+              "pasteMaskExpansion": {
+                "editName": "pasteMaskExpansion",
+                "unit": "mm",
+                "isSetDefault": true,
+                "form": {
+                  "padToplayerExpansion": 0,
+                  "padBottomlayerExpansion": 0,
+                  "testPointToplayerExpansion": -25.4,
+                  "testPointBottomlayerExpansion": -25.4
+                }
+              }
+            }
+          }
+        },
+        "name": "JLCPCB Capability(Two Layers Board)"
+      },
+      "physical_stackup": null,
+      "drill_inventory": {
+        "complete": true,
+        "pad_count": 4,
+        "pads_without_holes": 4,
+        "via_count": 0,
+        "pth_count": 0,
+        "npth_count": 0
+      },
+      "outline_fingerprint_input": {
+        "outline": 1,
+        "segments": 0,
+        "arcs": 0,
+        "bbox": {
+          "minX": -5,
+          "minY": -5,
+          "maxX": 605,
+          "maxY": 405
+        }
+      },
+      "revision_geometry": {
+        "pads": [
+          [
+            "6cf26af7a6f8fa15e7",
+            [
+              "RECT",
+              31.8,
+              34,
+              0
+            ],
+            0,
+            null,
+            []
+          ],
+          [
+            "6cf26af7a6f8fa15e8",
+            [
+              "RECT",
+              31.8,
+              34,
+              0
+            ],
+            0,
+            null,
+            []
+          ],
+          [
+            "dd41fcf5c223eea3e7",
+            [
+              "RECT",
+              31.8,
+              34,
+              0
+            ],
+            0,
+            null,
+            []
+          ],
+          [
+            "dd41fcf5c223eea3e8",
+            [
+              "RECT",
+              31.8,
+              34,
+              0
+            ],
+            0,
+            null,
+            []
+          ]
+        ],
+        "arcs": [],
+        "fills": [],
+        "pours": [],
+        "polys": [
+          [
+            "78a44efe715c44f3",
+            [
+              0,
+              0,
+              "L",
+              0,
+              400,
+              600,
+              400,
+              600,
+              0,
+              0,
+              0
+            ]
+          ]
+        ],
+        "layers": [
+          [
+            1,
+            "SIGNAL",
+            1,
+            false
+          ],
+          [
+            10,
+            "ASSEMBLY",
+            1,
+            false
+          ],
+          [
+            100,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            101,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            102,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            103,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            104,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            105,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            106,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            107,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            108,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            109,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            11,
+            "OTHER",
+            1,
+            false
+          ],
+          [
+            110,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            111,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            112,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            113,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            114,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            115,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            116,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            117,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            118,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            119,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            12,
+            "OTHER",
+            1,
+            false
+          ],
+          [
+            120,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            121,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            122,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            123,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            124,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            125,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            126,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            127,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            128,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            129,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            13,
+            "OTHER",
+            1,
+            false
+          ],
+          [
+            130,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            131,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            132,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            133,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            134,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            135,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            136,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            137,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            138,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            139,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            14,
+            "OTHER",
+            1,
+            false
+          ],
+          [
+            140,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            141,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            142,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            143,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            144,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            145,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            146,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            147,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            148,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            149,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            15,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            150,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            151,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            152,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            153,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            154,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            155,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            156,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            157,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            158,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            159,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            16,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            160,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            161,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            162,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            163,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            164,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            165,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            166,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            167,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            168,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            169,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            17,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            170,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            171,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            172,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            173,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            174,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            175,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            176,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            177,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            178,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            179,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            18,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            180,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            181,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            182,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            183,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            184,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            185,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            186,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            187,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            188,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            189,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            19,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            190,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            191,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            192,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            193,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            194,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            195,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            196,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            197,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            198,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            199,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            2,
+            "SIGNAL",
+            1,
+            false
+          ],
+          [
+            20,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            200,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            201,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            202,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            203,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            204,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            205,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            206,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            207,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            208,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            209,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            21,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            210,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            211,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            212,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            213,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            214,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            215,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            216,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            217,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            218,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            219,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            22,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            220,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            221,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            222,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            223,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            224,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            225,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            226,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            227,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            228,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            229,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            23,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            230,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            231,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            232,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            233,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            234,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            235,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            236,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            237,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            238,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            239,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            24,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            240,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            241,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            242,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            243,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            244,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            245,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            246,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            247,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            248,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            249,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            25,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            250,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            251,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            252,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            253,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            254,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            255,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            256,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            257,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            258,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            259,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            26,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            260,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            261,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            262,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            263,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            264,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            265,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            266,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            267,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            268,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            269,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            27,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            270,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            28,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            29,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            3,
+            "SILKSCREEN",
+            1,
+            false
+          ],
+          [
+            30,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            31,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            32,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            33,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            34,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            35,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            36,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            361,
+            "OTHER",
+            0,
+            false
+          ],
+          [
+            37,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            38,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            39,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            4,
+            "SILKSCREEN",
+            1,
+            false
+          ],
+          [
+            40,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            41,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            42,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            43,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            44,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            45,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            46,
+            "SIGNAL",
+            0,
+            false
+          ],
+          [
+            47,
+            "OTHER",
+            1,
+            false
+          ],
+          [
+            48,
+            "OTHER",
+            2,
+            false
+          ],
+          [
+            49,
+            "OTHER",
+            2,
+            false
+          ],
+          [
+            5,
+            "SOLDER_MASK",
+            1,
+            false
+          ],
+          [
+            50,
+            "OTHER",
+            2,
+            false
+          ],
+          [
+            51,
+            "OTHER",
+            2,
+            false
+          ],
+          [
+            52,
+            "OTHER",
+            0,
+            false
+          ],
+          [
+            53,
+            "OTHER",
+            1,
+            false
+          ],
+          [
+            54,
+            "OTHER",
+            1,
+            false
+          ],
+          [
+            55,
+            "OTHER",
+            1,
+            false
+          ],
+          [
+            56,
+            "OTHER",
+            1,
+            false
+          ],
+          [
+            57,
+            "OTHER",
+            1,
+            true
+          ],
+          [
+            58,
+            "OTHER",
+            0,
+            false
+          ],
+          [
+            59,
+            "OTHER",
+            0,
+            false
+          ],
+          [
+            6,
+            "SOLDER_MASK",
+            1,
+            false
+          ],
+          [
+            7,
+            "PASTE_MASK",
+            1,
+            false
+          ],
+          [
+            71,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            72,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            73,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            74,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            75,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            76,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            77,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            78,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            79,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            8,
+            "PASTE_MASK",
+            1,
+            false
+          ],
+          [
+            80,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            81,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            82,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            83,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            84,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            85,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            86,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            87,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            88,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            89,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            9,
+            "ASSEMBLY",
+            1,
+            false
+          ],
+          [
+            90,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            91,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            92,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            93,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            94,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            95,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            96,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            97,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            98,
+            "CUSTOM",
+            0,
+            false
+          ],
+          [
+            99,
+            "CUSTOM",
+            0,
+            false
+          ]
+        ]
+      },
+      "warnings": [
+        "Observable geometry only; native plane/connectivity indexes may be stale. No reload or DRC is performed."
+      ],
+      "board_revision": "mtwp51fi-ptafku8mhbi:1",
+      "native_api_call_count": 18
+    }
+  }
+}

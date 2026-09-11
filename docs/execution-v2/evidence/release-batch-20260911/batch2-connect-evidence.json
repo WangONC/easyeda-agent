@@ -1,0 +1,74 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "081c1424-0abf-4629-9c0f-386d2dbc2a4c",
+  "digest": "b30c58a4f290bab515a57d62dfccdb3c74ac15634f3c3a0cec536354af6dfbcc",
+  "target_ref": {
+    "scope": "DOCUMENT",
+    "session": "6a63456e-ff40-4c44-98e2-b3253eceb784",
+    "activation": "easyeda-agent-71a419a0-7cb0-4021-8946-7e2a4e95fa9b",
+    "project_uuid": "e7c288be345149da97a48a8b908c2049",
+    "document_uuid": "6c1d9afdceb80680",
+    "document_type": "schematic",
+    "tab_id": "6c1d9afdceb80680@e7c288be345149da97a48a8b908c2049"
+  },
+  "effects": {
+    "effect_started": true,
+    "state_changed": null,
+    "native_settled": true,
+    "effect_scope": "DESIGN_CONTENT",
+    "reconciled": false
+  },
+  "verification": {
+    "verdict": "unavailable",
+    "checked": [],
+    "complete": false,
+    "required": 0,
+    "satisfied": 0,
+    "residual": 0
+  },
+  "evidence": {
+    "before": [
+      {
+        "id": "12c73f2f0726d7e7",
+        "line": [
+          650,
+          150,
+          500,
+          150
+        ],
+        "net": "QUAL_WIRE",
+        "color": null,
+        "lineWidth": null,
+        "lineType": null
+      }
+    ],
+    "after": [
+      {
+        "id": "12c73f2f0726d7e7",
+        "line": [
+          650,
+          150,
+          500,
+          150
+        ],
+        "net": "QUAL_WIRE",
+        "color": null,
+        "lineWidth": null,
+        "lineType": null
+      },
+      {
+        "id": "5a1c926fa560d5b3",
+        "line": [
+          130,
+          100,
+          180,
+          100
+        ],
+        "net": "",
+        "color": null,
+        "lineWidth": null,
+        "lineType": null
+      }
+    ]
+  }
+}

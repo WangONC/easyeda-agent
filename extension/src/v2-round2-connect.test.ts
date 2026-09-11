@@ -33,3 +33,11 @@ test('connect_pin verifies a returned existing merged wire identity without a se
  assert.equal(result.verification.verdict,'satisfied');assert.equal((result.value as any).wirePrimitiveId,'merged');
  await ex.reconcile('o');await ex.execute(request(),'d');assert.equal(h.wireCalls(),1);assert.equal(h.flagCalls(),2);
 });
+
+for (const label of ['', 'FOREIGN', undefined]) test('connect_pin raw wire label is separate from flag net '+String(label), async()=>{
+ const h=host(),eda=(globalThis as any).eda,create=eda.sch_PrimitiveWire.create;
+ eda.sch_PrimitiveWire.create=async(points:number[])=>{const w=await create(points);w.getState_Net=()=>label;return w;};
+ const ex=new ControlledExecutor(nativeAction,async()=>target),result=await ex.execute(request(),'d');
+ assert.equal(result.verification.verdict,label===''?'satisfied':'unavailable');
+ await ex.reconcile('o');await ex.execute(request(),'d');assert.equal(h.wireCalls(),1);assert.equal(h.flagCalls(),2);
+});

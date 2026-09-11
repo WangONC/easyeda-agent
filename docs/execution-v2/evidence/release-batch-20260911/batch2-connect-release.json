@@ -1,0 +1,36 @@
+{
+  "operation": {
+    "ownership_released": true,
+    "protocol": "execution.v2",
+    "operation_id": "081c1424-0abf-4629-9c0f-386d2dbc2a4c",
+    "outcome": "UNKNOWN",
+    "effects": {
+      "effect_started": true,
+      "state_changed": null,
+      "native_settled": true,
+      "effect_scope": "DESIGN_CONTENT",
+      "reconciled": true
+    },
+    "evidence_ref": "081c1424-0abf-4629-9c0f-386d2dbc2a4c"
+  },
+  "readback": {
+    "protocol": "execution.v2",
+    "operation_id": "427c4c39-c05d-4ea0-80e5-67a439c821ef",
+    "outcome": "SUCCEEDED",
+    "effects": {
+      "effect_started": false,
+      "state_changed": false,
+      "native_settled": true,
+      "effect_scope": "NONE",
+      "reconciled": false
+    },
+    "value": {
+      "uuid": "6c1d9afdceb80680",
+      "tabId": "6c1d9afdceb80680@e7c288be345149da97a48a8b908c2049",
+      "documentType": "schematic",
+      "documentTypeCode": 1,
+      "parentProjectUuid": "e7c288be345149da97a48a8b908c2049"
+    },
+    "evidence_ref": "427c4c39-c05d-4ea0-80e5-67a439c821ef"
+  }
+}

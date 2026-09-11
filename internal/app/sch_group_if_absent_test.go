@@ -115,6 +115,8 @@ func TestGroupCreateIfAbsentCLILeavesPersistedStateUntouchedOnRepeat(t *testing.
 	})
 	defer cleanup()
 	cfg.project = project
+	cfg.v2Read.target.ProjectUUID = "project-id"
+	cfg.v2Read.target.DocumentUUID = "pageA"
 	window := "w1"
 	run := func(members string) (string, error) {
 		var stdout bytes.Buffer

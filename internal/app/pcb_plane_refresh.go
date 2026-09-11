@@ -8,7 +8,8 @@ import (
 	"time"
 )
 
-func addPlaneRefresh(pcb *cobra.Command, cfg *appConfig, stdout, stderr io.Writer) {
+// RETIRED: historical CLI interpretation, never registered.
+func archivedAddPlaneRefresh(pcb *cobra.Command, cfg *appConfig, stdout, stderr io.Writer) {
 	var payload, window string
 	c := &cobra.Command{Use: "plane-refresh", Short: "Refresh explicit logical planes and return authoritative revision evidence", Args: cobra.NoArgs, RunE: func(_ *cobra.Command, _ []string) error {
 		var p map[string]any
@@ -60,5 +61,20 @@ func addPlaneRefresh(pcb *cobra.Command, cfg *appConfig, stdout, stderr io.Write
 	}}
 	c.Flags().StringVar(&payload, "payload", "{}", "Explicit identity, base revision and logical_ids")
 	c.Flags().StringVar(&window, "window", "", "Connector window ID")
+	pcb.AddCommand(c)
+}
+
+// The production native action owns revision verification and finalization.
+func addPlaneRefresh(pcb *cobra.Command, cfg *appConfig, stdout, stderr io.Writer) {
+	var payload, window string
+	c := &cobra.Command{Use: "plane-refresh", Short: "Refresh logical planes through the V2 native action", Args: cobra.NoArgs, RunE: func(*cobra.Command, []string) error {
+		var input map[string]any
+		if err := json.Unmarshal([]byte(payload), &input); err != nil {
+			return err
+		}
+		return dispatchTimed(cfg, "pcb.plane.refresh", window, input, 60*time.Second, stdout, stderr)
+	}}
+	c.Flags().StringVar(&payload, "payload", "{}", "Base revision and optional logical_ids")
+	c.Flags().StringVar(&window, "window", "", "Logical Host window")
 	pcb.AddCommand(c)
 }

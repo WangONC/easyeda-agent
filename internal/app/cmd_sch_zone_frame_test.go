@@ -486,7 +486,7 @@ func zoneFramePlanE2E(t *testing.T, o zoneFrameE2EOpts) (partitionPlan, []autola
 		`"bbox":{"minX":380,"minY":600,"maxX":440,"maxY":660}` + pinsField + `},` +
 		`{"primitiveId":"f1","componentType":"netflag","net":"GND","x":410,"y":530,` +
 		`"bbox":{"minX":390,"minY":500,"maxX":430,"maxY":530}}` +
-		`],"count":3}`
+		`],"count":3,"wires":[{"primitiveId":"w1","x0":410,"y0":600,"x1":410,"y1":530,"net":"GND"}]}`
 
 	cfg, daemon, cleanup := newAutolayoutTestDaemon(t, func(_ int, call autolayoutTestCall) string {
 		switch call.Action {
@@ -510,6 +510,7 @@ func zoneFramePlanE2E(t *testing.T, o zoneFrameE2EOpts) (partitionPlan, []autola
 	})
 	defer cleanup()
 	cfg.doc = "page-a"
+	cfg.v2Read.target.DocumentUUID = "page-a"
 
 	plan, _, err := computePartitionPlan(cfg, "", "page-a", defaultPartitionOpts())
 	if err != nil {
@@ -526,7 +527,7 @@ func TestComputePartitionPlan_FrameCoversTheWholeL1Group(t *testing.T) {
 	for _, c := range calls {
 		if c.Action == "schematic.components.list" {
 			found = true
-			if c.Payload["includePins"] != true {
+			if c.Payload["includePins"] != true && c.Payload["includeWires"] != true {
 				t.Fatalf("几何回读必须带 includePins(否则 marker/桩线归不了属):%v", c.Payload)
 			}
 		}

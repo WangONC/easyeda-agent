@@ -725,6 +725,15 @@ func runSchZoneMove(cfg *appConfig, window, zoneRef string, dx, dy, textPad floa
 		return nil
 	}
 
+	// Retained graphical helpers have no V2-native execution contract. Refuse
+	// before moving any component, rather than failing after partial placement.
+	if len(notes) > 0 {
+		return fmt.Errorf("RETIRED_ENTRYPOINT: zone text movement has no V2-native equivalent; dry-run remains available")
+	}
+	if prev, _ := recordedZoneFrames(st, docUUID); redraw && prev != nil {
+		return fmt.Errorf("RETIRED_ENTRYPOINT: zone frame redraw has no V2-native equivalent; use --redraw-frame=false")
+	}
+
 	// 7) 执行只准调内核(ADR-0004):不再 schematic.group.move 带线刚移(平台
 	//    merge 共点线的暂态短路一整类问题),改为内核的删净→平移→重连→对账;
 	//    区内跨单元直连线删后按同网 marker 对接,电气逐引脚一致由对账保证。

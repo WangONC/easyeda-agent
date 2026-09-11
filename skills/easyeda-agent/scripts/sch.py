@@ -18,6 +18,8 @@ Usage (from Bash / a scratch script):
 stale frame. Judge STATE by read()/connectivity() (data is reliable); use snapshot() for the
 human's visual check and touch the page in EDA to force a redraw first.
 """
+raise RuntimeError("RETIRED_ENTRYPOINT: sch.py is unavailable in 2.0; use the public easyeda sch commands (V2).")
+
 import glob
 import json
 import os

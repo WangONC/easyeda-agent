@@ -82,14 +82,14 @@ func TestBBoxCenter(t *testing.T) {
 }
 
 func TestInjectBBoxCenters(t *testing.T) {
-	in := []byte(`{"ok":true,"result":{"count":2,"components":[` +
+	in := []byte(`{"protocol":"execution.v2","operation_id":"bbox","outcome":"SUCCEEDED","value":{"count":2,"components":[` +
 		`{"primitiveId":"a","designator":"U1","x":100,"y":200,"bbox":{"minX":90,"minY":180,"maxX":190,"maxY":240}},` +
 		`{"primitiveId":"b","designator":"R1","x":300,"y":400}]}}`)
 	out := injectBBoxCenters(in)
 
 	var env struct {
-		OK     bool `json:"ok"`
-		Result struct {
+		Outcome string `json:"outcome"`
+		Result  struct {
 			Count      int `json:"count"`
 			Components []struct {
 				PrimitiveID string `json:"primitiveId"`
@@ -98,12 +98,12 @@ func TestInjectBBoxCenters(t *testing.T) {
 					Y float64 `json:"y"`
 				} `json:"center"`
 			} `json:"components"`
-		} `json:"result"`
+		} `json:"value"`
 	}
 	if err := json.Unmarshal(out, &env); err != nil {
 		t.Fatalf("output not valid JSON: %v", err)
 	}
-	if !env.OK || env.Result.Count != 2 || len(env.Result.Components) != 2 {
+	if env.Outcome != "SUCCEEDED" || env.Result.Count != 2 || len(env.Result.Components) != 2 {
 		t.Fatalf("envelope fields not preserved: %s", out)
 	}
 	c0 := env.Result.Components[0]

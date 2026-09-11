@@ -125,5 +125,5 @@ func pcbReportScoped(cfg *appConfig, window, payload string, stdout, stderr io.W
 	native.Result["geometry_measurements"] = rows
 	native.Result["board_revision"] = s.Revision
 	native.Result["measurement_note"] = "native copper totals and explicit endpoint path are distinct; no topology guessing; delay is a profile-based estimate"
-	return json.NewEncoder(stdout).Encode(map[string]any{"ok": true, "result": native.Result})
+	return encodeResultEnvelope(native, native.Result, stdout)
 }

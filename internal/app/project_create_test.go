@@ -25,19 +25,17 @@ func TestNameOnlyPersonalCreateAcquiresGuardsWithoutOwner(t *testing.T) {
 		t.Fatal(err)
 	}
 	calls := d.snapshot()
-	if len(calls) != 3 || calls[2].Action != "project.create" {
+	if len(calls) != 1 || calls[0].Action != "project.create" {
 		t.Fatal(calls)
 	}
-	p := calls[2].Payload
-	if p["expected_project_uuid"] != "old" || p["session_token"] != "session" || p["client_transaction_id"] == "" || p["client_transaction_id"] == nil {
+	p := calls[0].Payload
+	if p["expected_project_uuid"] != "fixture-project" || p["session_token"] != "fixture-activation" || p["client_transaction_id"] == "" || p["client_transaction_id"] == nil {
 		t.Fatal(p)
 	}
 	if _, ok := p["team_uuid"]; ok {
 		t.Fatal("owner leaked", p)
 	}
-	if len(calls[1].Payload) != 0 {
-		t.Fatal("inventory scope changed")
-	}
+	// Binding supplies guards; no owner/team lookup or extra native query.
 	if !strings.Contains(out.String(), "uncertain") {
 		t.Fatal("uncertain hidden")
 	}
@@ -46,7 +44,7 @@ func TestNameOnlyCreateDisabledBeforeDiscovery(t *testing.T) {
 	t.Setenv(protocol.DisabledActionsEnv, "project.create")
 	var out, errout bytes.Buffer
 	err := dispatch(&appConfig{ports: "invalid"}, "project.create", "", map[string]any{"name": "N"}, &out, &errout)
-	if err == nil || !strings.Contains(out.String(), "CAPABILITY_DISABLED") {
+	if err == nil || !strings.Contains(err.Error(), "CAPABILITY_DISABLED") {
 		t.Fatal(err, out.String())
 	}
 }
@@ -71,12 +69,23 @@ func TestNameOnlyCreateFromHome(t *testing.T) {
 		return ""
 	})
 	defer done()
-	p, err := prepareProjectCreate(cfg, "w1", map[string]any{"name": "New"})
-	if err != nil || p["expected_project_uuid"] != "" || p["session_token"] != "session" {
-		t.Fatal(p, err)
+	cfg.v2Read.target.Scope = "HOME"
+	cfg.v2Read.target.ProjectUUID = ""
+	cfg.v2Read.target.DocumentUUID = ""
+	cfg.v2Read.target.DocumentType = ""
+	cfg.v2Read.target.TabID = ""
+
+	var out, stderr bytes.Buffer
+	if err := dispatch(cfg, "project.create", "w1", map[string]any{"name": "New"}, &out, &stderr); err != nil {
+		t.Fatal(err)
 	}
-	if len(d.snapshot()) != 3 {
-		t.Fatal(d.snapshot())
+	calls := d.snapshot()
+	if len(calls) != 1 || calls[0].Action != "project.create" {
+		t.Fatal(calls)
+	}
+	p := calls[0].Payload
+	if p["expected_project_uuid"] != "" || p["session_token"] != "fixture-activation" {
+		t.Fatal(p)
 	}
 }
 func TestNameOnlyCreateRejectsUnprovenEmptyIdentity(t *testing.T) {

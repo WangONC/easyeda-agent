@@ -34,6 +34,7 @@ func TestModifyPatchFile(t *testing.T) {
 				}
 				var cmd *cobra.Command
 				if domain == "sch" {
+					cfg.v2Read.target.DocumentType = "schematic"
 					cmd = newSchCmd(cfg, io.Discard, io.Discard)
 				} else {
 					cmd = newPcbCmd(cfg, io.Discard, io.Discard)

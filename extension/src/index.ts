@@ -19,6 +19,12 @@ resolvePorts,
 	stop as transportStop,
 } from './transport';
 
+import { currentHostWindow } from './transport-identity';
+
+// Repeated bundle activation shares the existing executor and its pending ownership.
+const hostWindow = currentHostWindow();
+const runtime = (hostWindow.runtime ??= { start: transportStart, stop: transportStop, reconnect: transportReconnect, status: getConnectionStatus }) as { start: typeof transportStart; stop: typeof transportStop; reconnect: typeof transportReconnect; status: typeof getConnectionStatus };
+
 import { showReconnectResult } from './menu-feedback';
 let feedbackGeneration = 0;
 import { readAboutConnection } from './about-status';
@@ -36,14 +42,14 @@ const STORAGE_KEY_AUTO_CONNECT = 'autoConnectEnabled';
  */
 // eslint-disable-next-line unused-imports/no-unused-vars
 export function activate(status?: 'onStartupFinished', arg?: string): void {
-	transportStart();
+	runtime.start();
 }
 
 /**
  * Extension deactivation: tear down the connection without showing a toast.
  */
 export function deactivate(): void {
-	transportStop(false);
+	runtime.stop(false);
 }
 
 // ─── Menu actions ─────────────────────────────────────────────────────
@@ -53,7 +59,7 @@ export function deactivate(): void {
  */
 export async function reconnect(): Promise<void> {
  const generation = ++feedbackGeneration;
- await showReconnectResult(transportReconnect, getConnectionStatus, message => eda.sys_Message.showToastMessage(message), () => generation === feedbackGeneration);
+ await showReconnectResult(runtime.reconnect, runtime.status, message => eda.sys_Message.showToastMessage(message), () => generation === feedbackGeneration);
 }
 
 /**
@@ -61,7 +67,7 @@ export async function reconnect(): Promise<void> {
  */
 export function stopConnection(): void {
  ++feedbackGeneration;
-	transportStop();
+	runtime.stop();
 	eda.sys_Message.showToastMessage('已停止连接');
 }
 
@@ -82,7 +88,7 @@ export async function toggleAutoConnect(): Promise<void> {
  * User-invoked local menu feedback only; never a typed action or design effect.
  */
 export async function about(): Promise<void> {
- const status = getConnectionStatus();
+ const status = { ...runtime.status(), windowId: hostWindow.id };
  let configured: unknown;
  try { configured = eda.sys_Storage.getExtensionUserConfig('daemonPorts'); } catch { /* default port */ }
  const port = status.port ?? resolvePorts(configured, null)[0];

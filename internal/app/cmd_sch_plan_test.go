@@ -97,6 +97,8 @@ func TestGuardedQueueStopsBeforeNextWrite(t *testing.T) {
 		return `{"ok":true,"context":{"projectUuid":"p","documentUuid":"d","documentType":"schematic"},"result":` + result + `}`
 	})
 	defer closeServer()
+	cfg.v2Read.target.ProjectUUID = "p"
+	cfg.v2Read.target.DocumentUUID = "d"
 	zero := 0
 	pb := &playbook{Version: 1, Meta: playbookMeta{Name: "stop-test"}, Defaults: stepPolicy{Retry: &zero}, Steps: []playbookStep{{Action: "schematic.read", ExpectedConnectivity: &expected}, {Action: "schematic.save"}}}
 	r := &applyRunner{cfg: cfg, pb: pb, stdout: io.Discard, stderr: io.Discard, window: "w1", journalPath: filepath.Join(t.TempDir(), "journal.jsonl"), toIdx: 1, vars: map[string]string{}}

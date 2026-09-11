@@ -13,7 +13,11 @@ func newDebugCmd(cfg *appConfig, stdout, stderr io.Writer) *cobra.Command {
 	var window string
 
 	dbg := &cobra.Command{
-		Use:   "debug",
+		Use:    "debug",
+		Hidden: true,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			return fmt.Errorf("RETIRED_ENTRYPOINT: debug CLI is unavailable in 2.0")
+		},
 		Short: "Debug escape hatches (confirmation-gated)",
 	}
 	dbg.PersistentFlags().StringVar(&window, "window", "", "EasyEDA window ID")

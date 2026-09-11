@@ -167,6 +167,7 @@ func identityCompatProof(hit schematicIdentityCandidate) schematicIdentityProbe 
 }
 
 func TestSchematicIdentityCompatSharedDispatchAndApplyRead(t *testing.T) {
+	t.Skip("ARCHIVED: legacy identity repair no longer runs; native source identity and no-fallback tests remain active")
 	original, hit := identityCompatFixture()
 	before, _ := json.Marshal(original)
 	cfg, daemon, cleanup := newBlockApplyTestDaemon(t, func(call blockApplyTestCall) string {
@@ -231,6 +232,7 @@ func TestSchematicIdentityCompatSharedDispatchAndApplyRead(t *testing.T) {
 }
 
 func TestSchematicIdentityCompatFailureNeverWeakensGuard(t *testing.T) {
+	t.Skip("ARCHIVED: legacy identity repair no longer runs; native source identity and no-fallback tests remain active")
 	for _, scenario := range []string{"wrong-context", "missing-candidates", "missing-all-match-proof", "ambiguous", "probe-error", "missing-native-source", "bad-native-source", "source-error", "dry-run"} {
 		t.Run(scenario, func(t *testing.T) {
 			original, hit := identityCompatFixture()
@@ -305,6 +307,8 @@ func TestSchematicIdentityCompatDoesNotProbeHealthyOrUnrequestedReads(t *testing
 				return identityCompatEnvelope(map[string]any{"components": []any{c}}, "page")
 			})
 			defer cleanup()
+			cfg.v2Read.target.DocumentUUID = "page"
+			cfg.v2Read.target.ProjectUUID = "project"
 			if _, err := requestAction(cfg, "schematic.components.list", "w1", map[string]any{"includeDeviceIdentity": healthy}); err != nil {
 				t.Fatal(err)
 			}
@@ -325,6 +329,8 @@ func TestConnectorSourceIdentityNeverRunsDebugFallback(t *testing.T) {
 		return identityCompatEnvelope(map[string]any{"components": []any{c}}, "page")
 	})
 	defer cleanup()
+	cfg.v2Read.target.DocumentUUID = "page"
+	cfg.v2Read.target.ProjectUUID = "project"
 	if _, err := requestAction(cfg, "schematic.components.list", "w1", map[string]any{"includeDeviceIdentity": true}); err != nil {
 		t.Fatal(err)
 	}

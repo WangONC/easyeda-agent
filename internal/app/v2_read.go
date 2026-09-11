@@ -16,8 +16,12 @@ import (
 )
 
 type v2ReadBinding struct {
-	endpoint string
-	target   executionv2.Target
+	receiptTarget *executionv2.Target
+	window        string
+	nextProject   string
+	nextDocument  string
+	endpoint      string
+	target        executionv2.Target
 }
 
 // Workflow consumers read V2 values directly. No legacy envelope, native write,
@@ -36,9 +40,10 @@ func readStageV2(cfg *appConfig, action, window string, input map[string]any) (m
 		}
 		var health struct {
 			Windows []struct {
-				WindowID   string        `json:"windowId"`
-				Activation string        `json:"activationId"`
-				Context    actionContext `json:"context"`
+				TransportID string        `json:"transportId"`
+				WindowID    string        `json:"windowId"`
+				Activation  string        `json:"activationId"`
+				Context     actionContext `json:"context"`
 			} `json:"windows"`
 		}
 		if err = json.Unmarshal(scan.Found.Raw, &health); err != nil {
@@ -52,10 +57,10 @@ func readStageV2(cfg *appConfig, action, window string, input map[string]any) (m
 			if cfg.project != "" && cfg.project != w.Context.ProjectUUID && cfg.project != w.Context.ProjectName {
 				continue
 			}
-			if w.Activation == "" || w.Context.ProjectUUID == "" || w.Context.DocumentUUID == "" || w.Context.TabID == "" {
+			if w.Activation == "" || w.TransportID == "" || w.Context.ProjectUUID == "" || w.Context.DocumentUUID == "" || w.Context.TabID == "" {
 				continue
 			}
-			t := executionv2.Target{Scope: "DOCUMENT", Session: w.WindowID, Activation: w.Activation, ProjectUUID: w.Context.ProjectUUID, DocumentUUID: w.Context.DocumentUUID, DocumentType: w.Context.DocumentType, TabID: w.Context.TabID}
+			t := executionv2.Target{Scope: "DOCUMENT", Session: w.TransportID, Activation: w.Activation, ProjectUUID: w.Context.ProjectUUID, DocumentUUID: w.Context.DocumentUUID, DocumentType: w.Context.DocumentType, TabID: w.Context.TabID}
 			if err = t.Validate(); err != nil {
 				continue
 			}

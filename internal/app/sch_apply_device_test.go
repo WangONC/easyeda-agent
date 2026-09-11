@@ -60,6 +60,7 @@ func TestSchematicDeviceGuardRequiresHydratedIdentity(t *testing.T) {
 
 func TestSchListRequestsHydratedDeviceIdentity(t *testing.T) {
 	cfg, capture, cleanup := newCapturingDaemon(t)
+	cfg.v2Read.target.DocumentType = "schematic"
 	defer cleanup()
 	var out, errOut bytes.Buffer
 	c := newSchCmd(cfg, &out, &errOut)

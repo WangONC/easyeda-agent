@@ -736,55 +736,48 @@ func loadSchGroupsContext(cfg *appConfig, window string) (pinned *appConfig, win
 // schGroupFlagTypes are the marker component types that ride along with a stub.
 var schGroupFlagTypes = map[string]bool{"netflag": true, "netport": true, "netlabel": true}
 
-// fetchSchWirePolylines pulls every wire's {primitiveId, polyline} via the
-// debug.exec_js hatch: the typed components.list `wires` payload flattens to
-// segments WITHOUT primitiveIds, and group-move must name the wire primitives
-// it moves. Read-only; same hatch precedent as autolayout-official/zone-draw.
+// fetchSchWirePolylines consumes the formal V2 read, preserving primitive
+// identity on normalized native segments. No arbitrary script execution.
 func fetchSchWirePolylines(cfg *appConfig, window, docUUID string) ([]schGroupWire, error) {
-	const code = `
-const wires = await eda.sch_PrimitiveWire.getAll() ?? [];
-const out = [];
-for (const w of wires) {
-	let id = '', line = null;
-	try { id = String(w.getState_PrimitiveId?.() ?? ''); } catch {}
-	try { const l = w.getState_Line?.(); if (Array.isArray(l)) line = l; } catch {}
-	if (id && Array.isArray(line) && line.length >= 4) out.push({ id, line });
-}
-return { wires: out };`
-	res, err := requestAutolayoutActionTimed(cfg, "debug.exec_js", window,
-		map[string]any{"code": code}, 30*time.Second, docUUID, "read wire polylines")
+	res, err := requestAutolayoutActionTimed(cfg, "schematic.components.list", window,
+		map[string]any{"includeWires": true}, 30*time.Second, docUUID, "read wire polylines")
 	if err != nil {
 		return nil, err
 	}
-	value, _ := res.Result["value"].(map[string]any)
-	if value == nil {
-		return nil, fmt.Errorf("wire read returned no value (result: %v)", res.Result)
+	return parseV2WirePolylines(res.Result)
+}
+
+func parseV2WirePolylines(value map[string]any) ([]schGroupWire, error) {
+	rows, ok := value["wires"].([]any)
+	if !ok {
+		return nil, fmt.Errorf("V2_WIRE_SHAPE: missing wire inventory")
 	}
-	raw, _ := value["wires"].([]any)
-	out := make([]schGroupWire, 0, len(raw))
-	for _, item := range raw {
-		m, ok := item.(map[string]any)
+	out := []schGroupWire{}
+	byID := map[string]int{}
+	for _, item := range rows {
+		row, ok := item.(map[string]any)
 		if !ok {
-			continue
+			return nil, fmt.Errorf("V2_WIRE_SHAPE")
 		}
-		id := asString(m["id"])
-		lineRaw, _ := m["line"].([]any)
-		if id == "" || len(lineRaw) < 4 {
-			continue
+		id := asString(row["primitiveId"])
+		if id == "" {
+			return nil, fmt.Errorf("V2_WIRE_IDENTITY: update Connector")
 		}
-		pts := make([]float64, 0, len(lineRaw))
-		valid := true
-		for _, v := range lineRaw {
-			f, ok := finiteFloat(v)
-			if !ok {
-				valid = false
-				break
+		points := make([]float64, 4)
+		for i, key := range []string{"x0", "y0", "x1", "y1"} {
+			n, valid := finiteFloat(row[key])
+			if !valid {
+				return nil, fmt.Errorf("V2_WIRE_SHAPE: %s", key)
 			}
-			pts = append(pts, f)
+			points[i] = n
 		}
-		if valid {
-			out = append(out, schGroupWire{ID: id, Points: pts})
+		i, exists := byID[id]
+		if !exists {
+			i = len(out)
+			byID[id] = i
+			out = append(out, schGroupWire{ID: id})
 		}
+		out[i].Points = append(out[i].Points, points...)
 	}
 	return out, nil
 }

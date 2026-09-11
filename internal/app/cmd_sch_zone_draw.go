@@ -9,7 +9,8 @@ package app
 // same zoneRect() geometry the violation rule uses — what you see IS what the
 // gate checks.
 //
-// Implementation note: the schematic graphics API (eda.sch_PrimitiveRectangle /
+// RETIRED: source retained for historical reference; public command rejects before I/O.
+// Historical implementation note: the schematic graphics API (eda.sch_PrimitiveRectangle /
 // sch_PrimitiveText — full CRUD, probed live 2026-07-19 on ceshi) has no typed
 // action yet, so this goes through the debug.exec_js hatch, the documented path
 // for scriptable behavior that doesn't warrant a connector re-import. Created
@@ -418,7 +419,11 @@ func newSchZoneDrawCmd(cfg *appConfig, window *string, stdout, stderr io.Writer)
 	var mode string
 	var fontSize, margin, gutter, titleBand float64
 	c := &cobra.Command{
-		Use:   "zone-draw",
+		Use:    "zone-draw",
+		Hidden: true,
+		PreRunE: func(*cobra.Command, []string) error {
+			return fmt.Errorf("RETIRED_ENTRYPOINT: zone-draw has no V2-native graphics implementation")
+		},
 		Short: "Draw the claimed functional zones as dashed frames + labels on the sheet (--clear removes them)",
 		Long: `Draw functional module frames from live group geometry and the sheet bbox.
 Use sch frame for explicit frame geometry, or sch compose for a complete

@@ -134,6 +134,9 @@ func TestRoutingTelemetryReadPath(t *testing.T) {
 				return string(data)
 			})
 			defer closeDaemon()
+			cfg.v2Read.target.DocumentType = "pcb"
+			cfg.v2Read.target.ProjectUUID = "p"
+			cfg.v2Read.target.DocumentUUID = "d"
 			payload, _ := json.Marshal(map[string]any{"telemetry": true, "project_uuid": "p", "document_uuid": "d", "nets": names})
 			var out, stderr bytes.Buffer
 			if err := pcbReportScoped(cfg, "w1", string(payload), &out, &stderr); err != nil {
@@ -149,7 +152,7 @@ func TestRoutingTelemetryReadPath(t *testing.T) {
 					}
 				}
 			}
-			if counts["pcb.nets.list"] != 1 || counts["board.snapshot_compact"] != 1 || len(daemon.snapshot()) != 5 {
+			if counts["pcb.nets.list"] != 1 || counts["board.snapshot_compact"] != 1 || len(daemon.snapshot()) != 2 {
 				t.Fatal(counts)
 			}
 			var response struct {
@@ -157,7 +160,7 @@ func TestRoutingTelemetryReadPath(t *testing.T) {
 					Telemetry struct {
 						Nets []routingStats `json:"nets"`
 					} `json:"routingTelemetry"`
-				}
+				} `json:"value"`
 			}
 			if err := json.Unmarshal(out.Bytes(), &response); err != nil {
 				t.Fatal(err)
@@ -176,12 +179,25 @@ func TestRoutingTelemetryDefaultUnchanged(t *testing.T) {
 		return `{"ok":true,"result":{"nets":[],"units":"mil"}}`
 	})
 	defer closeDaemon()
+	cfg.v2Read.target.DocumentType = "pcb"
+	cfg.v2Read.target.ProjectUUID = "p"
+	cfg.v2Read.target.DocumentUUID = "d"
 	for _, payload := range []string{"{}", `{"telemetry":false}`} {
 		var out, stderr bytes.Buffer
 		if err := pcbReportScoped(cfg, "w1", payload, &out, &stderr); err != nil {
 			t.Fatal(err)
 		}
-		if out.String() != `{"ok":true,"result":{"nets":[],"units":"mil"}}`+"\n" {
+		var receipt struct {
+			Outcome string `json:"outcome"`
+			Value   struct {
+				Units string `json:"units"`
+				Nets  []any  `json:"nets"`
+			} `json:"value"`
+		}
+		if err := json.Unmarshal(out.Bytes(), &receipt); err != nil {
+			t.Fatal(err)
+		}
+		if receipt.Outcome != "SUCCEEDED" || receipt.Value.Units != "mil" || receipt.Value.Nets == nil || len(receipt.Value.Nets) != 0 {
 			t.Fatal(out.String())
 		}
 	}

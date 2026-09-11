@@ -177,6 +177,9 @@ func newSchSheetTidyCommand(cfg *appConfig, window *string, stdout, stderr io.Wr
 		Example: `  easyeda sch sheet tidy                 # dry-run 看各区位移
   easyeda sch sheet tidy --apply         # 执行 + 统一重画框`,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			if apply {
+				return fmt.Errorf("RETIRED_ENTRYPOINT: sheet tidy --apply requires unavailable V2-native text/frame operations; dry-run remains available")
+			}
 			if apply && dryRun {
 				return fmt.Errorf("--dry-run and --apply are mutually exclusive")
 			}

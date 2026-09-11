@@ -11,7 +11,7 @@ import (
 
 // newApiCmd is the local `eda.*` API discovery surface — no daemon/connector
 // needed. Index is embedded (generated from @jlceda/pro-api-types by gen.py), so
-// the agent (and a developer scoping a new typed action / debug.exec_js call) can
+// the agent (and a developer scoping a new typed action) can
 // answer "what eda.* method do I need" without leaving the CLI.
 func newApiCmd(stdout, stderr io.Writer) *cobra.Command {
 	api := &cobra.Command{
@@ -22,7 +22,7 @@ func newApiCmd(stdout, stderr io.Writer) *cobra.Command {
 			return fmt.Sprintf(
 				"Search and browse the embedded eda.* API index (%d namespaces, %d methods,\n"+
 					"generated from %s). No daemon or connected window required.\n\n"+
-					"This is the self-discovery loop for new typed actions / debug.exec_js calls:\n"+
+					"This is the self-discovery loop for official API documentation:\n"+
 					"find the eda.* method, read its signature, then wrap it.", ns, m, apidoc.Source())
 		}(),
 	}

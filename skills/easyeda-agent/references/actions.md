@@ -4,7 +4,7 @@
 本文件只保留调用边界；不复制全部命令和历史修复。原理图主流程见
 [schematic-data.md](schematic-data.md) 与 [auto-layout-sop.md](auto-layout-sop.md)。
 
-## 1.4 原理图入口
+## 2.0 原理图入口
 
 | 目的 | CLI |
 |---|---|
@@ -16,7 +16,7 @@
 | 合并已设计的 Lib 几何 | `sch compose --from … --out … --before … --playbook …` |
 | 放置固定 IR 中的器件 | `sch materialize <connectivity.json> --out …`；不是完整布局/布线器 |
 | 少量显式标记连接增量 | `sch plan <before.json> <after.json>`；不支持任意器件或导线 diff |
-| 转换/核验模块方框与标题 | `sch frame apply/check --from …` |
+| 模块方框与标题 | 原绘图入口已退役；不执行 `sch frame apply/check` |
 | 执行计划 | `sch apply <playbook.json>` |
 
 生成器的输入、支持范围与位号/身份规则集中在 [schematic-data.md](schematic-data.md)。
@@ -35,15 +35,14 @@ easyeda sch apply steps.json --yes
 Playbook 使用 `version:1`、`meta` 和有序 `steps`。每步只选一种执行方式：
 
 - `action` + `payload`：typed action；输入按目录 schema 校验。
-- `run` + `flags`/`args`：Cobra 子命令，例如 `sch frame apply`。
+- `run` + `flags`/`args`：Cobra 子命令，只允许当前可用的 V2 高层命令。
 - `notify`：编辑器提示。
 
 `capture:{"part":"$.primitiveId"}` 捕获新实例 ID，后续 payload 用 `${part}`；
 不要把旧文件中的 primitive ID 当作新建结果。`assert` 的路径相对 action 的 `result`，
 支持 `exists`、`true/false`、`==/!=`、数值比较及 `len` 比较。内部 run 继承目标工程/页。
 
-执行默认失败即停，只读步骤可重试；变更超时不自动重发。`partial:true` 或非空
-`notApplied` 会使 typed 步骤失败。成功回执不等于保存；计划应包含读回与显式 save。
+执行默认失败即停，只读步骤可重试；变更超时不自动重发。公开 Outcome 不是 `SUCCEEDED` 时，typed 步骤失败；不从原始 `ok/partial/verified` 字段重新判定。成功回执不等于保存；计划应包含读回与显式 save。
 可选 `verify` 是失败后的落地检查，不是事务回滚。已生效的前序步骤保留在画布和 journal。
 
 **生成的保护计划**（如 compose、designators、connectivity plan）禁止改目标、

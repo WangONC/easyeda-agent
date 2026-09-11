@@ -161,8 +161,11 @@ func TestPlanNCIntermediateGuardStopsAfterUnpersistedClear(t *testing.T) {
 		return `{"ok":true,"context":{"projectUuid":"p","documentUuid":"d","documentType":"schematic"},"result":` + result + `}`
 	})
 	defer closeServer()
+	cfg.v2Read.target.ProjectUUID = "p"
+	cfg.v2Read.target.DocumentUUID = "d"
 	r := &applyRunner{cfg: cfg, pb: pb, stdout: io.Discard, stderr: io.Discard, window: "w1", journalPath: filepath.Join(t.TempDir(), "journal.jsonl"), toIdx: len(pb.Steps) - 1, vars: map[string]string{}}
-	if err := r.execute(); err == nil {
+	runErr := r.execute()
+	if runErr == nil {
 		t.Fatal("unpersisted NC clear passed its intermediate guard")
 	}
 	reads, clears := 0, 0
@@ -177,7 +180,7 @@ func TestPlanNCIntermediateGuardStopsAfterUnpersistedClear(t *testing.T) {
 		}
 	}
 	if reads != 2 || clears != 1 {
-		t.Fatalf("test must reach the NC mutation and stop at next guard: reads=%d clears=%d", reads, clears)
+		t.Fatalf("test must reach the NC mutation and stop at next guard: reads=%d clears=%d error=%v", reads, clears, runErr)
 	}
 }
 

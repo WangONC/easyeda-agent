@@ -22,12 +22,12 @@ func newHangingDaemon(t *testing.T) (*appConfig, func()) {
 		switch r.URL.Path {
 		case "/health":
 			_, _ = w.Write([]byte(`{"service":"easyeda-agent","windows":[]}`))
-		case "/action":
+		case "/v2/operations":
 			// Block well past the client's timeout so the call fails with a
 			// deadline, but bounded so Close() doesn't stall on a held conn.
 			select {
 			case <-r.Context().Done():
-			case <-time.After(800 * time.Millisecond):
+			case <-time.After(12 * time.Second):
 			}
 		default:
 			http.NotFound(w, r)
@@ -44,7 +44,7 @@ func newHangingDaemon(t *testing.T) (*appConfig, func()) {
 	if err != nil {
 		t.Fatalf("parse test server port: %v", err)
 	}
-	cfg := &appConfig{host: host, ports: fmt.Sprintf("%d-%d", port, port)}
+	cfg := &appConfig{v2Read: fixtureSchematicBinding(srv.URL), host: host, ports: fmt.Sprintf("%d-%d", port, port)}
 	return cfg, srv.Close
 }
 
@@ -55,7 +55,7 @@ func TestPostActionFailsFastOnHang(t *testing.T) {
 	defer cleanup()
 
 	start := time.Now()
-	_, err := postAction(cfg, "schematic.component.place", "", nil, 300*time.Millisecond)
+	_, err := postAction(cfg, "schematic.component.place", "", map[string]any{"libraryUuid": "lib", "uuid": "device", "x": 0, "y": 0}, 300*time.Millisecond)
 	elapsed := time.Since(start)
 
 	if err == nil {
@@ -64,7 +64,8 @@ func TestPostActionFailsFastOnHang(t *testing.T) {
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Fatalf("expected context.DeadlineExceeded, got %v", err)
 	}
-	if elapsed > 5*time.Second {
+	// V2 gives the daemon 10s transport grace to deliver its deadline receipt.
+	if elapsed > 15*time.Second {
 		t.Fatalf("postAction did not fail fast: took %s", elapsed)
 	}
 }
@@ -84,6 +85,7 @@ func TestPlaceUUIDHint(t *testing.T) {
 // round-trip.
 func TestSchPlace_WiresDesignator(t *testing.T) {
 	cfg, cap, cleanup := newCapturingDaemon(t)
+	cfg.v2Read.target.DocumentType = "schematic"
 	defer cleanup()
 
 	var stdout, stderr bytes.Buffer
@@ -109,6 +111,7 @@ func TestSchPlace_WiresDesignator(t *testing.T) {
 // and non-batch flows keep their existing behavior.
 func TestSchPlace_OmitsDesignatorWhenUnset(t *testing.T) {
 	cfg, cap, cleanup := newCapturingDaemon(t)
+	cfg.v2Read.target.DocumentType = "schematic"
 	defer cleanup()
 
 	var stdout, stderr bytes.Buffer

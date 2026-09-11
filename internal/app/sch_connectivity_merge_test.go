@@ -77,6 +77,7 @@ func TestConnectivityAllPagesRestoresOriginalAndRejectsMixedEvidence(t *testing.
 	for _, failure := range []string{"", "read-failed", "wrong-project", "wrong-pin-page", "missing-pins", "restore-failed"} {
 		t.Run(failure, func(t *testing.T) {
 			active := "a" // first listed page already active: old restore code missed this case
+			var hostBinding *v2ReadBinding
 			cfg, daemon, closeServer := newAutolayoutTestDaemon(t, func(_ int, c autolayoutTestCall) string {
 				project, doc := "p", active
 				result := map[string]any{}
@@ -87,6 +88,7 @@ func TestConnectivityAllPagesRestoresOriginalAndRejectsMixedEvidence(t *testing.
 					}
 					active = c.Payload["uuid"].(string)
 					doc = active
+					hostBinding.target.DocumentUUID = active
 				case "document.current":
 					result["uuid"] = active
 				case "schematic.pages.list":
@@ -116,6 +118,9 @@ func TestConnectivityAllPagesRestoresOriginalAndRejectsMixedEvidence(t *testing.
 				return fmt.Sprintf(`{"ok":true,"context":{"projectUuid":%q,"documentUuid":%q,"documentType":"schematic"},"result":%s}`, project, doc, b)
 			})
 			defer closeServer()
+			hostBinding = cfg.v2Read
+			hostBinding.target.ProjectUUID = "p"
+			hostBinding.target.DocumentUUID = "a"
 			window := "w1"
 			var stdout bytes.Buffer
 			cmd := newSchConnectivityCmd(cfg, &window, &stdout, io.Discard)

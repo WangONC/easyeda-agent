@@ -34,10 +34,13 @@ func (d *autolayoutTestDaemon) snapshot() []autolayoutTestCall {
 func newAutolayoutTestDaemon(t *testing.T, responder func(int, autolayoutTestCall) string) (*appConfig, *autolayoutTestDaemon, func()) {
 	t.Helper()
 	state := &autolayoutTestDaemon{}
+	binding := fixtureSchematicBinding("")
+	binding.target.DocumentUUID = "page-1"
+	binding.window = "w1"
 	srv := httptest.NewServer(withV2ReadFixture(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/health":
-			_, _ = w.Write([]byte(`{"service":"easyeda-agent","windows":[{"windowId":"w1"}]}`))
+			_ = json.NewEncoder(w).Encode(map[string]any{"service": "easyeda-agent", "version": "dev", "v2_session": "fixture-daemon", "windows": []any{map[string]any{"windowId": binding.window, "transportId": binding.target.Session, "activationId": binding.target.Activation, "context": map[string]any{"projectUuid": binding.target.ProjectUUID, "documentUuid": binding.target.DocumentUUID, "documentType": binding.target.DocumentType, "tabId": binding.target.TabID}}}})
 		case "/action":
 			var body struct {
 				Action  string         `json:"action"`
@@ -70,7 +73,8 @@ func newAutolayoutTestDaemon(t *testing.T, responder func(int, autolayoutTestCal
 		srv.Close()
 		t.Fatalf("parse test daemon port: %v", err)
 	}
-	return &appConfig{v2Read: fixtureReadBinding(srv.URL), host: host, ports: fmt.Sprintf("%d-%d", port, port)}, state, srv.Close
+	binding.endpoint = srv.URL
+	return &appConfig{v2Read: binding, host: host, ports: fmt.Sprintf("%d-%d", port, port)}, state, srv.Close
 }
 
 func autolayoutOK(docUUID, resultJSON string) string {

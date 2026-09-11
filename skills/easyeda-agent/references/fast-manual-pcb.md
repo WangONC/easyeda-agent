@@ -10,7 +10,7 @@
 | `route.preflight` | `easyeda pcb route-preflight --payload '{…}'` | `easyeda_route_preflight` |
 | `route.apply_batch` | `easyeda pcb route-apply-batch --payload '{…}'` | `easyeda_route_apply_batch` |
 
-CLI 使用 `--project <name/uuid> --doc <active PCB uuid>`。Fast Path 的 doc 必须是 **UUID**，不自动开页、不按名称查找、不切换文档；Connector 在执行时核对 project/document/tab。原始 `/action` 请求使用 `payload.document_uuid`；daemon 从目标窗口绑定 `project_uuid`，也可以显式提供并由 Connector 核对。通用 `easyeda call <action>` 和现有 `easyeda_pcb` MCP domain 工具仍可用。专用 CLI 默认预算 60s，可用 `--timeout` 修改。
+CLI 使用 `--project <name/uuid> --doc <active PCB uuid>`。Fast Path 的 doc 必须是 **UUID**，不自动开页、不按名称查找、不切换文档；Connector 在执行时核对 project/document/tab。使用现有高层 Fast CLI 或 `easyeda_pcb` MCP domain 工具，CLI 内部创建 V2 请求并绑定精确目标；无需手工组装执行 envelope。专用 CLI 默认预算 60s，可用 `--timeout` 修改。
 
 所有坐标、宽度和 clearance 单位为 **mil**；points 是 `[x,y]`，bbox 是 `[minX,minY,maxX,maxY]`。AI 决定完整 geometry 和工程约束。工具只能执行或拒绝，不修复路线。
 

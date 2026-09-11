@@ -88,15 +88,19 @@ func newRootCmd(stdout, stderr io.Writer) *cobra.Command {
 	// `--force-stale-read easyeda doc reload`)。
 	root.PersistentFlags().StringVar(&cfg.forceStaleRead, "force-stale-read", "",
 		"read PCB state not reloaded since the last PCB edit: bypass the STALE_READ gate with this `reason` (audited as daemon.stale_read.force; only ever attaches to PCB reads, never unlocks the routing stage gate). Normal fix is: easyeda doc reload")
+	_ = root.PersistentFlags().MarkHidden("force-stale-read")
 	root.PersistentFlags().StringVar(&cfg.doc, "doc", "",
 		"pin every mutating action to this schematic page / PCB (uuid or name): the CLI switches to it and confirms via live document.current before editing, refusing rather than land the edit on whatever page is foreground — removes the doc-switch race")
 
-	root.AddCommand(newV2Cmd(stdout))
+	internalV2 := newV2Cmd(stdout)
+	internalV2.Hidden = true
+	root.AddCommand(internalV2)
 	root.AddCommand(
 		newVersionCmd(stdout),
 		newActionsCmd(stdout, stderr),
 		newNotifyCmd(cfg, stdout, stderr),
-		newCallCmd(cfg, stdout, stderr),
+		newActionCmd(cfg, stdout, stderr),
+		newOperationCmd(stdout),
 		newApplyCmd(cfg, stdout, stderr),
 		newDaemonCmd(cfg, stdout, stderr),
 		newHealthAliasCmd(cfg, stdout, stderr),
@@ -113,7 +117,6 @@ func newRootCmd(stdout, stderr io.Writer) *cobra.Command {
 		newLibCmd(cfg, stdout, stderr),
 		newBlocksCmd(stdout, stderr),
 		newApiCmd(stdout, stderr),
-		newDebugCmd(cfg, stdout, stderr),
 		newSkillCmd(stdout, stderr),
 		newUpdateCmd(cfg, stdout, stderr),
 	)
@@ -178,37 +181,55 @@ func newActionsCmd(stdout, _ io.Writer) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			enc := json.NewEncoder(stdout)
 			enc.SetIndent("", "  ")
-			return enc.Encode(protocol.AvailableActions())
+			return enc.Encode(publicActionCatalog())
 		},
 	}
 }
 
-// ── call (generic escape hatch) ───────────────────────────────────────────
+// Typed public convenience entry. Envelope, identity and schema belong to Go.
+func newActionCmd(cfg *appConfig, stdout, stderr io.Writer) *cobra.Command {
+	var window, input string
+	c := &cobra.Command{Use: "action ACTION", Short: "Execute a typed V2 action using business inputs; target binding is automatic", Args: cobra.ExactArgs(1), RunE: func(cmd *cobra.Command, args []string) error {
+		p := map[string]any{}
+		if err := json.Unmarshal([]byte(input), &p); err != nil {
+			return fmt.Errorf("invalid --input: %w", err)
+		}
+		return dispatch(cfg, args[0], window, p, stdout, stderr)
+	}}
+	c.Flags().StringVar(&window, "window", "", "logical Host window from health (only required when ambiguous)")
+	c.Flags().StringVar(&input, "input", "{}", "typed action business input JSON")
+	return c
+}
 
-func newCallCmd(cfg *appConfig, stdout, stderr io.Writer) *cobra.Command {
-	var window, payload string
+func newOperationCmd(out io.Writer) *cobra.Command {
+	c := newV2Cmd(out)
+	c.Use = "operation"
+	c.Short = "Inspect or reconcile an existing V2 operation; never replay"
+	for _, child := range c.Commands() {
+		if child.Name() != "status" && child.Name() != "evidence" && child.Name() != "reconcile" {
+			c.RemoveCommand(child)
+		}
+	}
+	return c
+}
 
-	cmd := &cobra.Command{
-		Use:   "call <action>",
-		Short: "Generic escape hatch: call any typed action directly",
-		Args:  cobra.ExactArgs(1),
-		Example: `  easyeda call system.health
-  easyeda call schematic.components.list --window win-1
-  easyeda call schematic.component.place --payload '{"libraryUuid":"...","uuid":"...","x":100,"y":200}'`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			action := args[0]
-
-			var payloadMap map[string]any
-			if payload != "" {
-				if err := json.Unmarshal([]byte(payload), &payloadMap); err != nil {
-					return fmt.Errorf("invalid --payload json: %w", err)
+// Project the one production catalog without exposing internal request guards.
+func publicActionCatalog() []map[string]any {
+	out := []map[string]any{}
+	for _, a := range protocol.AvailableActions() {
+		mode, reason := "V2_NATIVE", ""
+		if a.V2Disposition != nil {
+			mode, reason = a.V2Disposition.Mode, a.V2Disposition.Reason
+		}
+		inputs := map[string]string{}
+		if a.V2 != nil {
+			for key, kind := range a.V2.Input {
+				if key != "expected_project_uuid" && key != "session_token" {
+					inputs[key] = kind
 				}
 			}
-
-			return dispatch(cfg, action, window, payloadMap, stdout, stderr)
-		},
+		}
+		out = append(out, map[string]any{"name": a.Name, "domain": a.Domain, "mode": mode, "reason": reason, "description": a.Description, "inputs": inputs, "outputs": a.Outputs})
 	}
-	cmd.Flags().StringVar(&window, "window", "", "EasyEDA window ID")
-	cmd.Flags().StringVar(&payload, "payload", "", "action payload as a JSON object")
-	return cmd
+	return out
 }

@@ -210,6 +210,7 @@ func TestCountNets(t *testing.T) {
 }
 
 func TestOfficialAutolayoutSecondGuardRejectsWireDrift(t *testing.T) {
+	t.Skip("ARCHIVED: official raw-script engine is unavailable; TestRetiredPublicEntrypointsRejectBeforeTransport covers its rejection")
 	parts := `[{"primitiveId":"id-U1","designator":"U1","x":100,"y":100,"rotation":0}]`
 	cfg, daemon, cleanup := newAutolayoutTestDaemon(t,
 		officialDefaultResponder(func(read int) string {
@@ -230,6 +231,7 @@ func TestOfficialAutolayoutSecondGuardRejectsWireDrift(t *testing.T) {
 }
 
 func TestOfficialAutolayoutSecondGuardRejectsPartPoseDrift(t *testing.T) {
+	t.Skip("ARCHIVED: official raw-script engine is unavailable; TestRetiredPublicEntrypointsRejectBeforeTransport covers its rejection")
 	cfg, daemon, cleanup := newAutolayoutTestDaemon(t,
 		officialDefaultResponder(func(read int) string {
 			x := 100
@@ -251,6 +253,7 @@ func TestOfficialAutolayoutSecondGuardRejectsPartPoseDrift(t *testing.T) {
 }
 
 func TestOfficialAutolayoutSecondGuardRejectsSameCountNetlistDrift(t *testing.T) {
+	t.Skip("ARCHIVED: official raw-script engine is unavailable; TestRetiredPublicEntrypointsRejectBeforeTransport covers its rejection")
 	netReads := 0
 	parts := `[
 		{"primitiveId":"id-U1","designator":"U1","x":100,"y":100,"rotation":0},
@@ -283,6 +286,7 @@ func TestOfficialAutolayoutSecondGuardRejectsSameCountNetlistDrift(t *testing.T)
 }
 
 func TestOfficialAutolayoutCleanPostCheckSucceeds(t *testing.T) {
+	t.Skip("ARCHIVED: official raw-script engine is unavailable; TestRetiredPublicEntrypointsRejectBeforeTransport covers its rejection")
 	parts := `[{"primitiveId":"id-U1","designator":"U1","x":100,"y":100,"rotation":0}]`
 	cfg, daemon, cleanup := newAutolayoutTestDaemon(t,
 		officialDefaultResponder(func(_ int) string {
@@ -308,6 +312,7 @@ func TestOfficialAutolayoutCleanPostCheckSucceeds(t *testing.T) {
 }
 
 func TestOfficialAutolayoutRefusesBusEvenWithRewire(t *testing.T) {
+	t.Skip("ARCHIVED: official raw-script engine is unavailable; TestRetiredPublicEntrypointsRejectBeforeTransport covers its rejection")
 	parts := `[{"primitiveId":"id-U1","designator":"U1","x":100,"y":100,"rotation":0}]`
 	cfg, daemon, cleanup := newAutolayoutTestDaemon(t,
 		officialDefaultResponder(func(_ int) string {
@@ -328,6 +333,7 @@ func TestOfficialAutolayoutRefusesBusEvenWithRewire(t *testing.T) {
 }
 
 func TestOfficialAutolayoutRefusesMarkerWithoutRewire(t *testing.T) {
+	t.Skip("ARCHIVED: official raw-script engine is unavailable; TestRetiredPublicEntrypointsRejectBeforeTransport covers its rejection")
 	parts := `[{"primitiveId":"id-U1","designator":"U1","x":100,"y":100,"rotation":0}]`
 	cfg, daemon, cleanup := newAutolayoutTestDaemon(t,
 		officialDefaultResponder(func(_ int) string {
@@ -348,6 +354,7 @@ func TestOfficialAutolayoutRefusesMarkerWithoutRewire(t *testing.T) {
 }
 
 func TestOfficialAutolayoutRequiresSheetBeforeMutation(t *testing.T) {
+	t.Skip("ARCHIVED: official raw-script engine is unavailable; TestRetiredPublicEntrypointsRejectBeforeTransport covers its rejection")
 	parts := `[{"primitiveId":"id-U1","designator":"U1","x":100,"y":100,"rotation":0}]`
 	cfg, daemon, cleanup := newAutolayoutTestDaemon(t,
 		officialDefaultResponder(func(_ int) string {
@@ -368,6 +375,7 @@ func TestOfficialAutolayoutRequiresSheetBeforeMutation(t *testing.T) {
 }
 
 func TestOfficialAutolayoutSavedFalseFails(t *testing.T) {
+	t.Skip("ARCHIVED: official raw-script engine is unavailable; TestRetiredPublicEntrypointsRejectBeforeTransport covers its rejection")
 	parts := `[{"primitiveId":"id-U1","designator":"U1","x":100,"y":100,"rotation":0}]`
 	base := officialDefaultResponder(func(_ int) string {
 		return officialSnapshotResponse(0, parts)
@@ -390,6 +398,7 @@ func TestOfficialAutolayoutSavedFalseFails(t *testing.T) {
 }
 
 func TestOfficialAutolayoutPostCheckFailsClosed(t *testing.T) {
+	t.Skip("ARCHIVED: official raw-script engine is unavailable; TestRetiredPublicEntrypointsRejectBeforeTransport covers its rejection")
 	parts := `[{"primitiveId":"id-U1","designator":"U1","x":100,"y":100,"rotation":0}]`
 	tests := []struct {
 		name           string

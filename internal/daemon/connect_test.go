@@ -52,6 +52,8 @@ func dialConnector(t *testing.T, base, windowID string) *websocket.Conn {
 	reg := protocol.Register{
 		Type:             protocol.TypeRegister,
 		WindowID:         windowID,
+		ActivationID:     windowID,
+		TransportID:      windowID,
 		ConnectorVersion: "0.1.0",
 		EasyEDAVersion:   "test",
 		Capabilities:     []string{"schematic.v1"},

@@ -16,3 +16,21 @@ function randomActivationToken(): string {
 export function createWebSocketId(randomToken = randomActivationToken): string {
 	return `${SOCKET_ID_PREFIX}${randomToken()}`;
 }
+
+/** One in-memory identity per top-level Host window, never per document/socket.
+ * No extension user-config/localStorage: those are shared by different windows.
+ * The property survives repeated bundle activation in this renderer, not app exit.
+ */
+export function hostWindowState(root: object, randomToken = randomActivationToken): { id: string; runtime?: unknown } {
+ const key = Symbol.for('jlceda-agent.host-window.v2');
+ const shared = root as Record<symbol, { id: string; runtime?: unknown }>;
+ if (!shared[key]) Object.defineProperty(shared, key, { value: { id: `host-${randomToken()}` } });
+ return shared[key];
+}
+export function currentHostWindow(): { id: string; runtime?: unknown } {
+ // A restricted/cross-origin top window must fail visibly, never mint a fake
+ // physical identity from a document name or a per-activation random fallback.
+ const root = typeof window === 'undefined' ? globalThis : window.top;
+ if (!root) throw Error('HOST_WINDOW_IDENTITY_UNAVAILABLE');
+ return hostWindowState(root);
+}

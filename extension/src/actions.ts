@@ -1010,14 +1010,15 @@ export const schematicComponentsListData = async (payload: Payload, tagger=tagCo
 	// Existing wire geometry for the autoconnect scorer (issue #64). Flatten every
 	// wire's polyline into per-edge segments tagged with the wire's net, so the Go
 	// side can hard-reject a stub that would touch a foreign-net wire.
-	const wires: Array<{ x0: number; y0: number; x1: number; y1: number; net: string }> = [];
+	const wires: Array<{ x0: number; y0: number; x1: number; y1: number; net: string; primitiveId: string }> = [];
 	if (includeWires) {
 		let rawWires: Array<{ getState_Line: () => Array<number>; getState_Net?: () => string; getState_PrimitiveId?: () => string }> = [];
 		try { rawWires = v2Native.array(await eda.sch_PrimitiveWire.getAll()) as typeof rawWires; }
 		catch (err) { throw edaError(err, 'Requested wire inventory unavailable.'); }
 		const segs = collectWireSegments(rawWires);
 		for (const s of segs) {
-			wires.push({ x0: s.seg[0], y0: s.seg[1], x1: s.seg[2], y1: s.seg[3], net: s.net });
+			if (!s.wirePrimitiveId) throw Error("V2_WIRE_IDENTITY");
+			wires.push({ x0: s.seg[0], y0: s.seg[1], x1: s.seg[2], y1: s.seg[3], net: s.net, primitiveId: s.wirePrimitiveId });
 		}
 	}
 

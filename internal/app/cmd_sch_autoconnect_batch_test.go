@@ -20,7 +20,7 @@ import (
 // distort direction choice. connect_pin always succeeds.
 func newFakeBatchDaemon(t *testing.T) (*appConfig, func()) {
 	t.Helper()
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(withV2ReadFixture(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/health" {
 			_, _ = w.Write([]byte(`{"service":"easyeda-agent","windows":[]}`))
 			return
@@ -78,7 +78,7 @@ func newFakeBatchDaemon(t *testing.T) (*appConfig, func()) {
 			result = map[string]any{}
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{"ok": true, "result": result})
-	}))
+	})))
 
 	hostPort := strings.TrimPrefix(srv.URL, "http://")
 	host, portStr, _ := strings.Cut(hostPort, ":")
@@ -86,7 +86,9 @@ func newFakeBatchDaemon(t *testing.T) (*appConfig, func()) {
 	if err != nil {
 		t.Fatalf("parse port: %v", err)
 	}
-	cfg := &appConfig{host: host, ports: fmt.Sprintf("%d-%d", port, port)}
+	binding := fixtureReadBinding(srv.URL)
+	binding.target.DocumentType = "schematic"
+	cfg := &appConfig{v2Read: binding, host: host, ports: fmt.Sprintf("%d-%d", port, port)}
 	return cfg, srv.Close
 }
 
@@ -169,7 +171,7 @@ func TestAutoconnect_BatchStubsAreMutuallyExclusive(t *testing.T) {
 // overlapping. Same-net stubs do not hard-reject each other, so this isolates
 // marker staggering from the batch wire-exclusion rule.
 func TestAutoconnect_BatchRegistersPredictedMarkerBBox(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(withV2ReadFixture(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/health" {
 			_, _ = w.Write([]byte(`{"service":"easyeda-agent","windows":[]}`))
 			return
@@ -204,13 +206,13 @@ func TestAutoconnect_BatchRegistersPredictedMarkerBBox(t *testing.T) {
 			result = map[string]any{}
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{"ok": true, "result": result})
-	}))
+	})))
 	defer srv.Close()
 
 	hostPort := strings.TrimPrefix(srv.URL, "http://")
 	host, portStr, _ := strings.Cut(hostPort, ":")
 	port, _ := strconv.Atoi(portStr)
-	cfg := &appConfig{host: host, ports: fmt.Sprintf("%d-%d", port, port)}
+	cfg := &appConfig{v2Read: fixtureSchematicBinding(srv.URL), host: host, ports: fmt.Sprintf("%d-%d", port, port)}
 
 	rules := defaultAutoconnectRules()
 	rules.AvoidPinFanout = false
@@ -252,7 +254,7 @@ func TestAutoconnect_BatchRegistersPredictedMarkerBBox(t *testing.T) {
 // — pre-fix the sibling stub was invisible, so "up" looked clean and the run
 // silently merged GND into VCC.
 func TestAutoconnect_BatchStubAllBlockedFailsLoud(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(withV2ReadFixture(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/health" {
 			_, _ = w.Write([]byte(`{"service":"easyeda-agent","windows":[]}`))
 			return
@@ -305,12 +307,12 @@ func TestAutoconnect_BatchStubAllBlockedFailsLoud(t *testing.T) {
 			result = map[string]any{}
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{"ok": true, "result": result})
-	}))
+	})))
 	defer srv.Close()
 	hostPort := strings.TrimPrefix(srv.URL, "http://")
 	host, portStr, _ := strings.Cut(hostPort, ":")
 	port, _ := strconv.Atoi(portStr)
-	cfg := &appConfig{host: host, ports: fmt.Sprintf("%d-%d", port, port)}
+	cfg := &appConfig{v2Read: fixtureSchematicBinding(srv.URL), host: host, ports: fmt.Sprintf("%d-%d", port, port)}
 
 	conns := []acConnSpec{
 		{PinRef: "U1:1", Kind: "gnd", Net: "GND"},

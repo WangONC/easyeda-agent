@@ -30,7 +30,7 @@ func TestV2HTTPWebSocketReceiptAndDuplicate(t *testing.T) {
 	if e = wsjson.Read(ctx, ws, &handshake); e != nil {
 		t.Fatal(e)
 	}
-	if e = wsjson.Write(ctx, ws, map[string]any{"type": "register", "windowId": "s", "activationId": "s", "capabilities": []string{"execution.v2"}}); e != nil {
+	if e = wsjson.Write(ctx, ws, map[string]any{"type": "register", "windowId": "s", "activationId": "s", "transportId": "s", "capabilities": []string{"execution.v2"}}); e != nil {
 		t.Fatal(e)
 	}
 	if e = wsjson.Write(ctx, ws, map[string]any{"type": "context", "windowId": "s", "projectUuid": "p", "documentUuid": "d", "documentType": "pcb", "tabId": "t"}); e != nil {

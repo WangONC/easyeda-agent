@@ -111,7 +111,7 @@ easyeda sch sheet-geometry --project <project> --doc <page-uuid> --json
 
 先查 `easyeda <command> --help` 和 `easyeda actions`。确无现成能力时，
 `easyeda api search <query>` 可离线查询官方 API 索引；优先组合现有 typed actions。
-必要的 `debug.exec_js` 只用于任务范围内的临时探测，输出须可 JSON 序列化。
+工程读写只走公开 V2 CLI/MCP；不支持的动作明确停止，不执行任意脚本探测。
 重复使用的操作应落实为 typed action 与 CLI，再同步 Skill。网表读取用
 `sch_ManufactureData.getNetlistFile()`，不要使用已废弃且可能挂起的 `sch_Netlist.getNetlist()`。
 

@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/zhoushoujianwork/easyeda-agent/internal/fastpath"
 	"github.com/zhoushoujianwork/easyeda-agent/internal/measurement"
@@ -93,5 +92,5 @@ func pcbRoutingTelemetry(cfg *appConfig, window string, p map[string]any, stdout
 	if err != nil {
 		return err
 	}
-	return json.NewEncoder(stdout).Encode(map[string]any{"ok": true, "result": map[string]any{"routingTelemetry": telemetry}})
+	return encodeResultEnvelope(snapshot, map[string]any{"routingTelemetry": telemetry}, stdout)
 }

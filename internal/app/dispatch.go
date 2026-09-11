@@ -1,7 +1,6 @@
 package app
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -15,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zhoushoujianwork/easyeda-agent/internal/protocol"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
 )
 
 const (
@@ -27,7 +26,7 @@ const (
 	defaultPortEnd   = 0xeda9 // 60841
 )
 
-// defaultActionTimeout bounds how long the CLI waits for a single /action
+// defaultActionTimeout bounds how long the CLI waits for a single V2 operation
 // round-trip before giving up. Most actions return well under a second; a
 // hang here means the connector's underlying eda.* call never settled.
 const defaultActionTimeout = 20 * time.Second
@@ -35,7 +34,7 @@ const defaultActionTimeout = 20 * time.Second
 // errActionFailed is returned by dispatch when the daemon responds with
 // ok=false. The response body has already been written to stdout so the
 // caller must NOT print an additional error message.
-var errActionFailed = errors.New("action returned ok=false")
+var errActionFailed = errors.New("V2 operation did not succeed")
 
 // appConfig holds the shared host/ports settings threaded through all
 // action subcommands. The fields are bound directly to Cobra persistent
@@ -112,10 +111,8 @@ func dispatchTimed(cfg *appConfig, action, window string, payload any, timeout t
 	}
 	printArtifactPaths(respBody, stderr)
 
-	var parsed struct {
-		OK bool `json:"ok"`
-	}
-	if err := json.Unmarshal(respBody, &parsed); err != nil || !parsed.OK {
+	var parsed executionv2.Result
+	if err := json.Unmarshal(respBody, &parsed); err != nil || parsed.Outcome != executionv2.Succeeded {
 		return errActionFailed
 	}
 	return nil
@@ -197,12 +194,10 @@ func saveFirstArtifact(res *actionResult, out string, stderr io.Writer) error {
 	return nil
 }
 
-// actionResult is the parsed form of an /action response, for callers that need
-// to read the result programmatically instead of streaming it to stdout. The
-// envelope fields (ID/Type/Version) are preserved so reconstruct-then-render
-// commands (sch check/drc/sheet) can re-wrap their typed report in the same
-// {id,type,version,ok,result} envelope the transparent commands stream (#66).
+// actionResult is an internal business view of a daemon V2 receipt.
+// OK derives only from Outcome; legacy-shaped fields are not completion evidence.
 type actionResult struct {
+	V2        *executionv2.Result
 	ID        string         `json:"id"`
 	Type      string         `json:"type"`
 	Version   string         `json:"version"`
@@ -232,17 +227,7 @@ func requestAction(cfg *appConfig, action, window string, payload any) (*actionR
 // requestActionTimed is requestAction with a caller-chosen round-trip timeout,
 // for heavy actions (DRC on a real board routinely exceeds the default).
 func requestActionTimed(cfg *appConfig, action, window string, payload any, timeout time.Duration) (*actionResult, error) {
-	// 连接器队列被上一条 handler 堵住 → daemon 拒绝派发并明说「动作未发出、
-	// 等它排空就行」。这里统一等(见 queue_blocked_retry.go):这是所有动作的
-	// 唯一底层出口,--doc guard 的 pages.list 也从这里走 —— 而恢复段正是被
-	// 那道 guard 挡在门外的(2026-08-26 U2 七条连接因此丢失)。
-	var res *actionResult
-	err := retryWhileQueueBlocked(action, func() error {
-		var e error
-		res, e = requestActionOnce(cfg, action, window, payload, timeout)
-		return e
-	}, queueBlockRetryPolicy{Stderr: queueWaitProgress})
-	return res, err
+	return requestActionOnce(cfg, action, window, payload, timeout)
 }
 
 // queueWaitProgress 是「正在等队列排空」的进度出口。默认 stderr:静默地等
@@ -251,70 +236,50 @@ var queueWaitProgress io.Writer = os.Stderr
 
 // requestActionOnce 是单次往返(不含队列阻塞等待)。
 func requestActionOnce(cfg *appConfig, action, window string, payload any, timeout time.Duration) (*actionResult, error) {
-	respBody, err := postAction(cfg, action, window, payload, timeout)
-	if err != nil {
-		return nil, err
+	raw, e := postAction(cfg, action, window, payload, timeout)
+	if e != nil {
+		return nil, e
 	}
+	res, err := actionValueV2(raw, action)
+	// A successful daemon receipt has already verified the pinned target.
+	// This is internal workflow context, never evidence for deciding Outcome.
+	if err == nil && action != "system.health" && cfg.v2Read != nil && cfg.v2Read.receiptTarget != nil {
+		t := *cfg.v2Read.receiptTarget
+		res.Context = &actionContext{ProjectUUID: t.ProjectUUID, DocumentUUID: t.DocumentUUID, DocumentType: t.DocumentType, TabID: t.TabID}
+	}
+	return res, err
+}
 
-	var parsed struct {
-		ID        string         `json:"id"`
-		Type      string         `json:"type"`
-		Version   string         `json:"version"`
-		OK        bool           `json:"ok"`
-		Result    map[string]any `json:"result"`
-		Artifacts []artifactRef  `json:"artifacts"`
-		Context   *actionContext `json:"context"`
-		Error     *struct {
-			Code    string `json:"code"`
-			Message string `json:"message"`
-		} `json:"error"`
+// Business consumers receive value, never infer success from native fields.
+func actionValueV2(raw []byte, action string) (*actionResult, error) {
+	var r executionv2.Result
+	if e := json.Unmarshal(raw, &r); e != nil {
+		return nil, e
 	}
-	if err := json.Unmarshal(respBody, &parsed); err != nil {
-		return nil, fmt.Errorf("decode %s response: %w", action, err)
-	}
-	res := &actionResult{ID: parsed.ID, Type: parsed.Type, Version: parsed.Version, OK: parsed.OK, Result: parsed.Result, Artifacts: parsed.Artifacts, Context: parsed.Context, Seq: parseSeqCounters(respBody)}
-	if !parsed.OK {
-		msg := "ok=false"
-		code := ""
-		if parsed.Error != nil {
-			code = parsed.Error.Code
-			if parsed.Error.Message != "" {
-				msg = parsed.Error.Message
-			}
+	res := &actionResult{ID: r.OperationID, Version: r.Protocol, OK: r.Outcome == executionv2.Succeeded, V2: &r}
+	if len(r.Value) > 0 && string(r.Value) != "null" {
+		if e := json.Unmarshal(r.Value, &res.Result); e != nil {
+			return nil, e
 		}
-		res.errorMsg = msg
-		res.errorCode = code
-		// 结构化错误(actionError):文本与旧版逐字一致,额外带上 error.code,
-		// 于是调用方能把「机械门拦下的」(STALE_READ)和「真的读失败了」分开处理
-		// —— 两者的下一步完全不同。见 stale_read_optin.go。
-		return res, &actionError{Action: action, Code: code, Message: msg}
+	}
+	if !res.OK {
+		return res, &actionError{Action: action, Code: string(r.Outcome), Message: fmt.Sprintf("operation %s: %s; use operation status/reconcile, never replay", r.OperationID, string(r.Outcome)+" "+r.Code)}
 	}
 	return res, nil
 }
 
-// encodeResultEnvelope writes a reconstructed typed report wrapped in the same
-// {id,type,version,ok,result} envelope the transparent (stdout-streaming)
-// commands emit, so `sch check/drc/sheet --json` are consistent with `sch
-// list/read/place` and a uniform-envelope parser reading result.* works across
-// all of them (#66). The envelope metadata is taken from the daemon's response
-// (res); ok mirrors res.OK.
+// Project a business report while preserving the daemon receipt and Outcome.
 func encodeResultEnvelope(res *actionResult, report any, stdout io.Writer) error {
-	env := map[string]any{
-		"ok":     res.OK,
-		"result": report,
+	if res.V2 == nil {
+		return fmt.Errorf("V2_RECEIPT_REQUIRED")
 	}
-	if res.ID != "" {
-		env["id"] = res.ID
+	projected := *res.V2
+	value, e := json.Marshal(report)
+	if e != nil {
+		return e
 	}
-	if res.Type != "" {
-		env["type"] = res.Type
-	}
-	if res.Version != "" {
-		env["version"] = res.Version
-	}
-	enc := json.NewEncoder(stdout)
-	enc.SetIndent("", "  ")
-	return enc.Encode(env)
+	projected.Value = value
+	return json.NewEncoder(stdout).Encode(projected)
 }
 
 // dispatchCapture runs an action like dispatch (streaming the raw response to
@@ -322,31 +287,19 @@ func encodeResultEnvelope(res *actionResult, report any, stdout io.Writer) error
 // so the caller can post-process artifacts. The streamed bytes are unchanged;
 // callers read res.Artifacts for the persisted file path.
 func dispatchCapture(cfg *appConfig, action, window string, payload any, stdout io.Writer) (*actionResult, error) {
-	respBody, err := postAction(cfg, action, window, payload, defaultActionTimeout)
-	if err != nil {
-		return nil, err
+	raw, e := postAction(cfg, action, window, payload, defaultActionTimeout)
+	if e != nil {
+		return nil, e
 	}
-
-	_, _ = stdout.Write(respBody)
-	if len(respBody) > 0 && respBody[len(respBody)-1] != '\n' {
-		fmt.Fprintln(stdout)
-	}
-	printArtifactPaths(respBody, os.Stderr)
-
-	var parsed struct {
-		OK        bool           `json:"ok"`
-		Result    map[string]any `json:"result"`
-		Artifacts []artifactRef  `json:"artifacts"`
-	}
-	if err := json.Unmarshal(respBody, &parsed); err != nil || !parsed.OK {
-		return nil, errActionFailed
-	}
-	return &actionResult{OK: parsed.OK, Result: parsed.Result, Artifacts: parsed.Artifacts}, nil
+	fmt.Fprintln(stdout, string(raw))
+	return actionValueV2(raw, action)
 }
 
 // healthWindow is the subset of a /health window entry the doc commands need to
 // resolve a routing target.
 type healthWindow struct {
+	TransportID      string    `json:"transportId"`
+	ActivationID     string    `json:"activationId"`
 	WindowID         string    `json:"windowId"`
 	ConnectorVersion string    `json:"connectorVersion"`
 	ConnectedAt      time.Time `json:"connectedAt"`
@@ -418,12 +371,6 @@ func selectWindow(windows []healthWindow, project, window string) (string, error
 		case 0:
 			return "", fmt.Errorf("no connected window for project %q (run `easyeda daemon health`)", project)
 		default:
-			// Extension reloads can leave several registrations for the exact same
-			// project/document tab. They are transport duplicates; route to the
-			// newest registration and let daemon TTL cleanup retire the rest.
-			if id, ok := newestDuplicateWindow(matches); ok {
-				return id, nil
-			}
 			return "", fmt.Errorf("project %q maps to %d windows — pass --window <id>", project, len(matches))
 		}
 	}
@@ -637,17 +584,17 @@ func ensureActiveDoc(cfg *appConfig, window string) error {
 	if activeUUID == target.UUID {
 		return nil
 	}
-	for i := 0; i < 6; i++ {
-		if _, oerr := requestAction(cfg, "document.open", rw, map[string]any{"uuid": target.UUID}); oerr != nil {
-			return fmt.Errorf("--doc guard: open %s: %w", target.Name, oerr)
-		}
-		time.Sleep(1200 * time.Millisecond)
-		cur, cerr := requestAction(cfg, "document.current", rw, nil)
-		if cerr == nil && cur.Context != nil && cur.Context.DocumentUUID == target.UUID {
-			return nil
-		}
+	if _, oerr := requestAction(cfg, "document.open", rw, map[string]any{"uuid": target.UUID}); oerr != nil {
+		return fmt.Errorf("--doc guard: open %s: %w", target.Name, oerr)
 	}
-	return fmt.Errorf("--doc %q: could not confirm it is the active page after retries — refusing to run a mutating action on the wrong page", cfg.doc)
+	cur, cerr := requestAction(cfg, "document.current", rw, nil)
+	if cerr != nil {
+		return fmt.Errorf("--doc guard: fresh confirmation: %w", cerr)
+	}
+	if cur.Context == nil || cur.Context.DocumentUUID != target.UUID {
+		return fmt.Errorf("--doc %q: exact UUID %s was not confirmed; refusing mutation; navigation is not replayed", cfg.doc, target.UUID)
+	}
+	return nil
 }
 
 // printCascadeCleanup surfaces a delete response's cascaded cleanup (ADR-0004
@@ -798,163 +745,7 @@ func stripArtifactNesting(p string) string {
 // postAction is the shared HTTP core: find a live daemon, POST the typed action,
 // and return the raw response body.
 func postAction(cfg *appConfig, action, window string, payload any, timeout time.Duration) ([]byte, error) {
-	if protocol.ActionDisabled(action) {
-		return json.Marshal(map[string]any{"ok": false, "error": map[string]any{
-			"code": "CAPABILITY_DISABLED", "message": "action disabled by process configuration",
-			"action": action, "source": protocol.DisabledActionsEnv,
-		}})
-	}
-	// dry-run 纯计算铁律 (ADR-0004 Decision 4): while the process-wide dry-run
-	// flag is set, a Mutates=true action is refused HERE — before any network
-	// traffic — so no dry-run path can ever write the canvas.
-	if err := dryRunGuard(action); err != nil {
-		return nil, err
-	}
-
-	if action == "project.create" {
-		prepared, err := prepareProjectCreate(cfg, window, payload)
-		if err != nil {
-			return nil, err
-		}
-		payload = prepared
-	}
-
-	// --doc guard: pin the action (mutating OR read — see docGuardApplies) to
-	// the requested page first. Skipped for the guard's own navigation actions
-	// (docGuardExempt) so it never recurses.
-	if action == "board.snapshot_compact" || action == "route.preflight" || action == "route.apply_batch" || action == "route.tuning_plan" || action == "route.pair_plan" || action == "pcb.routing_profile" {
-		// Pin at the Connector execution boundary without a navigation round trip.
-		var p map[string]any
-		data, e := json.Marshal(payload)
-		if e != nil {
-			return nil, e
-		}
-		if e = json.Unmarshal(data, &p); e != nil {
-			return nil, e
-		}
-		if p == nil {
-			p = map[string]any{}
-		}
-		if cfg.doc != "" {
-			if existing, ok := p["document_uuid"].(string); ok && existing != cfg.doc {
-				return nil, fmt.Errorf("--doc conflicts with document_uuid")
-			}
-			p["document_uuid"] = cfg.doc
-		}
-		payload = p
-	} else if docGuardApplies(cfg.doc, action) {
-		if err := ensureActiveDoc(cfg, window); err != nil {
-			return nil, err
-		}
-	}
-
-	portStart, portEnd, err := cfg.portRange()
-	if err != nil {
-		return nil, err
-	}
-
-	if timeout <= 0 {
-		timeout = defaultActionTimeout
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	scan := scanHealth(ctx, hostPortOptions{host: cfg.host, portStart: portStart, portEnd: portEnd})
-	if scan.Found == nil {
-		return nil, fmt.Errorf("no easyeda-agent daemon found on %s:%s (start it with `easyeda daemon start`)", cfg.host, scan.Ports)
-	}
-
-	// 版本一致性门(issue #181):CLI / daemon / connector 错位会让**后续每一条
-	// 排查都染上噪音**(改好的 bug 在旧 daemon 上照样复现)。判据用的就是上面这
-	// 次 /health 扫描的报文 —— 零额外往返;每进程只判一次;`easyeda health` /
-	// `version` / `update` 不走这条路,所以诊断与修复路径不会被自己拦死。
-	if err := checkVersionGate(cfg, scan.Found.Raw, os.Stderr); err != nil {
-		return nil, err
-	}
-
-	body := map[string]any{"action": action}
-	// Identify this client process for audit attribution and the daemon's
-	// concurrent-writer advisory (issue #108).
-	body["clientId"] = cliClientID()
-	// Send the round-trip budget: the daemon shortens its connector wait to
-	// (budget - grace) so it answers with a structured DISPATCH_FAILED *before*
-	// this HTTP client times out — instead of both sides hanging to their own
-	// independent deadlines.
-	body["timeoutMs"] = int(timeout / time.Millisecond)
-	if window != "" {
-		body["windowId"] = window
-	}
-	if cfg.project != "" {
-		body["project"] = cfg.project
-	}
-	if cfg.forceReason != "" {
-		body["forceReason"] = cfg.forceReason
-		if cfg.forceUnsafe {
-			body["forceUnsafe"] = true
-		}
-	} else if reason := staleReadForceReason(cfg, action, payload); reason != "" {
-		// 写后回读放行位(stale_read_optin.go)。只在这一个咽喉上落到线上,并且
-		// 只对「PCB 域 + 不改画布 + 不受布线门管辖」的动作生效 —— 所以它不可能
-		// 顺带解锁 CheckRouteGate。daemon 收到后自己写 daemon.stale_read.force
-		// 审计行,app 侧不另造格式。
-		//
-		// 显式排在 forceReason 之后:人手敲的 `--force <理由>`(布线阶段门)语义更强,
-		// 不该被一个自动放行位覆盖掉(也不该把 forceUnsafe 带上 —— 那是布线门的东西)。
-		// 人手敲的 STALE_READ 逃生口是 --force-stale-read,它走的正是下面这个函数。
-		body["forceReason"] = reason
-	}
-	// Tell the daemon where to drop artifacts. Anchored to the project root
-	// (nearest .git/go.mod ancestor), falling back to cwd — and NEVER a path
-	// inside an existing .easyeda/artifacts tree: sending a raw cwd that had
-	// drifted into the artifact dir made the daemon Join another
-	// .easyeda/artifacts under it, recursively nesting the tree. Best-effort.
-	if dir, ok := artifactOutputDir(); ok {
-		body["outputDir"] = dir
-	}
-	if payload != nil {
-		body["payload"] = payload
-	}
-
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, fmt.Errorf("encode request: %w", err)
-	}
-
-	url := fmt.Sprintf("http://%s:%d/action", cfg.host, scan.Found.Port)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(buf))
-	if err != nil {
-		return nil, fmt.Errorf("build request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	respBody, readErr := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
-	closeErr := resp.Body.Close()
-	if readErr != nil {
-		return nil, fmt.Errorf("read response: %w", readErr)
-	}
-	if closeErr != nil {
-		return nil, fmt.Errorf("close response: %w", closeErr)
-	}
-	// Surface a daemon stale-read advisory here — the one choke point all
-	// dispatch paths (dispatch/dispatchCapture/requestAction) share — so every
-	// command warns without per-command wiring. stderr keeps stdout clean.
-	warnStaleRisk(respBody, os.Stderr)
-	// Same choke point for the concurrent-writer advisory (issue #108).
-	warnConcurrentWriter(respBody, os.Stderr)
-	// And for connector-attached warnings (partial property application #151,
-	// rebind re-place advisory, …) — visible without per-command wiring.
-	warnResponseWarnings(respBody, os.Stderr)
-	// Record the connector's FIFO ordering counters at the SAME choke point, so
-	// any later judgement has a baseline without every command threading one
-	// through by hand (conn_seq.go). Read-only bookkeeping; never fails a call.
-	connSeqObserve(window, cfg.project, respBody)
-	// Old connectors confuse placed footprint handles with library UUIDs.
-	// Adapt fresh identity evidence for every consumer, including Apply guards.
-	return hydrateSchematicIdentityCompatibility(cfg, action, window, payload, respBody, timeout)
+	return publicActionV2(cfg, action, window, payload, timeout)
 }
 
 // parsePortRange parses "start-end" into two ints.

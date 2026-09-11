@@ -100,6 +100,7 @@ func TestComputePartitionPlanRejectsGeometryFromAnotherPage(t *testing.T) {
 	})
 	defer cleanup()
 	cfg.doc = "page-a"
+	cfg.v2Read.target.DocumentUUID = "page-a"
 
 	_, _, err := computePartitionPlan(cfg, "", "page-a", defaultPartitionOpts())
 	if err == nil || !strings.Contains(err.Error(), "page drift") {

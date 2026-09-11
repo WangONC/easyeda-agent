@@ -23,7 +23,7 @@ func TestCheckpointProjectionAndSessionGuard(t *testing.T) {
 			effects := 0
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.URL.Path == "/health" {
-					json.NewEncoder(w).Encode(map[string]any{"windows": []any{map[string]any{"windowId": "new", "activationId": "a", "context": map[string]any{"projectUuid": "p", "documentUuid": "d", "documentType": target.DocumentType, "tabId": "t"}}}})
+					json.NewEncoder(w).Encode(map[string]any{"windows": []any{map[string]any{"transportId": "new", "activationId": "a", "context": map[string]any{"projectUuid": "p", "documentUuid": "d", "documentType": target.DocumentType, "tabId": "t"}}}})
 					return
 				}
 				if r.URL.Path == "/v2/bind" {
@@ -105,7 +105,7 @@ func TestCheckpointExactIdentity(t *testing.T) {
 				case "old-session":
 					session = "old"
 				}
-				item := map[string]any{"windowId": session, "activationId": "a", "context": map[string]any{"projectUuid": project, "documentUuid": doc, "documentType": kind, "tabId": "t", "documentName": "same-name"}}
+				item := map[string]any{"transportId": session, "activationId": "a", "context": map[string]any{"projectUuid": project, "documentUuid": doc, "documentType": kind, "tabId": "t", "documentName": "same-name"}}
 				rows := []any{item}
 				if mode == "ambiguous" {
 					rows = append(rows, item)

@@ -28,7 +28,7 @@ type fakeSchState struct {
 // check has real data to reason about.
 func newFakeSchDaemon(t *testing.T, st *fakeSchState) (*appConfig, func()) {
 	t.Helper()
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(withV2ReadFixture(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/health" {
 			_, _ = w.Write([]byte(`{"service":"easyeda-agent","windows":[]}`))
 			return
@@ -73,7 +73,7 @@ func newFakeSchDaemon(t *testing.T, st *fakeSchState) (*appConfig, func()) {
 			result = map[string]any{}
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{"ok": true, "result": result})
-	}))
+	})))
 
 	hostPort := strings.TrimPrefix(srv.URL, "http://")
 	host, portStr, _ := strings.Cut(hostPort, ":")
@@ -81,7 +81,7 @@ func newFakeSchDaemon(t *testing.T, st *fakeSchState) (*appConfig, func()) {
 	if err != nil {
 		t.Fatalf("parse port: %v", err)
 	}
-	cfg := &appConfig{host: host, ports: fmt.Sprintf("%d-%d", port, port)}
+	cfg := &appConfig{v2Read: fixtureSchematicBinding(srv.URL), host: host, ports: fmt.Sprintf("%d-%d", port, port)}
 	return cfg, srv.Close
 }
 

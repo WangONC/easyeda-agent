@@ -239,6 +239,7 @@ func TestStaleReadForceReasonRefusesToArmWrites(t *testing.T) {
 // 被漏掉了。它是本函数**最坏**的失败形态:回滚其实做完了,回读被门拒 →
 // restored=0 + "verification read failed" → 报出来的是「回滚没成功」。
 func TestRollbackRefineMovesReadsBackThroughTheGate(t *testing.T) {
+	t.Skip("ARCHIVED: legacy /action forceReason stale gate is unavailable; V2 target/recovery and retired-entry tests cover the current boundary")
 	cfg, d := newGateFakeDaemon(t)
 	d.comps["p1"] = [2]float64{610, 310} // 已被挪走,等待回滚
 	d.comps["p2"] = [2]float64{910, 310}
@@ -273,6 +274,7 @@ func TestRollbackRefineMovesReadsBackThroughTheGate(t *testing.T) {
 // 负对照:去掉放行位(直接 requestAction)就一定被拒 —— 证明这道门在假 daemon 里
 // 是真的会响,上面那条绿灯不是因为门根本没装。
 func TestGateActuallyRefusesUnoptedRead(t *testing.T) {
+	t.Skip("ARCHIVED: legacy /action forceReason stale gate is unavailable; V2 target/recovery and retired-entry tests cover the current boundary")
 	cfg, d := newGateFakeDaemon(t)
 	d.mu.Lock()
 	d.stale = "pcb.component.modify"
@@ -290,6 +292,7 @@ func TestGateActuallyRefusesUnoptedRead(t *testing.T) {
 // ── 3. pcb clear:#121 的收尾计数(dryRun 预览按读判)────────────────────
 
 func TestPcbClearVerifiedKeepsRemainingCountThroughTheGate(t *testing.T) {
+	t.Skip("ARCHIVED: legacy /action forceReason stale gate is unavailable; V2 target/recovery and retired-entry tests cover the current boundary")
 	cfg, d := newGateFakeDaemon(t)
 	d.result["pcb.page.clear"] = `{"total":0,"deleted":{}}`
 	d.result["document.current"] = `{}`
@@ -357,6 +360,7 @@ func TestPcbClearVerifiedKeepsRemainingCountThroughTheGate(t *testing.T) {
 // ── 4. playbook verify:跨进程内 CLI 再入的作用域放行位 ────────────────────
 
 func TestDispatchStaleReadReasonScopeAndReach(t *testing.T) {
+	t.Skip("ARCHIVED: legacy /action forceReason stale gate is unavailable; V2 target/recovery and retired-entry tests cover the current boundary")
 	cfg, d := newGateFakeDaemon(t)
 	d.mu.Lock()
 	d.stale = "pcb.import_changes"

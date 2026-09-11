@@ -42,12 +42,9 @@ Git Bash/WSL 与原生 Windows 是不同运行环境，选择相应的二进制�
 随 Go 代码热重建。`make dev` 会刷新仓库二进制和可写的安装路径；先用 `command -v easyeda`
 核对实际 CLI。不要再启动一个后台 daemon 与开发进程交替接管端口。
 
-连接器有两种安装渠道，同一编辑器 profile 保留一种：
-
-| 渠道 | 安装/升级方法 |
-|---|---|
-| GitHub Release `.eext` 侧载 | 下载与 CLI 对应的包，在 EasyEDA 扩展管理器卸载旧项，再导入新包。平台按 UUID 去重，侧载没有自动更新。 |
-| [立创插件市场](https://jlc-ext.com/item/zhoushoujian/jlceda-agent) | 在市场安装，平台支持原地自动更新；市场版本可能落后于发布版，按 health 的版本检查处理。 |
+连接器使用本仓库 GitHub Release 的 `jlceda-agent.eext` 侧载。安装前卸载旧版
+Connector，只保留 EDA Agent 一个插件；独立 UUID 不属于上游插件市场条目，
+不要从上游市场安装或更新。CLI/daemon 与插件版本一致。
 
 开发连接器：`make connector` 按当前版本/UUID 构建，`make eext` 升 patch 后构建同 UUID
 安装包。更换连接器后保存文档，完全退出并重开 EasyEDA，让所有旧页面运行时停止。
@@ -66,8 +63,7 @@ Git Bash/WSL 与原生 Windows 是不同运行环境，选择相应的二进制�
 easyeda daemon start
 ```
 
-当前默认固定监听 **60832**，连接器重试该端口。`daemon start` 会接管同端口旧的
-EasyEDA daemon；端口被其他程序占用时按报错处理，不向后寻找另一个 daemon 端口。
+当前默认固定监听 **60832**，连接器重试该端口。不要同时启动多个 daemon；端口被其他程序占用时按报错处理，不向后寻找另一个 daemon 端口。
 自定义 `--ports` 时还须同步连接器 `daemonPorts` 配置。
 
 ```bash

@@ -1055,41 +1055,11 @@ func (r *applyRunner) runAction(action string, payload map[string]any, timeout t
 	if err != nil {
 		return nil, err
 	}
-	var parsed struct {
-		OK     bool           `json:"ok"`
-		Result map[string]any `json:"result"`
-		Error  *struct {
-			Message string `json:"message"`
-			Detail  string `json:"detail"`
-		} `json:"error"`
+	res, err := actionValueV2(respBody, action)
+	if err != nil {
+		return nil, err
 	}
-	if err := json.Unmarshal(respBody, &parsed); err != nil {
-		return nil, fmt.Errorf("decode %s response: %w", action, err)
-	}
-	if !parsed.OK {
-		msg := "ok=false"
-		if parsed.Error != nil {
-			msg = parsed.Error.Message
-			if parsed.Error.Detail != "" {
-				msg += " — " + parsed.Error.Detail
-			}
-		}
-		return nil, fmt.Errorf("%s: %s", action, msg)
-	}
-	// Partial-application convention (#151): a mutating action may return
-	// ok:true (so the daemon autosaves the applied subset) while flagging
-	// result.partial / non-empty result.notApplied. Replay must treat that as a
-	// step failure — before #151 a partial application errored at wire level
-	// and failed the step; the ok:true re-shaping must not silently weaken the
-	// record-replay regression gate.
-	if parsed.Result != nil {
-		partial, _ := parsed.Result["partial"].(bool)
-		na, _ := parsed.Result["notApplied"].([]any)
-		if partial || len(na) > 0 {
-			return nil, fmt.Errorf("%s: partial application (notApplied: %v)", action, na)
-		}
-	}
-	return anyResult(parsed.Result), nil
+	return anyResult(res.Result), nil
 }
 
 func anyResult(m map[string]any) any {
@@ -1199,17 +1169,14 @@ func parseTrailingJSON(out string) any {
 	return nil
 }
 
-// normalizeResult unwraps a full /action envelope ({ok,result,...}) to its
+// normalizeResult unwraps an explicit V2 receipt to its
 // result body so capture/assert paths are uniform across action and run steps.
 func normalizeResult(v any) any {
-	if m, ok := v.(map[string]any); ok {
-		if _, hasOK := m["ok"]; hasOK {
-			if res, hasRes := m["result"]; hasRes {
-				return res
-			}
-		}
+	if m, ok := v.(map[string]any); ok && m["protocol"] == "execution.v2" {
+		return m["value"]
 	}
 	return v
+
 }
 
 // captureAndAssert evaluates assert gates then captures variables.

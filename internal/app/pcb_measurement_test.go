@@ -73,7 +73,7 @@ func TestReportProfileCannotBeIgnoredWithoutGeometryFlag(t *testing.T) {
 	for _, state := range []string{"MANUFACTURER_VERIFIED", "STALE"} {
 		t.Run(state, func(t *testing.T) {
 			profileRead := false
-			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			srv := httptest.NewServer(withV2ReadFixture(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.URL.Path == "/health" {
 					fmt.Fprint(w, `{"service":"easyeda-agent","windows":[{"windowId":"w1"}]}`)
 					return
@@ -98,18 +98,22 @@ func TestReportProfileCannotBeIgnoredWithoutGeometryFlag(t *testing.T) {
 					result["board_revision"] = "r1"
 				}
 				json.NewEncoder(w).Encode(map[string]any{"ok": true, "result": result, "context": map[string]any{"projectUuid": "p", "documentUuid": "d", "documentType": "pcb"}})
-			}))
+			})))
 			defer srv.Close()
 			host, portText, _ := strings.Cut(strings.TrimPrefix(srv.URL, "http://"), ":")
 			port, _ := strconv.Atoi(portText)
 			cfg := &appConfig{host: host, ports: fmt.Sprintf("%d-%d", port, port)}
+			cfg.v2Read = fixtureReadBinding(srv.URL)
+			cfg.v2Read.window = "w1"
+			cfg.v2Read.target.ProjectUUID = "p"
+			cfg.v2Read.target.DocumentUUID = "d"
 			var out, errout bytes.Buffer
 			e := pcbReportScoped(cfg, "w1", `{"project_uuid":"p","document_uuid":"d","profile_id":"p","nets":["N"]}`, &out, &errout)
 			if e != nil {
 				t.Fatal(e, errout.String())
 			}
 			var response struct {
-				Result map[string]any `json:"result"`
+				Result map[string]any `json:"value"`
 			}
 			json.Unmarshal(out.Bytes(), &response)
 			if !profileRead || response.Result["profile_state"] != state || response.Result["profile_usable"] != (state == "MANUFACTURER_VERIFIED") {

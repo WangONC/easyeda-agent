@@ -293,7 +293,7 @@ func (s *Server) Run(ctx context.Context, log io.Writer) error {
 		errCh <- httpServer.Serve(listener)
 	}()
 
-	fmt.Fprintf(log, "%s daemon listening on http://%s:%d (health: /health, connector: /eda, action: /action)\n", Service, s.opts.Host, port)
+	fmt.Fprintf(log, "%s daemon listening on http://%s:%d (health: /health, connector: /eda, operations: /v2/operations)\n", Service, s.opts.Host, port)
 	if s.autosave != nil {
 		s.logf("autosave on (debounce %s)", s.opts.AutosaveDebounce)
 	}

@@ -2675,3 +2675,16 @@ test('generic device keeps exact source name when LCSC returns a different named
  mock.lib_Device.search=async()=>[generic];mock.lib_Device.get=async(id:string)=>id===generic.uuid?detail:mock.detail;
  assert.equal((await readInstanceIdentity(mock)).device.uuid,generic.uuid);
 });
+
+
+test('components.list: formal wire inventory retains IDs and fails closed', async () => {
+ let wires: unknown = [{getState_PrimitiveId:()=> 'wire-1',getState_Net:()=> 'GND',getState_Line:()=>[20,0,10,0,0,0,10,0]}];
+ (globalThis as any).eda={sch_PrimitiveComponent:{getAll:async()=>[]},sch_PrimitiveWire:{getAll:async()=>wires}};
+ try {
+  const result:any=await schematicComponentsList({includeWires:true});
+  assert.deepEqual(result.result.wires,[{x0:20,y0:0,x1:10,y1:0,net:'GND',primitiveId:'wire-1'},{x0:0,y0:0,x1:10,y1:0,net:'GND',primitiveId:'wire-1'}]);
+  wires=undefined; await assert.rejects(()=>schematicComponentsList({includeWires:true}));
+  wires=[{getState_Line:()=>[0,0,10,0]}]; await assert.rejects(()=>schematicComponentsList({includeWires:true}));
+  wires=[]; assert.deepEqual((await schematicComponentsList({includeWires:true}) as any).result.wires,[]);
+ } finally { delete (globalThis as any).eda; }
+});

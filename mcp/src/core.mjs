@@ -74,9 +74,9 @@ export function buildCallArgs(action, input = {}) {
   if (input.doc) args.push('--doc', input.doc);
   const fast = { 'board.snapshot_compact': 'snapshot-compact', 'route.preflight': 'route-preflight', 'route.apply_batch': 'route-apply-batch', 'route.tuning_plan': 'tuning-plan', 'route.pair_plan': 'pair-plan', 'pcb.routing_profile': 'routing-profile', 'pcb.plane.refresh': 'plane-refresh', 'pcb.drc.compare': 'drc-compare', 'pcb.report': 'report', 'pcb.manufacturing.export': 'manufacturing-export' };
   if (fast[action]) args.push('pcb', fast[action]);
-  else args.push('call', action);
+  else args.push('action', action);
   if (input.payload && Object.keys(input.payload).length > 0) {
-    args.push('--payload', JSON.stringify(input.payload));
+    args.push('--input', JSON.stringify(input.payload));
   }
   if (input.window) args.push('--window', input.window);
   return args;

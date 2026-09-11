@@ -41,10 +41,10 @@ func (s *Server) handleConnect(w http.ResponseWriter, r *http.Request) {
 	ua := r.Header.Get("User-Agent")
 	s.logf("connector %s upgraded (origin=%q ua=%q)", remote, origin, ua)
 	defer func() {
-		s.hub.remove(c.id())
-		// A reconnected window starts with clean rolling write health (same
-		// lifetime rule as the stale-read guard: a reload IS the recovery).
-		s.writeHealth.forget(c.id())
+		// An old socket closing cannot clear its successor's state.
+		if s.hub.removeConn(c) {
+			s.writeHealth.forget(c.id())
+		}
 		ws.Close(websocket.StatusNormalClosure, "closing")
 		s.logf("connector %s closed", remote)
 	}()
@@ -92,11 +92,22 @@ func (s *Server) handleFrame(ctx context.Context, c *conn, data []byte) {
 		s.deliverV2(c, data)
 	case protocol.TypeRegister:
 		var msg protocol.Register
-		if err := json.Unmarshal(data, &msg); err != nil || msg.WindowID == "" {
+		if err := json.Unmarshal(data, &msg); err != nil || msg.WindowID == "" || msg.ActivationID == "" || msg.TransportID == "" {
+			return
+		}
+		if prior := c.snapshot(); prior.WindowID != "" && (prior.WindowID != msg.WindowID || prior.ActivationID != msg.ActivationID || prior.TransportID != msg.TransportID) {
+			s.logf("rejected connector identity change on an existing transport")
 			return
 		}
 		c.applyRegister(msg, now)
-		s.hub.add(c)
+		if !s.hub.add(c) {
+			_ = c.write(ctx, map[string]any{"type": "connector_superseded", "reason": "logical window already has a live activation"})
+			return
+		}
+		for _, id := range s.rebindV2Transport(c) {
+			// Readback only; never dispatch the original mutation again.
+			_ = c.write(ctx, map[string]any{"type": "v2_reconcile", "operation_id": id})
+		}
 		s.logf("connector registered windowId=%s version=%s", msg.WindowID, msg.ConnectorVersion)
 		if note := staleConnectorNotice(msg.ConnectorVersion, s.opts.Version); note != "" {
 			s.logf("%s", note)

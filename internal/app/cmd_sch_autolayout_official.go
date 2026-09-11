@@ -104,6 +104,11 @@ return {wireCount:wires.length,busCount:buses.length,netflagCount,netportCount,n
 // schematic page inside a safety pipeline. apply gates the real call; rewire
 // enables the destroy-and-rebuild wiring path on an already-wired page.
 func runOfficialAutolayout(cfg *appConfig, window string, apply, rewire bool, stdout, stderr io.Writer) error {
+	return fmt.Errorf("RETIRED_ENTRYPOINT: official autolayout has no V2-native implementation; use the V2 layout engine")
+}
+
+// Archived implementation: deliberately unregistered and never executed.
+func archivedOfficialAutolayout(cfg *appConfig, window string, apply, rewire bool, stdout, stderr io.Writer) error {
 	// Guard: the platform lays out the ACTIVE document, so it must be a schematic
 	// page and foreground. Verify via the live context before a 2-minute call.
 	win, err := resolveTargetWindow(cfg, window)

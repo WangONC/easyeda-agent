@@ -164,11 +164,16 @@ func TestParseTrailingJSON(t *testing.T) {
 	if !ok || m["score"] != 96.0 {
 		t.Fatalf("trailing json wrong: %v", v)
 	}
-	// /action envelope unwraps to result
-	v = parseTrailingJSON(`{"ok":true,"result":{"primitiveId":"abc"},"context":{}}`)
+	// V2 envelope unwraps only the daemon-provided business value
+	v = parseTrailingJSON(`{"protocol":"execution.v2","outcome":"SUCCEEDED","value":{"primitiveId":"abc"}}`)
 	m, ok = v.(map[string]any)
 	if !ok || m["primitiveId"] != "abc" {
 		t.Fatalf("envelope not unwrapped: %v", v)
+	}
+	// Historical result shapes remain uninterpreted.
+	legacy := parseTrailingJSON(`{"ok":true,"result":{"primitiveId":"abc"}}`).(map[string]any)
+	if legacy["primitiveId"] != nil || legacy["result"] == nil {
+		t.Fatal("legacy envelope interpreted")
 	}
 	// no json at all
 	if v := parseTrailingJSON("plain text only"); v != nil {

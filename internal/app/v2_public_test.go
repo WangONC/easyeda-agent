@@ -1,0 +1,229 @@
+package app
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+)
+
+func TestPublicV2HomeCommandsBindInternally(t *testing.T) {
+	requests := []executionv2.Request{}
+	legacy := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/health" {
+			fmt.Fprint(w, `{"service":"easyeda-agent","version":"dev","windows":[{"windowId":"physical","transportId":"transport","activationId":"activation","context":{"documentType":"home","documentUuid":"tab_page1","tabId":"tab_page1"}}]}`)
+			return
+		}
+		if r.URL.Path != "/v2/operations" {
+			legacy++
+			http.NotFound(w, r)
+			return
+		}
+		var q executionv2.Request
+		if err := json.NewDecoder(r.Body).Decode(&q); err != nil {
+			t.Error(err)
+		}
+		requests = append(requests, q)
+		if q.Target.Session != "transport" || q.Target.Activation != "activation" || q.Target.Scope != "HOME" {
+			t.Errorf("target: %+v", q.Target)
+		}
+		scope := "NONE"
+		if q.Action == "project.create" {
+			scope = "PROJECT_TOPOLOGY"
+		}
+		json.NewEncoder(w).Encode(executionv2.Result{Protocol: executionv2.Version, OperationID: q.OperationID, Outcome: executionv2.Succeeded, Effects: executionv2.Effects{Scope: scope, Settled: true}, Value: json.RawMessage(`{"uuid":"p"}`), EvidenceRef: q.OperationID})
+	}))
+	defer server.Close()
+	for _, args := range [][]string{{"project", "doc"}, {"action", "project.list"}, {"action", "project.create", "--input", `{"name":"new"}`}} {
+		var out, stderr bytes.Buffer
+		root := newRootCmd(&out, &stderr)
+		hostPort := strings.TrimPrefix(server.URL, "http://")
+		i := strings.LastIndex(hostPort, ":")
+		root.SetArgs(append([]string{"--host", hostPort[:i], "--ports", hostPort[i+1:] + "-" + hostPort[i+1:], "--skip-version-check"}, args...))
+		if e := root.Execute(); e != nil {
+			t.Fatal(e, out.String(), stderr.String())
+		}
+		if !strings.Contains(out.String(), `"outcome":"SUCCEEDED"`) {
+			t.Fatal(out.String())
+		}
+	}
+	if legacy != 0 || len(requests) != 3 {
+		t.Fatal(legacy, len(requests))
+	}
+	create := requests[2]
+	if create.Input["session_token"] != "activation" || create.Input["expected_project_uuid"] != "" || create.OperationID == "" || create.Input["client_transaction_id"] != create.OperationID {
+		t.Fatal(create)
+	}
+}
+
+func TestPublicV2NeverRetriesOrInfersNativeSuccess(t *testing.T) {
+	for _, outcome := range []executionv2.Outcome{executionv2.Succeeded, executionv2.NotApplied, executionv2.Partial, executionv2.Unknown} {
+		t.Run(string(outcome), func(t *testing.T) {
+			count := 0
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				count++
+				if r.URL.Path != "/v2/operations" {
+					t.Errorf("unexpected route %s", r.URL.Path)
+				}
+				var req executionv2.Request
+				json.NewDecoder(r.Body).Decode(&req)
+				json.NewEncoder(w).Encode(executionv2.Result{Protocol: executionv2.Version, OperationID: req.OperationID, EvidenceRef: req.OperationID, Outcome: outcome, Effects: executionv2.Effects{Scope: "NONE", Settled: true}, Value: json.RawMessage(`{"ok":true,"verified":true}`)})
+			}))
+			defer server.Close()
+			cfg := &appConfig{v2Read: fixtureReadBinding(server.URL)}
+			result, err := requestAction(cfg, "document.current", "", nil)
+			if count != 1 {
+				t.Fatalf("replayed %d times", count)
+			}
+			if result == nil || result.OK != (outcome == executionv2.Succeeded) || (err == nil) != (outcome == executionv2.Succeeded) {
+				t.Fatalf("wrong projection %+v %v", result, err)
+			}
+		})
+	}
+}
+
+func TestPublicV2NavigationPinsNewDocumentWithoutReplay(t *testing.T) {
+	for _, mode := range []string{"normal", "wrong-project", "wrong-document", "new-transport"} {
+		t.Run(mode, func(t *testing.T) {
+			target := executionv2.Target{Scope: "DOCUMENT", Session: "socket", Activation: "activation", ProjectUUID: "project", DocumentUUID: "old", DocumentType: "schematic", TabID: "old-tab"}
+			opens := 0
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path == "/health" {
+					project, doc, session := "project", "new", "socket"
+					if mode == "wrong-project" {
+						project = "foreign"
+					}
+					if mode == "wrong-document" {
+						doc = "foreign"
+					}
+					if mode == "new-transport" {
+						session = "new-socket"
+					}
+					fmt.Fprintf(w, `{"windows":[{"windowId":"physical","transportId":%q,"activationId":"activation","context":{"projectUuid":%q,"documentUuid":%q,"documentType":"schematic","tabId":"new-tab"}}]}`, session, project, doc)
+					return
+				}
+				var req executionv2.Request
+				json.NewDecoder(r.Body).Decode(&req)
+				scope := "NONE"
+				if req.Action == "document.open" {
+					opens++
+					scope = "NAVIGATION_SELECTION"
+				} else if req.Target.DocumentUUID != "new" {
+					t.Errorf("read used old target %+v", req.Target)
+				}
+				json.NewEncoder(w).Encode(executionv2.Result{Protocol: executionv2.Version, OperationID: req.OperationID, EvidenceRef: req.OperationID, Outcome: executionv2.Succeeded, Effects: executionv2.Effects{Scope: scope, Settled: true}, Value: json.RawMessage(`{"uuid":"new"}`)})
+			}))
+			defer server.Close()
+			cfg := &appConfig{v2Read: &v2ReadBinding{endpoint: server.URL, window: "physical", target: target}}
+			if _, err := publicActionV2(cfg, "document.open", "physical", map[string]any{"uuid": "new"}, 0); err != nil {
+				t.Fatal(err)
+			}
+			_, err := requestAction(cfg, "document.current", "physical", nil)
+			if (err == nil) != (mode == "normal") {
+				t.Fatalf("mode %s: %v", mode, err)
+			}
+			if opens != 1 {
+				t.Fatalf("navigation replayed %d", opens)
+			}
+		})
+	}
+}
+func TestPublicV2LibraryDefaultIsResolvedBeforeEffect(t *testing.T) {
+	calls := []string{}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req executionv2.Request
+		json.NewDecoder(r.Body).Decode(&req)
+		calls = append(calls, req.Action)
+		scope, value := "NONE", `{"personalLibraryUuid":"personal-library"}`
+		if req.Action == "library.footprint.create" {
+			scope = "LIBRARY_ASSET"
+			value = `{"uuid":"created"}`
+			if req.Target.Scope != "LIBRARY" || req.Target.LibraryUUID != "personal-library" {
+				t.Errorf("unbound library %+v", req.Target)
+			}
+		}
+		json.NewEncoder(w).Encode(executionv2.Result{Protocol: executionv2.Version, OperationID: req.OperationID, EvidenceRef: req.OperationID, Outcome: executionv2.Succeeded, Effects: executionv2.Effects{Scope: scope, Settled: true}, Value: json.RawMessage(value)})
+	}))
+	defer server.Close()
+	cfg := &appConfig{v2Read: fixtureReadBinding(server.URL)}
+	if _, err := publicActionV2(cfg, "library.footprint.create", "", map[string]any{"name": "test"}, 0); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Join(calls, ",") != "library.list,library.footprint.create" {
+		t.Fatal(calls)
+	}
+}
+
+func TestPublicV2DaemonHealthWithoutConnector(t *testing.T) {
+	calls := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/health" {
+			fmt.Fprint(w, `{"service":"easyeda-agent","version":"dev","v2_session":"daemon-only","windows":[]}`)
+			return
+		}
+		if r.URL.Path != "/v2/operations" {
+			t.Errorf("unexpected route %s", r.URL.Path)
+			http.NotFound(w, r)
+			return
+		}
+		calls++
+		var q executionv2.Request
+		if err := json.NewDecoder(r.Body).Decode(&q); err != nil {
+			t.Error(err)
+		}
+		if q.Action != "system.health" || q.Target.Scope != "HOME" || q.Target.Session != "daemon-only" || q.Target.Activation != "daemon-only" {
+			t.Errorf("wrong request: %+v", q)
+		}
+		json.NewEncoder(w).Encode(executionv2.Result{Protocol: executionv2.Version, OperationID: q.OperationID, EvidenceRef: q.OperationID, Outcome: executionv2.Succeeded, Effects: executionv2.Effects{Scope: "NONE", Settled: true}, Value: json.RawMessage(`{"healthy":true}`)})
+	}))
+	defer server.Close()
+	var out, stderr bytes.Buffer
+	root := newRootCmd(&out, &stderr)
+	hp := strings.TrimPrefix(server.URL, "http://")
+	i := strings.LastIndex(hp, ":")
+	root.SetArgs([]string{"--host", hp[:i], "--ports", hp[i+1:] + "-" + hp[i+1:], "--skip-version-check", "action", "system.health"})
+	if err := root.Execute(); err != nil {
+		t.Fatal(err, stderr.String())
+	}
+	if calls != 1 || !strings.Contains(out.String(), `"outcome":"SUCCEEDED"`) {
+		t.Fatal(calls, out.String())
+	}
+}
+
+func TestV2WireReadPreservesIdentityAndRejectsMissingData(t *testing.T) {
+	segment := func(id string, x float64) any {
+		return map[string]any{"primitiveId": id, "x0": x, "y0": 0., "x1": x + 10, "y1": 0.}
+	}
+	rows, err := parseV2WirePolylines(map[string]any{"wires": []any{segment("w1", 0), segment("w2", 100), segment("w1", 10)}})
+	if err != nil || len(rows) != 2 || rows[0].ID != "w1" || len(rows[0].Points) != 8 || rows[0].Points[4] != 10 {
+		t.Fatal(rows, err)
+	}
+	for _, v := range []map[string]any{{}, {"wires": nil}, {"wires": []any{segment("", 0)}}, {"wires": []any{map[string]any{"primitiveId": "w1"}}}} {
+		if _, err := parseV2WirePolylines(v); err == nil {
+			t.Fatal("malformed accepted", v)
+		}
+	}
+	if rows, err := parseV2WirePolylines(map[string]any{"wires": []any{}}); err != nil || len(rows) != 0 {
+		t.Fatal(rows, err)
+	}
+}
+
+func TestPublicCatalogOmitsInternalRequestSchema(t *testing.T) {
+	for _, a := range publicActionCatalog() {
+		if _, ok := a["v2"]; ok {
+			t.Fatal("internal schema", a)
+		}
+		in := a["inputs"].(map[string]string)
+		if _, ok := in["session_token"]; ok {
+			t.Fatal(a)
+		}
+		if _, ok := in["expected_project_uuid"]; ok {
+			t.Fatal(a)
+		}
+	}
+}

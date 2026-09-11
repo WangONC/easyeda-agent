@@ -56,6 +56,7 @@ export type InboundFrame =
 // ─── Connector → daemon frames ───────────────────────────────────────
 
 export interface RegisterFrame {
+ transportId: string;
  activationId: string;
 	type: 'register';
 	windowId: string;

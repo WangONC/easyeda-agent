@@ -49,6 +49,11 @@ func ValidateV2(r executionv2.Request) (executionv2.Admission, error) {
 				return executionv2.Admission{}, errors.New("V2_RELOAD_TARGET_MISMATCH")
 			}
 		}
+		// Active-page inventory may carry a stricter document binding. Its
+		// existing controlled traversal verifies restoration of that exact page.
+		if r.Action == "schematic.components.list" && r.Target.Scope == "DOCUMENT" {
+			targetKind = "schematic"
+		}
 		if targetKind != "ANY" && targetKind != r.Target.Scope && !(r.Target.Scope == "DOCUMENT" && targetKind == r.Target.DocumentType) {
 			return executionv2.Admission{}, errors.New("V2_TARGET_MISMATCH")
 		}

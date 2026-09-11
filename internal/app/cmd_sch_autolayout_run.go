@@ -462,6 +462,9 @@ func compareAutolayoutInputs(before, after []alPart) error {
 
 // runAutolayout pulls real geometry, plans, optionally applies, and renders.
 func runAutolayout(cfg *appConfig, window string, spec alSpec, rules autolayoutRules, apply, allPages, asJSON, zoneDraw bool, stdout, stderr io.Writer) error {
+	if apply && zoneDraw && len(buildAutolayoutZoneClaims(spec.Modules, io.Discard)) > 0 {
+		return fmt.Errorf("RETIRED_ENTRYPOINT: zone annotation drawing has no V2-native implementation; use --zone-draw=false")
+	}
 	if apply && allPages {
 		return fmt.Errorf("autolayout: template --apply cannot be combined with --all-pages: mutation, connectivity inventory, and geometry proof are active-page scoped; use --all-pages only for dry-run")
 	}
@@ -572,7 +575,7 @@ func runAutolayout(cfg *appConfig, window string, spec alSpec, rules autolayoutR
 		renderAutolayoutReport(rep, apply, stdout)
 	}
 	if !rep.OK {
-		return fmt.Errorf("autolayout: incomplete (%d error(s), %d overlap(s))", len(rep.Errors), rep.Validation.PartOverlaps)
+		return fmt.Errorf("autolayout: incomplete (%d error(s), %d overlap(s)): %s", len(rep.Errors), rep.Validation.PartOverlaps, strings.Join(rep.Errors, "; "))
 	}
 	return nil
 }
@@ -602,6 +605,11 @@ func buildAutolayoutZoneClaims(modules []alSpecModule, stderr io.Writer) map[str
 }
 
 func execAutolayoutZoneJS(cfg *appConfig, window, targetUUID, phase, code string) (map[string]any, error) {
+	return nil, fmt.Errorf("RETIRED_ENTRYPOINT: raw-script graphical operations are unavailable")
+}
+
+// Retained historical implementation; never registered or called.
+func archivedExecAutolayoutZoneJS(cfg *appConfig, window, targetUUID, phase, code string) (map[string]any, error) {
 	res, err := requestAutolayoutActionTimed(cfg, "debug.exec_js", window, map[string]any{"code": code}, 30*time.Second, targetUUID, phase)
 	if err != nil {
 		return nil, err
@@ -1010,47 +1018,9 @@ The planner is PURE and deterministic: the same spec on the same input always
 yields identical coordinates that pass 'sch layout-lint'. v1 only MOVES parts
 that are already placed (it does not create missing parts).
 
-TWO ENGINES (--engine):
-  template  (default) our spec-driven functional-group planner above — clean,
-            deterministic, needs --spec. Best for KNOWN blocks/modules. It only
-            moves parts, so --apply REFUSES an active page that already has any
-            wire, bus, netflag, netport, or netlabel. Run it before wiring; there
-            is no unsafe force override.
-  official  the platform's own eda.sch_Document.autoLayout() (@beta) — a generic
-            connectivity-clustered FALLBACK for un-templated pages. No spec, but
-            it is a LONG op (~2min), rearranges the WHOLE active schematic page,
-            and is messier than a template. Needs the target page foreground.
-            It is DESTRUCTIVE: it moves parts without attached connectivity and
-            places off-grid. It atomically guards sheet + part poses + wire/bus/
-            marker counts, refuses buses (not rebuildable), requires --rewire
-            for other existing connectivity, snaps to grid, self-checks geometry
-            + wiring, and proves the save.
-
-  --rewire  (official only; NOT a template override) after layout, delete the now-broken wiring and
-            rebuild it from the netlist captured BEFORE the run. Best-effort: a
-            scattered layout can leave stub-collision shorts. Required to run
-            official on a page that is already wired.
-
-  --dry-run  return proposed coordinates + warnings, mutate nothing (default)
-  --apply    pin one target page (--doc or spec.page), prove complete bbox/pin
-             geometry + zero connectivity before planning and again before the
-             first move, apply, read every target back, verify grid/spacing/
-             overlap/pin/title-block constraints, and save. Any failure rolls
-             back, reads the original anchors back, and saves the rollback.
-  --all-pages template dry-run only; apply is refused because mutation and the
-             safety proofs are scoped to one active page
-  --json     emit the structured report
-
-Spec shape:
-  {
-    "page": "P1_MCU_USB_STORAGE", "sheet": "A4",
-    "modules": [
-      {"name":"MCU","zone":"center","core":"U1","parts":["U1","C18","R6"]}
-    ],
-    "rules": {"avoidTitleBlock":true,"preservePinFanout":true,
-              "moduleGap":80,"routeChannelGap":40,
-              "preferVerticalPeripheralPlacement":true}
-  }`,
+Only the template engine is available in 2.0. The historical official engine
+is retired and cannot execute. Supply --spec with the existing template layout.
+`,
 		Args: cobra.NoArgs,
 		Example: `  easyeda sch autolayout --spec p1-layout.json --dry-run
   easyeda sch autolayout --spec p1-layout.json --doc P1_MCU_USB_STORAGE --apply
@@ -1081,7 +1051,7 @@ Spec shape:
 				return fmt.Errorf("unknown --engine %q (template|official)", engine)
 			}
 			if spec == "" {
-				return fmt.Errorf("--spec is required for --engine template (a layout spec JSON file); or use --engine official for the platform fallback")
+				return fmt.Errorf("--spec is required for --engine template (a layout spec JSON file)")
 			}
 			raw, err := os.ReadFile(spec)
 			if err != nil {
@@ -1129,7 +1099,7 @@ Spec shape:
 		},
 	}
 	c.Flags().StringVar(&spec, "spec", "", "layout spec JSON file (required for --engine template)")
-	c.Flags().StringVar(&engine, "engine", "template", "placement engine: template (our spec-driven planner) | official (platform eda.sch_Document.autoLayout fallback)")
+	c.Flags().StringVar(&engine, "engine", "template", "placement engine: template (V2); official is unavailable")
 	c.Flags().BoolVar(&rewire, "rewire", false, "official only (not a template override): after layout, delete broken wiring and rebuild it from the pre-run netlist")
 	c.Flags().BoolVar(&dryRun, "dry-run", false, "plan and print proposed coordinates without mutating (default behavior)")
 	c.Flags().BoolVar(&apply, "apply", false, "pin one page, require zero connectivity + complete geometry, move/readback/save, and verify any rollback")

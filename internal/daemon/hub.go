@@ -17,6 +17,7 @@ import (
 // Window is a read-only snapshot of a connected EasyEDA window, used by /health
 // and listings.
 type Window struct {
+	TransportID      string           `json:"transportId"`
 	ActivationID     string           `json:"activationId"`
 	WindowID         string           `json:"windowId"`
 	ConnectorVersion string           `json:"connectorVersion"`
@@ -36,6 +37,7 @@ type Window struct {
 // writes are serialized through writeMu so dispatch goroutines can send
 // requests concurrently and safely.
 type conn struct {
+	transportID  string
 	activationID string
 	ws           *websocket.Conn
 	writeMu      sync.Mutex
@@ -67,6 +69,7 @@ func (c *conn) applyRegister(msg protocol.Register, now time.Time) {
 	defer c.mu.Unlock()
 	c.windowID = msg.WindowID
 	c.activationID = msg.ActivationID
+	c.transportID = msg.TransportID
 	c.connVersion = msg.ConnectorVersion
 	c.edaVersion = msg.EasyEDAVersion
 	c.caps = msg.Capabilities
@@ -130,6 +133,7 @@ func (c *conn) snapshot() Window {
 	defer c.mu.Unlock()
 	return Window{
 		ActivationID:     c.activationID,
+		TransportID:      c.transportID,
 		WindowID:         c.windowID,
 		ConnectorVersion: c.connVersion,
 		EasyEDAVersion:   c.edaVersion,
@@ -208,14 +212,36 @@ func newHub() *hub {
 	return &hub{windows: map[string]*conn{}, retired: map[string]retiredWindow{}}
 }
 
-func (h *hub) add(c *conn) {
+// One executor per logical Host window. Different activation cannot steal
+// pending native ownership; same-activation reconnect retains its executor.
+func (h *hub) add(c *conn) bool {
 	id := c.id()
 	if id == "" {
-		return
+		return false
 	}
 	h.mu.Lock()
+	old := h.windows[id]
+	if old != nil && old != c && old.snapshot().ActivationID != c.snapshot().ActivationID {
+		h.mu.Unlock()
+		return false
+	}
 	h.windows[id] = c
 	h.mu.Unlock()
+	if old != nil && old != c && old.ws != nil {
+		_ = old.ws.Close(websocket.StatusGoingAway, "transport replaced")
+	}
+	return true
+}
+
+// Late close of an old socket must not remove its replacement.
+func (h *hub) removeConn(c *conn) bool {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if h.windows[c.id()] == c {
+		delete(h.windows, c.id())
+		return true
+	}
+	return false
 }
 
 // dedupeContext retires older transport registrations for the exact same
@@ -403,12 +429,19 @@ func (h *hub) liveWindowSummary() (count int, summary string) {
 	return len(parts), strings.Join(parts, ", ")
 }
 
-func (h *hub) get(windowID string) (*conn, bool) {
+func (h *hub) get(id string) (*conn, bool) {
 	h.pruneStale(time.Now().UTC())
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	c, ok := h.windows[windowID]
-	return c, ok
+	if c, ok := h.windows[id]; ok {
+		return c, true
+	}
+	for _, c := range h.windows {
+		if c.snapshot().TransportID == id && id != "" {
+			return c, true
+		}
+	}
+	return nil, false
 }
 
 // target resolves the connector for an action. An explicit windowID wins;

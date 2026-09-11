@@ -351,6 +351,8 @@ func TestSchDesignatorsVerifyUsesOnlyFreshReads(t *testing.T) {
 		return string(raw)
 	})
 	defer close()
+	cfg.v2Read.target.ProjectUUID = "project"
+	cfg.v2Read.target.DocumentUUID = "page1"
 	window := "w1"
 	var out bytes.Buffer
 	cmd := newSchDesignatorsVerifyCmd(cfg, &window, &out)
@@ -416,6 +418,8 @@ func TestSchDesignatorsVerifyRejectsConflictOnUnvisitedPage(t *testing.T) {
 		return string(raw)
 	})
 	defer close()
+	cfg.v2Read.target.ProjectUUID = "project"
+	cfg.v2Read.target.DocumentUUID = "page1"
 	window := "w1"
 	cmd := newSchDesignatorsVerifyCmd(cfg, &window, io.Discard)
 	cmd.SetArgs([]string{"--before", beforePath, "--target", targetPath, "--before-sha", sha256Hex(raw), "--target-sha", sha256Hex(targetRaw), "--phase", "before"})

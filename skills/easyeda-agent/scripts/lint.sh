@@ -16,6 +16,9 @@
 # Baseline store: ${EASYEDA_LINT_DIR:-~/.easyeda-agent/lint}/<project>/ — sits
 # next to the daemon's audit log (~/.easyeda-agent/audit). The schematic lives
 # in EasyEDA's webview, not on disk, so we version the layout SNAPSHOT instead.
+echo "RETIRED_ENTRYPOINT: raw-JS live probe is unavailable; use easyeda sch check (V2)." >&2
+exit 2
+
 set -euo pipefail
 
 DIR="$(cd "$(dirname "$0")" && pwd)"

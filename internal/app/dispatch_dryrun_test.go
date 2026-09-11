@@ -104,6 +104,7 @@ func TestRunAutolayoutDryRunIsPureComputation(t *testing.T) {
 		return `{"ok":true,"result":{}}`
 	})
 	defer closeFn()
+	cfg.v2Read.target.DocumentUUID="doc-1"
 
 	spec := alSpec{
 		Page:    "P1",

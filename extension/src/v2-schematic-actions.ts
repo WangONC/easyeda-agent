@@ -234,6 +234,7 @@ export function componentsList(query: (p: Record<string, unknown>, tagger: (comp
             c.prepare(async () => { const now = await eda.dmt_SelectControl.getCurrentDocumentInfo(); if (!complete || now?.uuid !== original.uuid || now.tabId !== original.tabId)
                 return { changed: null, verification: unavailable() }; const value = await query(c.request.input, async () => mapping); return observed(value, ['fresh_component_inventory', 'original_page_restored', ...(c.request.input.tagPages === true ? ['complete_page_ownership_mapping'] : [])], false); });
             if (c.request.input.tagPages === true) {
+                if(c.request.target_ref.scope==='DOCUMENT') c.navigationTarget({scope:'PROJECT',session:c.request.target_ref.session,activation:c.request.target_ref.activation,project_uuid:c.request.target_ref.project_uuid});
                 // Discovery resolves exact UUIDs once; no name-based retargeting during traversal.
                 const pages = array(await eda.dmt_Schematic.getAllSchematicPagesInfo());
                 if (!pages.length)

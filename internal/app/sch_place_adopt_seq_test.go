@@ -281,6 +281,7 @@ func newSeqAdoptDaemon(t *testing.T, comps []map[string]any, seq, abandoned int)
 }
 
 func TestBapAdoptAfterPlaceFailureUsesTheArithmeticTierEndToEnd(t *testing.T) {
+	t.Skip("ARCHIVED: legacy envelope sequence arithmetic is not V2 settlement evidence; V2 timeout/no-replay and native verification suites cover settlement")
 	connSeqReset()
 	// 基线:失败那次 place **之前**最后一条带顺序证据的响应。
 	connSeqObserve("", "", []byte(`{"ok":true,"seq":7,"seqAbandoned":0}`))
@@ -307,6 +308,7 @@ func TestBapAdoptAfterPlaceFailureUsesTheArithmeticTierEndToEnd(t *testing.T) {
 }
 
 func TestBapAdoptAfterPlaceFailureUncertainWhenTheConnectorAbandonedSomething(t *testing.T) {
+	t.Skip("ARCHIVED: legacy envelope sequence arithmetic is not V2 settlement evidence; V2 timeout/no-replay and native verification suites cover settlement")
 	connSeqReset()
 	connSeqObserve("", "", []byte(`{"ok":true,"seq":7,"seqAbandoned":0}`))
 

@@ -2,8 +2,7 @@
 # EasyEDA PCB
 
 Drive `easyeda-agent` typed actions. Run `easyeda actions` for the live machine-readable
-list. Prefer typed actions; only fall back to `debug.exec_js` when a typed action is
-missing **and** the user explicitly accepts a debug path.
+list. Use the public V2 CLI/MCP only. Unsupported capabilities have no script fallback.
 
 > **PCB design rules live in this skill's references** — especially
 > [`pcb-layout-conventions.md`](./pcb-layout-conventions.md)
@@ -88,9 +87,7 @@ Act on the focused canvas; the editor view shortcuts. CLI: `easyeda view …`.
 - `easyeda pcb drc` (`pcb.drc.check`) — native rule-clearance DRC, normalized to `{passed, violations}`. **`--json` flattens** the panel's nested tree into one row per violation `{rule, objType, ruleName, net, x, y, layer, objs, message}` with **x/y in real mil** (raw leaves store mil/10 — the flattener owns the ×10) — pipe to `jq`, feed `objs` ids straight into `pcb via-delete`/`track-delete`. **`--timeout <s>`** (default 60) bounds the wait AND is forwarded to the daemon, which answers with a structured error *before* the HTTP client gives up. ⚠️ **Foreground constraint**: a background/occluded EasyEDA window **never finishes** the DRC canvas recompute — on timeout, bring the window to the FOREGROUND and run **once**; do **not** retry in a loop (each retry piles another recompute onto the webview). The daemon enforces this: a second `pcb drc` on a window whose first hasn't settled is rejected immediately (`ACTION_BUSY`).
 - `pcb.drc.rules` — read the active PCB's **DRC rule configuration** (clearances, track widths, via sizes, …) **without running a check**. Use to feed real rule values into layout reasoning / gates, or to see what `pcb.drc.check` enforces. The daemon parses the (deeply-nested, untyped) result into `{clearance, trackWidth, trackWidthMin, viaDrill, viaDiameter}` in mil (`internal/app/pcb_rules.go`); `route-short`/`auto-place` consume it so they conform to the board's spec.
 - `easyeda pcb net-classes [--json]` — print the **net-class → spec track-width ladder** (规范线宽) the daemon uses: `signal` (live default) / `power-branch` (3V3·1V8, 0.25mm≈9.84mil) / `power-trunk` (+5V, 0.4mm≈15.75mil) / `high-current` (VBUS·VIN·VBAT, 0.5mm≈19.69mil) / `gnd` (prefer pour). Roles are classified by net name/voltage (`pcb_netclass.go`); power-rung widths are **公制圆整** (0.05mm grid, 规范手册 §1.2 — not mil fragments like 10/15/20), seeded from the live rules and clamped ≥ the fab minimum (signal stays the raw live value, never rounded). `route-short` sizes each net by this table and `pcb check` width-under-spec gates under-sized power tracks. (A block's declared per-net `track_width_mil` overrides the heuristic — phase-2 consumption.)
-- `easyeda pcb drc-rules-set --pour-clearance <mil>` — the **write side** of `drc-rules` (v1 knob: pour/plane copper clearance, **raise-only** — never loosens a stricter board). Patches `Plane` `lineClearance` in `copperRegion` (both pad models) + `innerPlane` of the current rule configuration, writes it back, verifies by re-read; follow with `pcb pour-rebuild` so existing pours reflow. A write on an immutable system preset (`JLCPCB Capability(...)`) turns it into a per-board `自定义配置` copy — expected. **Part of the solidified fix for the fresh-PCB pour-reflow divergence**: a newly created PCB reflows ~3% under the configured clearance (10mil → ~9.7mil) AND skips thermal spokes; `--pour-clearance 12` restores margin over the 10mil DRC floor.
   > **Fresh-PCB trap — the rules snapshot**: a PCB document **created in the current session and never reloaded** computes pour reflow from a **creation-time rules snapshot** — rule writes (readback shows them!), `pour-rebuild`, and tab-switching away/back all have NO effect on the reflow. Only a real close+reopen (`easyeda doc reload` — saves first, no edits lost) refreshes it; after the reload, `pcb pour-rebuild` reflows under the live rules (clearance AND thermal spokes). Already-reloaded documents (e.g. any board that survived an EasyEDA restart) honor rule writes immediately. The esp32-mini playbook encodes the full recipe: `rules-pour-margin` → pours → `reload-pcb` (`doc reload`) → `pour-rebuild-2`; verified on a fresh board: DRC 55 → **1** (remainder = the known add-component netlist false positive).
-  > **Raw-API trap** (if scripting rules via `debug exec` instead): `eda.pcb_Drc.overwriteCurrentRuleConfiguration()` takes the **BARE config content** — `getCurrentRuleConfiguration()` returns `{name, config}`, and passing that whole wrapper **silently no-ops** (resolves `undefined`, readback unchanged). Pass `cfg.config` → returns `true`.
   > **Fab-rule baseline: [`fab-rules-jlcpcb.json`](fab-rules-jlcpcb.json)** — the canonical JLCPCB fabrication capabilities (min trace/space, via drill+pad, annular ring, copper-to-edge, silk, by layer count + copper weight), captured from JLCPCB's published capabilities. JLCPCB is the fab behind EasyEDA Pro, so a live board's `pcb.drc.rules` converges with this file's **recommended** column (verified on ceshi: clear 6mil / width 10mil / via 0.3–0.6mm). **Always prefer the live rule; use this JSON as the fallback seed + as clamp floors** (never emit a track/via/gap below the `manufacturingMin`). The **`boardTypeRulesLive`** section holds the AUTHORITATIVE real per-board-type rules exported from JLCEDA (single / double / multi-layer / metal-core), fingerprint-classified + confirmed against named exports — `defaultPcbRules` uses the **doubleLayer** row (clear 6 / width 10 / min 5 / via 0.3–0.6mm / copper-to-edge 10). Controlled impedance is intentionally omitted (not derivable from platform data — see task #27).
 
 ### Routing (copper tracks + vias)
@@ -101,38 +98,12 @@ Act on the focused canvas; the editor view shortcuts. CLI: `easyeda view …`.
 
 **已移至 [`pcb-layout.md`](pcb-layout.md)** —— 本节内容整体搬出，减少每次调用的上下文成本（RFC #178）。需要时读那个文件。
 
-## PCB mutation → `doc reload` 门(铁律 5,daemon 机械强制)
+## 写入后的状态确认
 
-改完铜再读,读到的是**旧引擎状态**:每个 PCB 文档有自己的枚举缓存,
-rip-up / route / delete / via / track / pour 这类 mutation 之后,
-`pcb list` / `line.list` / `via.list` / `pour.list` / `nets.list` / `drc.check` / `report`
-都可能返回 mutation 之前的画面,直到文档被真正关闭重开。
-
-**这条现在是机械门,不是提醒。** daemon 在 `/action` 派发层直接**拒绝**这种读,
-返回错误码 **`STALE_READ`**,消息里带着该跑的下一条命令:
-
-```
-STALE_READ: pcb.components.list —— PCB 自 pcb.line.create 后未 reload,读到的是旧引擎状态。
-下一步: easyeda doc reload --project <name>
-(绕过: --force-stale-read "<理由>",入审计)
-```
-
-- **修法就一条**:`easyeda doc reload --project <name>`(它自己会先 save,不丢改动)。
-  确定性复位 = `rip-up → save → reload`。
-- **`pcb pour-rebuild` 也解锁**:它本来就是「铺铜连通性 stale」的修法。
-  DRC 手术后同网(多为 GND)Connection Error 暴增,先跑它,那不是真断。
-- **不会误伤的**:`pcb save`、`pcb pour-rebuild`、任何 `--dry-run` 预览(issue #112),
-  以及只改视图的 `view-side` / `layers set-current` / `layers visibility`
-  —— 这些不脏化枚举,不会 arm 这道门。
-- **`pcb snapshot` 不被拦**(它是画布的照片,不是枚举),但仍会带 `staleRisk` 提示。
-  注意:截图发白/发旧的修法是**把窗口切前台**,不是 reload——两回事。
-- **绕过**:`--force-stale-read "<理由>"`(**不是** `--force` —— 那是布线阶段门 #132,
-  两者互不相干别混用)。只授权本次调用,**入审计**
-  (审计里记成 `daemon.stale_read.force`),窗口仍然是脏的,下一条无 force 的读照样被拒。
-
-> 为什么升成硬门:49 天 171554 条审计记录里,这条规则此前只发一句非阻塞警告,
-> 结果 **1780 次脏读、18.1% 违反率**——agent 看见警告照读。被机器拒绝的规则不漏,
-> 靠记忆的规则漏。
+以 V2 operation receipt 和 fresh readback 为准。UNKNOWN/PARTIAL 不算成功，不重放写入。
+使用 `easyeda operation status <id>` / `easyeda operation reconcile <id>` 检查原操作；
+不要通过强制读、另起脚本或重启绕过 ownership。Host 生命周期异常需要人工恢复时，
+恢复后重新 exact bind 并核对语义状态，再继续。save ACK 不等于 reload persistence proof。
 
 ## Guardrails
 

@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
 	"strings"
 	"testing"
 )
@@ -120,7 +121,7 @@ func TestEncodeResultEnvelope_CheckReport(t *testing.T) {
 			{Type: "floating-pin", Level: "warn", Designator: "U1", Pins: []string{"4", "5"}},
 		},
 	}
-	res := &actionResult{ID: "req-1", Type: "response", Version: "1", OK: true}
+	res := &actionResult{V2: &executionv2.Result{Protocol: executionv2.Version, OperationID: "req-1", Outcome: executionv2.Succeeded, EvidenceRef: "req-1"}}
 
 	var buf bytes.Buffer
 	if err := encodeResultEnvelope(res, rep, &buf); err != nil {
@@ -128,19 +129,18 @@ func TestEncodeResultEnvelope_CheckReport(t *testing.T) {
 	}
 
 	var env struct {
-		ID      string `json:"id"`
-		Type    string `json:"type"`
-		Version string `json:"version"`
-		OK      bool   `json:"ok"`
-		Result  struct {
+		ID       string              `json:"operation_id"`
+		Protocol string              `json:"protocol"`
+		Outcome  executionv2.Outcome `json:"outcome"`
+		Result   struct {
 			Passed   bool           `json:"passed"`
 			Findings []checkFinding `json:"findings"`
-		} `json:"result"`
+		} `json:"value"`
 	}
 	if err := json.Unmarshal(buf.Bytes(), &env); err != nil {
 		t.Fatalf("unmarshal envelope: %v\n%s", err, buf.String())
 	}
-	if env.ID != "req-1" || env.Type != "response" || env.Version != "1" || !env.OK {
+	if env.ID != "req-1" || env.Protocol != executionv2.Version || env.Outcome != executionv2.Succeeded {
 		t.Errorf("envelope metadata lost: %+v", env)
 	}
 	// The whole point of #66: result.findings must be reachable and non-empty.
@@ -155,22 +155,13 @@ func TestEncodeResultEnvelope_CheckReport(t *testing.T) {
 // Envelope metadata is optional: when the daemon response carries no id/type/
 // version, those keys are omitted rather than emitted empty, but ok/result
 // stay present.
-func TestEncodeResultEnvelope_OmitsEmptyMeta(t *testing.T) {
-	rep := checkReport{Passed: true}
-	res := &actionResult{OK: true}
-
-	var buf bytes.Buffer
-	if err := encodeResultEnvelope(res, rep, &buf); err != nil {
-		t.Fatalf("encode: %v", err)
+func TestEncodeResultEnvelopeRejectsMissingReceipt(t *testing.T) {
+	var out bytes.Buffer
+	if err := encodeResultEnvelope(&actionResult{OK: true}, checkReport{Passed: true}, &out); err == nil || err.Error() != "V2_RECEIPT_REQUIRED" {
+		t.Fatalf("missing receipt accepted: %v", err)
 	}
-	out := buf.String()
-	if strings.Contains(out, "\"id\"") || strings.Contains(out, "\"type\"") || strings.Contains(out, "\"version\"") {
-		t.Errorf("expected empty meta omitted, got:\n%s", out)
-	}
-	for _, want := range []string{"\"ok\"", "\"result\""} {
-		if !strings.Contains(out, want) {
-			t.Errorf("expected %s present, got:\n%s", want, out)
-		}
+	if out.Len() != 0 {
+		t.Fatal("invented result", out.String())
 	}
 }
 

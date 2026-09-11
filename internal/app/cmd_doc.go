@@ -6,7 +6,6 @@ import (
 	"io"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -399,64 +398,14 @@ func strField(m map[string]any, key string) string {
 // foreground first when it isn't already. Returns the document's type
 // ("pcb"/"schematic") so callers can branch.
 func reloadDocumentByUUID(cfg *appConfig, win, target string) (string, error) {
-	cur, err := requestAction(cfg, "document.current", win, nil)
-	if err != nil {
-		return "", err
+	b, e := bindPublicV2(cfg, win)
+	if e != nil {
+		return "", e
 	}
-	if cur.Context == nil || cur.Context.DocumentUUID != target || cur.Context.TabID == "" {
-		if _, err := requestAction(cfg, "document.open", win, map[string]any{"uuid": target}); err != nil {
-			return "", err
-		}
-		cur, err = requestAction(cfg, "document.current", win, nil)
-		if err != nil {
-			return "", err
-		}
-		if cur.Context == nil || cur.Context.DocumentUUID != target || cur.Context.TabID == "" {
-			return "", fmt.Errorf("could not activate document %s before reload (active=%v)", target, cur.Context)
-		}
+	if b.target.Scope != "DOCUMENT" || b.target.DocumentUUID != target {
+		return "", fmt.Errorf("V2_TARGET_MISMATCH: open exact document before reload")
 	}
-	docType := cur.Context.DocumentType
-	projectUUID := cur.Context.ProjectUUID
-	if projectUUID == "" || (docType != "pcb" && docType != "schematic") {
-		return docType, fmt.Errorf("reload requires authoritative project identity and document type")
-	}
-	saveAction := "schematic.save"
-	if docType == "pcb" {
-		saveAction = "pcb.save"
-	}
-	if _, err := requestAction(cfg, saveAction, win, nil); err != nil {
-		return docType, fmt.Errorf("save before reload failed: %w", err)
-	}
-	closeJS := fmt.Sprintf("return await eda.dmt_EditorControl.closeDocument(%q)", cur.Context.TabID)
-	if _, err := requestAction(cfg, "debug.exec_js", win, map[string]any{"code": closeJS}); err != nil {
-		return docType, fmt.Errorf("close document failed: %w", err)
-	}
-	time.Sleep(1 * time.Second)
-	if _, err := requestAction(cfg, "document.open", win, map[string]any{"uuid": target}); err != nil {
-		return docType, fmt.Errorf("reopen after close failed: %w", err)
-	}
-	// Poll until the reopened document is the live active one.
-	deadline := time.Now().Add(10 * time.Second)
-	for {
-		cur, err = requestAction(cfg, "document.current", win, nil)
-		if err == nil && cur.Context != nil && cur.Context.DocumentUUID == target {
-			if cur.Context.ProjectUUID != projectUUID || cur.Context.DocumentType != docType || cur.Context.TabID == "" {
-				return docType, fmt.Errorf("RELOAD_IDENTITY_CHANGED: expected project=%s document=%s type=%s, got %+v", projectUUID, target, docType, cur.Context)
-			}
-			// Identity alone is insufficient: verify a real engine read after reopen.
-			// A STALE_READ here is a synchronization failure, never an empty document.
-			readback, rerr := requestAction(cfg, settleProbeAction(docType), win, nil)
-			if rerr != nil {
-				return docType, fmt.Errorf("RELOAD_READBACK_FAILED: %w", rerr)
-			}
-			if readback.Context == nil || readback.Context.DocumentUUID != target || readback.Context.ProjectUUID != projectUUID || readback.Context.DocumentType != docType {
-				return docType, fmt.Errorf("RELOAD_IDENTITY_CHANGED: readback no longer belongs to project=%s document=%s type=%s", projectUUID, target, docType)
-			}
-			return docType, nil
-		}
-		if time.Now().After(deadline) {
-			return docType, fmt.Errorf("document %s did not become active within 10s after reopen", target)
-		}
-		time.Sleep(500 * time.Millisecond)
-	}
+	kind := b.target.DocumentType
+	_, e = requestAction(cfg, "document.open", win, map[string]any{"uuid": target, "reload": true})
+	return kind, e
 }

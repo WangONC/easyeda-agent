@@ -74,6 +74,7 @@ func TestWaitDocSettleFor_PcbUsesPcbProbe(t *testing.T) {
 		return `{"ok":false,"error":{"code":"EDA_CALL_FAILED","message":"Failed to list schematic components."}}`
 	})
 	defer closeFn()
+	cfg.v2Read.target.DocumentType = "pcb"
 
 	if !waitDocSettleFor(cfg, "w1", "pcb") {
 		t.Fatal("PCB document did not settle with the PCB probe")

@@ -37,7 +37,7 @@ import { buildContextFrame, readEasyEdaVersion } from './eda-context';
 import { nativeAction } from './actions';
 import { ControlledExecutor, type Request as V2Request, type Target as V2Target } from './execution-v2';
 import { documentTypeLabel } from './eda-context';
-import { createWebSocketId } from './transport-identity';
+import { createWebSocketId, currentHostWindow } from './transport-identity';
 import {
 	ActionError,
 	CAPABILITIES,
@@ -564,7 +564,7 @@ function tryConnectToPort(port: number, sessionId: number): Promise<boolean> {
 						if (msg.type === 'handshake') {
 							if ((msg as { service?: string }).service === SERVICE_ID) {
 								handshakeVerified = true;
-								windowId = crypto.randomUUID();
+								windowId = currentHostWindow().id;
 								lastContextSig = '';
 								sendRegister();
 								void sendContext(true);
@@ -585,6 +585,7 @@ function tryConnectToPort(port: number, sessionId: number): Promise<boolean> {
 							return;
 						}
 
+						if(msg.type === 'connector_superseded') { stop(false); return; }
 						await handleMessage(msg);
 					},
 					() => {},
@@ -610,6 +611,7 @@ function sendRegister(): void {
 	const frame: RegisterFrame = {
 		type: 'register',
   activationId:activationIdentity,
+  transportId: `${wsId}:${connectionSessionId}`,
 		windowId,
 		connectorVersion: CONNECTOR_VERSION,
 		easyedaVersion: readEasyEdaVersion(),
@@ -868,6 +870,8 @@ function clearRetryTimer(): void {
 // ─── Inbound message handling ─────────────────────────────────────────
 
 const reloadReleases=new Map<string,string>();
+// Sessions of requests admitted by this executor, retained across socket reconnect.
+const admittedSessions=new Set<string>();
 async function handleMessage(msg: InboundFrame): Promise<void> {
 	switch (msg.type) {
 		case 'ping':
@@ -882,6 +886,8 @@ async function handleMessage(msg: InboundFrame): Promise<void> {
    const f=msg as unknown as {request:V2Request;digest:string;deadline_unix_ms:number};
    const spec=(v2Catalog as Record<string,{schema:string;revision:string}>)[f.request.action];
    if(!spec || f.request.protocol!=='execution.v2' || f.request.schema!==spec.schema || f.request.action_revision!==spec.revision || !Number.isFinite(f.deadline_unix_ms)) {sendFrame({type:'log',msg:'V2_SCHEMA_OR_DEADLINE_REJECTED'});return;}
+   if(f.request.target_ref.session!==`${wsId}:${connectionSessionId}` || f.request.target_ref.activation!==activationIdentity) {sendFrame({type:'log',msg:'V2_SESSION_LOST'});return;}
+   admittedSessions.add(f.request.target_ref.session);
    if(f.request.action==='document.open'&&f.request.input.reload===true)reloadReleases.set(f.request.operation_id,f.digest);
    void v2Executor.execute(f.request,f.digest,f.deadline_unix_ms).then(result=>sendFrame({type:'v2_result',result})).catch(error=>sendFrame({type:'log',msg:String(error)}));
    return;
@@ -928,12 +934,12 @@ function toResponseError(err: unknown): ResponseFrame['error'] {
 
 // Pure context reads only: never activate a tab as part of target checking.
 const v2Executor=new ControlledExecutor(nativeAction,async (wanted: V2Target):Promise<V2Target>=>{
- if(!windowId || windowId!==wanted.session || activationIdentity!==wanted.activation) throw Error('V2_SESSION_LOST');
+ if(!windowId || !admittedSessions.has(wanted.session) || activationIdentity!==wanted.activation) throw Error('V2_SESSION_LOST');
  const project=await eda.dmt_Project.getCurrentProjectInfo();
  const doc=await eda.dmt_SelectControl.getCurrentDocumentInfo();
  if(wanted.scope==='HOME') {
   if(project || (doc && documentTypeLabel(doc.documentType)!=='home')) throw Error('V2_TARGET_MISMATCH');
-  return {scope:'HOME',session:windowId,activation:activationIdentity};
+  return {scope:'HOME',session:wanted.session,activation:activationIdentity};
  }
  if(wanted.scope==='LIBRARY') {
   const libraries=await eda.lib_LibrariesList.getAllLibrariesList();
@@ -942,9 +948,9 @@ const v2Executor=new ControlledExecutor(nativeAction,async (wanted: V2Target):Pr
   return wanted;
  }
  if(!project?.uuid) throw Error('V2_TARGET_MISMATCH');
- if(wanted.scope==='PROJECT') return {scope:'PROJECT',session:windowId,activation:activationIdentity,project_uuid:project.uuid};
+ if(wanted.scope==='PROJECT') return {scope:'PROJECT',session:wanted.session,activation:activationIdentity,project_uuid:project.uuid};
  if(!doc?.uuid || !doc.tabId || doc.parentProjectUuid!==project.uuid) throw Error('V2_TARGET_MISMATCH');
- return {scope:'DOCUMENT',session:windowId,activation:activationIdentity,project_uuid:project.uuid,document_uuid:doc.uuid,document_type:documentTypeLabel(doc.documentType),tab_id:doc.tabId};
+ return {scope:'DOCUMENT',session:wanted.session,activation:activationIdentity,project_uuid:project.uuid,document_uuid:doc.uuid,document_type:documentTypeLabel(doc.documentType),tab_id:doc.tabId};
 },2048,(run,request)=>new Promise((resolve,reject)=>{
  void actionQueue.submit({id:request.operation_id,timeoutMs:request.budget_ms,bypass:request.action==='document.current',run:async()=>{try {const result=await run();resolve(result);}catch(error){reject(error);}}}).then(outcome=>{if(outcome.status==='overflow')reject(Error('V2_QUEUE_OVERFLOW'));});
 }));

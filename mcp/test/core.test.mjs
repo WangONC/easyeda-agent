@@ -17,7 +17,7 @@ test('buildCallArgs pins project/doc and keeps payload structured', () => {
       window: 'win-1',
       payload: { rebuild: true },
     }),
-    ['--project', 'Motor', '--doc', 'PCB1', 'call', 'pcb.drc.run', '--payload', '{"rebuild":true}', '--window', 'win-1'],
+    ['--project', 'Motor', '--doc', 'PCB1', 'action', 'pcb.drc.run', '--input', '{"rebuild":true}', '--window', 'win-1'],
   );
 });
 

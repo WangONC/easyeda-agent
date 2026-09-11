@@ -15,11 +15,11 @@ test('project bootstrap mapping preserves Personal omission and explicit Team sc
  const payload={name:'personal',expected_project_uuid:current.uuid,session_token:'session',client_transaction_id:'personal-txn'};
  const input={window:'window',payload};
  const args=buildCallArgs('project.create',input);
- const mapped=JSON.parse(args[args.indexOf('--payload')+1]);
+ const mapped=JSON.parse(args[args.indexOf('--input')+1]);
  assert.deepEqual(mapped,payload);
  assert.ok(!Object.hasOwn(mapped,'team_uuid'));
  assert.ok(!Object.hasOwn(mapped,'folder_uuid'));
  const team={...payload,team_uuid:'real-team',folder_uuid:'real-folder'};
  const teamArgs=buildCallArgs('project.create',{window:'window',payload:team});
- assert.deepEqual(JSON.parse(teamArgs[teamArgs.indexOf('--payload')+1]),team);
+ assert.deepEqual(JSON.parse(teamArgs[teamArgs.indexOf('--input')+1]),team);
 });

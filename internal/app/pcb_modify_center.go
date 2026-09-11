@@ -72,7 +72,7 @@ func injectBBoxCenters(respBody []byte) []byte {
 	if err := json.Unmarshal(respBody, &env); err != nil {
 		return respBody
 	}
-	result, ok := env["result"].(map[string]any)
+	result, ok := env["value"].(map[string]any)
 	if !ok {
 		return respBody
 	}

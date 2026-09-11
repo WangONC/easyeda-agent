@@ -13,7 +13,7 @@ consumes the JSON the CLI already prints, so it stays offline + testable:
     easyeda lib search --query "100nF 0402" --limit 1 | parts-add.py
     parts-add.py --from result.json --basic --dry-run
 
-It accepts the daemon /action response ({ok, result:{components:[…]}}), a bare
+It accepts a SUCCEEDED V2 receipt ({protocol, outcome, value:{components:[…]}}), a bare
 {components:[…]}, or a bare list. Each component becomes a standard-parts entry
 {value, mpn, lcsc, manufacturer, deviceUuid, footprint, basic, desc}. Idempotent:
 a component already cached (by lcsc OR deviceUuid) is reported and skipped. The
@@ -77,7 +77,9 @@ def extract_components(data):
     if isinstance(data, dict):
         if isinstance(data.get('components'), list):
             return data['components']
-        res = data.get('result')
+        if data.get('protocol') != 'execution.v2' or data.get('outcome') != 'SUCCEEDED':
+            return []
+        res = data.get('value')
         if isinstance(res, dict) and isinstance(res.get('components'), list):
             return res['components']
     return []

@@ -171,7 +171,7 @@ func checkpointBinding(base string, old executionv2.Target) (executionv2.Target,
 	defer r.Body.Close()
 	var h struct {
 		Windows []struct {
-			Session    string `json:"windowId"`
+			Session    string `json:"transportId"`
 			Activation string `json:"activationId"`
 			Context    struct {
 				Project  string `json:"projectUuid"`

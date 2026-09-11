@@ -2,8 +2,8 @@
 name: easyeda-agent
 description: "通过本地 easyeda CLI、daemon 和连接器操作嘉立创EDA专业版（EasyEDA Pro）：设计或修复原理图、核对器件与引脚网表、从 JSON 组合功能电路并 Apply、布局布线 PCB、运行检查和导出制造文件。适用于已有 EDA 工程操作及数据驱动电路设计。"
 license: MIT
-compatibility: "Requires the local easyeda CLI/daemon and EasyEDA Agent Connector with Allow external interaction enabled. Python 3 is used by bundled helpers; online library lookup and updates need network access."
 metadata:
+  compatibility: "Requires the local easyeda CLI/daemon and EasyEDA Agent Connector with Allow external interaction enabled. Python 3 is used by bundled helpers; online library lookup and updates need network access."
   author: WangONC
   version: "2.0.0"
   homepage: "https://github.com/WangONC/easyeda-agent"
@@ -23,7 +23,11 @@ metadata:
 3. 手动命令用 `--project <project>` 指定工程；变更带 `--doc <page>`，操作已有页面。
    已生成的受保护 Apply 队列沿用其固定目标，不再用名称覆盖。
    先读取将要修改的器件、引脚、网络及几何；位号或 primitiveId 不明确时不能盲写。
-4. 以 `easyeda <domain> <command> --help` 和 `easyeda actions` 为参数真值。
+4. 所有 Host 读写使用公开高层 CLI 或 MCP domain 工具，由 CLI 内部生成 V2 请求并绑定当前逻辑窗口。
+   MCP 只传 action、input，以及需要时的 window/project/document 选择器；不手填内部 envelope、会话标识或 schema。
+   不使用旧通用调用或独立 Bridge；不通过源码内部目录寻找调用参数。遇到多个真实窗口明确选择，不猜最新连接。
+   UNKNOWN/PARTIAL 立即停止后续写入，用 `easyeda operation status <id>` / `reconcile <id>` 查看原操作，不重放。
+5. 以 `easyeda <domain> <command> --help` 和 `easyeda actions` 为参数真值。
    MCP 若可用，只是同一套 CLI/typed action 的入口。
 
 | 任务 | 先读 |
@@ -41,7 +45,7 @@ metadata:
 | action 或队列字段 | [actions.md](references/actions.md)；未知官方接口先 `easyeda api search/show` |
 | 提交已验证电路到块库 | [standard-blocks-contributing.md](references/standard-blocks-contributing.md) |
 
-## 1.4 原理图主流程
+## 原理图主流程
 
 **先确定连接数据，再计算几何，最后转换与回读。** 新设计依据具体型号的数据手册和典型电路；
 已有图先导出 `sch connectivity`，未知引脚或网不能靠截图推断。
@@ -73,7 +77,7 @@ metadata:
 
 ## 执行与验证约束
 
-- typed action 已有对应能力时使用它；无对应能力且用户接受调试路径时，才用 `debug.exec_js`。
+- 仅使用正式 V2-native 能力；没有对应能力时明确报告不支持，不使用任意脚本或调试旁路。
 - 使用真实非零导线连接 netflag 与 pin，坐标重合不算连接。原理图坐标 **y 向上**，网格 5 raw。
   符号方向以 [orientation.json](references/orientation.json) 和实际回读为准。
 - 保留明确 NC，不删除器件物理引脚，也不将缺失连接自动改为 NC。
@@ -99,7 +103,7 @@ metadata:
 PCB 制造交付还须确认层叠、GND、电源、丝印与导出文件。离线单元测试或一个图页验证，
 均不等于从客户需求到 PCB 的全流程验收。
 
-常用辅助脚本：`scripts/lint.sh`、`bom-enrich.py`、`parts-select.py`、`parts-add.py`、
+常用辅助脚本：`bom-enrich.py`、`parts-select.py`、`parts-add.py`、
 `blocks-pin-audit.py`、`tests/run.py`。按对应参考使用；具体参数先看脚本 `--help`。
 
 
@@ -110,3 +114,7 @@ PCB 制造交付还须确认层叠、GND、电源、丝印与导出文件。离�
 确定具体 MPN / LCSC ID 后，才使用 [精确查询 helper](scripts/device-lookup.py)：`python <Skill目录>/scripts/device-lookup.py --mpn <已选MPN>` 或 `--lcsc <已选LCSC编号>`；可同时传入两者，必须共同匹配。只返回精确命中条目，不支持 list、category browse 或模糊候选。
 
 命中后使用证据覆盖范围内的引脚、电气/layout 约束及参考应用；miss、来源不可靠、修订不符或工况超出范围时正常读取官方 datasheet。未写出的内容不得由模型补全，topology_only 不能当通用推荐电路。现有 Standard Blocks 是设计知识层，仍允许搜索并优先复用成熟电路块，不受 Device Knowledge 查询限制。
+
+### 退役文件
+
+`scripts/sch.py`、`scripts/lint.sh`、`scripts/bulk-place.py` 和 `scripts/bulk-connect.py` 仅保留历史源码，入口已停用，不是 Agent 工具。使用正式 V2 CLI/MCP。旧 debug CLI、official autolayout 和 drc-rules-set 同样不可用。`sch frame`、`sch zone-draw`、分组注释绘制和 `pcb via-bond` 写入也未提供 V2-native 实现；保留源文件，但不可执行。`sch sheet tidy --apply` 同样不可用，离线规划保留；zone move 涉及文本或框重画时会在移动前拒绝。不要尝试脚本绕过。

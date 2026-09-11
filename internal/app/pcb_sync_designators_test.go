@@ -81,9 +81,9 @@ func newSyncTestDaemon(t *testing.T, pcbComponents []map[string]any, schResp str
 			fmt.Fprint(w, `{"ok":true,"result":{}}`)
 		}
 	})
-	d.srv = httptest.NewServer(mux)
+	d.srv = httptest.NewServer(withV2ReadFixture(mux))
 	host, port := splitHostPortForTest(t, d.srv.URL)
-	cfg := &appConfig{host: host, ports: port + "-" + port}
+	cfg := &appConfig{v2Read: fixtureReadBinding(d.srv.URL), host: host, ports: port + "-" + port}
 	return cfg, d, d.srv.Close
 }
 

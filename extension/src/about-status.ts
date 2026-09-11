@@ -9,10 +9,7 @@ interface Health { service?: string; status?: string; windows?: HealthWindow[] }
 export function connectionStatusText(raw: unknown, local: ConnectionStatus, context: ResponseContext, port: number, now = Date.now()): string {
  const health = raw as Health | null;
  if (health?.service !== 'easyeda-agent' || health.status !== 'ok' || !Array.isArray(health.windows)) return '连接状态不可用（daemon 响应无效）';
- const matches = health.windows.filter(w => (local.windowId && w.windowId === local.windowId) ||
-  (context.projectUuid && context.documentUuid && w.context?.projectUuid === context.projectUuid && w.context.documentUuid === context.documentUuid &&
-   (!context.tabId || w.context.tabId === context.tabId)) ||
-  (!context.projectUuid && context.documentType === 'home' && context.tabId && !w.context?.projectUuid && w.context?.documentType === 'home' && w.context?.tabId === context.tabId));
+ const matches = health.windows.filter(w => local.windowId && w.windowId === local.windowId);
  const live = matches.find(w => { const seen = Date.parse(w.lastSeen ?? ''); return Number.isFinite(seen) && now - seen >= 0 && now - seen <= 15000; });
  if (live) return `已连接（端口 ${port}）\n窗口 ID：${live.windowId}\n已通过 daemon 心跳核实`;
  if (matches.length) return '连接状态未确认（daemon 心跳已过期）';

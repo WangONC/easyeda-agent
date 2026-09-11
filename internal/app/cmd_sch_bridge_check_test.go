@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
 	"strings"
 	"testing"
 )
@@ -85,7 +86,7 @@ func TestEncodeResultEnvelope_BridgeReport(t *testing.T) {
 			{Kind: "BRIDGE", Type: "wire-bridge", Level: "error", WireIds: []string{"w1", "w2"}, Nets: []string{"GND", "VCC"}, Pins: []string{"U1:5"}},
 		},
 	}
-	res := &actionResult{ID: "req-9", Type: "response", Version: "1", OK: true}
+	res := &actionResult{V2: &executionv2.Result{Protocol: executionv2.Version, OperationID: "req-9", Outcome: executionv2.Succeeded, EvidenceRef: "req-9"}}
 
 	var buf bytes.Buffer
 	if err := encodeResultEnvelope(res, rep, &buf); err != nil {
@@ -93,17 +94,17 @@ func TestEncodeResultEnvelope_BridgeReport(t *testing.T) {
 	}
 
 	var env struct {
-		ID     string `json:"id"`
-		OK     bool   `json:"ok"`
-		Result struct {
+		ID      string              `json:"operation_id"`
+		Outcome executionv2.Outcome `json:"outcome"`
+		Result  struct {
 			Passed bool         `json:"passed"`
 			Trees  []bridgeTree `json:"trees"`
-		} `json:"result"`
+		} `json:"value"`
 	}
 	if err := json.Unmarshal(buf.Bytes(), &env); err != nil {
 		t.Fatalf("unmarshal envelope: %v\n%s", err, buf.String())
 	}
-	if env.ID != "req-9" || !env.OK {
+	if env.ID != "req-9" || env.Outcome != executionv2.Succeeded {
 		t.Errorf("envelope metadata lost: %+v", env)
 	}
 	if len(env.Result.Trees) != 1 || env.Result.Trees[0].Kind != "BRIDGE" || len(env.Result.Trees[0].Nets) != 2 {

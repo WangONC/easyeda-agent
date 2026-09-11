@@ -27,9 +27,10 @@ func withV2ReadFixture(next http.Handler) http.Handler {
 		out := httptest.NewRecorder()
 		next.ServeHTTP(out, call)
 		var fixture struct {
-			OK     bool            `json:"ok"`
-			Result json.RawMessage `json:"result"`
-			Error  struct {
+			Context *actionContext  `json:"context"`
+			OK      bool            `json:"ok"`
+			Result  json.RawMessage `json:"result"`
+			Error   struct {
 				Code    string `json:"code"`
 				Message string `json:"message"`
 			} `json:"error"`
@@ -42,9 +43,26 @@ func withV2ReadFixture(next http.Handler) http.Handler {
 		if fixture.OK {
 			outcome = executionv2.Succeeded
 		}
+		if fixture.Context != nil && fixture.Context.ProjectUUID != "" && req.Target.ProjectUUID != "" && fixture.Context.ProjectUUID != req.Target.ProjectUUID {
+			outcome = executionv2.Unknown
+			fixture.Error.Code = "V2_TARGET_MISMATCH"
+			fixture.Error.Message = "project drift in business fixture"
+		}
+		if fixture.Context != nil && req.Target.Scope == "DOCUMENT" && fixture.Context.DocumentUUID != "" && fixture.Context.DocumentUUID != req.Target.DocumentUUID {
+			outcome = executionv2.Unknown
+			fixture.Error.Code = "V2_TARGET_MISMATCH"
+			fixture.Error.Message = "page drift in business fixture"
+		}
 		_ = json.NewEncoder(w).Encode(executionv2.Result{Protocol: executionv2.Version, OperationID: req.OperationID, EvidenceRef: req.OperationID, Outcome: outcome, Code: fixture.Error.Code + fixture.Error.Message, Effects: executionv2.Effects{Scope: "NONE", Started: executionv2.Bool(false), Changed: executionv2.Bool(false), Settled: true}, Value: fixture.Result})
 	})
 }
 func fixtureReadBinding(endpoint string) *v2ReadBinding {
 	return &v2ReadBinding{endpoint: endpoint, target: executionv2.Target{Scope: "DOCUMENT", Session: "fixture-session", Activation: "fixture-activation", ProjectUUID: "fixture-project", DocumentUUID: "fixture-document", DocumentType: "pcb", TabID: "fixture-tab"}}
+}
+
+func fixtureSchematicBinding(endpoint string) *v2ReadBinding {
+	b := fixtureReadBinding(endpoint)
+	b.target.DocumentType = "schematic"
+	b.target.DocumentUUID = "doc-1"
+	return b
 }

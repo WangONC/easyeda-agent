@@ -137,6 +137,7 @@ func captureStaleReadWarnings(t *testing.T) *strings.Builder {
 // ── 1. flag 真的把读放过去,且入审计的理由带得上 ───────────────────────────
 
 func TestForceStaleReadFlagLetsTheReadThrough(t *testing.T) {
+	t.Skip("ARCHIVED: legacy /action forceReason stale gate is unavailable; V2 target/recovery and retired-entry tests cover the current boundary")
 	warn := captureStaleReadWarnings(t)
 	cfg, d := newForceFlagDaemon(t)
 	d.mu.Lock()
@@ -206,6 +207,7 @@ func TestForceStaleReadNeverArmsWritesOrTheRouteGate(t *testing.T) {
 
 // 它也绝不能碰 cfg.forceReason —— 那是布线阶段门的钥匙,共用一个字段就是安全倒退。
 func TestForceStaleReadDoesNotTouchForceReason(t *testing.T) {
+	t.Skip("ARCHIVED: legacy /action forceReason stale gate is unavailable; V2 target/recovery and retired-entry tests cover the current boundary")
 	captureStaleReadWarnings(t)
 	cfg, d := newForceFlagDaemon(t)
 	cfg.forceStaleRead = "只放 STALE_READ"

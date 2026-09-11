@@ -61,6 +61,7 @@ func TestPcbRouteCriticalStackupPreflightCLI(t *testing.T) {
 				return stackupTestBoardResponse(c, tc.response)
 			})
 			defer closeFn()
+			cfg.v2Read.target.DocumentType = "pcb"
 			var out, errOut bytes.Buffer
 			cmd := newPcbCmd(cfg, &out, &errOut)
 			cmd.SilenceErrors, cmd.SilenceUsage = true, true
@@ -100,6 +101,7 @@ func TestPcbRouteCriticalTwoLayerUsesPowerPourCLI(t *testing.T) {
 	}
 	cfg, state, closeFn := newAutolayoutTestDaemon(t, func(_ int, c autolayoutTestCall) string { return stackupTestBoardResponse(c, string(raw)) })
 	defer closeFn()
+	cfg.v2Read.target.DocumentType = "pcb"
 	var out, errOut bytes.Buffer
 	cmd := newPcbCmd(cfg, &out, &errOut)
 	cmd.SilenceErrors, cmd.SilenceUsage = true, true
@@ -150,6 +152,7 @@ func TestPcbPowerPlanesStackupPreflightCLI(t *testing.T) {
 				return stackupTestBoardResponse(c, layers)
 			})
 			defer closeFn()
+			cfg.v2Read.target.DocumentType = "pcb"
 			var out, errOut bytes.Buffer
 			cmd := newPcbCmd(cfg, &out, &errOut)
 			cmd.SilenceErrors, cmd.SilenceUsage = true, true

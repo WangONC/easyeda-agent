@@ -24,6 +24,10 @@ manifest 形状（页 → 模块 → 位号 → {lcsc}；`_origins`/`_grid` 控�
 - doc switch 后必须 settle（issue #67）: 轮询 sch list 直到返回稳定的器件数;
 - 每 10 件 `sch save` 一次（防抖 autosave 只是兜底）。
 """
+# RETIRED: retained source only. This legacy batch runner retries unknown writes.
+if __name__ == "__main__":
+    raise SystemExit("RETIRED_ENTRYPOINT: use formal V2 CLI/MCP; this batch script is unavailable")
+
 import json
 import os
 import subprocess
@@ -34,6 +38,7 @@ PROJECT = os.environ.get("EASYEDA_PROJECT", "")
 
 
 def run(args, timeout=90, retries=3):
+    raise RuntimeError("RETIRED_ENTRYPOINT: legacy batch retries are disabled")
     proj = ["--project", PROJECT] if PROJECT else []
     for attempt in range(retries):
         # encoding 固定 utf-8:easyeda CLI 输出恒为 UTF-8,text=True 在 Windows

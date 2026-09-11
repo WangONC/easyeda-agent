@@ -49,6 +49,7 @@ type Typed struct {
 // Register is the connector's first frame after the WebSocket opens. It
 // declares the EasyEDA window identity and what the connector can do.
 type Register struct {
+	TransportID      string   `json:"transportId"`
 	ActivationID     string   `json:"activationId"`
 	Type             string   `json:"type"`
 	WindowID         string   `json:"windowId"`

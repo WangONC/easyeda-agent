@@ -267,7 +267,7 @@ func TestSchAdoptUncertainGuidanceIsRunnable(t *testing.T) {
 func newFakeAdoptDaemon(t *testing.T, frames [][]map[string]any) (*appConfig, func(), *int) {
 	t.Helper()
 	calls := 0
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(withV2ReadFixture(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/health" {
 			_, _ = w.Write([]byte(`{"service":"easyeda-agent","windows":[]}`))
 			return
@@ -284,14 +284,14 @@ func newFakeAdoptDaemon(t *testing.T, frames [][]map[string]any) (*appConfig, fu
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"ok": true, "result": map[string]any{"components": comps},
 		})
-	}))
+	})))
 	hostPort := strings.TrimPrefix(srv.URL, "http://")
 	host, portStr, _ := strings.Cut(hostPort, ":")
 	port, err := strconv.Atoi(portStr)
 	if err != nil {
 		t.Fatalf("parse port: %v", err)
 	}
-	return &appConfig{host: host, ports: fmt.Sprintf("%d-%d", port, port)}, srv.Close, &calls
+	return &appConfig{v2Read: fixtureSchematicBinding(srv.URL), host: host, ports: fmt.Sprintf("%d-%d", port, port)}, srv.Close, &calls
 }
 
 func adoptFrameComp(id, designator string, x, y float64) map[string]any {

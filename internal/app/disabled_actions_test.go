@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"testing"
 
@@ -23,7 +24,7 @@ func TestDisabledActionsCLI(t *testing.T) {
 	})
 	defer closeDaemon()
 	var out, stderr bytes.Buffer
-	if code := Run([]string{"--host", cfg.host, "--ports", cfg.ports, "call", "system.health"}, &out, &stderr); code != 0 {
+	if err := dispatch(cfg, "document.current", "", nil, &out, &stderr); err != nil {
 		t.Fatalf("enabled call: %s %s", out.String(), stderr.String())
 	}
 	if len(daemon.snapshot()) != 1 {
@@ -41,18 +42,11 @@ func TestDisabledActionsCLI(t *testing.T) {
 	for _, action := range []string{"pcb.import_autoroute", "system.health"} {
 		out.Reset()
 		stderr.Reset()
-		if Run([]string{"--ports", "invalid", "call", action}, &out, &stderr) != 1 {
+		if Run([]string{"--ports", "invalid", "action", action}, &out, &stderr) != 1 {
 			t.Fatal("disabled call succeeded")
 		}
-		var got struct {
-			OK    bool
-			Error struct{ Code, Action, Source string }
-		}
-		if err := json.Unmarshal(out.Bytes(), &got); err != nil {
-			t.Fatal(err, out.String(), stderr.String())
-		}
-		if got.OK || got.Error.Code != "CAPABILITY_DISABLED" || got.Error.Action != action || got.Error.Source != protocol.DisabledActionsEnv {
-			t.Fatalf("%+v", got)
+		if out.Len() != 0 || !strings.Contains(stderr.String(), "CAPABILITY_DISABLED") {
+			t.Fatalf("admission error must not fabricate a receipt: %s %s", out.String(), stderr.String())
 		}
 	}
 	if len(daemon.snapshot()) != 1 {
@@ -92,7 +86,7 @@ func TestDisabledActionsTypedWrapper(t *testing.T) {
 		t.Fatal(err)
 	}
 	prefix := []string{"--host", address.Hostname(), "--ports", address.Port() + "-" + address.Port()}
-	paths := [][]string{{"call", action}, {"pcb", "import-autoroute", file}}
+	paths := [][]string{{"action", action}, {"pcb", "import-autoroute", file}}
 	for _, disabled := range []bool{true, false} {
 		if disabled {
 			t.Setenv(protocol.DisabledActionsEnv, action)
@@ -105,20 +99,13 @@ func TestDisabledActionsTypedWrapper(t *testing.T) {
 			var out, stderr bytes.Buffer
 			code := Run(append(append([]string{}, prefix...), path...), &out, &stderr)
 			if disabled {
-				var response struct {
-					OK    bool
-					Error struct{ Code, Action, Source string }
-				}
-				if err := json.Unmarshal(out.Bytes(), &response); err != nil {
-					t.Fatal(err, out.String(), stderr.String())
-				}
-				if code != 1 || response.OK || response.Error.Code != "CAPABILITY_DISABLED" || response.Error.Action != action || response.Error.Source != protocol.DisabledActionsEnv {
-					t.Fatalf("%v: code=%d response=%+v", path, code, response)
+				if code != 1 || !strings.Contains(stderr.String(), "CAPABILITY_DISABLED") {
+					t.Fatalf("%v: code=%d stdout=%s stderr=%s", path, code, out.String(), stderr.String())
 				}
 				if requests.Load() != 0 {
 					t.Fatalf("%v accessed daemon %d times", path, requests.Load())
 				}
-			} else if code != 0 || actions.Load() != 1 {
+			} else if code != 1 || requests.Load() != 0 || actions.Load() != 0 || !strings.Contains(stderr.String(), "V2_ACTION_UNSUPPORTED") {
 				t.Fatalf("enabled %v: code=%d actions=%d output=%s stderr=%s", path, code, actions.Load(), out.String(), stderr.String())
 			}
 		}

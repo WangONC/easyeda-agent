@@ -328,7 +328,7 @@ func newPartitionCheckFake(t *testing.T, texts []map[string]any) *appConfig {
 			fmt.Fprint(w, `{"ok":true,"result":{}}`)
 		}
 	})
-	srv := httptest.NewServer(mux)
+	srv := httptest.NewServer(withV2ReadFixture(mux))
 	t.Cleanup(srv.Close)
 	u := strings.TrimPrefix(srv.URL, "http://")
 	i := strings.LastIndex(u, ":")
@@ -336,7 +336,10 @@ func newPartitionCheckFake(t *testing.T, texts []map[string]any) *appConfig {
 		t.Fatalf("bad test server url %q", srv.URL)
 	}
 	host, port := u[:i], u[i+1:]
-	return &appConfig{host: host, ports: port + "-" + port, project: "parttest"}
+	binding := fixtureSchematicBinding(srv.URL)
+	binding.window = "w1"
+	binding.target.DocumentUUID = "page-1"
+	return &appConfig{host: host, ports: port + "-" + port, project: "parttest", v2Read: binding}
 }
 
 // writeBlockDrivenState 造一份**块驱动页**的 workflow:三个虚拟组(block-apply 的

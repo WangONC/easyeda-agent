@@ -27,6 +27,10 @@ spec 形状:
   spec 决定 kind/net，交给 typed `sch autoconnect` 的活体几何评分器选择方向和偏移。
   循环直到无悬空或不再收敛。
 """
+# RETIRED: retained source only. This legacy batch runner retries unknown writes.
+if __name__ == "__main__":
+    raise SystemExit("RETIRED_ENTRYPOINT: use formal V2 CLI/MCP; this batch script is unavailable")
+
 import json
 import os
 import subprocess
@@ -38,6 +42,7 @@ PAGE = ""
 
 
 def run(args, timeout=120, retries=3):
+    raise RuntimeError("RETIRED_ENTRYPOINT: legacy batch retries are disabled")
     proj = ["--project", PROJECT] if PROJECT else []
     doc = ["--doc", PAGE] if PAGE and args and args[0] == "sch" else []
     for attempt in range(retries):

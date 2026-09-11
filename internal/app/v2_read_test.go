@@ -80,7 +80,7 @@ func TestV2WorkflowReadBindsOnceAndDoesNotRetarget(t *testing.T) {
 			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				if r.URL.Path == "/health" {
 					healthCalls++
-					windows := []any{map[string]any{"windowId": "w", "activationId": "a", "context": map[string]any{"projectUuid": "p", "projectName": "P", "documentUuid": "d", "documentType": "pcb", "tabId": "t"}}}
+					windows := []any{map[string]any{"windowId": "w", "transportId": "w", "activationId": "a", "context": map[string]any{"projectUuid": "p", "projectName": "P", "documentUuid": "d", "documentType": "pcb", "tabId": "t"}}}
 					if ambiguous {
 						windows = append(windows, windows[0])
 					}
@@ -132,7 +132,7 @@ func TestV2WorkflowDocumentNameDiscoveryRemainsScoped(t *testing.T) {
 				calls := []string{}
 				srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					if r.URL.Path == "/health" {
-						_ = json.NewEncoder(w).Encode(map[string]any{"service": "easyeda-agent", "windows": []any{map[string]any{"windowId": "w", "activationId": "a", "context": map[string]any{"projectUuid": "p", "documentUuid": "d", "documentType": kind, "tabId": "t"}}}})
+						_ = json.NewEncoder(w).Encode(map[string]any{"service": "easyeda-agent", "windows": []any{map[string]any{"windowId": "w", "transportId": "w", "activationId": "a", "context": map[string]any{"projectUuid": "p", "documentUuid": "d", "documentType": kind, "tabId": "t"}}}})
 						return
 					}
 					var q executionv2.Request

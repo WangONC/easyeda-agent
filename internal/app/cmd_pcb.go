@@ -250,10 +250,7 @@ so in a single-design project you can just run 'easyeda pcb new-board'.`,
 					if len(out) > 0 && out[len(out)-1] != '\n' {
 						fmt.Fprintln(stdout)
 					}
-					var parsed struct {
-						OK bool `json:"ok"`
-					}
-					if json.Unmarshal(respBody, &parsed) != nil || !parsed.OK {
+					if _, err := actionValueV2(respBody, "pcb.components.list"); err != nil {
 						return errActionFailed
 					}
 					return nil
@@ -1061,7 +1058,11 @@ high-current 0.5mm (19.69mil) — not mil fragments like 10/15/20.`,
 	{
 		var pourClearance float64
 		c := &cobra.Command{
-			Use:   "drc-rules-set",
+			Use:    "drc-rules-set",
+			Hidden: true,
+			PreRunE: func(cmd *cobra.Command, args []string) error {
+				return fmt.Errorf("RETIRED_ENTRYPOINT: drc-rules-set has no V2-native implementation")
+			},
 			Short: "Raise the pour/plane copper clearance rule (raise-only) — margin fix for the fresh-PCB reflow divergence",
 			Args:  cobra.NoArgs,
 			Long: `Raise the copper-pour / inner-plane clearance (Plane lineClearance) of the

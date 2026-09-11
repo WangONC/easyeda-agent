@@ -36,7 +36,7 @@ func (d *blockApplyTestDaemon) snapshot() []blockApplyTestCall {
 func newBlockApplyTestDaemon(t *testing.T, responder func(blockApplyTestCall) string) (*appConfig, *blockApplyTestDaemon, func()) {
 	t.Helper()
 	state := &blockApplyTestDaemon{}
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(withV2ReadFixture(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/health":
 			_, _ = w.Write([]byte(`{"service":"easyeda-agent","windows":[{"windowId":"w1"}]}`))
@@ -54,7 +54,12 @@ func newBlockApplyTestDaemon(t *testing.T, responder func(blockApplyTestCall) st
 			state.mu.Lock()
 			state.calls = append(state.calls, call)
 			state.mu.Unlock()
-			resp := responder(call)
+			resp := ""
+			if call.Action == "project.current" {
+				resp = `{"ok":true,"result":{"uuid":"fixture-project"}}`
+			} else {
+				resp = responder(call)
+			}
 			if resp == "" {
 				resp = `{"ok":true,"result":{}}`
 			}
@@ -62,7 +67,7 @@ func newBlockApplyTestDaemon(t *testing.T, responder func(blockApplyTestCall) st
 		default:
 			http.NotFound(w, r)
 		}
-	}))
+	})))
 
 	hostPort := strings.TrimPrefix(srv.URL, "http://")
 	host, portText, _ := strings.Cut(hostPort, ":")
@@ -71,7 +76,7 @@ func newBlockApplyTestDaemon(t *testing.T, responder func(blockApplyTestCall) st
 		srv.Close()
 		t.Fatalf("parse test daemon port: %v", err)
 	}
-	return &appConfig{host: host, ports: fmt.Sprintf("%d-%d", port, port)}, state, srv.Close
+	return &appConfig{v2Read: fixtureSchematicBinding(srv.URL), host: host, ports: fmt.Sprintf("%d-%d", port, port)}, state, srv.Close
 }
 
 func blockApplyPartsFixture(t *testing.T) string {
@@ -135,8 +140,8 @@ func assertBlockApplyStoppedBeforeWiring(t *testing.T, calls []blockApplyTestCal
 		switch call.Action {
 		case "schematic.components.list", "schematic.component.place", "schematic.component.delete":
 			// Placement and its compensating cleanup are the only allowed writes.
-		case "document.current":
-			// Read-only page pin issued by the group-registry leg of the delete
+		case "document.current", "project.current":
+			// Read-only exact project/page pin issued by the group-registry leg of the delete
 			// cascade (缺陷 2): a verified rollback strips the deleted designators
 			// from the persistent-group table, which needs the active page uuid.
 		default:

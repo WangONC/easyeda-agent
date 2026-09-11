@@ -62,6 +62,9 @@ func (s *Server) validateV2(r executionv2.Request) (executionv2.Admission, error
 		return a, errors.New("V2_SESSION_LOST")
 	}
 	snapshot := c.snapshot()
+	if snapshot.TransportID != "" && snapshot.TransportID != r.Target.Session {
+		return a, errors.New("V2_SESSION_LOST")
+	}
 	capable := false
 	for _, cap := range snapshot.Capabilities {
 		if cap == "execution.v2" {
@@ -251,6 +254,10 @@ func (s *Server) handleV2Bind(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	snap := c.snapshot()
+	if snap.TransportID != "" && snap.TransportID != t.Session {
+		http.Error(w, "V2_SESSION_LOST", 409)
+		return
+	}
 	if t.Activation != snap.ActivationID || (t.ProjectUUID != "" && t.ProjectUUID != snap.Context.ProjectUUID) || (t.Scope == "DOCUMENT" && (t.DocumentUUID != snap.Context.DocumentUUID || t.TabID != snap.Context.TabID || t.DocumentType != snap.Context.DocumentType)) {
 		http.Error(w, "V2_TARGET_MISMATCH", 409)
 		return
@@ -280,4 +287,29 @@ func (s *Server) releaseV2(r executionv2.Request, digest string) {
 	if e := recipient.write(ctx, map[string]any{"type": "v2_release", "operation_id": r.OperationID, "digest": digest, "deadline_unix_ms": r.ExecutionDeadline.UnixMilli()}); e != nil {
 		s.logf("V2 release notification failed for %s: %v", r.OperationID, e)
 	}
+}
+
+// Only the socket changes: operation/digest/activation/target and owner remain
+// immutable. A different physical window or activation cannot adopt the slot.
+func (s *Server) rebindV2Transport(current *conn) []string {
+	now := current.snapshot()
+	s.v2Mu.Lock()
+	defer s.v2Mu.Unlock()
+	var ids []string
+	for id, p := range s.v2Pending {
+		if p.conn == nil || p.conn == current {
+			continue
+		}
+		before := p.conn.snapshot()
+		if before.WindowID != now.WindowID || before.ActivationID != now.ActivationID || p.request.Target.Activation != now.ActivationID {
+			continue
+		}
+		p.conn = current
+		if p.releaseConn != nil && p.releaseConn.snapshot().ActivationID == now.ActivationID && p.releaseConn.snapshot().WindowID == now.WindowID {
+			p.releaseConn = current
+		}
+		s.v2Pending[id] = p
+		ids = append(ids, id)
+	}
+	return ids
 }

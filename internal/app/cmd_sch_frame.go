@@ -145,7 +145,9 @@ func parseSchFrameDocument(raw []byte) (schFrameDocument, error) {
 }
 
 func newSchFrameCmd(cfg *appConfig, window *string, stdout, stderr io.Writer) *cobra.Command {
-	c := &cobra.Command{Use: "frame", Short: "Apply or verify computed module frames and titles from JSON"}
+	c := &cobra.Command{Use: "frame", Hidden: true, Short: "Unavailable: retained frame implementation", PersistentPreRunE: func(*cobra.Command, []string) error {
+		return fmt.Errorf("RETIRED_ENTRYPOINT: frame graphics have no V2-native implementation")
+	}}
 	for _, mode := range []string{"apply", "check"} {
 		mode := mode
 		var from, data string

@@ -5,48 +5,72 @@
   "mpn": "XC6206P332MR-G",
   "lcsc": "C5446",
   "category": "LDO",
-  "availability": "identity_only",
+  "availability": "scoped_facts",
   "provenance": {
     "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
     "member": "eda_device_knowledge_experiment/ldo/XC6206P332MR-G.json",
     "identity_status": "imported_from_experiment_not_manufacturer_certification",
     "original_datasheet_url": "https://www.lcsc.com/datasheet/C5446.pdf"
   },
-  "sources": {},
-  "facts": [],
-  "pins": [],
-  "constraints": [],
-  "reference_applications": [],
-  "unavailable": [
-    {
-      "field": "facts",
-      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
-      "keys": [
-        "vin_V",
-        "vout_V",
-        "iout_max_A",
-        "dropout",
-        "quiescent_current",
-        "enable",
-        "stability"
-      ]
+  "sources": {
+    "s2": {
+      "url": "https://product.torexsemi.com/system/files/series/xc6206.pdf",
+      "document": "XC6206 Series",
+      "pdf_page": 2,
+      "section": "Product Classification / Ordering Information",
+      "revision": "ETR03005-009"
     },
-    {
-      "field": "pins",
-      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
+    "s4": {
+      "url": "https://product.torexsemi.com/system/files/series/xc6206.pdf",
+      "document": "XC6206 Series",
+      "pdf_page": 4,
+      "section": "Electrical Characteristics",
+      "revision": "ETR03005-009"
     },
-    {
-      "field": "package",
-      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
-    },
-    {
-      "field": "schematic_rules_and_layout",
-      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
-    },
-    {
-      "field": "reference_applications",
-      "name": "basic_application",
-      "reason": "Exact figure, document revision, or netlist scope not reconfirmed; not available for circuit reuse."
+    "s3": {
+      "url": "https://product.torexsemi.com/system/files/series/xc6206.pdf",
+      "document": "XC6206 Series",
+      "pdf_page": 3,
+      "section": "Pin Assignment",
+      "revision": "ETR03005-009"
     }
-  ]
+  },
+  "facts": [
+    {
+      "values": {
+        "output_voltage_V": 3.3,
+        "package": "SOT-23"
+      },
+      "source_refs": [
+        "s2"
+      ],
+      "coverage": "P332MR-G decoded using the official ordering table."
+    },
+    {
+      "values": {
+        "input_voltage_V": [
+          1.8,
+          6
+        ]
+      },
+      "source_refs": [
+        "s4"
+      ],
+      "coverage": "Electrical-characteristics input range; regulated output also depends on headroom/load. Not an assertion that 3.3V output is obtainable from 1.8V."
+    }
+  ],
+  "pins": [
+    {
+      "values": {
+        "1": "VSS (Ground)",
+        "2": "VOUT (Output)",
+        "3": "VIN (Power Input)"
+      },
+      "source_refs": [
+        "s3"
+      ],
+      "coverage": "SOT-23 column only, not SOT-89 or USP-6B."
+    }
+  ],
+  "constraints": []
 }

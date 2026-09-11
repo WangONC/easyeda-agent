@@ -5,45 +5,66 @@
   "mpn": "IRF4905PBF",
   "lcsc": "C2564",
   "category": "MOSFET",
-  "availability": "identity_only",
+  "availability": "scoped_facts",
   "provenance": {
     "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
     "member": "eda_device_knowledge_experiment/mosfet/IRF4905PBF.json",
     "identity_status": "imported_from_experiment_not_manufacturer_certification",
     "original_datasheet_url": "https://www.lcsc.com/datasheet/C2564.pdf"
   },
-  "sources": {},
-  "facts": [],
-  "pins": [],
-  "constraints": [],
-  "reference_applications": [],
-  "unavailable": [
-    {
-      "field": "facts",
-      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
-      "keys": [
-        "channel",
-        "vds_max_V",
-        "id_continuous_A",
-        "rds_on",
-        "vgs_max_V",
-        "vth_V",
-        "qg_nC",
-        "body_diode",
-        "thermal"
-      ]
+  "sources": {
+    "s1": {
+      "url": "https://www.infineon.com/assets/row/public/documents/24/49/infineon-irf4905-datasheet-en.pdf",
+      "document": "IRF4905PbF",
+      "pdf_page": 1,
+      "section": "Absolute Maximum Ratings",
+      "revision": "Rev. 2.1, 2026-04-08"
     },
-    {
-      "field": "pins",
-      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
-    },
-    {
-      "field": "package",
-      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
-    },
-    {
-      "field": "schematic_rules_and_layout",
-      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    "s2": {
+      "url": "https://www.infineon.com/assets/row/public/documents/24/49/infineon-irf4905-datasheet-en.pdf",
+      "document": "IRF4905PbF",
+      "pdf_page": 2,
+      "section": "Static Electrical Characteristics / Notes",
+      "revision": "Rev. 2.1, 2026-04-08"
     }
-  ]
+  },
+  "facts": [
+    {
+      "values": {
+        "absolute_maximum": {
+          "gate_source_V": [
+            -20,
+            20
+          ]
+        }
+      },
+      "source_refs": [
+        "s1"
+      ],
+      "coverage": "Gate-source absolute maximum stress rating."
+    },
+    {
+      "values": {
+        "drain_source_breakdown_V": -55,
+        "breakdown_conditions": {
+          "VGS_V": 0,
+          "ID_uA": -250
+        },
+        "rds_on_max_ohm": 0.02,
+        "rds_on_conditions": {
+          "VGS_V": -10,
+          "ID_A": -38,
+          "TJ_C": 25,
+          "pulse_width_max_us": 300,
+          "duty_cycle_max_percent": 2
+        }
+      },
+      "source_refs": [
+        "s2"
+      ],
+      "coverage": "Electrical-characteristic limits under the stated test conditions; breakdown is not a normal operating setpoint."
+    }
+  ],
+  "pins": [],
+  "constraints": []
 }

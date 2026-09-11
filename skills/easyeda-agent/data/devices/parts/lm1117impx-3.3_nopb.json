@@ -5,44 +5,39 @@
   "mpn": "LM1117IMPX-3.3/NOPB",
   "lcsc": "C23984",
   "category": "LDO",
-  "availability": "identity_only",
+  "availability": "scoped_facts",
   "provenance": {
     "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
     "member": "eda_device_knowledge_experiment/ldo/LM1117IMPX-3.3_NOPB.json",
     "identity_status": "imported_from_experiment_not_manufacturer_certification",
     "original_datasheet_url": "https://www.lcsc.com/datasheet/C23984.pdf"
   },
-  "sources": {},
-  "facts": [],
-  "pins": [],
-  "constraints": [],
-  "reference_applications": [],
-  "unavailable": [
-    {
-      "field": "facts",
-      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
-      "keys": [
-        "vin_V",
-        "vout_V",
-        "iout_max_A",
-        "dropout",
-        "quiescent_current",
-        "enable",
-        "power_good",
-        "stability"
-      ]
-    },
-    {
-      "field": "pins",
-      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
-    },
-    {
-      "field": "package",
-      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
-    },
-    {
-      "field": "schematic_rules_and_layout",
-      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+  "sources": {
+    "s1": {
+      "url": "https://www.ti.com/lit/ds/symlink/lm1117.pdf",
+      "document": "LM1117",
+      "pdf_page": 1,
+      "section": "Features and description",
+      "revision": "SNOS412Q, January 2023",
+      "document_sha256": "35892f3a8673fae91fe0c925b7be54b5d5dc3f7f8b67d1b4b5e00e4bfb0253d4"
     }
-  ]
+  },
+  "facts": [
+    {
+      "values": {
+        "output_current_A": 0.8,
+        "type": "linear LDO",
+        "protections": [
+          "current limiting",
+          "thermal shutdown"
+        ]
+      },
+      "source_refs": [
+        "s1"
+      ],
+      "coverage": "Family output capability, not a guarantee of 800mA for arbitrary thermal/input conditions."
+    }
+  ],
+  "pins": [],
+  "constraints": []
 }

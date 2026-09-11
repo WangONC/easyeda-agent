@@ -5,51 +5,38 @@
   "mpn": "TP4056-42-ESOP8",
   "lcsc": "C16581",
   "category": "Battery Management",
-  "availability": "identity_only",
+  "availability": "scoped_facts",
   "provenance": {
     "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
     "member": "eda_device_knowledge_experiment/battery_management/TP4056-42-ESOP8.json",
     "identity_status": "imported_from_experiment_not_manufacturer_certification",
     "original_datasheet_url": "https://datasheet.lcsc.com/lcsc/1809261820_TOPPOWER-Nanjing-Extension-Microelectronics-TP4056-42-ESOP8_C16581.pdf"
   },
-  "sources": {},
-  "facts": [],
-  "pins": [],
-  "constraints": [],
-  "reference_applications": [],
-  "unavailable": [
-    {
-      "field": "facts",
-      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
-      "keys": [
-        "type",
-        "cells",
-        "vin_V",
-        "charge_voltage_V",
-        "charge_voltage_accuracy",
-        "charge_current_max_A",
-        "charge_current_program",
-        "status",
-        "temperature_input",
-        "enable"
-      ]
-    },
-    {
-      "field": "pins",
-      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
-    },
-    {
-      "field": "package",
-      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
-    },
-    {
-      "field": "schematic_rules_and_layout",
-      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
-    },
-    {
-      "field": "reference_applications",
-      "name": "basic_no_temperature_application",
-      "reason": "Exact figure, document revision, or netlist scope not reconfirmed; not available for circuit reuse."
+  "sources": {
+    "s2": {
+      "url": "https://www.toppwr.com/uploadfile/file/20240307/65e993d6379ea.pdf",
+      "document": "TP4056",
+      "pdf_page": 2,
+      "section": "Description / Features",
+      "revision": "REV_2.4",
+      "document_sha256": "59329928a5ea30c361140b2beefea3de3a0e94d273aa18219bf3cd1cbe4c30fc"
     }
-  ]
+  },
+  "facts": [
+    {
+      "values": {
+        "type": "single-cell Li-ion CC/CV linear charger",
+        "cells": 1,
+        "charge_voltage_V": 4.2,
+        "charge_current_max_A": 1,
+        "charge_voltage_accuracy_percent": 1
+      },
+      "source_refs": [
+        "s2"
+      ],
+      "coverage": "Charge current is programmable and thermally regulated; do not treat the 8V absolute maximum as operating input voltage."
+    }
+  ],
+  "pins": [],
+  "constraints": []
 }

@@ -5,47 +5,38 @@
   "mpn": "STM32F030C8T6",
   "lcsc": "C23922",
   "category": "MCU",
-  "availability": "identity_only",
+  "availability": "scoped_facts",
   "provenance": {
     "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
     "member": "eda_device_knowledge_experiment/mcu/STM32F030C8T6.json",
     "identity_status": "imported_from_experiment_not_manufacturer_certification",
     "original_datasheet_url": "https://www.lcsc.com/datasheet/C23922.pdf"
   },
-  "sources": {},
-  "facts": [],
-  "pins": [],
-  "constraints": [],
-  "reference_applications": [],
-  "unavailable": [
-    {
-      "field": "facts",
-      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
-      "keys": [
-        "core",
-        "flash_kB",
-        "vdd_V",
-        "debug",
-        "interfaces_summary",
-        "clock"
-      ]
-    },
-    {
-      "field": "pins",
-      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
-    },
-    {
-      "field": "package",
-      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
-    },
-    {
-      "field": "schematic_rules_and_layout",
-      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
-    },
-    {
-      "field": "reference_applications",
-      "name": "power_supply_scheme",
-      "reason": "Exact figure, document revision, or netlist scope not reconfirmed; not available for circuit reuse."
+  "sources": {
+    "s1": {
+      "url": "https://www.st.com/resource/en/datasheet/stm32f030c8.pdf",
+      "document": "STM32F030x4/x6/x8/xC",
+      "pdf_page": 1,
+      "section": "Features and description",
+      "revision": "DS9773 Rev 5, November 2021"
     }
-  ]
+  },
+  "facts": [
+    {
+      "values": {
+        "core": "Arm Cortex-M0",
+        "cpu_frequency_max_MHz": 48,
+        "operating_supply_V": [
+          2.4,
+          3.6
+        ]
+      },
+      "source_refs": [
+        "s1"
+      ],
+      "coverage": "Family core and supply features. No inference of memory size or pin assignment from another family variant."
+    }
+  ],
+  "pins": [],
+  "constraints": []
 }

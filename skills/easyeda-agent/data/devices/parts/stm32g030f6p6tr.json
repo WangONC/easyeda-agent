@@ -37,33 +37,5 @@
     }
   ],
   "pins": [],
-  "constraints": [],
-  "reference_applications": [],
-  "unavailable": [
-    {
-      "field": "facts",
-      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
-      "keys": [
-        "flash_kB",
-        "interfaces_summary"
-      ]
-    },
-    {
-      "field": "pins",
-      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
-    },
-    {
-      "field": "package",
-      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
-    },
-    {
-      "field": "schematic_rules_and_layout",
-      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
-    },
-    {
-      "field": "reference_applications",
-      "name": "power_supply_scheme",
-      "reason": "Exact figure, document revision, or netlist scope not reconfirmed; not available for circuit reuse."
-    }
-  ]
+  "constraints": []
 }

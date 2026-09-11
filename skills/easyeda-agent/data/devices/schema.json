@@ -15,9 +15,7 @@
     "sources",
     "facts",
     "pins",
-    "constraints",
-    "reference_applications",
-    "unavailable"
+    "constraints"
   ],
   "additionalProperties": false,
   "properties": {
@@ -50,38 +48,67 @@
       ]
     },
     "availability": {
-      "enum": [
-        "scoped_facts",
-        "identity_only"
-      ]
+      "const": "scoped_facts"
     },
     "provenance": {
-      "type": "object",
-      "required": [
-        "archive_sha256",
-        "member",
-        "identity_status",
-        "original_datasheet_url"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "archive_sha256": {
-          "type": "string",
-          "minLength": 1
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "archive_sha256",
+            "member",
+            "identity_status",
+            "original_datasheet_url"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "archive_sha256": {
+              "type": "string",
+              "minLength": 1
+            },
+            "member": {
+              "type": "string",
+              "minLength": 1
+            },
+            "identity_status": {
+              "type": "string",
+              "minLength": 1
+            },
+            "original_datasheet_url": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
         },
-        "member": {
-          "type": "string",
-          "minLength": 1
-        },
-        "identity_status": {
-          "type": "string",
-          "minLength": 1
-        },
-        "original_datasheet_url": {
-          "type": "string",
-          "minLength": 1
+        {
+          "type": "object",
+          "required": [
+            "identity_status",
+            "original_datasheet_url",
+            "identity_url",
+            "replaces"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "identity_status": {
+              "type": "string",
+              "minLength": 1
+            },
+            "original_datasheet_url": {
+              "type": "string",
+              "minLength": 1
+            },
+            "identity_url": {
+              "type": "string",
+              "minLength": 1
+            },
+            "replaces": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
         }
-      }
+      ]
     },
     "sources": {
       "type": "object",
@@ -130,7 +157,8 @@
             "pattern": "^[0-9a-f]{64}$"
           }
         }
-      }
+      },
+      "minProperties": 1
     },
     "facts": {
       "type": "array",
@@ -293,38 +321,6 @@
           "coverage": {
             "type": "string",
             "minLength": 1
-          }
-        }
-      }
-    },
-    "unavailable": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": [
-          "field",
-          "reason"
-        ],
-        "additionalProperties": false,
-        "properties": {
-          "field": {
-            "type": "string",
-            "minLength": 1
-          },
-          "reason": {
-            "type": "string",
-            "minLength": 1
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1
-          },
-          "keys": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1
-            }
           }
         }
       }

@@ -5,49 +5,39 @@
   "mpn": "MT3608",
   "lcsc": "C84817",
   "category": "DC-DC",
-  "availability": "identity_only",
+  "availability": "scoped_facts",
   "provenance": {
     "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
     "member": "eda_device_knowledge_experiment/dc_dc/MT3608.json",
     "identity_status": "imported_from_experiment_not_manufacturer_certification",
     "original_datasheet_url": "https://datasheet.lcsc.com/lcsc/XI-AN-Aerosemi-Tech-MT3608_C84817.pdf"
   },
-  "sources": {},
-  "facts": [],
-  "pins": [],
-  "constraints": [],
-  "reference_applications": [],
-  "unavailable": [
-    {
-      "field": "facts",
-      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
-      "keys": [
-        "topology",
-        "vin_V",
-        "vout_max_V",
-        "switching_frequency",
-        "switch_current_limit",
-        "fb_reference_V",
-        "vout_formula",
-        "enable"
-      ]
-    },
-    {
-      "field": "pins",
-      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
-    },
-    {
-      "field": "package",
-      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
-    },
-    {
-      "field": "schematic_rules_and_layout",
-      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
-    },
-    {
-      "field": "reference_applications",
-      "name": "5V_boost_application",
-      "reason": "Exact figure, document revision, or netlist scope not reconfirmed; not available for circuit reuse."
+  "sources": {
+    "s1": {
+      "url": "https://www.olimex.com/Products/Breadboarding/BB-PWR-3608/resources/MT3608.pdf",
+      "document": "Aerosemi MT3608",
+      "pdf_page": 1,
+      "section": "Features and description",
+      "document_sha256": "fe848b6e4af5cf5a8245b98a14d677f923e47799b47fb83e0d1d02dc817ddede"
     }
-  ]
+  },
+  "facts": [
+    {
+      "values": {
+        "topology": "boost",
+        "input_voltage_V": [
+          2,
+          24
+        ],
+        "output_voltage_max_V": 28,
+        "switching_frequency_MHz": 1.2
+      },
+      "source_refs": [
+        "s1"
+      ],
+      "coverage": "Manufacturer-authored datasheet mirrored by Olimex. These are converter limits, not a guarantee of output current at every voltage."
+    }
+  ],
+  "pins": [],
+  "constraints": []
 }

@@ -15,7 +15,7 @@
       "manufacturer": "Texas Instruments",
       "lcsc": "C15464",
       "category": "Battery Management",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/bq24075rgtr.json"
     },
     {
@@ -60,7 +60,7 @@
       "manufacturer": "Analog Devices / Maxim Integrated",
       "lcsc": "C2682616",
       "category": "Battery Management",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/max17048gplust10.json"
     },
     {
@@ -73,13 +73,13 @@
       "path": "parts/mcp73831t-2aci_ot.json"
     },
     {
-      "id": "tp4054",
-      "mpn": "TP4054",
-      "manufacturer": "TECH PUBLIC",
-      "lcsc": "C5342385",
+      "id": "bq24040dsqr",
+      "mpn": "BQ24040DSQR",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C81080",
       "category": "Battery Management",
-      "availability": "identity_only",
-      "path": "parts/tp4054.json"
+      "availability": "scoped_facts",
+      "path": "parts/bq24040dsqr.json"
     },
     {
       "id": "tp4056-42-esop8",
@@ -87,7 +87,7 @@
       "manufacturer": "TOP POWER ASIC",
       "lcsc": "C16581",
       "category": "Battery Management",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/tp4056-42-esop8.json"
     },
     {
@@ -105,7 +105,7 @@
       "manufacturer": "XI'AN Aerosemi Tech",
       "lcsc": "C84817",
       "category": "DC-DC",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/mt3608.json"
     },
     {
@@ -150,7 +150,7 @@
       "manufacturer": "Texas Instruments",
       "lcsc": "C9865",
       "category": "DC-DC",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/tps54331dr.json"
     },
     {
@@ -168,7 +168,7 @@
       "manufacturer": "Texas Instruments",
       "lcsc": "C3200405",
       "category": "DC-DC",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/tps62933drlr.json"
     },
     {
@@ -213,7 +213,7 @@
       "manufacturer": "Holtek",
       "lcsc": "C21583",
       "category": "LDO",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/ht7333-a.json"
     },
     {
@@ -222,7 +222,7 @@
       "manufacturer": "Texas Instruments",
       "lcsc": "C23984",
       "category": "LDO",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/lm1117impx-3.3_nopb.json"
     },
     {
@@ -276,7 +276,7 @@
       "manufacturer": "Torex Semiconductor",
       "lcsc": "C5446",
       "category": "LDO",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/xc6206p332mr-g.json"
     },
     {
@@ -330,7 +330,7 @@
       "manufacturer": "STMicroelectronics",
       "lcsc": "C23922",
       "category": "MCU",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/stm32f030c8t6.json"
     },
     {
@@ -375,7 +375,7 @@
       "manufacturer": "onsemi",
       "lcsc": "C16338",
       "category": "MOSFET",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/2n7002lt1g.json"
     },
     {
@@ -402,7 +402,7 @@
       "manufacturer": "onsemi",
       "lcsc": "C82045",
       "category": "MOSFET",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/bss138lt1g.json"
     },
     {
@@ -420,7 +420,7 @@
       "manufacturer": "Infineon / International Rectifier",
       "lcsc": "C2561",
       "category": "MOSFET",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/irf3205pbf.json"
     },
     {
@@ -429,7 +429,7 @@
       "manufacturer": "Infineon / International Rectifier",
       "lcsc": "C2564",
       "category": "MOSFET",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/irf4905pbf.json"
     },
     {
@@ -438,7 +438,7 @@
       "manufacturer": "Infineon / International Rectifier",
       "lcsc": "C2566",
       "category": "MOSFET",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/irf540npbf.json"
     },
     {
@@ -447,7 +447,7 @@
       "manufacturer": "Infineon",
       "lcsc": "C2650",
       "category": "MOSFET",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/irfb4110pbf.json"
     },
     {
@@ -456,7 +456,7 @@
       "manufacturer": "Infineon / International Rectifier",
       "lcsc": "C2593",
       "category": "MOSFET",
-      "availability": "identity_only",
+      "availability": "scoped_facts",
       "path": "parts/irlml6402trpbf.json"
     }
   ]

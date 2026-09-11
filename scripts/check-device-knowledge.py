@@ -40,16 +40,16 @@ def no_recommendations(value):
             no_recommendations(item)
 
 def validate_device(d):
-    required = {'schema_version','id','manufacturer','mpn','lcsc','category','availability','provenance','sources','facts','pins','constraints','reference_applications','unavailable'}
-    require(isinstance(d, dict) and set(d) == required, 'unexpected or missing device fields')
+    required = {'schema_version','id','manufacturer','mpn','lcsc','category','availability','provenance','sources','facts','pins','constraints'}
+    require(isinstance(d, dict) and required <= set(d) <= required | {'reference_applications'}, 'unexpected or missing device fields')
     require(d['schema_version'] == '0.1', 'unsupported schema version')
     require(all(isinstance(d[k], str) and d[k].strip() for k in ['id','manufacturer','mpn','lcsc','category']), 'missing identity')
     require(re.fullmatch(r'[a-z0-9][a-z0-9_.+-]*', d['id']), 'invalid id')
     require(re.fullmatch(r'C[0-9]+', d['lcsc']), 'invalid LCSC identifier')
     require(d['category'] in CATEGORIES, 'unknown category')
-    require(d['availability'] in {'scoped_facts','identity_only'}, 'invalid availability')
+    require(d['availability'] == 'scoped_facts', 'invalid availability')
     sources = d['sources']
-    require(isinstance(sources, dict), 'sources must be an object')
+    require(isinstance(sources, dict) and bool(sources), 'sources must be an object')
     for s in sources.values():
         require(isinstance(s, dict), 'source must be an object')
         require(set(s) <= {'url','document','revision','pdf_page','printed_page','section','figure','document_sha256'}, 'unknown source fields')
@@ -70,9 +70,9 @@ def validate_device(d):
             no_recommendations(group['values'])
             refs(group['source_refs'], sources)
             count += 1
-    require(isinstance(d['reference_applications'], list), 'references must be an array')
+    require(isinstance(d.get('reference_applications', []), list), 'references must be an array')
     names = set()
-    for app in d['reference_applications']:
+    for app in d.get('reference_applications', []):
         require(set(app) == {'name','conditions','scope','source_refs','netlist','coverage'}, 'invalid reference application')
         require(isinstance(app['name'], str) and app['name'] and app['name'] not in names, 'duplicate/empty reference name')
         names.add(app['name'])
@@ -96,13 +96,15 @@ def validate_device(d):
                 require(ep not in endpoints, 'duplicate endpoint across nets')
                 endpoints.add(ep)
         count += 1
-    require(d['availability'] == ('scoped_facts' if count else 'identity_only'), 'availability does not reflect evidence')
-    require(isinstance(d['unavailable'], list), 'unavailable must be an array')
-    for item in d['unavailable']:
-        require(set(item) <= {'field','reason','keys','name'} and item.get('field') and item.get('reason'), 'invalid unavailable notice')
+    require(count > 0, 'built-in entry must contain source-backed usable knowledge')
     p = d['provenance']
-    require(set(p) == {'archive_sha256','member','identity_status','original_datasheet_url'}, 'invalid provenance')
-    require(re.fullmatch('[0-9a-f]{64}', p['archive_sha256']), 'missing import hash')
+    require(isinstance(p, dict), 'invalid provenance')
+    if 'replaces' in p:
+        require(set(p) == {'identity_status','original_datasheet_url','identity_url','replaces'}, 'invalid replacement provenance')
+        require(p['replaces'] and urlsplit(p['identity_url']).scheme == 'https', 'invalid replacement identity')
+    else:
+        require(set(p) == {'archive_sha256','member','identity_status','original_datasheet_url'}, 'invalid provenance')
+        require(re.fullmatch('[0-9a-f]{64}', p['archive_sha256']), 'missing import hash')
 
 def validate(data=DATA, archive=None):
     index = load(data / 'index.json')

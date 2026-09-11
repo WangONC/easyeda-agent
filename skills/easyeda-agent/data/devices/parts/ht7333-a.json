@@ -5,42 +5,57 @@
   "mpn": "HT7333-A",
   "lcsc": "C21583",
   "category": "LDO",
-  "availability": "identity_only",
+  "availability": "scoped_facts",
   "provenance": {
     "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
     "member": "eda_device_knowledge_experiment/ldo/HT7333-A.json",
     "identity_status": "imported_from_experiment_not_manufacturer_certification",
     "original_datasheet_url": "https://www.lcsc.com/datasheet/C21583.pdf"
   },
-  "sources": {},
-  "facts": [],
-  "pins": [],
-  "constraints": [],
-  "reference_applications": [],
-  "unavailable": [
-    {
-      "field": "facts",
-      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
-      "keys": [
-        "vin_max_V",
-        "vout_V",
-        "iout_max_A",
-        "quiescent_current",
-        "dropout",
-        "enable"
-      ]
+  "sources": {
+    "s1": {
+      "url": "https://www.holtek.com/webapi/116711/HT73xxv180.pdf",
+      "document": "HT73xx Series",
+      "pdf_page": 1,
+      "section": "Features / Selection Table",
+      "revision": "Rev. 1.80, March 19 2019",
+      "document_sha256": "3d91ea7b79745fa74cb6e30e52fa3529b8a67553eb5e417243ba8f6ab9202aed"
     },
-    {
-      "field": "pins",
-      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
-    },
-    {
-      "field": "package",
-      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
-    },
-    {
-      "field": "schematic_rules_and_layout",
-      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    "s2": {
+      "url": "https://www.holtek.com/webapi/116711/HT73xxv180.pdf",
+      "document": "HT73xx Series",
+      "pdf_page": 2,
+      "section": "Pin Description",
+      "revision": "Rev. 1.80, March 19 2019",
+      "document_sha256": "3d91ea7b79745fa74cb6e30e52fa3529b8a67553eb5e417243ba8f6ab9202aed"
     }
-  ]
+  },
+  "facts": [
+    {
+      "values": {
+        "output_voltage_V": 3.3,
+        "input_voltage_max_V": 12,
+        "package": "SOT89",
+        "marking": "7333-A"
+      },
+      "source_refs": [
+        "s1"
+      ],
+      "coverage": "HT7333 selection row; -A is the SOT89 marking shown by Holtek."
+    }
+  ],
+  "pins": [
+    {
+      "values": {
+        "1": "GND",
+        "2": "VIN",
+        "3": "VOUT"
+      },
+      "source_refs": [
+        "s2"
+      ],
+      "coverage": "SOT89 numbered pins."
+    }
+  ],
+  "constraints": []
 }

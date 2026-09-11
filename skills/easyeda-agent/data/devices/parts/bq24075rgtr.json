@@ -5,49 +5,38 @@
   "mpn": "BQ24075RGTR",
   "lcsc": "C15464",
   "category": "Battery Management",
-  "availability": "identity_only",
+  "availability": "scoped_facts",
   "provenance": {
     "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
     "member": "eda_device_knowledge_experiment/battery_management/BQ24075RGTR.json",
     "identity_status": "imported_from_experiment_not_manufacturer_certification",
     "original_datasheet_url": "https://www.lcsc.com/datasheet/C15464.pdf"
   },
-  "sources": {},
-  "facts": [],
-  "pins": [],
-  "constraints": [],
-  "reference_applications": [],
-  "unavailable": [
-    {
-      "field": "facts",
-      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
-      "keys": [
-        "type",
-        "cells",
-        "vin_operating_V",
-        "charge_voltage_V",
-        "charge_current_max_A",
-        "power_path",
-        "temperature_input",
-        "status"
-      ]
-    },
-    {
-      "field": "pins",
-      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
-    },
-    {
-      "field": "package",
-      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
-    },
-    {
-      "field": "schematic_rules_and_layout",
-      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
-    },
-    {
-      "field": "reference_applications",
-      "name": "power_path_application_partial",
-      "reason": "Exact figure, document revision, or netlist scope not reconfirmed; not available for circuit reuse."
+  "sources": {
+    "s1": {
+      "url": "https://www.ti.com/lit/ds/symlink/bq24075.pdf",
+      "document": "BQ2407x",
+      "pdf_page": 1,
+      "section": "Features and description",
+      "revision": "SLUS810N, October 2021",
+      "document_sha256": "3c8a0a906dc305bccc4eb5f83f27a9df7d8db441ee304e204650f5e7b43c4e56"
     }
-  ]
+  },
+  "facts": [
+    {
+      "values": {
+        "type": "single-cell Li-ion linear charger with power path",
+        "cells": 1,
+        "charge_current_max_A": 1.5,
+        "power_path": true,
+        "battery_disconnect_input": "SYSOFF"
+      },
+      "source_refs": [
+        "s1"
+      ],
+      "coverage": "BQ24075-specific SYSOFF; current capability remains subject to thermal and input limits."
+    }
+  ],
+  "pins": [],
+  "constraints": []
 }

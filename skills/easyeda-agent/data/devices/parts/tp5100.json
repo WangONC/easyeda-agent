@@ -31,38 +31,5 @@
     }
   ],
   "pins": [],
-  "constraints": [],
-  "reference_applications": [],
-  "unavailable": [
-    {
-      "field": "facts",
-      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
-      "keys": [
-        "cells",
-        "vin_V",
-        "charge_voltage_V",
-        "switching_frequency",
-        "inductor_recommended_uH",
-        "temperature_input",
-        "status"
-      ]
-    },
-    {
-      "field": "pins",
-      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
-    },
-    {
-      "field": "package",
-      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
-    },
-    {
-      "field": "schematic_rules_and_layout",
-      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
-    },
-    {
-      "field": "reference_applications",
-      "name": "1S_charger_power_stage_partial",
-      "reason": "Exact figure, document revision, or netlist scope not reconfirmed; not available for circuit reuse."
-    }
-  ]
+  "constraints": []
 }

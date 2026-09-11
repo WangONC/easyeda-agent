@@ -5,49 +5,40 @@
   "mpn": "TPS54331DR",
   "lcsc": "C9865",
   "category": "DC-DC",
-  "availability": "identity_only",
+  "availability": "scoped_facts",
   "provenance": {
     "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
     "member": "eda_device_knowledge_experiment/dc_dc/TPS54331DR.json",
     "identity_status": "imported_from_experiment_not_manufacturer_certification",
     "original_datasheet_url": "https://www.lcsc.com/datasheet/C9865.pdf"
   },
-  "sources": {},
-  "facts": [],
-  "pins": [],
-  "constraints": [],
-  "reference_applications": [],
-  "unavailable": [
-    {
-      "field": "facts",
-      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
-      "keys": [
-        "topology",
-        "vin_V",
-        "iout_max_A",
-        "switching_frequency",
-        "fb_reference",
-        "enable",
-        "soft_start",
-        "compensation"
-      ]
-    },
-    {
-      "field": "pins",
-      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
-    },
-    {
-      "field": "package",
-      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
-    },
-    {
-      "field": "schematic_rules_and_layout",
-      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
-    },
-    {
-      "field": "reference_applications",
-      "name": "3V3_3A_application",
-      "reason": "Exact figure, document revision, or netlist scope not reconfirmed; not available for circuit reuse."
+  "sources": {
+    "s1": {
+      "url": "https://www.ti.com/lit/ds/symlink/tps54331.pdf",
+      "document": "TPS54331",
+      "pdf_page": 1,
+      "section": "Features and description",
+      "revision": "SLVS839H, October 2023",
+      "document_sha256": "cf72dfd0ac69eec645b7b493de628dc1c3aa66f5f925a2ea9be6bb5c38260730"
     }
-  ]
+  },
+  "facts": [
+    {
+      "values": {
+        "topology": "non-synchronous buck",
+        "input_voltage_V": [
+          3.5,
+          28
+        ],
+        "output_current_max_A": 3,
+        "switching_frequency_kHz": 570
+      },
+      "source_refs": [
+        "s1"
+      ],
+      "coverage": "Feature specifications; output capability depends on application and thermal conditions."
+    }
+  ],
+  "pins": [],
+  "constraints": []
 }

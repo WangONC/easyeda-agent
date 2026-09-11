@@ -78,7 +78,38 @@ class DeviceKnowledgeTests(unittest.TestCase):
 
     def test_mismatched_reference_is_not_imported(self):
         d = m.load(m.DATA/'parts/tps7a2033pdbvr.json')
-        self.assertEqual(d['reference_applications'], [])
-        self.assertTrue(any('2.8 V' in x['reason'] for x in d['unavailable']))
+        self.assertNotIn('reference_applications', d)
+
+    def test_all_builtin_entries_have_real_knowledge(self):
+        for path in (m.DATA/'parts').glob('*.json'):
+            d = m.load(path)
+            self.assertEqual(d['availability'], 'scoped_facts', path.name)
+            self.assertTrue(d['facts'] or d['pins'] or d['constraints'], path.name)
+            self.assertNotIn('unavailable', d)
+
+    def test_reference_is_optional(self):
+        self.d.pop('reference_applications')
+        m.validate_device(self.d)
+
+    def test_empty_knowledge_rejected_even_with_sources(self):
+        for k in ['facts','pins','constraints']: self.d[k] = []
+        self.d.pop('reference_applications')
+        with self.assertRaisesRegex(ValueError, 'usable knowledge'): m.validate_device(self.d)
+
+    def test_placeholder_rejected(self):
+        self.d['unavailable'] = []
+        with self.assertRaises(ValueError): m.validate_device(self.d)
+
+    def test_replacement_has_distinct_identity(self):
+        d = m.load(m.DATA/'parts/bq24040dsqr.json')
+        self.assertEqual(d['provenance']['replaces'], 'tp4054')
+        self.assertEqual(d['mpn'], 'BQ24040DSQR')
+        self.assertFalse((m.DATA/'parts/tp4054.json').exists())
+        m.validate_device(d)
+
+    def test_pin_columns_not_interchanged(self):
+        d = m.load(m.DATA/'parts/xc6206p332mr-g.json')
+        self.assertEqual(d['pins'][0]['values']['2'], 'VOUT (Output)')
+        self.assertEqual(d['sources'][d['pins'][0]['source_refs'][0]]['pdf_page'], 3)
 
 if __name__ == '__main__': unittest.main()

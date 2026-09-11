@@ -5,45 +5,86 @@
   "mpn": "2N7002LT1G",
   "lcsc": "C16338",
   "category": "MOSFET",
-  "availability": "identity_only",
+  "availability": "scoped_facts",
   "provenance": {
     "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
     "member": "eda_device_knowledge_experiment/mosfet/2N7002LT1G.json",
     "identity_status": "imported_from_experiment_not_manufacturer_certification",
     "original_datasheet_url": "https://www.lcsc.com/datasheet/C16338.pdf"
   },
-  "sources": {},
-  "facts": [],
-  "pins": [],
-  "constraints": [],
-  "reference_applications": [],
-  "unavailable": [
-    {
-      "field": "facts",
-      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
-      "keys": [
-        "channel",
-        "vds_max_V",
-        "id_continuous_A",
-        "rds_on",
-        "vgs_max_V",
-        "vth_V",
-        "qg_nC",
-        "body_diode",
-        "thermal"
-      ]
+  "sources": {
+    "s1": {
+      "url": "https://www.onsemi.com/pdf/datasheet/2n7002l-d.pdf",
+      "document": "2N7002L/D",
+      "pdf_page": 1,
+      "section": "Maximum Ratings",
+      "revision": "Rev. 11, June 2024",
+      "document_sha256": "9cda73af9d771882199d255313881e107f6d33c5b9a36b52733e737034883aaf"
     },
-    {
-      "field": "pins",
-      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
+    "s2": {
+      "url": "https://www.onsemi.com/pdf/datasheet/2n7002l-d.pdf",
+      "document": "2N7002L/D",
+      "pdf_page": 2,
+      "section": "Electrical Characteristics / Note 5",
+      "revision": "Rev. 11, June 2024",
+      "document_sha256": "9cda73af9d771882199d255313881e107f6d33c5b9a36b52733e737034883aaf"
     },
-    {
-      "field": "package",
-      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
-    },
-    {
-      "field": "schematic_rules_and_layout",
-      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    "s5": {
+      "url": "https://www.onsemi.com/pdf/datasheet/2n7002l-d.pdf",
+      "document": "2N7002L/D",
+      "pdf_page": 5,
+      "section": "CASE 318, Style 21",
+      "revision": "Rev. 11, June 2024",
+      "document_sha256": "9cda73af9d771882199d255313881e107f6d33c5b9a36b52733e737034883aaf"
     }
-  ]
+  },
+  "facts": [
+    {
+      "values": {
+        "channel": "N",
+        "absolute_maximum": {
+          "drain_source_V": 60,
+          "gate_source_V": [
+            -20,
+            20
+          ]
+        }
+      },
+      "source_refs": [
+        "s1"
+      ],
+      "coverage": "Absolute maximum stress ratings, not normal operating conditions."
+    },
+    {
+      "values": {
+        "rds_on_max_ohm": 7.5,
+        "test_conditions": {
+          "VGS_V": 10,
+          "ID_A": 0.5,
+          "TC_C": 25,
+          "pulse_width_max_us": 300,
+          "duty_cycle_max_percent": 2
+        }
+      },
+      "source_refs": [
+        "s2"
+      ],
+      "coverage": "Only the listed parameters; not a complete design or operating envelope."
+    }
+  ],
+  "pins": [
+    {
+      "values": {
+        "1": "GATE",
+        "2": "SOURCE",
+        "3": "DRAIN"
+      },
+      "source_refs": [
+        "s1",
+        "s5"
+      ],
+      "coverage": "SOT-23 CASE 318 STYLE 21 identified on PDF page 1; style pin map on PDF page 5."
+    }
+  ],
+  "constraints": []
 }

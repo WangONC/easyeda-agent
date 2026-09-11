@@ -107,4 +107,4 @@ PCB 制造交付还须确认层叠、GND、电源、丝印与导出文件。离�
 
 选用器件时优先查询本地 [Device Knowledge 索引](data/devices/index.json)，证据边界见 [使用说明](data/devices/README.md)。Device Knowledge 保存具体器件的可证明事实；现有 Standard Blocks 保存可复用设计知识／电路组合，命中成熟电路块时优先复用。
 
-命中已有器件时，优先使用其中可追溯的引脚、电气约束、layout 约束和参考应用，不重复阅读完整 datasheet。只有知识缺失（含 identity_only / unavailable）、来源不可靠、datasheet 版本不匹配，或当前工作条件超出条目证据覆盖范围时，才回读原始 datasheet。Device Knowledge 没有写出的内容不得靠模型补全；topology_only 参考应用不能当作通用推荐电路。
+命中已有器件时，优先使用其中可追溯的引脚、电气约束、layout 约束和参考应用，不重复阅读完整 datasheet。只有知识缺失、来源不可靠、datasheet 版本不匹配，或当前工作条件超出条目证据覆盖范围时，才回读原始 datasheet。Device Knowledge 没有写出的内容不得靠模型补全；topology_only 参考应用不能当作通用推荐电路。

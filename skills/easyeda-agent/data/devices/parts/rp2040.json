@@ -207,37 +207,5 @@
       },
       "coverage": "Only the represented figure/subcircuit. Symbolic pin names and wildcard pin groups are not placement-ready pin numbers."
     }
-  ],
-  "unavailable": [
-    {
-      "field": "facts",
-      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
-      "keys": [
-        "core",
-        "vdd_io_V",
-        "core_supply_V",
-        "external_flash",
-        "usb",
-        "debug",
-        "interfaces_summary"
-      ]
-    },
-    {
-      "field": "pins",
-      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
-    },
-    {
-      "field": "package",
-      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
-    },
-    {
-      "field": "schematic_rules_and_layout",
-      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
-    },
-    {
-      "field": "reference_applications",
-      "name": "core_power_decoupling",
-      "reason": "Original combined power subset spans Figures 3/5 plus prose; not published as a single direct reference circuit."
-    }
   ]
 }

@@ -1,0 +1,96 @@
+{
+  "schema_version": "0.1",
+  "id": "bq24040dsqr",
+  "manufacturer": "Texas Instruments",
+  "mpn": "BQ24040DSQR",
+  "lcsc": "C81080",
+  "category": "Battery Management",
+  "availability": "scoped_facts",
+  "provenance": {
+    "identity_status": "official_datasheet_with_distributor_identifier",
+    "original_datasheet_url": "https://www.ti.com/lit/ds/symlink/bq24040.pdf",
+    "identity_url": "https://www.lcsc.com/product-detail/C81080.html",
+    "replaces": "tp4054"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://www.ti.com/lit/ds/symlink/bq24040.pdf",
+      "document": "BQ2404x",
+      "pdf_page": 1,
+      "section": "Features and description",
+      "revision": "SLUS941H, February 2021",
+      "document_sha256": "930ebe58ce7d9c0d1c2d3964b6c165f69e1141f7b2dc76cc57e4b99600cd1b0c"
+    },
+    "s4": {
+      "url": "https://www.ti.com/lit/ds/symlink/bq24040.pdf",
+      "document": "BQ2404x",
+      "pdf_page": 4,
+      "section": "6 Pin Configuration and Functions",
+      "revision": "SLUS941H, February 2021",
+      "document_sha256": "930ebe58ce7d9c0d1c2d3964b6c165f69e1141f7b2dc76cc57e4b99600cd1b0c"
+    },
+    "s6": {
+      "url": "https://www.ti.com/lit/ds/symlink/bq24040.pdf",
+      "document": "BQ2404x",
+      "pdf_page": 6,
+      "section": "7.3 Operating Conditions",
+      "revision": "SLUS941H, February 2021",
+      "document_sha256": "930ebe58ce7d9c0d1c2d3964b6c165f69e1141f7b2dc76cc57e4b99600cd1b0c"
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "type": "single-cell Li-ion/Li-Pol linear charger",
+        "cells": 1
+      },
+      "source_refs": [
+        "s1"
+      ],
+      "coverage": "BQ24040; charger, not a separate system power-path controller."
+    },
+    {
+      "values": {
+        "charge_voltage_V": 4.2
+      },
+      "source_refs": [
+        "s4"
+      ],
+      "coverage": "BQ24040 row; not the BQ24045 4.35V variant."
+    },
+    {
+      "values": {
+        "operating_input_voltage_V": [
+          4.45,
+          6.45
+        ],
+        "output_current_max_A": 1
+      },
+      "source_refs": [
+        "s6"
+      ],
+      "coverage": "Range restricted by VDPM and VOVP. Below 4.5V or in dropout performance can be reduced."
+    }
+  ],
+  "pins": [
+    {
+      "values": {
+        "1": "IN",
+        "2": "ISET",
+        "3": "VSS",
+        "4": "PRE-TERM",
+        "5": "PG",
+        "6": "NC",
+        "7": "ISET2",
+        "8": "CHG",
+        "9": "TS",
+        "10": "OUT"
+      },
+      "source_refs": [
+        "s4"
+      ],
+      "coverage": "BQ24040 DSQ numbered pins; exposed thermal pad is not included in this numbered-pin group."
+    }
+  ],
+  "constraints": []
+}

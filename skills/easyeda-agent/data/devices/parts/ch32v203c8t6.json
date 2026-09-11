@@ -1,0 +1,61 @@
+{
+  "schema_version": "0.1",
+  "id": "ch32v203c8t6",
+  "manufacturer": "WCH",
+  "mpn": "CH32V203C8T6",
+  "lcsc": "C3001172",
+  "category": "MCU",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/mcu/CH32V203C8T6.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.lcsc.com/datasheet/C3001172.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://datasheet.lcsc.com/datasheet/pdf/f35dfe12b06bb4ec437509801418cffd.pdf?productCode=C3001172",
+      "document": "CH32V203DS0-EN",
+      "pdf_page": 1
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "core": "QingKe RISC-V",
+        "max_clock_MHz": 144
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "pins": [],
+  "constraints": [],
+  "reference_applications": [],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "flash_kB",
+        "vdd_V",
+        "vbat_V",
+        "debug",
+        "interfaces_summary"
+      ]
+    },
+    {
+      "field": "pins",
+      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    }
+  ]
+}

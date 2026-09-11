@@ -1,0 +1,69 @@
+{
+  "schema_version": "0.1",
+  "id": "tlv62569dbvr",
+  "manufacturer": "Texas Instruments",
+  "mpn": "TLV62569DBVR",
+  "lcsc": "C141836",
+  "category": "DC-DC",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/dc_dc/TLV62569DBVR.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.lcsc.com/datasheet/C141836.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://datasheet.lcsc.com/datasheet/pdf/17b330e62cea45956cc310f229e6bb45.pdf?productCode=C141836",
+      "document": "TLV62569 2-A High-Efficiency Step-Down Converter in SOT23-5 Package datasheet (Rev. C)",
+      "pdf_page": 1
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "topology": "synchronous buck",
+        "vin_V": [
+          2.5,
+          5.5
+        ],
+        "iout_max_A": 2.0,
+        "switching_frequency": "~1.5 MHz"
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "pins": [],
+  "constraints": [],
+  "reference_applications": [],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "fb_reference",
+        "enable",
+        "power_good"
+      ]
+    },
+    {
+      "field": "pins",
+      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    },
+    {
+      "field": "reference_applications",
+      "name": "1V8_2A_application",
+      "reason": "Exact figure, document revision, or netlist scope not reconfirmed; not available for circuit reuse."
+    }
+  ]
+}

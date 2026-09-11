@@ -1,0 +1,67 @@
+{
+  "schema_version": "0.1",
+  "id": "ip5306",
+  "manufacturer": "Injoinic",
+  "mpn": "IP5306",
+  "lcsc": "C181692",
+  "category": "Battery Management",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/battery_management/IP5306.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.lcsc.com/datasheet/C181692.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://datasheet.lcsc.com/datasheet/pdf/309666add984eaea02a8f06d99102496.pdf?productCode=C181692",
+      "document": "1.2A充电1 A放电高集成度移动电源SOC",
+      "pdf_page": 1
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "type": "power-bank PMIC / charger + boost",
+        "charge_current_max_A": 2.1,
+        "boost_current_max_A": 2.1
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "pins": [],
+  "constraints": [],
+  "reference_applications": [],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "cells",
+        "vin_recommended_V",
+        "boost_output_V",
+        "switching_frequency",
+        "battery_range_V"
+      ]
+    },
+    {
+      "field": "pins",
+      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    },
+    {
+      "field": "reference_applications",
+      "name": "power_stage_subset",
+      "reason": "Exact figure, document revision, or netlist scope not reconfirmed; not available for circuit reuse."
+    }
+  ]
+}

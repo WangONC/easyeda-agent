@@ -1,0 +1,463 @@
+{
+  "schema_version": "0.1",
+  "count": 50,
+  "category_counts": {
+    "Battery Management": 10,
+    "DC-DC": 10,
+    "LDO": 10,
+    "MCU": 10,
+    "MOSFET": 10
+  },
+  "devices": [
+    {
+      "id": "bq24075rgtr",
+      "mpn": "BQ24075RGTR",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C15464",
+      "category": "Battery Management",
+      "availability": "identity_only",
+      "path": "parts/bq24075rgtr.json"
+    },
+    {
+      "id": "bq25895rtwt",
+      "mpn": "BQ25895RTWT",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C2861263",
+      "category": "Battery Management",
+      "availability": "scoped_facts",
+      "path": "parts/bq25895rtwt.json"
+    },
+    {
+      "id": "cn3065",
+      "mpn": "CN3065",
+      "manufacturer": "CONSONANCE",
+      "lcsc": "C45284",
+      "category": "Battery Management",
+      "availability": "scoped_facts",
+      "path": "parts/cn3065.json"
+    },
+    {
+      "id": "dw01a",
+      "mpn": "DW01A",
+      "manufacturer": "Poulop / compatible vendor",
+      "lcsc": "C351410",
+      "category": "Battery Management",
+      "availability": "scoped_facts",
+      "path": "parts/dw01a.json"
+    },
+    {
+      "id": "ip5306",
+      "mpn": "IP5306",
+      "manufacturer": "Injoinic",
+      "lcsc": "C181692",
+      "category": "Battery Management",
+      "availability": "scoped_facts",
+      "path": "parts/ip5306.json"
+    },
+    {
+      "id": "max17048gplust10",
+      "mpn": "MAX17048G+T10",
+      "manufacturer": "Analog Devices / Maxim Integrated",
+      "lcsc": "C2682616",
+      "category": "Battery Management",
+      "availability": "identity_only",
+      "path": "parts/max17048gplust10.json"
+    },
+    {
+      "id": "mcp73831t-2aci_ot",
+      "mpn": "MCP73831T-2ACI/OT",
+      "manufacturer": "Microchip Technology",
+      "lcsc": "C424093",
+      "category": "Battery Management",
+      "availability": "scoped_facts",
+      "path": "parts/mcp73831t-2aci_ot.json"
+    },
+    {
+      "id": "tp4054",
+      "mpn": "TP4054",
+      "manufacturer": "TECH PUBLIC",
+      "lcsc": "C5342385",
+      "category": "Battery Management",
+      "availability": "identity_only",
+      "path": "parts/tp4054.json"
+    },
+    {
+      "id": "tp4056-42-esop8",
+      "mpn": "TP4056-42-ESOP8",
+      "manufacturer": "TOP POWER ASIC",
+      "lcsc": "C16581",
+      "category": "Battery Management",
+      "availability": "identity_only",
+      "path": "parts/tp4056-42-esop8.json"
+    },
+    {
+      "id": "tp5100",
+      "mpn": "TP5100",
+      "manufacturer": "TOP POWER ASIC",
+      "lcsc": "C379389",
+      "category": "Battery Management",
+      "availability": "scoped_facts",
+      "path": "parts/tp5100.json"
+    },
+    {
+      "id": "mt3608",
+      "mpn": "MT3608",
+      "manufacturer": "XI'AN Aerosemi Tech",
+      "lcsc": "C84817",
+      "category": "DC-DC",
+      "availability": "identity_only",
+      "path": "parts/mt3608.json"
+    },
+    {
+      "id": "tlv62569dbvr",
+      "mpn": "TLV62569DBVR",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C141836",
+      "category": "DC-DC",
+      "availability": "scoped_facts",
+      "path": "parts/tlv62569dbvr.json"
+    },
+    {
+      "id": "tps54202ddcr",
+      "mpn": "TPS54202DDCR",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C191884",
+      "category": "DC-DC",
+      "availability": "scoped_facts",
+      "path": "parts/tps54202ddcr.json"
+    },
+    {
+      "id": "tps54302ddcr",
+      "mpn": "TPS54302DDCR",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C311983",
+      "category": "DC-DC",
+      "availability": "scoped_facts",
+      "path": "parts/tps54302ddcr.json"
+    },
+    {
+      "id": "tps5430ddar",
+      "mpn": "TPS5430DDAR",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C9864",
+      "category": "DC-DC",
+      "availability": "scoped_facts",
+      "path": "parts/tps5430ddar.json"
+    },
+    {
+      "id": "tps54331dr",
+      "mpn": "TPS54331DR",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C9865",
+      "category": "DC-DC",
+      "availability": "identity_only",
+      "path": "parts/tps54331dr.json"
+    },
+    {
+      "id": "tps62840dlcr",
+      "mpn": "TPS62840DLCR",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C2071859",
+      "category": "DC-DC",
+      "availability": "scoped_facts",
+      "path": "parts/tps62840dlcr.json"
+    },
+    {
+      "id": "tps62933drlr",
+      "mpn": "TPS62933DRLR",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C3200405",
+      "category": "DC-DC",
+      "availability": "identity_only",
+      "path": "parts/tps62933drlr.json"
+    },
+    {
+      "id": "tps63020dsjr",
+      "mpn": "TPS63020DSJR",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C15483",
+      "category": "DC-DC",
+      "availability": "scoped_facts",
+      "path": "parts/tps63020dsjr.json"
+    },
+    {
+      "id": "tps63070rnmr",
+      "mpn": "TPS63070RNMR",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C109322",
+      "category": "DC-DC",
+      "availability": "scoped_facts",
+      "path": "parts/tps63070rnmr.json"
+    },
+    {
+      "id": "ams1117-3.3",
+      "mpn": "AMS1117-3.3",
+      "manufacturer": "Advanced Monolithic Systems",
+      "lcsc": "C6186",
+      "category": "LDO",
+      "availability": "scoped_facts",
+      "path": "parts/ams1117-3.3.json"
+    },
+    {
+      "id": "ap2112k-3.3trg1",
+      "mpn": "AP2112K-3.3TRG1",
+      "manufacturer": "Diodes Incorporated",
+      "lcsc": "C51118",
+      "category": "LDO",
+      "availability": "scoped_facts",
+      "path": "parts/ap2112k-3.3trg1.json"
+    },
+    {
+      "id": "ht7333-a",
+      "mpn": "HT7333-A",
+      "manufacturer": "Holtek",
+      "lcsc": "C21583",
+      "category": "LDO",
+      "availability": "identity_only",
+      "path": "parts/ht7333-a.json"
+    },
+    {
+      "id": "lm1117impx-3.3_nopb",
+      "mpn": "LM1117IMPX-3.3/NOPB",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C23984",
+      "category": "LDO",
+      "availability": "identity_only",
+      "path": "parts/lm1117impx-3.3_nopb.json"
+    },
+    {
+      "id": "lp5907mfx-3.3_nopb",
+      "mpn": "LP5907MFX-3.3/NOPB",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C80670",
+      "category": "LDO",
+      "availability": "scoped_facts",
+      "path": "parts/lp5907mfx-3.3_nopb.json"
+    },
+    {
+      "id": "me6211c33m5g-n",
+      "mpn": "ME6211C33M5G-N",
+      "manufacturer": "Microne",
+      "lcsc": "C82942",
+      "category": "LDO",
+      "availability": "scoped_facts",
+      "path": "parts/me6211c33m5g-n.json"
+    },
+    {
+      "id": "tlv75533pdbvr",
+      "mpn": "TLV75533PDBVR",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C404027",
+      "category": "LDO",
+      "availability": "scoped_facts",
+      "path": "parts/tlv75533pdbvr.json"
+    },
+    {
+      "id": "tlv75733pdbvr",
+      "mpn": "TLV75733PDBVR",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C485517",
+      "category": "LDO",
+      "availability": "scoped_facts",
+      "path": "parts/tlv75733pdbvr.json"
+    },
+    {
+      "id": "tps7a2033pdbvr",
+      "mpn": "TPS7A2033PDBVR",
+      "manufacturer": "Texas Instruments",
+      "lcsc": "C2862740",
+      "category": "LDO",
+      "availability": "scoped_facts",
+      "path": "parts/tps7a2033pdbvr.json"
+    },
+    {
+      "id": "xc6206p332mr-g",
+      "mpn": "XC6206P332MR-G",
+      "manufacturer": "Torex Semiconductor",
+      "lcsc": "C5446",
+      "category": "LDO",
+      "availability": "identity_only",
+      "path": "parts/xc6206p332mr-g.json"
+    },
+    {
+      "id": "atmega328p-au",
+      "mpn": "ATMEGA328P-AU",
+      "manufacturer": "Microchip Technology",
+      "lcsc": "C14877",
+      "category": "MCU",
+      "availability": "scoped_facts",
+      "path": "parts/atmega328p-au.json"
+    },
+    {
+      "id": "ch32v003f4p6",
+      "mpn": "CH32V003F4P6",
+      "manufacturer": "WCH",
+      "lcsc": "C5187096",
+      "category": "MCU",
+      "availability": "scoped_facts",
+      "path": "parts/ch32v003f4p6.json"
+    },
+    {
+      "id": "ch32v203c8t6",
+      "mpn": "CH32V203C8T6",
+      "manufacturer": "WCH",
+      "lcsc": "C3001172",
+      "category": "MCU",
+      "availability": "scoped_facts",
+      "path": "parts/ch32v203c8t6.json"
+    },
+    {
+      "id": "gd32e230f4p6tr",
+      "mpn": "GD32E230F4P6TR",
+      "manufacturer": "GigaDevice",
+      "lcsc": "C2842295",
+      "category": "MCU",
+      "availability": "scoped_facts",
+      "path": "parts/gd32e230f4p6tr.json"
+    },
+    {
+      "id": "rp2040",
+      "mpn": "RP2040",
+      "manufacturer": "Raspberry Pi Ltd",
+      "lcsc": "C2040",
+      "category": "MCU",
+      "availability": "scoped_facts",
+      "path": "parts/rp2040.json"
+    },
+    {
+      "id": "stm32f030c8t6",
+      "mpn": "STM32F030C8T6",
+      "manufacturer": "STMicroelectronics",
+      "lcsc": "C23922",
+      "category": "MCU",
+      "availability": "identity_only",
+      "path": "parts/stm32f030c8t6.json"
+    },
+    {
+      "id": "stm32f103c8t6",
+      "mpn": "STM32F103C8T6",
+      "manufacturer": "STMicroelectronics",
+      "lcsc": "C8734",
+      "category": "MCU",
+      "availability": "scoped_facts",
+      "path": "parts/stm32f103c8t6.json"
+    },
+    {
+      "id": "stm32f405rgt6",
+      "mpn": "STM32F405RGT6",
+      "manufacturer": "STMicroelectronics",
+      "lcsc": "C15742",
+      "category": "MCU",
+      "availability": "scoped_facts",
+      "path": "parts/stm32f405rgt6.json"
+    },
+    {
+      "id": "stm32g030f6p6tr",
+      "mpn": "STM32G030F6P6TR",
+      "manufacturer": "STMicroelectronics",
+      "lcsc": "C529330",
+      "category": "MCU",
+      "availability": "scoped_facts",
+      "path": "parts/stm32g030f6p6tr.json"
+    },
+    {
+      "id": "stm8s003f3p6tr",
+      "mpn": "STM8S003F3P6TR",
+      "manufacturer": "STMicroelectronics",
+      "lcsc": "C52717",
+      "category": "MCU",
+      "availability": "scoped_facts",
+      "path": "parts/stm8s003f3p6tr.json"
+    },
+    {
+      "id": "2n7002lt1g",
+      "mpn": "2N7002LT1G",
+      "manufacturer": "onsemi",
+      "lcsc": "C16338",
+      "category": "MOSFET",
+      "availability": "identity_only",
+      "path": "parts/2n7002lt1g.json"
+    },
+    {
+      "id": "ao3400a",
+      "mpn": "AO3400A",
+      "manufacturer": "Alpha & Omega Semiconductor",
+      "lcsc": "C20917",
+      "category": "MOSFET",
+      "availability": "scoped_facts",
+      "path": "parts/ao3400a.json"
+    },
+    {
+      "id": "ao3401a",
+      "mpn": "AO3401A",
+      "manufacturer": "Alpha & Omega Semiconductor",
+      "lcsc": "C15127",
+      "category": "MOSFET",
+      "availability": "scoped_facts",
+      "path": "parts/ao3401a.json"
+    },
+    {
+      "id": "bss138lt1g",
+      "mpn": "BSS138LT1G",
+      "manufacturer": "onsemi",
+      "lcsc": "C82045",
+      "category": "MOSFET",
+      "availability": "identity_only",
+      "path": "parts/bss138lt1g.json"
+    },
+    {
+      "id": "fdv301n",
+      "mpn": "FDV301N",
+      "manufacturer": "onsemi",
+      "lcsc": "C15310",
+      "category": "MOSFET",
+      "availability": "scoped_facts",
+      "path": "parts/fdv301n.json"
+    },
+    {
+      "id": "irf3205pbf",
+      "mpn": "IRF3205PBF",
+      "manufacturer": "Infineon / International Rectifier",
+      "lcsc": "C2561",
+      "category": "MOSFET",
+      "availability": "identity_only",
+      "path": "parts/irf3205pbf.json"
+    },
+    {
+      "id": "irf4905pbf",
+      "mpn": "IRF4905PBF",
+      "manufacturer": "Infineon / International Rectifier",
+      "lcsc": "C2564",
+      "category": "MOSFET",
+      "availability": "identity_only",
+      "path": "parts/irf4905pbf.json"
+    },
+    {
+      "id": "irf540npbf",
+      "mpn": "IRF540NPBF",
+      "manufacturer": "Infineon / International Rectifier",
+      "lcsc": "C2566",
+      "category": "MOSFET",
+      "availability": "identity_only",
+      "path": "parts/irf540npbf.json"
+    },
+    {
+      "id": "irfb4110pbf",
+      "mpn": "IRFB4110PBF",
+      "manufacturer": "Infineon",
+      "lcsc": "C2650",
+      "category": "MOSFET",
+      "availability": "identity_only",
+      "path": "parts/irfb4110pbf.json"
+    },
+    {
+      "id": "irlml6402trpbf",
+      "mpn": "IRLML6402TRPBF",
+      "manufacturer": "Infineon / International Rectifier",
+      "lcsc": "C2593",
+      "category": "MOSFET",
+      "availability": "identity_only",
+      "path": "parts/irlml6402trpbf.json"
+    }
+  ]
+}

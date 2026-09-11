@@ -1,0 +1,60 @@
+{
+  "schema_version": "0.1",
+  "id": "gd32e230f4p6tr",
+  "manufacturer": "GigaDevice",
+  "mpn": "GD32E230F4P6TR",
+  "lcsc": "C2842295",
+  "category": "MCU",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/mcu/GD32E230F4P6TR.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.lcsc.com/datasheet/C2842295.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://datasheet.lcsc.com/datasheet/pdf/4facdd592f2db436853fbdfe5470e26d.pdf?productCode=C2842295",
+      "document": "(https://datasheet.lcsc.com/datasheet/pdf/4facdd592f2db436853fbdfe5470e26d.pdf?productCode=C2842295)\nciteturn3view22 [wordlim: 200] Crawled: 3 weeks ago; Content type: application/pdf; Number of pages: 87; Source: click({\"ref_id\":\"turn2view25\",\"id\":1}); Total lines: 4422",
+      "pdf_page": 1
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "core": "Arm Cortex-M23"
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "pins": [],
+  "constraints": [],
+  "reference_applications": [],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "flash_kB",
+        "max_clock_MHz",
+        "vdd_V",
+        "debug",
+        "interfaces_summary"
+      ]
+    },
+    {
+      "field": "pins",
+      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    }
+  ]
+}

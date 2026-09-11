@@ -1,0 +1,72 @@
+{
+  "schema_version": "0.1",
+  "id": "tps7a2033pdbvr",
+  "manufacturer": "Texas Instruments",
+  "mpn": "TPS7A2033PDBVR",
+  "lcsc": "C2862740",
+  "category": "LDO",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/ldo/TPS7A2033PDBVR.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.ti.com/lit/ds/symlink/tps7a20.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://www.ti.com/lit/ds/symlink/tps7a20.pdf",
+      "document": "TPS7A2033PDBVR datasheet",
+      "pdf_page": 1,
+      "document_sha256": "663a9ff5bca608643e711652cba00e7b8bf955c0993a9b86fa108d24d58b8ddc"
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "vin_V": [
+          1.6,
+          6.0
+        ],
+        "iout_max_A": 0.3,
+        "dropout": "~145 mV max at 300 mA, 3.3 V option",
+        "quiescent_current": "6.5 uA typ",
+        "enable": true
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "pins": [],
+  "constraints": [],
+  "reference_applications": [],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "vout_V",
+        "power_good",
+        "stability",
+        "input_capacitance"
+      ]
+    },
+    {
+      "field": "pins",
+      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    },
+    {
+      "field": "reference_applications",
+      "name": "basic_application",
+      "reason": "PDF page 30 Table 7-1 specifies a 2.8 V example; original 3V3 net cannot be published as its direct transcription."
+    }
+  ]
+}

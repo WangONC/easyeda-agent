@@ -1,0 +1,66 @@
+{
+  "schema_version": "0.1",
+  "id": "dw01a",
+  "manufacturer": "Poulop / compatible vendor",
+  "mpn": "DW01A",
+  "lcsc": "C351410",
+  "category": "Battery Management",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/battery_management/DW01A.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.lcsc.com/datasheet/C351410.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://datasheet.lcsc.com/datasheet/pdf/0d2b2b5e8d1207bf276387cb4ff3a495.pdf?productCode=C351410",
+      "document": "FSXXXX Datasheet",
+      "pdf_page": 1
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "type": "protector",
+        "cells": 1,
+        "overcharge_detect_V": "~4.30 ±0.05 V"
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "pins": [],
+  "constraints": [],
+  "reference_applications": [],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "overdischarge_detect_V",
+        "overcurrent_detect_mV",
+        "quiescent_current",
+        "external_fets"
+      ]
+    },
+    {
+      "field": "pins",
+      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    },
+    {
+      "field": "reference_applications",
+      "name": "single_cell_protection_partial",
+      "reason": "Exact figure, document revision, or netlist scope not reconfirmed; not available for circuit reuse."
+    }
+  ]
+}

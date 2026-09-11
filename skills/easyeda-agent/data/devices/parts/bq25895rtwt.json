@@ -1,0 +1,72 @@
+{
+  "schema_version": "0.1",
+  "id": "bq25895rtwt",
+  "manufacturer": "Texas Instruments",
+  "mpn": "BQ25895RTWT",
+  "lcsc": "C2861263",
+  "category": "Battery Management",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/battery_management/BQ25895RTWT.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.ti.com/lit/ds/symlink/bq25895.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://www.ti.com/lit/ds/symlink/bq25895.pdf",
+      "document": "BQ25895RTWT datasheet",
+      "pdf_page": 1,
+      "document_sha256": "2667a8d185cbf9138aed63f47616d35c0d0d29da877702b32b301caa55f8d404"
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "type": "switching charger + power path + OTG boost",
+        "cells": 1,
+        "vin_V": [
+          3.9,
+          14.0
+        ],
+        "charge_current_max_A": 5.0,
+        "boost_current_max_A": 3.1,
+        "interface": "I2C",
+        "power_path": true
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "pins": [],
+  "constraints": [],
+  "reference_applications": [],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "charge_voltage_V",
+        "temperature_input"
+      ]
+    },
+    {
+      "field": "pins",
+      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    },
+    {
+      "field": "reference_applications",
+      "name": "figure_9_1_charger_power_path",
+      "reason": "Exact figure, document revision, or netlist scope not reconfirmed; not available for circuit reuse."
+    }
+  ]
+}

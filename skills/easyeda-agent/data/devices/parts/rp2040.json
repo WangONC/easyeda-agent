@@ -1,0 +1,243 @@
+{
+  "schema_version": "0.1",
+  "id": "rp2040",
+  "manufacturer": "Raspberry Pi Ltd",
+  "mpn": "RP2040",
+  "lcsc": "C2040",
+  "category": "MCU",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/mcu/RP2040.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://datasheets.raspberrypi.com/rp2040/hardware-design-with-rp2040.pdf",
+      "document": "Hardware design with RP2040",
+      "pdf_page": 10,
+      "printed_page": 9,
+      "document_sha256": "51c4f430153fcdbf3209d9b3b41662c8527ff0150bc25777e3fcd6f5221a1c19",
+      "section": "2.2 Flash storage"
+    },
+    "s2": {
+      "url": "https://datasheets.raspberrypi.com/rp2040/hardware-design-with-rp2040.pdf",
+      "document": "Hardware design with RP2040",
+      "pdf_page": 9,
+      "printed_page": 8,
+      "figure": "Figure 7. Schematic section showing the flash memory and USB_BOOT circuitry",
+      "document_sha256": "51c4f430153fcdbf3209d9b3b41662c8527ff0150bc25777e3fcd6f5221a1c19"
+    },
+    "s3": {
+      "url": "https://datasheets.raspberrypi.com/rp2040/hardware-design-with-rp2040.pdf",
+      "document": "Hardware design with RP2040",
+      "pdf_page": 10,
+      "printed_page": 9,
+      "document_sha256": "51c4f430153fcdbf3209d9b3b41662c8527ff0150bc25777e3fcd6f5221a1c19",
+      "section": "2.2 Flash storage"
+    },
+    "s4": {
+      "url": "https://datasheets.raspberrypi.com/rp2040/hardware-design-with-rp2040.pdf",
+      "document": "Hardware design with RP2040",
+      "pdf_page": 10,
+      "printed_page": 9,
+      "figure": "Figure 8. Schematic section showing the crystal oscillator and load capacitors",
+      "document_sha256": "51c4f430153fcdbf3209d9b3b41662c8527ff0150bc25777e3fcd6f5221a1c19"
+    }
+  },
+  "facts": [],
+  "pins": [],
+  "constraints": [
+    {
+      "values": {
+        "qspi_routing": "Keep QSPI connections short and direct to the flash."
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "reference_applications": [
+    {
+      "name": "qspi_flash_boot",
+      "conditions": {},
+      "scope": "topology_only",
+      "source_refs": [
+        "s2",
+        "s3"
+      ],
+      "netlist": {
+        "components": [
+          {
+            "id": "U1",
+            "role": "main_ic",
+            "mpn": "RP2040"
+          },
+          {
+            "id": "U2",
+            "role": "qspi_flash",
+            "mpn": "W25Q128JVS"
+          },
+          {
+            "id": "CFLASH",
+            "role": "flash_decoupling",
+            "value": "100nF"
+          },
+          {
+            "id": "RQSPI_PULLUP",
+            "role": "qspi_cs_pullup",
+            "value": "10k (DNF in reference)"
+          },
+          {
+            "id": "RBOOT",
+            "role": "usb_boot_series",
+            "value": "1k"
+          },
+          {
+            "id": "JBOOT",
+            "role": "usb_boot_header",
+            "value": "2-pin header"
+          }
+        ],
+        "nets": {
+          "3V3": [
+            "U2.VCC",
+            "CFLASH.1",
+            "RQSPI_PULLUP.1"
+          ],
+          "GND": [
+            "U2.GND",
+            "CFLASH.2",
+            "JBOOT.2"
+          ],
+          "QSPI_SS": [
+            "U1.QSPI_SS_N",
+            "U2./CS",
+            "RQSPI_PULLUP.2",
+            "RBOOT.1"
+          ],
+          "USB_BOOT": [
+            "RBOOT.2",
+            "JBOOT.1"
+          ],
+          "QSPI_SCLK": [
+            "U1.QSPI_SCLK",
+            "U2.CLK"
+          ],
+          "QSPI_SD0": [
+            "U1.QSPI_SD0",
+            "U2.DI/IO0"
+          ],
+          "QSPI_SD1": [
+            "U1.QSPI_SD1",
+            "U2.DO/IO1"
+          ],
+          "QSPI_SD2": [
+            "U1.QSPI_SD2",
+            "U2./WP/IO2"
+          ],
+          "QSPI_SD3": [
+            "U1.QSPI_SD3",
+            "U2./HOLD/IO3"
+          ]
+        }
+      },
+      "coverage": "Only the represented figure/subcircuit. Symbolic pin names and wildcard pin groups are not placement-ready pin numbers."
+    },
+    {
+      "name": "crystal_12mhz",
+      "conditions": {
+        "crystal_frequency_MHz": 12
+      },
+      "scope": "documented_example",
+      "source_refs": [
+        "s4"
+      ],
+      "netlist": {
+        "components": [
+          {
+            "id": "U1",
+            "role": "main_ic",
+            "mpn": "RP2040"
+          },
+          {
+            "id": "X1",
+            "role": "crystal",
+            "value": "12MHz"
+          },
+          {
+            "id": "C_XIN",
+            "role": "crystal_load_capacitor",
+            "value": "15pF"
+          },
+          {
+            "id": "C_XOUT",
+            "role": "crystal_load_capacitor",
+            "value": "15pF"
+          },
+          {
+            "id": "R_XOUT",
+            "role": "xout_series_damping",
+            "value": "1k"
+          }
+        ],
+        "nets": {
+          "XIN": [
+            "U1.XIN",
+            "X1.1",
+            "C_XIN.1"
+          ],
+          "XTAL_XOUT": [
+            "X1.3",
+            "C_XOUT.1",
+            "R_XOUT.1"
+          ],
+          "XOUT": [
+            "R_XOUT.2",
+            "U1.XOUT"
+          ],
+          "GND": [
+            "X1.2",
+            "X1.4",
+            "C_XIN.2",
+            "C_XOUT.2"
+          ]
+        }
+      },
+      "coverage": "Only the represented figure/subcircuit. Symbolic pin names and wildcard pin groups are not placement-ready pin numbers."
+    }
+  ],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "core",
+        "vdd_io_V",
+        "core_supply_V",
+        "external_flash",
+        "usb",
+        "debug",
+        "interfaces_summary"
+      ]
+    },
+    {
+      "field": "pins",
+      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    },
+    {
+      "field": "reference_applications",
+      "name": "core_power_decoupling",
+      "reason": "Original combined power subset spans Figures 3/5 plus prose; not published as a single direct reference circuit."
+    }
+  ]
+}

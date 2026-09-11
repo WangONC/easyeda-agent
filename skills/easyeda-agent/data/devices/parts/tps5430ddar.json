@@ -1,0 +1,200 @@
+{
+  "schema_version": "0.1",
+  "id": "tps5430ddar",
+  "manufacturer": "Texas Instruments",
+  "mpn": "TPS5430DDAR",
+  "lcsc": "C9864",
+  "category": "DC-DC",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/dc_dc/TPS5430DDAR.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.ti.com/lit/ds/symlink/tps5430.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://www.ti.com/lit/ds/symlink/tps5430.pdf",
+      "document": "TPS5430DDAR datasheet",
+      "pdf_page": 1,
+      "document_sha256": "88c98e6e51851285fbbfc17837d002b29af7cd3fe30442fa7e4612c5179985da"
+    },
+    "s2": {
+      "url": "https://www.ti.com/lit/ds/symlink/tps5430.pdf",
+      "document": "TPS5430DDAR datasheet",
+      "pdf_page": 3,
+      "printed_page": 3,
+      "document_sha256": "88c98e6e51851285fbbfc17837d002b29af7cd3fe30442fa7e4612c5179985da"
+    },
+    "s3": {
+      "url": "https://www.ti.com/lit/ds/symlink/tps5430.pdf",
+      "document": "TPS5430DDAR datasheet",
+      "pdf_page": 19,
+      "printed_page": 19,
+      "figure": "Figure 7-9. 10V – 35V Input to 5V Output Application Circuit",
+      "document_sha256": "88c98e6e51851285fbbfc17837d002b29af7cd3fe30442fa7e4612c5179985da"
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "vin_V": [
+          5.5,
+          36.0
+        ],
+        "iout_max_A": 3.0,
+        "switching_frequency": "~500 kHz",
+        "enable": true
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "pins": [
+    {
+      "values": {
+        "BOOT": "bootstrap capacitor to PH",
+        "NC": "pins 2/3 are no-connect",
+        "VSENSE": "feedback sense input",
+        "ENA": "active-high enable; internal pull-up permits floating enable",
+        "GND": "ground; connect to DAP",
+        "VIN": "input supply",
+        "PH": "switch node",
+        "DAP": "exposed thermal/ground pad; must connect to GND"
+      },
+      "source_refs": [
+        "s2"
+      ],
+      "coverage": "named pins only; not a complete numbered pin map"
+    }
+  ],
+  "constraints": [],
+  "reference_applications": [
+    {
+      "name": "5V_3A_application",
+      "conditions": {
+        "vin_V": [
+          10,
+          35
+        ],
+        "vout_V": 5,
+        "iout_A": 3,
+        "frequency_kHz": 500
+      },
+      "scope": "documented_example",
+      "source_refs": [
+        "s3"
+      ],
+      "netlist": {
+        "components": [
+          {
+            "id": "U1",
+            "role": "main_ic",
+            "mpn": "TPS5430DDAR"
+          },
+          {
+            "id": "CIN1",
+            "role": "input_capacitor",
+            "value": "4.7uF"
+          },
+          {
+            "id": "CIN2",
+            "role": "input_capacitor",
+            "value": "4.7uF"
+          },
+          {
+            "id": "CBOOT",
+            "role": "bootstrap_capacitor",
+            "value": "0.01uF"
+          },
+          {
+            "id": "D1",
+            "role": "catch_diode",
+            "mpn": "B340A"
+          },
+          {
+            "id": "L1",
+            "role": "power_inductor",
+            "value": "22uH"
+          },
+          {
+            "id": "COUT",
+            "role": "output_capacitor",
+            "value": "220uF",
+            "mpn": "Sanyo POSCAP 10TP220M"
+          },
+          {
+            "id": "RFB_TOP",
+            "role": "feedback_top",
+            "value": "10k"
+          },
+          {
+            "id": "RFB_BOTTOM",
+            "role": "feedback_bottom",
+            "value": "3.24k"
+          }
+        ],
+        "nets": {
+          "VIN": [
+            "U1.VIN",
+            "CIN1.1",
+            "CIN2.1"
+          ],
+          "GND": [
+            "U1.GND",
+            "U1.DAP",
+            "CIN1.2",
+            "CIN2.2",
+            "D1.A",
+            "COUT.2",
+            "RFB_BOTTOM.2"
+          ],
+          "BOOT": [
+            "U1.BOOT",
+            "CBOOT.1"
+          ],
+          "SW": [
+            "U1.PH",
+            "CBOOT.2",
+            "D1.K",
+            "L1.1"
+          ],
+          "5V": [
+            "L1.2",
+            "COUT.1",
+            "RFB_TOP.1"
+          ],
+          "FB": [
+            "U1.VSENSE",
+            "RFB_TOP.2",
+            "RFB_BOTTOM.1"
+          ],
+          "EN": [
+            "U1.ENA"
+          ]
+        }
+      },
+      "coverage": "Only the represented figure/subcircuit. Symbolic pin names and wildcard pin groups are not placement-ready pin numbers."
+    }
+  ],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "topology",
+        "fb_reference",
+        "power_good"
+      ]
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    }
+  ]
+}

@@ -1,0 +1,225 @@
+{
+  "schema_version": "0.1",
+  "id": "tps54202ddcr",
+  "manufacturer": "Texas Instruments",
+  "mpn": "TPS54202DDCR",
+  "lcsc": "C191884",
+  "category": "DC-DC",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/dc_dc/TPS54202DDCR.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.ti.com/lit/ds/symlink/tps54202.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://www.ti.com/lit/ds/symlink/tps54202.pdf",
+      "document": "TPS54202DDCR datasheet",
+      "pdf_page": 1,
+      "document_sha256": "8bace250f495154744777f7d3b392f641ff3b776c7e01085759571aae446373b"
+    },
+    "s2": {
+      "url": "https://www.ti.com/lit/ds/symlink/tps54202.pdf",
+      "document": "TPS54202DDCR datasheet",
+      "pdf_page": 3,
+      "printed_page": 3,
+      "document_sha256": "8bace250f495154744777f7d3b392f641ff3b776c7e01085759571aae446373b"
+    },
+    "s3": {
+      "url": "https://www.ti.com/lit/ds/symlink/tps54202.pdf",
+      "document": "TPS54202DDCR datasheet",
+      "pdf_page": 13,
+      "printed_page": 13,
+      "figure": "Figure 7-1. 5V, 2A Reference Design",
+      "document_sha256": "8bace250f495154744777f7d3b392f641ff3b776c7e01085759571aae446373b"
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "topology": "synchronous buck",
+        "vin_V": [
+          4.5,
+          28.0
+        ],
+        "iout_max_A": 2.0,
+        "switching_frequency": "500 kHz fixed with frequency spread spectrum"
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "pins": [
+    {
+      "values": {
+        "GND": "ground",
+        "SW": "switch node",
+        "VIN": "input",
+        "FB": "feedback",
+        "EN": "enable",
+        "BOOT": "bootstrap"
+      },
+      "source_refs": [
+        "s2"
+      ],
+      "coverage": "named pins only; not a complete numbered pin map"
+    }
+  ],
+  "constraints": [],
+  "reference_applications": [
+    {
+      "name": "5V_2A_application",
+      "conditions": {
+        "vin_V": [
+          8,
+          28
+        ],
+        "vout_V": 5,
+        "iout_A": 2,
+        "frequency_kHz": 500
+      },
+      "scope": "documented_example",
+      "source_refs": [
+        "s3"
+      ],
+      "netlist": {
+        "components": [
+          {
+            "id": "U1",
+            "role": "main_ic",
+            "mpn": "TPS54202DDCR"
+          },
+          {
+            "id": "CIN1",
+            "role": "input_capacitor",
+            "value": "10uF"
+          },
+          {
+            "id": "CIN2",
+            "role": "input_bypass",
+            "value": "0.1uF"
+          },
+          {
+            "id": "REN_TOP",
+            "role": "enable_divider_top",
+            "value": "511k"
+          },
+          {
+            "id": "REN_BOTTOM",
+            "role": "enable_divider_bottom",
+            "value": "105k"
+          },
+          {
+            "id": "CBOOT",
+            "role": "bootstrap_capacitor",
+            "value": "0.1uF"
+          },
+          {
+            "id": "L1",
+            "role": "power_inductor",
+            "value": "15uH"
+          },
+          {
+            "id": "COUT1",
+            "role": "output_capacitor",
+            "value": "22uF"
+          },
+          {
+            "id": "COUT2",
+            "role": "output_capacitor",
+            "value": "22uF"
+          },
+          {
+            "id": "RISO",
+            "role": "feedback_series",
+            "value": "49.9ohm"
+          },
+          {
+            "id": "RFB_TOP",
+            "role": "feedback_top",
+            "value": "100k"
+          },
+          {
+            "id": "CFF",
+            "role": "feedforward_capacitor",
+            "value": "75pF"
+          },
+          {
+            "id": "RFB_BOTTOM",
+            "role": "feedback_bottom",
+            "value": "13.3k"
+          }
+        ],
+        "nets": {
+          "VIN": [
+            "U1.VIN",
+            "CIN1.1",
+            "CIN2.1",
+            "REN_TOP.1"
+          ],
+          "GND": [
+            "U1.GND",
+            "CIN1.2",
+            "CIN2.2",
+            "REN_BOTTOM.2",
+            "COUT1.2",
+            "COUT2.2",
+            "RFB_BOTTOM.2"
+          ],
+          "EN": [
+            "U1.EN",
+            "REN_TOP.2",
+            "REN_BOTTOM.1"
+          ],
+          "BOOT": [
+            "U1.BOOT",
+            "CBOOT.1"
+          ],
+          "SW": [
+            "U1.SW",
+            "CBOOT.2",
+            "L1.1"
+          ],
+          "5V": [
+            "L1.2",
+            "COUT1.1",
+            "COUT2.1",
+            "RISO.1"
+          ],
+          "FB_PRE": [
+            "RISO.2",
+            "RFB_TOP.1",
+            "CFF.1"
+          ],
+          "FB": [
+            "U1.FB",
+            "RFB_TOP.2",
+            "CFF.2",
+            "RFB_BOTTOM.1"
+          ]
+        }
+      },
+      "coverage": "Only the represented figure/subcircuit. Symbolic pin names and wildcard pin groups are not placement-ready pin numbers."
+    }
+  ],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "fb_reference",
+        "enable"
+      ]
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    }
+  ]
+}

@@ -1,0 +1,207 @@
+{
+  "schema_version": "0.1",
+  "id": "tps63020dsjr",
+  "manufacturer": "Texas Instruments",
+  "mpn": "TPS63020DSJR",
+  "lcsc": "C15483",
+  "category": "DC-DC",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/dc_dc/TPS63020DSJR.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.ti.com/lit/ds/symlink/tps63020.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://www.ti.com/lit/ds/symlink/tps63020.pdf",
+      "document": "TPS63020DSJR datasheet",
+      "pdf_page": 4,
+      "printed_page": 4,
+      "document_sha256": "d117773bb7370fd79377bc70ce987eec3469ea5979547a09df52fca5f95b2e69"
+    },
+    "s2": {
+      "url": "https://www.ti.com/lit/ds/symlink/tps63020.pdf",
+      "document": "TPS63020DSJR datasheet",
+      "pdf_page": 13,
+      "printed_page": 13,
+      "figure": "Figure 7. Application Circuit",
+      "document_sha256": "d117773bb7370fd79377bc70ce987eec3469ea5979547a09df52fca5f95b2e69"
+    }
+  },
+  "facts": [],
+  "pins": [
+    {
+      "values": {
+        "L1": "switch/inductor terminal 1",
+        "L2": "switch/inductor terminal 2",
+        "VIN": "power-stage input (pins 10/11)",
+        "VINA": "control-stage supply (pin 1)",
+        "VOUT": "converter output (pins 4/5)",
+        "FB": "feedback input",
+        "EN": "enable; must not be left open",
+        "PS/SYNC": "power-save / synchronization input; must not be left open",
+        "PG": "open-drain power-good output",
+        "GND": "control/logic ground",
+        "PGND": "power ground; exposed thermal pad is connected to PGND"
+      },
+      "source_refs": [
+        "s1"
+      ],
+      "coverage": "named pins only; not a complete numbered pin map"
+    }
+  ],
+  "constraints": [],
+  "reference_applications": [
+    {
+      "name": "3V3_1V5A_application",
+      "conditions": {
+        "vin_V": [
+          2.5,
+          5.5
+        ],
+        "vout_V": 3.3,
+        "iout_A": 1.5
+      },
+      "scope": "documented_example",
+      "source_refs": [
+        "s2"
+      ],
+      "netlist": {
+        "components": [
+          {
+            "id": "U1",
+            "role": "main_ic",
+            "mpn": "TPS63020DSJR"
+          },
+          {
+            "id": "L1",
+            "role": "power_inductor",
+            "value": "1.5uH"
+          },
+          {
+            "id": "CIN1",
+            "role": "input_capacitor",
+            "value": "10uF"
+          },
+          {
+            "id": "CIN2",
+            "role": "input_capacitor",
+            "value": "10uF"
+          },
+          {
+            "id": "CINA",
+            "role": "analog_bypass",
+            "value": "100nF"
+          },
+          {
+            "id": "COUT1",
+            "role": "output_capacitor",
+            "value": "22uF"
+          },
+          {
+            "id": "COUT2",
+            "role": "output_capacitor",
+            "value": "22uF"
+          },
+          {
+            "id": "COUT3",
+            "role": "output_capacitor",
+            "value": "22uF"
+          },
+          {
+            "id": "RFB_TOP",
+            "role": "feedback_top",
+            "value": "1Mohm"
+          },
+          {
+            "id": "RFB_BOTTOM",
+            "role": "feedback_bottom",
+            "value": "180k"
+          },
+          {
+            "id": "RPG",
+            "role": "power_good_pullup",
+            "value": "1Mohm"
+          }
+        ],
+        "nets": {
+          "VIN": [
+            "U1.VIN",
+            "CIN1.1",
+            "CIN2.1"
+          ],
+          "VINA_CTRL": [
+            "U1.VINA",
+            "U1.EN",
+            "U1.PS/SYNC",
+            "CINA.1"
+          ],
+          "GND": [
+            "U1.GND",
+            "U1.PGND",
+            "CIN1.2",
+            "CIN2.2",
+            "CINA.2",
+            "COUT1.2",
+            "COUT2.2",
+            "COUT3.2",
+            "RFB_BOTTOM.2"
+          ],
+          "SW1": [
+            "U1.L1",
+            "L1.1"
+          ],
+          "SW2": [
+            "U1.L2",
+            "L1.2"
+          ],
+          "3V3": [
+            "U1.VOUT",
+            "COUT1.1",
+            "COUT2.1",
+            "COUT3.1",
+            "RFB_TOP.1",
+            "RPG.1"
+          ],
+          "FB": [
+            "U1.FB",
+            "RFB_TOP.2",
+            "RFB_BOTTOM.1"
+          ],
+          "PG": [
+            "U1.PG",
+            "RPG.2"
+          ]
+        }
+      },
+      "coverage": "Only the represented figure/subcircuit. Symbolic pin names and wildcard pin groups are not placement-ready pin numbers."
+    }
+  ],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "topology",
+        "vin_V",
+        "vout_example_V",
+        "iout_example_A",
+        "switching_frequency",
+        "fb_reference",
+        "enable",
+        "power_good",
+        "example_vin_V",
+        "iout_note"
+      ]
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    }
+  ]
+}

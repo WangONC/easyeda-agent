@@ -1,0 +1,64 @@
+{
+  "schema_version": "0.1",
+  "id": "tps62840dlcr",
+  "manufacturer": "Texas Instruments",
+  "mpn": "TPS62840DLCR",
+  "lcsc": "C2071859",
+  "category": "DC-DC",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/dc_dc/TPS62840DLCR.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.lcsc.com/datasheet/C2071859.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://datasheet.lcsc.com/datasheet/pdf/014be2d70cdf27b410cb6d572fe69b2b.pdf?productCode=C2071859",
+      "document": "TPS62840 1.8V 至 6.5V、750mA、60nA IQ 降压转换器 datasheet (Rev. D)",
+      "pdf_page": 1
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "vin_V": [
+          1.8,
+          6.5
+        ],
+        "iout_max_A": 0.75,
+        "switching_frequency": "~1.8 MHz",
+        "output_programming": "VSET resistor/value table; fixed-style programmable output"
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "pins": [],
+  "constraints": [],
+  "reference_applications": [],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "topology",
+        "enable",
+        "power_good"
+      ]
+    },
+    {
+      "field": "pins",
+      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    }
+  ]
+}

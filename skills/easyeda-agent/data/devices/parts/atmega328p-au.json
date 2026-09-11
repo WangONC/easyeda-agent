@@ -1,0 +1,64 @@
+{
+  "schema_version": "0.1",
+  "id": "atmega328p-au",
+  "manufacturer": "Microchip Technology",
+  "mpn": "ATMEGA328P-AU",
+  "lcsc": "C14877",
+  "category": "MCU",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/mcu/ATMEGA328P-AU.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.lcsc.com/datasheet/C14877.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://datasheet.lcsc.com/datasheet/pdf/6a24f954cb8d4091a71a5b765a32cb3b.pdf?productCode=C14877",
+      "document": "ATmega48A/48PA/88A/88PA/168A/168PA/328/328P Datasheet",
+      "pdf_page": 1
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "core": "8-bit AVR",
+        "vcc_V": [
+          1.8,
+          5.5
+        ]
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "pins": [],
+  "constraints": [],
+  "reference_applications": [],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "flash_kB",
+        "sram_kB",
+        "eeprom_kB",
+        "debug_programming",
+        "interfaces_summary"
+      ]
+    },
+    {
+      "field": "pins",
+      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "schema_version": "0.1",
+  "id": "stm32f103c8t6",
+  "manufacturer": "STMicroelectronics",
+  "mpn": "STM32F103C8T6",
+  "lcsc": "C8734",
+  "category": "MCU",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/mcu/STM32F103C8T6.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.lcsc.com/datasheet/C8734.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://datasheet.lcsc.com/datasheet/pdf/ac66debd4c13334db1d28037926f8881.pdf?productCode=C8734",
+      "document": "Medium-density performance line Arm®-based 32-bit MCU with 64 or 128 KB Flash, 7 timers, 2 ADCs, 9 com. interfaces",
+      "pdf_page": 1
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "core": "Arm Cortex-M3",
+        "vdd_V": [
+          2.0,
+          3.6
+        ],
+        "hse_MHz": [
+          4,
+          16
+        ],
+        "debug": [
+          "SWD",
+          "JTAG"
+        ]
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "pins": [],
+  "constraints": [],
+  "reference_applications": [],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "flash_kB",
+        "vbat_V",
+        "lse_kHz",
+        "interfaces_summary"
+      ]
+    },
+    {
+      "field": "pins",
+      "reason": "Original pin descriptions not reconfirmed against an exact scoped pin table."
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    },
+    {
+      "field": "reference_applications",
+      "name": "power_supply_scheme",
+      "reason": "Exact figure, document revision, or netlist scope not reconfirmed; not available for circuit reuse."
+    }
+  ]
+}

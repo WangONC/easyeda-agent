@@ -1,0 +1,119 @@
+{
+  "schema_version": "0.1",
+  "id": "fdv301n",
+  "manufacturer": "onsemi",
+  "mpn": "FDV301N",
+  "lcsc": "C15310",
+  "category": "MOSFET",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/mosfet/FDV301N.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.onsemi.com/pdf/datasheet/fdv301n-d.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://www.onsemi.com/pdf/datasheet/fdv301n-d.pdf",
+      "document": "FDV301N datasheet",
+      "pdf_page": 1,
+      "document_sha256": "232bed8c2511ae39a7603ebf9bf53ea3adeb82cf0d63636c57d0b70275e97db2"
+    },
+    "s2": {
+      "url": "https://www.onsemi.com/pdf/datasheet/fdv301n-d.pdf",
+      "document": "FDV301N datasheet",
+      "pdf_page": 1,
+      "printed_page": 1,
+      "figure": "Figure 1. Inverter Application",
+      "document_sha256": "232bed8c2511ae39a7603ebf9bf53ea3adeb82cf0d63636c57d0b70275e97db2"
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "channel": "N",
+        "vds_max_V": 25,
+        "id_pulsed_A": 0.5
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "pins": [
+    {
+      "values": {
+        "G": "gate",
+        "S": "source",
+        "D": "drain"
+      },
+      "source_refs": [
+        "s1"
+      ],
+      "coverage": "named pins only; not a complete numbered pin map"
+    }
+  ],
+  "constraints": [],
+  "reference_applications": [
+    {
+      "name": "resistor_load_inverter",
+      "conditions": {},
+      "scope": "topology_only",
+      "source_refs": [
+        "s2"
+      ],
+      "netlist": {
+        "components": [
+          {
+            "id": "Q1",
+            "role": "main_mosfet",
+            "mpn": "FDV301N"
+          },
+          {
+            "id": "RLOAD",
+            "role": "drain_pullup",
+            "value": "design-dependent"
+          }
+        ],
+        "nets": {
+          "VCC": [
+            "RLOAD.1"
+          ],
+          "OUT": [
+            "RLOAD.2",
+            "Q1.D"
+          ],
+          "GND": [
+            "Q1.S"
+          ],
+          "IN": [
+            "Q1.G"
+          ]
+        }
+      },
+      "coverage": "Only the represented figure/subcircuit. Symbolic pin names and wildcard pin groups are not placement-ready pin numbers."
+    }
+  ],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "id_continuous_A",
+        "rds_on",
+        "vgs_max_V",
+        "vth_V",
+        "qg_nC",
+        "body_diode"
+      ]
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    }
+  ]
+}

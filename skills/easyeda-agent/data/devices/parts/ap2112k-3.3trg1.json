@@ -1,0 +1,134 @@
+{
+  "schema_version": "0.1",
+  "id": "ap2112k-3.3trg1",
+  "manufacturer": "Diodes Incorporated",
+  "mpn": "AP2112K-3.3TRG1",
+  "lcsc": "C51118",
+  "category": "LDO",
+  "availability": "scoped_facts",
+  "provenance": {
+    "archive_sha256": "1e0ea256f0847ddc384259b1b90d7bb3829af448dd6ae949755f9df9d59e1447",
+    "member": "eda_device_knowledge_experiment/ldo/AP2112K-3.3TRG1.json",
+    "identity_status": "imported_from_experiment_not_manufacturer_certification",
+    "original_datasheet_url": "https://www.diodes.com/datasheet/download/AP2112.pdf"
+  },
+  "sources": {
+    "s1": {
+      "url": "https://www.diodes.com/datasheet/download/AP2112.pdf",
+      "document": "AP2112K-3.3TRG1 datasheet",
+      "pdf_page": 1,
+      "document_sha256": "ef8d376f2ec356e29172eb9e053819a0ebdcc576dba7fc9ab0505c568427920f"
+    },
+    "s2": {
+      "url": "https://www.diodes.com/datasheet/download/AP2112.pdf",
+      "document": "AP2112K-3.3TRG1 datasheet",
+      "pdf_page": 2,
+      "printed_page": 2,
+      "document_sha256": "ef8d376f2ec356e29172eb9e053819a0ebdcc576dba7fc9ab0505c568427920f"
+    },
+    "s3": {
+      "url": "https://www.diodes.com/datasheet/download/AP2112.pdf",
+      "document": "AP2112K-3.3TRG1 datasheet",
+      "pdf_page": 2,
+      "printed_page": 2,
+      "figure": "Typical Applications Circuit (Note 4)",
+      "document_sha256": "ef8d376f2ec356e29172eb9e053819a0ebdcc576dba7fc9ab0505c568427920f"
+    }
+  },
+  "facts": [
+    {
+      "values": {
+        "iout_max_A": 0.6,
+        "enable": true
+      },
+      "source_refs": [
+        "s1"
+      ]
+    }
+  ],
+  "pins": [
+    {
+      "values": {
+        "VIN": "input supply",
+        "GND": "ground",
+        "EN": "active-high enable; functional block diagram shows an internal ~3 MΩ pulldown, so floating defaults off",
+        "NC": "no connect",
+        "VOUT": "regulated output"
+      },
+      "source_refs": [
+        "s2"
+      ],
+      "coverage": "named pins only; not a complete numbered pin map"
+    }
+  ],
+  "constraints": [],
+  "reference_applications": [
+    {
+      "name": "basic_application",
+      "conditions": {},
+      "scope": "topology_only",
+      "source_refs": [
+        "s3"
+      ],
+      "netlist": {
+        "components": [
+          {
+            "id": "U1",
+            "role": "main_ic",
+            "mpn": "AP2112K-3.3TRG1"
+          },
+          {
+            "id": "CIN",
+            "role": "input_capacitor",
+            "value": "1uF"
+          },
+          {
+            "id": "COUT",
+            "role": "output_capacitor",
+            "value": "1uF"
+          }
+        ],
+        "nets": {
+          "VIN": [
+            "U1.VIN",
+            "CIN.1"
+          ],
+          "GND": [
+            "U1.GND",
+            "CIN.2",
+            "COUT.2"
+          ],
+          "EN": [
+            "U1.EN"
+          ],
+          "3V3": [
+            "U1.VOUT",
+            "COUT.1"
+          ]
+        }
+      },
+      "coverage": "Only the represented figure/subcircuit. Symbolic pin names and wildcard pin groups are not placement-ready pin numbers."
+    }
+  ],
+  "unavailable": [
+    {
+      "field": "facts",
+      "reason": "Not retained: no exact scoped evidence confirmed, missing test conditions, or second-hand generalization.",
+      "keys": [
+        "vin_V",
+        "vout_V",
+        "dropout",
+        "quiescent_current",
+        "stability"
+      ]
+    },
+    {
+      "field": "package",
+      "reason": "Orderable-part package association not independently reconfirmed; do not infer a footprint from the family."
+    },
+    {
+      "field": "schematic_rules_and_layout",
+      "reason": "Original required_external/optional/recommendation prose removed; only separately cited explicit constraints are retained."
+    }
+  ]
+}

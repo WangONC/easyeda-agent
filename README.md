@@ -515,3 +515,8 @@ go build -ldflags "-X github.com/zhoushoujianwork/easyeda-agent/internal/version
 切换前核对旧 daemon ExecutablePath；正式 binary 接管后核对 health/version/进程路径，
 再删除旧 executable。不得删除 `.easyeda/runtime/` 验收证据、源码或制造输出。
 测试 daemon 停止后恢复正式 daemon；开发构建不再覆盖全局 PATH CLI。
+
+
+## 器件与设计知识
+
+2.0 随 Skill 包含首批 50 个结构化器件条目（5 类各 10 个），保存可追溯事实和参考应用，不保存 AI 推导的“推荐外围”。本次保守清理保留 32 个有范围明确证据的条目，18 个仅有身份并标记知识不可用；不能以条目数量代替证据覆盖。现有 Standard Blocks 直接作为设计知识层。Agent 优先查询本地知识和成熟电路块，证据不足、修订不符或工况超出范围时才回读原始 datasheet。详见 [Device Knowledge](skills/easyeda-agent/data/devices/README.md)。

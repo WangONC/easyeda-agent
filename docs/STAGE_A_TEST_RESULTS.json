@@ -1,0 +1,804 @@
+{
+  "stage": "A — Execution Contract",
+  "qualification": "OFFLINE_ONLY",
+  "baseline": "a583bf731d946d2d39f1223e078d711bd41710d5",
+  "branch": "main",
+  "host_mutations": 0,
+  "production_autonomous_enabled": false,
+  "catalog_actions": 151,
+  "shared_fixture_cases": 46,
+  "toolchain": {
+    "go": "go1.26.8 windows/amd64",
+    "node": "v22.14.0",
+    "npm": "11.19.1"
+  },
+  "changed_files": [
+    "docs/STAGE_A_EXECUTION_CONTRACT.md",
+    "docs/STAGE_A_TEST_RESULTS.json",
+    "extension/src/action-contracts.json",
+    "extension/src/actions.ts",
+    "extension/src/execution.test.ts",
+    "extension/src/execution.ts",
+    "extension/src/protocol.ts",
+    "extension/src/transport-fifo.test.ts",
+    "extension/src/transport.ts",
+    "internal/app/cmd_board_test.go",
+    "internal/app/cmd_sch_place_test.go",
+    "internal/app/disabled_actions_test.go",
+    "internal/app/dispatch.go",
+    "internal/app/execution_test.go",
+    "internal/app/modify_patch_source_test.go",
+    "internal/app/pcb_routing_telemetry_test.go",
+    "internal/app/project_create_test.go",
+    "internal/daemon/audit.go",
+    "internal/daemon/autosave.go",
+    "internal/daemon/dispatch.go",
+    "internal/daemon/execution_test.go",
+    "internal/daemon/fastpath.go",
+    "internal/daemon/fastpath_test.go",
+    "internal/daemon/stagegate.go",
+    "internal/daemon/stalereads.go",
+    "internal/daemon/writehealth.go",
+    "internal/protocol/actions.go",
+    "internal/protocol/cmd/contractgen/main.go",
+    "internal/protocol/envelope.go",
+    "internal/protocol/execution.go",
+    "internal/protocol/execution_test.go",
+    "internal/protocol/testdata/execution.json",
+    "mcp/src/authoring-result.mjs",
+    "mcp/src/execution.generated.mjs",
+    "mcp/src/fast-path.mjs",
+    "mcp/src/server.mjs",
+    "mcp/test/authoring-result.test.mjs",
+    "mcp/test/execution.test.mjs",
+    "mcp/test/fast-path.test.mjs",
+    "scripts/generate-execution-mcp.cjs",
+    "skills/easyeda-agent/references/actions.md"
+  ],
+  "tests": [
+    {
+      "command": "go test ./...",
+      "result": "FAIL",
+      "note": "Unfiltered run; four Windows failures, all independently reproduced at the requested baseline. No claim of an all-green unfiltered suite.",
+      "path": ".easyeda/stage-a-go-all.log",
+      "sha256": "ab55c447eb591c7d956a7d5ab0f4e369207f928991e17b5d40977308b5dffdb0",
+      "tail": [
+        "",
+        "FAIL",
+        "FAIL\tgithub.com/zhoushoujianwork/easyeda-agent/internal/app\t43.131s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/blocks\t0.605s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/connectivity\t0.948s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/daemon\t2.961s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/fastpath\t1.257s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/pcb/svgimport\t2.200s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/protocol\t(cached)",
+        "?   \tgithub.com/zhoushoujianwork/easyeda-agent/internal/protocol/cmd/contractgen\t[no test files]",
+        "--- FAIL: TestUpdateCLIReplacesBinaryAndVerifiesChecksum (0.01s)",
+        "    cli_test.go:122: replacement is not executable (mode -rw-rw-rw-)",
+        "FAIL",
+        "FAIL\tgithub.com/zhoushoujianwork/easyeda-agent/internal/selfupdate\t5.121s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/spec\t1.459s",
+        "?   \tgithub.com/zhoushoujianwork/easyeda-agent/internal/version\t[no test files]",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/workflow\t0.751s",
+        "FAIL"
+      ]
+    },
+    {
+      "command": "go test ./... -skip '^(TestStripArtifactNesting|TestResolveEnrichScriptPriority|TestResolveEnrichScriptNotFoundListsProbedPaths|TestUpdateCLIReplacesBinaryAndVerifiesChecksum)$'",
+      "result": "PASS",
+      "exit_code": 0,
+      "path": ".easyeda/stage-a-go-final.log",
+      "sha256": "9ab4e4f7515e1baecfa93bc85c22f517233b995ea3ead826666aafda0c404bf6",
+      "tail": [
+        "?   \tgithub.com/zhoushoujianwork/easyeda-agent/cmd/easyeda\t[no test files]",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/apidoc\t(cached)",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/app\t49.398s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/blocks\t(cached)",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/connectivity\t(cached)",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/daemon\t1.561s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/fastpath\t(cached)",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/pcb/svgimport\t(cached)",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/protocol\t0.698s",
+        "?   \tgithub.com/zhoushoujianwork/easyeda-agent/internal/protocol/cmd/contractgen\t[no test files]",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/selfupdate\t(cached)",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/spec\t(cached)",
+        "?   \tgithub.com/zhoushoujianwork/easyeda-agent/internal/version\t[no test files]",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/workflow\t(cached)"
+      ]
+    },
+    {
+      "command": "go test ./internal/app -skip '^(TestStripArtifactNesting|TestResolveEnrichScriptPriority|TestResolveEnrichScriptNotFoundListsProbedPaths)$'",
+      "result": "PASS",
+      "exit_code": 0,
+      "note": "Final CLI preview pre-network guard and error message changes.",
+      "path": ".easyeda/stage-a-app-final.log",
+      "sha256": "b10c8bc71a3e732faf32e1bc44b965cca7f1eb5c5f0378bf308500fa217e1b1c",
+      "tail": [
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/app\t49.647s"
+      ]
+    },
+    {
+      "command": "go test ./internal/protocol ./internal/daemon",
+      "result": "PASS",
+      "exit_code": 0,
+      "note": "Also run repeatedly during final contract/native-settle checks.",
+      "path": ".easyeda/stage-a-final-contract.log",
+      "sha256": "02ceac09456f1f380a38624795e8d157ab10a1f17f2d4e16982b16a86bec47cf",
+      "tail": [
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/protocol\t0.634s",
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/daemon\t1.628s"
+      ]
+    },
+    {
+      "command": "go test ./internal/app -run ^TestCLIExecutionFixtureParity$",
+      "result": "PASS",
+      "exit_code": 0,
+      "path": ".easyeda/stage-a-cli-final.log",
+      "sha256": "907660d554816eb6e2405020ceb362a97ec8848f2262c5f6aac8685f1f7c04e6",
+      "tail": [
+        "ok  \tgithub.com/zhoushoujianwork/easyeda-agent/internal/app\t1.669s"
+      ]
+    },
+    {
+      "command": "npm --prefix extension run typecheck",
+      "result": "PASS",
+      "exit_code": 0,
+      "path": ".easyeda/stage-a-typecheck-final.log",
+      "sha256": "73cdf70247e975272156bf142e5925d20389cb3ea60afdd201dc9fb44c4da341",
+      "tail": [
+        "> easyeda-agent-connector@1.4.15 typecheck",
+        "> tsc --noEmit"
+      ]
+    },
+    {
+      "command": "npm --prefix extension test",
+      "result": "PASS",
+      "exit_code": 0,
+      "tests": 389,
+      "passed": 389,
+      "failed": 0,
+      "skipped": 0,
+      "path": ".easyeda/stage-a-extension-final.log",
+      "sha256": "719e994d85503a06f946e2fa17415d8709bb670643f8f5d08ff60f067cdd4785",
+      "tail": [
+        "ok 383 - native footprint source: refuses source in an ATTR instead of META",
+        "  ---",
+        "  duration_ms: 0.1418",
+        "  ...",
+        "# Subtest: native footprint source: refuses multiple source documents",
+        "ok 384 - native footprint source: refuses multiple source documents",
+        "  ---",
+        "  duration_ms: 0.1492",
+        "  ...",
+        "1..384",
+        "# tests 389",
+        "# suites 0",
+        "# pass 389",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 20922.2226"
+      ]
+    },
+    {
+      "command": "go build -o .easyeda/stage-a-easyeda.exe ./cmd/easyeda; EASYEDA_BIN=<absolute test binary> npm --prefix mcp test",
+      "result": "PASS_WITH_HOST_SKIP",
+      "exit_code": 0,
+      "tests": 70,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 1,
+      "skip_reason": "real Host MCP compact snapshot and scoped report; Host qualification not run",
+      "path": ".easyeda/stage-a-mcp-final.log",
+      "sha256": "3f7ae9f2f8a1d826633b298b2944f7e737ca2db215301c3e4fdc9eb23452949c",
+      "tail": [
+        "ok 69 - reload is a fixed CLI recovery operation, not an arbitrary script",
+        "  ---",
+        "  duration_ms: 0.1583",
+        "  ...",
+        "# Subtest: default CLI is the repository formal binary, never PATH or a test build",
+        "ok 70 - default CLI is the repository formal binary, never PATH or a test build",
+        "  ---",
+        "  duration_ms: 0.3602",
+        "  ...",
+        "1..70",
+        "# tests 70",
+        "# suites 0",
+        "# pass 69",
+        "# fail 0",
+        "# cancelled 0",
+        "# skipped 1",
+        "# todo 0",
+        "# duration_ms 3549.2925"
+      ]
+    },
+    {
+      "command": "node scripts/generate-execution-mcp.cjs --check",
+      "result": "PASS",
+      "exit_code": 0
+    },
+    {
+      "command": "D:/Environment/miniconda3/python.exe scripts/pack-skill.py --check",
+      "result": "PASS",
+      "exit_code": 0,
+      "path": ".easyeda/stage-a-skill-check.log",
+      "sha256": "f5cb43343b02e06e9882dbcbd47e7fe6e0b821bfc3c015d47a807aff6f47a792",
+      "tail": [
+        "Skill package check passed: 58 tracked files; local links stay inside the installed skill"
+      ]
+    },
+    {
+      "command": "go test ./internal/app -run 'TestStripArtifactNesting|TestResolveEnrichScript'",
+      "cwd": ".easyeda/stage-a-baseline",
+      "source_commit": "a583bf731d946d2d39f1223e078d711bd41710d5",
+      "result": "FAIL_REPRODUCED_BASELINE",
+      "path": ".easyeda/stage-a-baseline-windows.log",
+      "sha256": "688946567e5ba72668046cb7ad374421a7bcc204c6bdb6099fdbd36c97e24be2",
+      "tail": [
+        "          E:\\Cache\\Temp\\go-build1615671274\\b001\\skills\\easyeda-schematic\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\go-build1615671274\\skills\\easyeda-agent\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\go-build1615671274\\skills\\easyeda-schematic\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\skills\\easyeda-agent\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\skills\\easyeda-schematic\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\skills\\easyeda-agent\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\skills\\easyeda-schematic\\scripts\\bom-enrich.py",
+        "          E:\\skills\\easyeda-agent\\scripts\\bom-enrich.py",
+        "          E:\\skills\\easyeda-schematic\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\TestResolveEnrichScriptNotFoundListsProbedPaths1751586501\\002\\skills\\easyeda-agent\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\TestResolveEnrichScriptNotFoundListsProbedPaths1751586501\\002\\skills\\easyeda-schematic\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\TestResolveEnrichScriptNotFoundListsProbedPaths1751586501\\skills\\easyeda-agent\\scripts\\bom-enrich.py",
+        "          E:\\Cache\\Temp\\TestResolveEnrichScriptNotFoundListsProbedPaths1751586501\\skills\\easyeda-schematic\\scripts\\bom-enrich.py",
+        "          $PATH/bom-enrich.py",
+        "        pass --script /path/to/bom-enrich.py, set EASYEDA_SKILLS_DIR to your skills root, or install the skill (`easyeda skill sync --create-missing`)",
+        "FAIL",
+        "FAIL\tgithub.com/zhoushoujianwork/easyeda-agent/internal/app\t1.490s",
+        "FAIL"
+      ]
+    },
+    {
+      "command": "go test ./internal/selfupdate -run ^TestUpdateCLIReplacesBinaryAndVerifiesChecksum$",
+      "cwd": ".easyeda/stage-a-baseline",
+      "source_commit": "a583bf731d946d2d39f1223e078d711bd41710d5",
+      "result": "FAIL_REPRODUCED_BASELINE",
+      "path": ".easyeda/stage-a-baseline-selfupdate.log",
+      "sha256": "977571360f321e44ef5fe3a58c04a82484ebecfce9e2a14098f73ac3f68220da",
+      "tail": [
+        "--- FAIL: TestUpdateCLIReplacesBinaryAndVerifiesChecksum (0.01s)",
+        "    cli_test.go:122: replacement is not executable (mode -rw-rw-rw-)",
+        "FAIL",
+        "FAIL\tgithub.com/zhoushoujianwork/easyeda-agent/internal/selfupdate\t0.902s",
+        "FAIL"
+      ]
+    }
+  ],
+  "implementation_notes": [
+    "Go/TS share fixtures; MCP adapter is generated from TS, catalog generated from AllActions.",
+    "Legacy internal CLI composite steps retain invocation error semantics and expose execution/raw evidence; they do not become autonomous-safe.",
+    "Existing audit Append has no fsync/durable write-ahead intent; implementation deferred to B.",
+    "No Host process was updated or activated.",
+    "Original untracked hardening plan is preserved and excluded from this candidate commit."
+  ],
+  "stage_a_r1": {
+    "parent_commit": "f1bb17381fa36348f1dccacbdc09ac23e54e7d3a",
+    "contract_version": "execution.v1.1",
+    "scope": "A-R1-01..06 only; OFFLINE_ONLY; pending independent acceptance",
+    "shared_fixtures": 82,
+    "full_execution_parity": "Go→TS, TS→Go, repeated interpretation; all shared fixtures plus metadata fixture",
+    "tests": [
+      {
+        "name": "Go full unfiltered",
+        "command": "D:/Environment/go/bin/go.exe test ./...",
+        "result": "FAIL: four documented Windows baseline failures",
+        "log": ".easyeda/r1-go-all.log",
+        "sha256": "e98beecf613565ff1179aaf3505074137c0d33b3388e99249537f4924a3b3b4b"
+      },
+      {
+        "name": "Go full with explicit baseline exclusions",
+        "command": "D:/Environment/go/bin/go.exe test ./... -skip '^(TestStripArtifactNesting|TestResolveEnrichScriptPriority|TestResolveEnrichScriptNotFoundListsProbedPaths|TestUpdateCLIReplacesBinaryAndVerifiesChecksum)$'",
+        "result": "PASS",
+        "log": ".easyeda/r1-go-final.log",
+        "sha256": "4cd18fc5f67fcaf0cd0d96b6fd60ea535c35817427c61e4849a293ac672cbc93"
+      },
+      {
+        "name": "Daemon after final parent ID change",
+        "command": "D:/Environment/go/bin/go.exe test ./internal/daemon",
+        "result": "PASS",
+        "log": ".easyeda/r1-daemon-final.log",
+        "sha256": "34ba8f7ef9287162fa57eb6125e010e1132552f70b1ef64297b37b823350925c"
+      },
+      {
+        "name": "Connector",
+        "command": "npm --prefix extension test",
+        "result": "425 passed",
+        "log": ".easyeda/r1-extension-final.log",
+        "sha256": "3bb2ed65795ee720e89455b3bce8e2217ca5612d5d7a169665753f9803e7adf1"
+      },
+      {
+        "name": "TypeScript",
+        "command": "npm --prefix extension run typecheck",
+        "result": "PASS",
+        "log": ".easyeda/r1-typecheck.log",
+        "sha256": "73cdf70247e975272156bf142e5925d20389cb3ea60afdd201dc9fb44c4da341"
+      },
+      {
+        "name": "MCP",
+        "command": "EASYEDA_BIN=.easyeda/stage-a-r1-easyeda.exe npm --prefix mcp test",
+        "result": "118 passed; 1 Host skip",
+        "log": ".easyeda/r1-mcp-final.log",
+        "sha256": "19f17ad5b9ba6ca050237d1b98d1c8f630ba814902742e58730d202e29553ec0"
+      },
+      {
+        "name": "Skill",
+        "command": "D:/Environment/miniconda3/python.exe scripts/pack-skill.py --check",
+        "result": "PASS: 58 files",
+        "log": ".easyeda/r1-skill-check.log",
+        "sha256": "f5cb43343b02e06e9882dbcbd47e7fe6e0b821bfc3c015d47a807aff6f47a792"
+      }
+    ],
+    "generator_check": "node scripts/generate-execution-mcp.cjs --check: PASS",
+    "changed_files": [
+      "docs/STAGE_A_EXECUTION_CONTRACT.md",
+      "docs/STAGE_A_R1_RESULTS.md",
+      "docs/STAGE_A_TEST_RESULTS.json",
+      "extension/src/action-contracts.json",
+      "extension/src/execution.ts",
+      "extension/src/protocol.ts",
+      "internal/daemon/autosave.go",
+      "internal/daemon/autosave_test.go",
+      "internal/daemon/dispatch.go",
+      "internal/daemon/execution_r1_test.go",
+      "internal/daemon/execution_test.go",
+      "internal/daemon/fastpath.go",
+      "internal/daemon/fastpath_transport_test.go",
+      "internal/daemon/stalereads.go",
+      "internal/protocol/execution.go",
+      "internal/protocol/execution_parity_test.go",
+      "internal/protocol/testdata/execution.json",
+      "mcp/src/authoring-result.mjs",
+      "mcp/src/execution.generated.mjs",
+      "mcp/test/authoring-result.test.mjs",
+      "mcp/test/execution.test.mjs",
+      "scripts/test-execution-parity.mjs"
+    ],
+    "deferred": "All Stage B–E findings remain deferred; no new Host qualification"
+  },
+  "stage_a_r2": {
+    "parent_commit": "da46d819d64297125e0037d3450c3836be8e582b",
+    "scope": "A-R2-01..03 only; OFFLINE_ONLY; pending independent acceptance",
+    "contract_version": "execution.v1.2",
+    "shared_fixtures": 138,
+    "tests": [
+      {
+        "name": "Go unfiltered",
+        "command": "D:/Environment/go/bin/go.exe test ./...",
+        "result": "FAIL: four known Windows baseline failures only",
+        "log": ".easyeda/r2-go-final-unfiltered.log",
+        "sha256": "cd9b547950f29299397d3804f51025054de594c5e8e51b89edf81391a87338d2"
+      },
+      {
+        "name": "Go filtered",
+        "command": "D:/Environment/go/bin/go.exe test ./... -skip '^(TestStripArtifactNesting|TestResolveEnrichScriptPriority|TestResolveEnrichScriptNotFoundListsProbedPaths|TestUpdateCLIReplacesBinaryAndVerifiesChecksum)$'",
+        "result": "PASS",
+        "log": ".easyeda/r2-go-final-filtered.log",
+        "sha256": "033e4e62fdfc8001854721a5adbb21efde1f1ed1acc3fccc79b7c16e896bac7d"
+      },
+      {
+        "name": "Connector",
+        "command": "npm --prefix extension test",
+        "result": "481 passed",
+        "log": ".easyeda/r2-extension-final.log",
+        "sha256": "45292363c470dafef201974438da9c0484c37be1597d859abdad109d2a06d343"
+      },
+      {
+        "name": "TypeScript",
+        "command": "npm --prefix extension run typecheck",
+        "result": "PASS",
+        "log": ".easyeda/r2-typecheck.log",
+        "sha256": "73cdf70247e975272156bf142e5925d20389cb3ea60afdd201dc9fb44c4da341"
+      },
+      {
+        "name": "MCP",
+        "command": "EASYEDA_BIN=.easyeda/stage-a-r2-easyeda.exe npm --prefix mcp test",
+        "result": "175 passed; 1 Host skip",
+        "log": ".easyeda/r2-mcp-final.log",
+        "sha256": "c8e657887918947c3d9f90fcfbeba03ca260cee1f2a8fdf0660d9ff9525a50fc"
+      },
+      {
+        "name": "Skill",
+        "command": "D:/Environment/miniconda3/python.exe scripts/pack-skill.py --check",
+        "result": "PASS: 58 files",
+        "log": ".easyeda/r2-skill.log",
+        "sha256": "f5cb43343b02e06e9882dbcbd47e7fe6e0b821bfc3c015d47a807aff6f47a792"
+      }
+    ],
+    "generator_check": "node scripts/generate-execution-mcp.cjs --check: PASS",
+    "full_execution_parity": "original JSON + Go decoded + Go interpreted -> TS first/repeated -> Go; entire normalized execution comparison",
+    "changed_files": [
+      "docs/STAGE_A_EXECUTION_CONTRACT.md",
+      "docs/STAGE_A_R2_RESULTS.md",
+      "docs/STAGE_A_TEST_RESULTS.json",
+      "extension/src/action-contracts.json",
+      "extension/src/execution.ts",
+      "extension/src/protocol.ts",
+      "internal/daemon/execution_r2_test.go",
+      "internal/protocol/execution.go",
+      "internal/protocol/execution_parity_test.go",
+      "internal/protocol/execution_shape.go",
+      "internal/protocol/testdata/execution.json",
+      "mcp/src/execution.generated.mjs",
+      "mcp/test/execution.test.mjs"
+    ],
+    "deferred": "All Stage B–E work remains deferred; no Host mutation or G474 operations"
+  },
+  "stage_a_r3": {
+    "parent_commit": "daaaef934e97d84705989785c170c54b5a544d5f",
+    "scope": "A-R3-01..05; unified Validate/Reconcile/Derive; OFFLINE_ONLY; candidate pending independent acceptance",
+    "contract_version": "execution.v1.3",
+    "shared_fixtures": 147,
+    "historical_fixtures_preserved": 138,
+    "fixture_sha256": "29bfaba4def3eeb3be93ddce1fea43873eb978152090d578acbfb51584ba969c",
+    "property": {
+      "seed": "0x53a3c0de",
+      "seed_decimal": 1403240670,
+      "cases": 4096,
+      "generator": "scripts/execution-properties.cjs",
+      "generator_sha256": "db939d24c31318875a1423809b7b9275ed74f76d94177a009b0288593a5a682c",
+      "coverage": "8 mutation families; full execution Go/TS parity, both round trips, repeated interpretation; real TS and MCP authoringResult; malformed/uncertain/intent/permissions assertions",
+      "refusal_phase_regression": true,
+      "consumer_ast_boundary": true
+    },
+    "tests": [
+      {
+        "name": "Go unfiltered",
+        "command": "D:/Environment/go/bin/go.exe test -json -count=1 ./...",
+        "result": "FAIL: four known Windows baseline tests only",
+        "log": ".easyeda/r3-go-final-unfiltered.jsonl",
+        "sha256": "bee895afa2ed069fe2f6d59eb2f06d333219076430b1ff7333b215a50ef91415"
+      },
+      {
+        "name": "Go filtered",
+        "command": "D:/Environment/go/bin/go.exe test -json -count=1 ./... -skip '^(TestStripArtifactNesting|TestResolveEnrichScriptPriority|TestResolveEnrichScriptNotFoundListsProbedPaths|TestUpdateCLIReplacesBinaryAndVerifiesChecksum)$'",
+        "result": "PASS: 11 tested packages",
+        "log": ".easyeda/r3-go-final-filtered.jsonl",
+        "sha256": "e93b0bcf849740586d9e93e13858a97049f20ed0354f0539e2f2ecba91a0a2c5"
+      },
+      {
+        "name": "Connector",
+        "command": "npm --prefix extension test",
+        "result": "PASS: 491 tests, 0 skipped",
+        "log": ".easyeda/r3-extension-final.log",
+        "sha256": "24ea4c1babf5f8b6e8bb6831148a21851fe98b8af4ab39cd6f1e066ee0089e25"
+      },
+      {
+        "name": "TypeScript",
+        "command": "npm --prefix extension run typecheck",
+        "result": "PASS",
+        "log": ".easyeda/r3-typecheck-final.log",
+        "sha256": "73cdf70247e975272156bf142e5925d20389cb3ea60afdd201dc9fb44c4da341"
+      },
+      {
+        "name": "MCP",
+        "command": "EASYEDA_BIN=.easyeda/stage-a-r3-easyeda.exe npm --prefix mcp test",
+        "result": "PASS: 185 tests, 1 Host skip",
+        "log": ".easyeda/r3-mcp-final.log",
+        "sha256": "1b5b51f3e9ccf1fbaff7cbc3aa1e377cfba53b64569861c89c24eaed84dd68a6"
+      },
+      {
+        "name": "Generated projection",
+        "command": "node scripts/generate-execution-mcp.cjs --check",
+        "result": "PASS",
+        "log": ".easyeda/r3-generator-final.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "Skill",
+        "command": "D:/Environment/miniconda3/python.exe scripts/pack-skill.py --check",
+        "result": "PASS: 58 tracked files",
+        "log": ".easyeda/r3-skill-final.log",
+        "sha256": "f5cb43343b02e06e9882dbcbd47e7fe6e0b821bfc3c015d47a807aff6f47a792"
+      },
+      {
+        "name": "Daemon final source confirmation",
+        "command": "D:/Environment/go/bin/go.exe test -count=1 ./internal/daemon",
+        "result": "PASS",
+        "log": ".easyeda/r3-daemon-poststage.log",
+        "sha256": "1bd02f833211c174accfe1d1f7d5ae4c562c63005a75bcf92db708eb55de6d67"
+      }
+    ],
+    "unfiltered_failed_tests": [
+      "TestUpdateCLIReplacesBinaryAndVerifiesChecksum",
+      "TestStripArtifactNesting",
+      "TestResolveEnrichScriptPriority/3_installed_skill_dir_is_found_from_an_unrelated_cwd_(#115)",
+      "TestResolveEnrichScriptPriority",
+      "TestResolveEnrichScriptNotFoundListsProbedPaths"
+    ],
+    "filtered_pass_events": 3219,
+    "autonomous_eligibility": "151/151 EXCLUDED",
+    "isolated_cli_sha256": "3ccbd3fe3c116809771395cc8b5775da36f1c7deeccc73de53ef1d17a03e26f1",
+    "changed_files": [
+      "docs/STAGE_A_EXECUTION_CONTRACT.md",
+      "docs/STAGE_A_R3_RESULTS.md",
+      "docs/STAGE_A_TEST_RESULTS.json",
+      "extension/src/action-contracts.json",
+      "extension/src/execution-properties.test.ts",
+      "extension/src/execution.ts",
+      "extension/src/protocol.ts",
+      "internal/daemon/autosave.go",
+      "internal/daemon/execution_r1_test.go",
+      "internal/daemon/execution_r2_test.go",
+      "internal/daemon/execution_r3_test.go",
+      "internal/daemon/execution_test.go",
+      "internal/daemon/stagegate_test.go",
+      "internal/daemon/stale_read_gate_test.go",
+      "internal/daemon/stalereads.go",
+      "internal/daemon/stalereads_test.go",
+      "internal/daemon/writehealth.go",
+      "internal/protocol/execution.go",
+      "internal/protocol/execution_parity_test.go",
+      "internal/protocol/execution_properties_test.go",
+      "internal/protocol/execution_reducer.go",
+      "internal/protocol/execution_shape.go",
+      "internal/protocol/testdata/execution.json",
+      "mcp/src/execution.generated.mjs",
+      "mcp/test/execution-properties.test.mjs",
+      "scripts/execution-properties.cjs",
+      "skills/easyeda-agent/references/actions.md"
+    ],
+    "deferred": "All Stage B–E implementation and Host qualification remain deferred. No Host mutation, G474, push, PR or tag."
+  },
+  "stage_a_r4": {
+    "parent_commit": "b3f22ac042720efe0d982d18915e33507328223b",
+    "scope": "A-R4 evidence adaptation closure; R3 phases preserved; OFFLINE_ONLY; pending independent acceptance",
+    "status": "STAGE A EXECUTION CONTRACT CLOSED CANDIDATE",
+    "contract_version": "execution.v1.3",
+    "contract_shape_and_frozen_semantics_unchanged": true,
+    "shared_fixtures": 151,
+    "historical_inputs_preserved": 147,
+    "historical_expectation_change": "preview: request intent without handler proof is UNCERTAIN/false; raw input unchanged",
+    "fixture_sha256": "d45f15ce4661ea0f8006b6f8304ab72422a96ff4e5843b04309aff5f7f0fe524",
+    "adapters": 30,
+    "inventory_sha256": "870c50d381e9383e1095cfb9fd95d4648c75079b884aa5b45a361b2c20bedb32",
+    "oracle_sha256": "a5387266a19173971d09cae7c0ccee91df009d76a760406dbf3833196a27450a",
+    "property": {
+      "original_seed": "0x53a3c0de",
+      "original_cases": 4096,
+      "independent_seeds": [
+        "0x53a3c0de",
+        "0x14a4e001",
+        "0x76c0ffee"
+      ],
+      "independent_cases": 3294,
+      "actual_preview_closure_cases": 144,
+      "preview_actions": 3,
+      "unsupported_dry_run_actions": 148,
+      "production_facts_used_by_oracle": false,
+      "full_canonical_parity": true,
+      "round_trip": true,
+      "idempotence": true
+    },
+    "tests": [
+      {
+        "name": "Go unfiltered",
+        "command": "go test -json -count=1 ./...",
+        "result": "FAIL: four reproduced Windows baseline failures only",
+        "log": ".easyeda/r4-go-final.jsonl",
+        "sha256": "0fd24efdbd2f30a8b881b69f1b092aeb7d1163d0f069ab2568e1a384b0d86841"
+      },
+      {
+        "name": "Go filtered",
+        "command": "go test -json -count=1 ./... -skip '^(TestStripArtifactNesting|TestResolveEnrichScriptPriority|TestResolveEnrichScriptNotFoundListsProbedPaths|TestUpdateCLIReplacesBinaryAndVerifiesChecksum)$'",
+        "result": "PASS: 11 tested packages",
+        "log": ".easyeda/r4-go-filtered-final.jsonl",
+        "sha256": "31b897274e5e79a694f5951c9bf906a597564539e9ba34f9940db1890800535c"
+      },
+      {
+        "name": "R3 baseline reproduction",
+        "command": "go test -json -count=1 ./internal/app ./internal/selfupdate -run four-known-tests (cwd .easyeda/r4-baseline; git archive b3f22ac)",
+        "result": "FAIL: same four test roots and one nested path subtest",
+        "log": ".easyeda/r4-baseline-tests.jsonl",
+        "sha256": "deb8f6880bae289ee9d33af150848f05add940a8a606a9597e0277f0b069c831"
+      },
+      {
+        "name": "Connector",
+        "command": "npm --prefix extension test",
+        "result": "PASS: 498; 0 skipped",
+        "log": ".easyeda/r4-connector-final.log",
+        "sha256": "67b626dc8d48ab2a7e460da6e66d190b9e54ee267ac5c399ab0072fd0db7a89c"
+      },
+      {
+        "name": "MCP",
+        "command": "EASYEDA_BIN=.easyeda/stage-a-r4-easyeda.exe npm --prefix mcp test",
+        "result": "PASS: 191; 1 Host test skipped",
+        "log": ".easyeda/r4-mcp-final.log",
+        "sha256": "a8cd0ead25016c30e785bb7fd4800657e0f6a2918c9dc3b5bea0cca324eb3086"
+      },
+      {
+        "name": "TypeScript / generated / Skill / diff",
+        "command": "npm --prefix extension run typecheck; node scripts/generate-execution-mcp.cjs --check; python scripts/pack-skill.py --check; git diff --check",
+        "result": "PASS; 58 tracked Skill files",
+        "log": ".easyeda/r4-checks.log",
+        "sha256": "2d05e0c8daac7274c72436e52d3e149dfb065618e903b9d2913182b1023ed1ed"
+      }
+    ],
+    "windows_baseline_failures": [
+      "TestResolveEnrichScriptNotFoundListsProbedPaths",
+      "TestResolveEnrichScriptPriority",
+      "TestStripArtifactNesting",
+      "TestUpdateCLIReplacesBinaryAndVerifiesChecksum"
+    ],
+    "baseline_archive_sha256": "ed4ab78879590265d5d0f240604d90cf79e57c25e1656b644259682ea6be5149",
+    "invariants": {
+      "idempotence": "PASS",
+      "cross_language_parity": "PASS",
+      "invalid_missing_conflict_fail_closed": "PASS",
+      "evidence_dominance": "PASS",
+      "complete_strictness": "PASS",
+      "uncertain_monotonicity": "PASS",
+      "atomic_derivation": "PASS",
+      "canonical_consumers": "PASS",
+      "no_write_positive_proof_authority": "PASS",
+      "independent_oracle_inventory_coverage": "PASS",
+      "preview_contract_closure": "PASS"
+    },
+    "all_actions_excluded": 151,
+    "host_mutation": false,
+    "g474_modified": false,
+    "push_pr_tag": false,
+    "known_stage_a_blockers": [],
+    "changed_files": [
+      "docs/STAGE_A_R4_RESULTS.md",
+      "docs/STAGE_A_TEST_RESULTS.json",
+      "extension/src/actions.ts",
+      "extension/src/execution-evidence.test.ts",
+      "extension/src/execution-preview-fixtures.ts",
+      "extension/src/execution.ts",
+      "internal/app/cmd_apply.go",
+      "internal/app/sch_clear_verify_test.go",
+      "internal/daemon/execution_r2_test.go",
+      "internal/daemon/execution_r3_test.go",
+      "internal/daemon/stale_read_gate_test.go",
+      "internal/daemon/stalereads_test.go",
+      "internal/protocol/execution-evidence.json",
+      "internal/protocol/execution.go",
+      "internal/protocol/execution_evidence.go",
+      "internal/protocol/execution_evidence_test.go",
+      "internal/protocol/execution_properties_test.go",
+      "internal/protocol/execution_reducer.go",
+      "internal/protocol/execution_shape.go",
+      "internal/protocol/testdata/execution.json",
+      "mcp/src/execution.generated.mjs",
+      "mcp/src/fast-path.mjs",
+      "mcp/test/execution-evidence.test.mjs",
+      "mcp/test/fast-path.test.mjs",
+      "scripts/execution-evidence-properties.cjs",
+      "scripts/execution-preview-fixtures.cjs",
+      "scripts/execution-semantic-oracle.cjs",
+      "scripts/generate-execution-mcp.cjs",
+      "skills/easyeda-agent/references/actions.md"
+    ]
+  },
+  "stage_a_closure_repair_01": {
+    "baseline": "a1f41bbb64974c7ff26738d4f2471d90e0243b0f",
+    "candidate": "commit containing this record",
+    "status": "STAGE A EXECUTION CONTRACT CLOSED CANDIDATE",
+    "qualification": "OFFLINE_ONLY",
+    "fixed_corpus": 155,
+    "preserved_fixed_corpus": 151,
+    "properties": {
+      "original": {
+        "cases": 4096,
+        "seed": "0x53a3c0de"
+      },
+      "independent_oracle": {
+        "cases": 3294,
+        "seeds": [
+          "0x53a3c0de",
+          "0x14a4e001",
+          "0x76c0ffee"
+        ]
+      },
+      "preview_closure": 144,
+      "closure_finite": {
+        "cases": 450,
+        "envelope": 12,
+        "forbidden_tuple": 282,
+        "atomic_downgrade": 4,
+        "fast_complete": 1,
+        "catalog_projection": 151
+      }
+    },
+    "checks": [
+      {
+        "name": "Go full",
+        "command": "go test -json -count=1 ./...",
+        "result": "3254 test/subtest PASS; four known Windows baseline failures",
+        "log": ".easyeda/closure01-go-final.jsonl",
+        "sha256": "8aaeb097163beda65e9c60d57109a290853c292096427e0a60fd71a6b66df1d0"
+      },
+      {
+        "name": "Go isolated baseline",
+        "command": "go test -json -count=1 ./... -run four_baseline_tests (cwd .easyeda/closure01-baseline)",
+        "result": "same four failures reproduced",
+        "log": ".easyeda/closure01-baseline-tests.jsonl",
+        "sha256": "5acc5359cb6eaeb1adcc6504fd2d4ccd56771b77430b1a6999ded3acc5ec5ed3"
+      },
+      {
+        "name": "Go excluding confirmed baseline",
+        "command": "go test -json -count=1 ./... -skip four_baseline_tests",
+        "result": "11 test packages PASS; 3250 test/subtest PASS",
+        "log": ".easyeda/closure01-go-filtered.jsonl",
+        "sha256": "9af9adfa671d3d52fae4c8ee74040684bbf4171ced1a04d301c36dd87cd5c2c3"
+      },
+      {
+        "name": "Connector",
+        "command": "npm --prefix extension test",
+        "result": "505 PASS; 0 FAIL",
+        "log": ".easyeda/closure01-connector-final.log",
+        "sha256": "cf1dfd946396649da79a36c1826a1c083d2fc9a461a6b82fcfb762c04bb55555"
+      },
+      {
+        "name": "MCP",
+        "command": "EASYEDA_BIN=.easyeda/closure01-easyeda.exe npm --prefix mcp test",
+        "result": "196 PASS; 0 FAIL; 1 Host SKIP",
+        "log": ".easyeda/closure01-mcp-final.log",
+        "sha256": "e4974550c6efcc6a047a720adeebc864d586c2d0dd33ceb731e71c85e7691cfc"
+      },
+      {
+        "name": "TypeScript/generated/Skill/diff",
+        "command": "npm --prefix extension run typecheck; node scripts/generate-execution-mcp.cjs --check; python scripts/pack-skill.py --check; git diff --check",
+        "result": "PASS; 58 Skill files",
+        "log": ".easyeda/closure01-checks.log",
+        "sha256": "2d05e0c8daac7274c72436e52d3e149dfb065618e903b9d2913182b1023ed1ed"
+      }
+    ],
+    "windows_baseline_failures": [
+      "TestStripArtifactNesting",
+      "TestResolveEnrichScriptPriority",
+      "TestResolveEnrichScriptNotFoundListsProbedPaths",
+      "TestUpdateCLIReplacesBinaryAndVerifiesChecksum"
+    ],
+    "baseline_archive_sha256": "b659f32c8fb308f909a52eb016c77cd89d4fb2d4b4c293d49b4e3e74003d9034",
+    "invariants": {
+      "idempotence": "PASS",
+      "cross_language_parity": "PASS",
+      "invalid_missing_conflict_fail_closed": "PASS",
+      "evidence_dominance": "PASS",
+      "no_write_positive_proof": "PASS",
+      "complete_contract_coverage": "PASS",
+      "uncertain_monotonicity": "PASS",
+      "atomic_derivation": "PASS",
+      "canonical_consumers": "PASS",
+      "envelope_attribution": "PASS",
+      "prior_tuple_consistency": "PASS"
+    },
+    "all_actions_excluded": 151,
+    "evidence_adapters": 30,
+    "host_mutation": false,
+    "g474_modified": false,
+    "push_pr_tag": false,
+    "known_stage_a_blockers": [],
+    "changed_files": [
+      "docs/STAGE_A_CLOSURE_REPAIR_01_RESULTS.md",
+      "docs/STAGE_A_TEST_RESULTS.json",
+      "extension/src/execution-closure.test.ts",
+      "extension/src/execution.ts",
+      "extension/src/fast-path.test.ts",
+      "internal/app/cmd_apply.go",
+      "internal/app/dispatch.go",
+      "internal/app/execution_test.go",
+      "internal/daemon/execution_test.go",
+      "internal/protocol/execution_closure_test.go",
+      "internal/protocol/execution_evidence.go",
+      "internal/protocol/execution_properties_test.go",
+      "internal/protocol/execution_reducer.go",
+      "internal/protocol/testdata/execution.json",
+      "mcp/src/authoring-result.mjs",
+      "mcp/src/execution.generated.mjs",
+      "mcp/test/execution-closure.test.mjs",
+      "mcp/test/execution.test.mjs",
+      "scripts/execution-closure-properties.cjs",
+      "skills/easyeda-agent/references/actions.md"
+    ]
+  }
+}

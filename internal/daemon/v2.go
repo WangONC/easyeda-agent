@@ -119,6 +119,12 @@ func (s *Server) executeV2(r executionv2.Request, digest string) <-chan executio
 		close(ch)
 		return ch
 	}
+	// Fail closed before transport if the durable effect-intent cannot be saved.
+	if err := s.markV2Effect(r, digest); err != nil {
+		s.logf("V2 operation %s lifecycle persistence failed before dispatch: %v", r.OperationID, err)
+		close(ch)
+		return ch
+	}
 	s.v2Mu.Lock()
 	s.v2Pending[r.OperationID] = v2Pending{request: r, conn: c, results: ch, started: time.Now()}
 	s.v2Mu.Unlock()

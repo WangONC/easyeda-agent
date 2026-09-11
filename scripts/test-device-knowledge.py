@@ -112,4 +112,42 @@ class DeviceKnowledgeTests(unittest.TestCase):
         self.assertEqual(d['pins'][0]['values']['2'], 'VOUT (Output)')
         self.assertEqual(d['sources'][d['pins'][0]['source_refs'][0]]['pdf_page'], 3)
 
+class DeviceLookupTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        spec = importlib.util.spec_from_file_location('device_lookup', m.ROOT/'skills/easyeda-agent/scripts/device-lookup.py')
+        cls.helper = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cls.helper)
+
+    def test_exact_mpn_returns_one_entry(self):
+        r = self.helper.lookup(mpn='TPS54331DR')
+        self.assertTrue(r['found'])
+        self.assertEqual(r['device']['mpn'], 'TPS54331DR')
+        self.assertEqual(set(r), {'found','device'})
+
+    def test_exact_lcsc(self):
+        r = self.helper.lookup(lcsc='C81080')
+        self.assertEqual(r['device']['mpn'], 'BQ24040DSQR')
+
+    def test_miss_never_returns_candidates(self):
+        for q in ['TPS', 'DC-DC', '*', 'tps54331dr', 'nonexistent']:
+            self.assertEqual(self.helper.lookup(mpn=q), {'found':False,'query':{'mpn':q}})
+
+    def test_both_identifiers_must_match(self):
+        self.assertFalse(self.helper.lookup(mpn='TPS54331DR',lcsc='C81080')['found'])
+
+    def test_no_browse_cli(self):
+        import subprocess, sys
+        for args in [[], ['--list'], ['--category','MCU']]:
+            r = subprocess.run([sys.executable,str(m.ROOT/'skills/easyeda-agent/scripts/device-lookup.py'),*args],capture_output=True,text=True)
+            self.assertNotEqual(r.returncode,0)
+            self.assertEqual(r.stdout,'')
+
+    def test_ambiguous_identity_does_not_disclose_candidates(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            (root/'index.json').write_text(json.dumps({'devices':[{'mpn':'DUP'},{'mpn':'DUP'}]}),encoding='utf-8')
+            with self.assertRaisesRegex(ValueError,'Ambiguous exact identity'):
+                self.helper.lookup(mpn='DUP',data=root)
+
 if __name__ == '__main__': unittest.main()

@@ -87,6 +87,11 @@ func TestV2UncleanStartupPersistsUntilExplicitConfirmation(t *testing.T) {
 	if e := old.markV2Running(); e != nil {
 		t.Fatal(e)
 	}
+	r := startupRequest("pcb.save", "started")
+	digest, _ := r.Digest()
+	if e := old.markV2Effect(r, digest); e != nil {
+		t.Fatal(e)
+	}
 	for i := 0; i < 2; i++ {
 		s := New(Options{V2ReceiptFile: path})
 		startupConn(s)
@@ -175,5 +180,63 @@ func TestV2RestoredUnknownOwnerCannotBeBypassed(t *testing.T) {
 				t.Fatal("released historical UNKNOWN fenced", s.v2StartupErr)
 			}
 		}
+	}
+}
+
+func TestV2CrashWithoutEffectPermitsNextWrite(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "receipts.json")
+	old := New(Options{V2ReceiptFile: path})
+	if e := old.markV2Running(); e != nil {
+		t.Fatal(e)
+	}
+	read := startupRequest("document.current", "read")
+	digest, _ := read.Digest()
+	if e := old.markV2Effect(read, digest); e != nil {
+		t.Fatal(e)
+	}
+	next := New(Options{V2ReceiptFile: path})
+	startupConn(next)
+	if next.v2StartupFenced() {
+		t.Fatal("read-only lifetime crash fenced")
+	}
+	var calls atomic.Int32
+	next.v2 = executionv2.New(20, next.validateV2, startupExecutor(&calls, true, true))
+	if r, e := next.v2.Submit(context.Background(), startupRequest("pcb.save", "new")); e != nil || r.Outcome != executionv2.Succeeded || calls.Load() != 1 {
+		t.Fatal(r, e, calls.Load())
+	}
+}
+func TestV2EffectMarkerIdentityAndPersistenceFailure(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "receipts.json")
+	s := New(Options{V2ReceiptFile: path})
+	startupConn(s)
+	r := startupRequest("pcb.save", "intent")
+	digest, _ := r.Digest()
+	if e := s.markV2Effect(r, digest); e != nil {
+		t.Fatal(e)
+	}
+	data, e := os.ReadFile(path + ".active")
+	if e != nil {
+		t.Fatal(e)
+	}
+	if !strings.Contains(string(data), digest) || !strings.Contains(string(data), "intent") {
+		t.Fatal(string(data))
+	}
+	if !New(Options{V2ReceiptFile: path}).v2StartupFenced() {
+		t.Fatal("effect marker ignored")
+	}
+	// A directory cannot be atomically replaced by a marker: executeV2 must not
+	// reach the fake connection (which deliberately has no websocket).
+	if e := os.Remove(path + ".active"); e != nil {
+		t.Fatal(e)
+	}
+	if e := os.Mkdir(path+".active", 0700); e != nil {
+		t.Fatal(e)
+	}
+	ch := s.executeV2(r, digest)
+	if _, ok := <-ch; ok {
+		t.Fatal("failed persistence dispatched")
+	}
+	if len(s.v2Pending) != 0 {
+		t.Fatal("failed gate registered dispatch")
 	}
 }

@@ -1,26 +1,45 @@
 package daemon
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/protocol"
+	"io"
 	"os"
 	"path/filepath"
 )
 
-// One local marker detects a lifetime whose receipts were not handed off.
-// It carries no operations and cannot authorize replay or release ownership.
+// This is a durable dispatch-intent marker, not a native completion receipt.
+// Persisting before transport is deliberately conservative if the process dies
+// between the write and dispatch: a started native effect must never go unmarked.
+type v2Lifecycle struct {
+	Version     string `json:"version"`
+	State       string `json:"state"`
+	OperationID string `json:"operation_id,omitempty"`
+	Digest      string `json:"digest,omitempty"`
+}
+
 func (s *Server) inspectV2Lifecycle() error {
 	if s.opts.V2ReceiptFile == "" {
 		return nil
 	}
-	_, err := os.Stat(s.opts.V2ReceiptFile + ".active")
-	if err == nil {
-		s.v2UncleanStart = true
-		return nil
-	}
+	data, err := os.ReadFile(s.opts.V2ReceiptFile + ".active")
 	if errors.Is(err, os.ErrNotExist) {
 		return nil
 	}
-	return err
+	if err != nil {
+		return err
+	}
+	var m v2Lifecycle
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.DisallowUnknownFields()
+	var extra any
+	valid := len(data) <= 4096 && d.Decode(&m) == nil && d.Decode(&extra) == io.EOF
+	// Legacy/unrecognizable markers cannot prove that no effect started.
+	s.v2UncleanStart = !valid || m.Version != "execution.v2.lifecycle.1" || m.State != "no_effect_started" || m.OperationID != "" || m.Digest != ""
+	return nil
 }
 
 func (s *Server) v2StartupFenced() bool {
@@ -28,8 +47,28 @@ func (s *Server) v2StartupFenced() bool {
 		(s.v2RestoredOwner != "" && s.v2.EffectOwner() == s.v2RestoredOwner)
 }
 
-// Called only after binding the singleton port, before accepting any requests.
+// Called only after binding the singleton port, before accepting requests.
 func (s *Server) markV2Running() error {
+	if s.v2UncleanStart && !s.opts.V2HostStartupConfirmed {
+		return nil
+	}
+	return s.writeV2Lifecycle(v2Lifecycle{Version: "execution.v2.lifecycle.1", State: "no_effect_started"})
+}
+
+// This gate runs before the first byte of an effectful request reaches Connector.
+// Pure reads never change the marker; reconciliation never calls this gate.
+func (s *Server) markV2Effect(r executionv2.Request, digest string) error {
+	a, err := protocol.ValidateV2(r)
+	if err != nil {
+		return err
+	}
+	if a.EffectScope == "NONE" {
+		return nil
+	}
+	return s.writeV2Lifecycle(v2Lifecycle{Version: "execution.v2.lifecycle.1", State: "effect_started", OperationID: r.OperationID, Digest: digest})
+}
+
+func (s *Server) writeV2Lifecycle(m v2Lifecycle) error {
 	if s.opts.V2ReceiptFile == "" {
 		return nil
 	}
@@ -37,11 +76,17 @@ func (s *Server) markV2Running() error {
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return err
 	}
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
+	data, err := json.Marshal(m)
 	if err != nil {
 		return err
 	}
-	_, err = f.WriteString("execution.v2 running; handoff not saved\n")
+	f, err := os.CreateTemp(filepath.Dir(path), ".lifecycle-*")
+	if err != nil {
+		return err
+	}
+	name := f.Name()
+	defer os.Remove(name)
+	_, err = f.Write(data)
 	if err == nil {
 		err = f.Sync()
 	}
@@ -49,7 +94,10 @@ func (s *Server) markV2Running() error {
 	if err != nil {
 		return err
 	}
-	return closeErr
+	if closeErr != nil {
+		return closeErr
+	}
+	return os.Rename(name, path)
 }
 
 func (s *Server) saveV2Handoff() error {

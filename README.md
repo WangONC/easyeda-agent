@@ -519,4 +519,4 @@ go build -ldflags "-X github.com/zhoushoujianwork/easyeda-agent/internal/version
 
 ## 器件与设计知识
 
-2.0 随 Skill 包含首批 50 个结构化器件条目（5 类各 10 个），保存可追溯事实和参考应用，不保存 AI 推导的“推荐外围”。全部为有精确来源、可正式使用的首批内置器件知识，同时作为后续数据贡献的参考基线；不以条目数量代替具体工况的证据覆盖。现有 Standard Blocks 直接作为设计知识层。Agent 优先查询本地知识和成熟电路块，证据不足、修订不符或工况超出范围时才回读原始 datasheet。详见 [Device Knowledge](skills/easyeda-agent/data/devices/README.md)。
+2.0 随 Skill 包含首批 50 个结构化器件条目（5 类各 10 个），保存可追溯事实和参考应用，不保存 AI 推导的“推荐外围”。全部为有精确来源、可正式使用的首批内置器件知识，同时作为后续数据贡献的参考基线；不以条目数量代替具体工况的证据覆盖。现有 Standard Blocks 直接作为设计知识层。Agent 先独立选型，确定 MPN / LCSC ID 后才精确查询器件知识，不把内置数据枚举为候选池；miss 或证据不足时读取官方 datasheet。Standard Blocks 仍允许搜索和复用。详见 [Device Knowledge](skills/easyeda-agent/data/devices/README.md)。

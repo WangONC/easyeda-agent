@@ -105,6 +105,8 @@ PCB 制造交付还须确认层叠、GND、电源、丝印与导出文件。离�
 
 ## 器件与设计知识
 
-选用器件时优先查询本地 [Device Knowledge 索引](data/devices/index.json)，证据边界见 [使用说明](data/devices/README.md)。Device Knowledge 保存具体器件的可证明事实；现有 Standard Blocks 保存可复用设计知识／电路组合，命中成熟电路块时优先复用。
+先根据用户需求、EasyEDA/LCSC 库和正常工程判断独立选型。Device Knowledge 不是候选池：选型阶段不得读取或枚举 data/devices/index.json、parts 目录或全部内置条目；index.json 仅供 CI、打包、去重及 helper 内部索引使用。
 
-命中已有器件时，优先使用其中可追溯的引脚、电气约束、layout 约束和参考应用，不重复阅读完整 datasheet。只有知识缺失、来源不可靠、datasheet 版本不匹配，或当前工作条件超出条目证据覆盖范围时，才回读原始 datasheet。Device Knowledge 没有写出的内容不得靠模型补全；topology_only 参考应用不能当作通用推荐电路。
+确定具体 MPN / LCSC ID 后，才使用 [精确查询 helper](scripts/device-lookup.py)：`python <Skill目录>/scripts/device-lookup.py --mpn <已选MPN>` 或 `--lcsc <已选LCSC编号>`；可同时传入两者，必须共同匹配。只返回精确命中条目，不支持 list、category browse 或模糊候选。
+
+命中后使用证据覆盖范围内的引脚、电气/layout 约束及参考应用；miss、来源不可靠、修订不符或工况超出范围时正常读取官方 datasheet。未写出的内容不得由模型补全，topology_only 不能当通用推荐电路。现有 Standard Blocks 是设计知识层，仍允许搜索并优先复用成熟电路块，不受 Device Knowledge 查询限制。

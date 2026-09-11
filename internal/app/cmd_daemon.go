@@ -51,7 +51,8 @@ func newDaemonStartCmd(cfg *appConfig, stdout, stderr io.Writer) *cobra.Command 
 Execution V2 restores local receipt handoff before listening; corrupt handoff refuses startup.
 A clean start permits normal V2 reads and writes without extra flags.
 Restored unresolved ownership still blocks effects until explicit recovery.
-An unclean exit without a saved handoff activates the per-start Host safety fence.
+An interrupted read-only lifetime remains writable on restart. A durable effect-start
+marker without saved handoff, or unrecognized recovery state, activates the safety fence.
 Reads remain available. After checking that no prior native operation is unresolved
 and freshly checking the Host target/checkpoint, an operator may start with
 --v2-host-startup-confirmed. This is a per-start assertion, not persisted trust:

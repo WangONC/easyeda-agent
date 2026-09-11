@@ -2,7 +2,7 @@
 
 Device Knowledge 是具体器件的可追溯事实；现有 Standard Blocks 是可复用的设计知识／电路组合。此目录不定义新的设计格式。
 
-从 [index.json](index.json) 按 MPN / LCSC / category 找条目，读取 parts 对应 JSON。`schema.json` 只描述器件条目；无需安装 schema framework。
+index.json 仅供 CI、打包、去重及内部精确索引使用，不能作为 Agent 的选型候选池。先独立选定 MPN / LCSC ID，再调用 `scripts/device-lookup.py --mpn <MPN>` 或 `--lcsc <ID>`；只返回精确命中，miss 后读取官方 datasheet。禁止选型前枚举 index / parts，不提供 list 或 category 浏览。`schema.json` 只描述器件条目；无需安装 schema framework。
 
 ## 首批范围与证据边界
 
@@ -21,7 +21,7 @@ Device Knowledge 是具体器件的可追溯事实；现有 Standard Blocks 是�
 
 ## Agent 使用
 
-优先查本地器件知识；命中证据范围匹配的条目时复用已列出的事实，不重复通读 datasheet。命中成熟 Standard Block 时优先复用现有电路块。只有知识缺失、来源不可靠、修订不匹配或工况超出证据范围时回读原始文档。未写出的内容不能由模型补全。
+先独立选型，确定具体 MPN / LCSC ID 后再精确查询本地器件知识；命中且证据范围匹配时复用已列事实。命中成熟 Standard Block 时优先复用现有电路块。只有知识缺失、来源不可靠、修订不匹配或工况超出证据范围时回读原始文档。未写出的内容不能由模型补全。
 
 ## 首批补证与替换记录
 

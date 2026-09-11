@@ -1,3 +1,7 @@
+import { before, after } from 'node:test';
+const savedHostClone=globalThis.structuredClone;
+before(()=>{Object.defineProperty(globalThis,'structuredClone',{value:undefined,configurable:true,writable:true});});
+after(()=>{Object.defineProperty(globalThis,'structuredClone',{value:savedHostClone,configurable:true,writable:true});});
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {sameWireGeometry} from './wire-geometry';

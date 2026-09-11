@@ -1,3 +1,4 @@
+import { cloneWireData } from './wire-geometry';
 import { wireGeometry, wireSegments, wireAdditionProof, type WireSnapshot } from './wire-geometry';
 import { fastPath } from './fast-path';
 import { nativePort } from './fast-path-native';
@@ -516,7 +517,7 @@ export const wireCreate: NativeAction = { mode: 'V2_NATIVE', scope: 'DESIGN_CONT
  const snapshot = async ():Promise<WireSnapshot[]> => {
   const rows=array(await eda.sch_PrimitiveWire.getAll()).map(w=>({id:w.getState_PrimitiveId(),line:w.getState_Line(),net:w.getState_Net(),color:w.getState_Color(),lineWidth:w.getState_LineWidth(),lineType:w.getState_LineType()}));
   if(rows.some(w=>!w.id)||new Set(rows.map(w=>w.id)).size!==rows.length)throw Error('V2_AMBIGUOUS_WIRE_IDENTITY');
-  return structuredClone(rows);
+  return cloneWireData(rows);
  };
  const before=await snapshot(),beforeIds=new Set(before.map(w=>w.id));
  const requestedSegments=wireSegments(points);

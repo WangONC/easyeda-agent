@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/manufacture"
 	"github.com/zhoushoujianwork/easyeda-agent/internal/protocol"
 	"os"
 	"path/filepath"
@@ -27,8 +28,9 @@ func (s *Server) completeArtifactV2(req executionv2.Request, h executionv2.Handl
 		return h
 	}
 	var evidence struct {
-		Version   string              `json:"artifact_delivery"`
-		Artifacts []protocol.Artifact `json:"artifacts"`
+		Drills    *manufacture.DrillInventory `json:"drill_inventory,omitempty"`
+		Version   string                      `json:"artifact_delivery"`
+		Artifacts []protocol.Artifact         `json:"artifacts"`
 	}
 	fail := func(e error) executionv2.HandlerResult {
 		h.Verification = executionv2.Verification{Verdict: "unavailable"}

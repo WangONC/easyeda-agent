@@ -1,3 +1,4 @@
+import { observeDrills } from './drill-inventory';
 import { projectRegion } from './region-projection';
 import { polygonRings, arcPoints, projectionError } from './compact-polygon';
 import { projectPoured } from './poured-projection';
@@ -96,6 +97,7 @@ export function nativePort(): NativePort {
     vias: vias.map(v => ({ id: v.getState_PrimitiveId(), kind: 'via', layer: 12, net: v.getState_Net(), x: v.getState_X(), y: v.getState_Y(), diameter: v.getState_Diameter(), hole: v.getState_HoleDiameter(), locked: v.getState_PrimitiveLock() })),
     fills: fills.map(f => { const rings=polygonRings(f.getState_ComplexPolygon().getSource()); return {id:f.getState_PrimitiveId(),kind:'fill',net:f.getState_Net(),layer:Number(f.getState_Layer()),rings,width:f.getState_LineWidth(),projection_error:projectionError,unsupported:!rings,coverage:rings?'conservative':'unsupported',locked:f.getState_PrimitiveLock()}; }),
     copper_layers: copper, rules, physical_stackup: physical,
+drill_inventory: observeDrills([...padMap.values()],vias,components.every(c=>Array.isArray(c.getState_Pads())) && expected.every(p=>!!resolve(p)) && new Set(pads.map(p=>p.getState_PrimitiveId())).size===pads.length),
     outline_fingerprint_input: { outline: outlinePolys.length, segments: outlineLines.length, arcs: arcs.filter(a => Number(a.getState_Layer()) === 11).length, bbox: outlineBox },
     // Includes shape state that a compact bounding box intentionally loses.
     revision_geometry: {

@@ -21,7 +21,8 @@ func completeManufacturingV2(req executionv2.Request, h executionv2.HandlerResul
 	}
 	var value map[string]any
 	var evidence struct {
-		Artifacts []protocol.Artifact `json:"artifacts"`
+		Drills    *manufacture.DrillInventory `json:"drill_inventory,omitempty"`
+		Artifacts []protocol.Artifact         `json:"artifacts"`
 	}
 	if json.Unmarshal(h.Value, &value) != nil || json.Unmarshal(h.Evidence, &evidence) != nil || len(evidence.Artifacts) != 3 {
 		h.Verification = executionv2.Verification{Verdict: "unavailable"}
@@ -36,7 +37,7 @@ func completeManufacturingV2(req executionv2.Request, h executionv2.HandlerResul
 			complete = false
 		}
 		seen[a.Kind] = true
-		r, e := manufacture.Inspect(manufacture.ArtifactRef{Kind: a.Kind, Path: a.Path, FileName: a.FileName, MimeType: a.MimeType})
+		r, e := manufacture.Inspect(manufacture.ArtifactRef{Kind: a.Kind, Path: a.Path, FileName: a.FileName, MimeType: a.MimeType, ObservedDrills: evidence.Drills})
 		if e != nil {
 			complete = false
 			warnings = append(warnings, a.FileName+": "+e.Error())

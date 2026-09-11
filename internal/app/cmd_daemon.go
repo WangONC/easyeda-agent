@@ -42,12 +42,14 @@ func newDaemonStartCmd(cfg *appConfig, stdout, stderr io.Writer) *cobra.Command 
 	var autosaveDebounce time.Duration
 	var autoUpdateSkill bool
 	var v2HostStartupConfirmed bool
+	var v2ReceiptFile string
 	c := &cobra.Command{
 		Use:   "start",
 		Short: "Start the daemon (blocks until SIGINT/SIGTERM)",
 		Long: `Start the daemon (blocks until SIGINT/SIGTERM).
 
-Execution V2 starts with Host effects fenced because receipts are in memory.
+Execution V2 restores local receipt handoff before listening; corrupt handoff refuses startup.
+After an unclean exit, the per-start Host safety fence still applies.
 Reads remain available. After checking that no prior native operation is unresolved
 and freshly checking the Host target/checkpoint, an operator may start with
 --v2-host-startup-confirmed. This is a per-start assertion, not persisted trust:
@@ -65,10 +67,8 @@ stale connector is only DETECTED and logged with a re-import notice — not swap
 The daemon binds a SINGLE fixed port (60832, the start of --ports) and never
 spills to the next one — so at most one daemon ever runs and the connector always
 finds it there, instead of several daemons quietly binding 49621/49622… and the
-connector churning between them. If 60832 is already held by another easyeda
-daemon it is replaced automatically; if held by a FOREIGN process the daemon asks
-(interactive terminal) or refuses with a clear message (headless) rather than
-starting a second daemon elsewhere.
+connector churning between them. If the port is occupied, startup refuses. Save the existing daemon handoff and stop
+it explicitly before replacement; startup never kills a receipt owner.
 
 The connector holds up the other end of that contract: it PINS 60832 and retries
 it with exponential backoff instead of sweeping 60832-60841 (the other nine ports
@@ -93,9 +93,18 @@ extension/src/transport.ts).`,
 			// them. If 60832 is already held, ensurePortAvailable replaces our own
 			// stale daemon automatically, or (for a foreign process) asks / refuses.
 			port := portStart
-			if err := ensurePortAvailable(cfg.host, port, stdout); err != nil {
-				return err
+			if conn, err := net.DialTimeout("tcp", net.JoinHostPort(cfg.host, strconv.Itoa(port)), time.Second); err == nil {
+				conn.Close()
+				return fmt.Errorf("V2_DAEMON_ALREADY_RUNNING: save receipt handoff and stop the existing daemon explicitly")
 			}
+			if v2ReceiptFile == "" {
+				base, err := os.UserHomeDir()
+				if err != nil {
+					return err
+				}
+				v2ReceiptFile = filepath.Join(base, ".easyeda-agent", "v2-receipts.json")
+			}
+
 			cleanup := writeDaemonPID(stdout)
 			defer cleanup()
 
@@ -114,6 +123,7 @@ extension/src/transport.ts).`,
 				Version:                version.Version,
 				AutosaveDebounce:       autosaveDebounce,
 				V2HostStartupConfirmed: v2HostStartupConfirmed,
+				V2ReceiptFile:          v2ReceiptFile,
 			})
 			if err := srv.Run(ctx, stdout); err != nil {
 				return err
@@ -121,6 +131,7 @@ extension/src/transport.ts).`,
 			return nil
 		},
 	}
+	c.Flags().StringVar(&v2ReceiptFile, "v2-receipt-file", "", "local atomic receipt handoff; restored before listening")
 	c.Flags().BoolVar(&v2HostStartupConfirmed, "v2-host-startup-confirmed", false,
 		"operator confirms this Host has no unresolved prior native effect and its target/checkpoint was freshly checked; never set automatically on restart")
 	c.Flags().DurationVar(&autosaveDebounce, "autosave-debounce", 3*time.Second,

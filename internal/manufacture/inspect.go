@@ -15,10 +15,11 @@ import (
 )
 
 type ArtifactRef struct {
-	Kind     string
-	Path     string
-	FileName string
-	MimeType string
+	ObservedDrills *DrillInventory
+	Kind           string
+	Path           string
+	FileName       string
+	MimeType       string
 }
 
 // Count the explicit metric round-hit dialect emitted by the accepted Host.
@@ -186,7 +187,26 @@ func Inspect(a ArtifactRef) (map[string]any, error) {
 		result["drill_files"] = drill
 		result["plated_drill_files"] = pth
 		result["non_plated_drill_files"] = npth
-		result["structure_verified"] = len(gerber) > 0 && len(pth) > 0 && len(npth) > 0 && len(pthHits) > 0 && len(npthHits) > 0
+		pthComplete, npthComplete := len(pth) > 0 && len(pthHits) > 0, len(npth) > 0 && len(npthHits) > 0
+		if a.ObservedDrills.Valid() {
+			if *a.ObservedDrills.PTHCount == 0 {
+				if len(pthHits) > 0 {
+					return result, fmt.Errorf("PTH drill contradicts observed zero")
+				}
+				pthComplete = true
+				result["pth_hole_count"] = 0
+				result["pth_zero_observed"] = true
+			}
+			if *a.ObservedDrills.NPTHCount == 0 {
+				if len(npthHits) > 0 {
+					return result, fmt.Errorf("NPTH drill contradicts observed zero")
+				}
+				npthComplete = true
+				result["npth_hole_count"] = 0
+				result["npth_zero_observed"] = true
+			}
+		}
+		result["structure_verified"] = len(gerber) > 0 && pthComplete && npthComplete
 		result["layer_mapping"] = "requires review of native filenames/FileFunction against requested profile"
 		if result["structure_verified"] != true {
 			return result, fmt.Errorf("archive lacks recognizable Gerber plus distinct plated/nonplated drill files")

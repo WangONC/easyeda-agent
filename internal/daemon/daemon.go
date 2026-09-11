@@ -24,6 +24,7 @@ type Options struct {
 	// lifetime. Receipt memory cannot prove that a previous lifetime left no
 	// native effects pending. Never infer this from reconnect or a new window ID.
 	V2HostStartupConfirmed bool
+	V2ReceiptFile          string
 
 	Host      string
 	PortStart int
@@ -51,10 +52,11 @@ type Options struct {
 // connector WebSockets on /connect, and forwards typed actions on /action.
 // Artifact storage and audit logging come later.
 type Server struct {
-	v2Session string
-	v2        *executionv2.Coordinator
-	v2Mu      sync.Mutex
-	v2Pending map[string]v2Pending
+	v2StartupErr error
+	v2Session    string
+	v2           *executionv2.Coordinator
+	v2Mu         sync.Mutex
+	v2Pending    map[string]v2Pending
 
 	fastPlans fastPlans
 	opts      Options
@@ -167,10 +169,12 @@ func New(opts Options) *Server {
 	s.v2 = executionv2.New(2048, s.validateV2, s.executeV2)
 	s.v2.OnResolved(s.releaseV2)
 	s.v2.OnResult(s.consumeV2Effects)
+	s.v2StartupErr = s.restoreV2Handoff()
 	return s
 }
 
 type health struct {
+	V2EffectOwner   string   `json:"v2_effect_owner,omitempty"`
 	V2Session       string   `json:"v2_session"`
 	V2StartupFenced bool     `json:"v2_startup_fenced"`
 	Service         string   `json:"service"`
@@ -192,6 +196,11 @@ type health struct {
 // so callers can confirm which port in the range was selected.
 func (s *Server) routes(port int) *http.ServeMux {
 	mux := http.NewServeMux()
+	if s.v2StartupErr != nil {
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { http.Error(w, "V2_HANDOFF_RESTORE_FAILED", 503) })
+		return mux
+	}
+	mux.HandleFunc("/v2/handoff", s.handleV2Handoff)
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		// About uses the Host HTTP API; permit only this read-only public health response.
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -205,6 +214,7 @@ func (s *Server) routes(port int) *http.ServeMux {
 		enc.SetIndent("", "  ")
 		_ = enc.Encode(health{
 			V2Session:       s.v2Session,
+			V2EffectOwner:   s.v2.EffectOwner(),
 			V2StartupFenced: !s.opts.V2HostStartupConfirmed,
 			Service:         Service,
 			Version:         s.opts.Version,
@@ -251,6 +261,9 @@ func (s *Server) listen() (net.Listener, int, error) {
 
 // Run binds a port, serves until ctx is cancelled, then shuts down gracefully.
 func (s *Server) Run(ctx context.Context, log io.Writer) error {
+	if s.v2StartupErr != nil {
+		return fmt.Errorf("V2_HANDOFF_RESTORE_FAILED: %w", s.v2StartupErr)
+	}
 	listener, port, err := s.listen()
 	if err != nil {
 		return err
@@ -278,6 +291,12 @@ func (s *Server) Run(ctx context.Context, log io.Writer) error {
 	select {
 	case <-ctx.Done():
 		fmt.Fprintf(log, "%s daemon shutting down\n", Service)
+		if s.opts.V2ReceiptFile != "" {
+			if err := s.v2.SaveHandoff(s.opts.V2ReceiptFile); err != nil {
+				listener.Close()
+				return fmt.Errorf("V2_HANDOFF_SAVE_FAILED: %w", err)
+			}
+		}
 		s.autosave.stop()
 		// Unblock connector read loops so their handlers return and Shutdown
 		// does not wait the full timeout on long-lived WebSockets.

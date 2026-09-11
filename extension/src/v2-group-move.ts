@@ -1,3 +1,4 @@
+import { cloneWireData } from './wire-geometry';
 import { wireGeometry, nativeWireSegments, wireInventoryCoverage, wireTouches } from './wire-geometry';
 import { type NativeAction, unavailable } from './execution-v2';
 import { array, declaredReadFields } from './v2-native-actions';
@@ -38,7 +39,7 @@ export function groupMove(plan: (p: Record<string, unknown>) => Promise<Plan>, s
             const wireState = (w: Wire) => ({ line: wireGeometry(w.getState_Line(),true), net: w.getState_Net(), color: w.getState_Color(), lineWidth: w.getState_LineWidth(), lineType: w.getState_LineType() });
             const componentBefore = new Map([...before].map(([id, x]) => [id, serialize(x)]));
             const wireBefore = new Map([...beforeW].map(([id, w]) => [id, canonical(wireState(w))]));
-            const rawWireBefore=new Map([...beforeW].map(([id,w])=>[id,structuredClone(w.getState_Line())]));
+            const rawWireBefore=new Map([...beforeW].map(([id,w])=>[id,cloneWireData(w.getState_Line())]));
             const wp = [...beforeW].filter(([id])=>p.wantIds.has(id)).map(([id,w])=>{
                 const state=wireState(w),segments=nativeWireSegments(w.getState_Line());
                 const lines=segments.map(s=>s.map((n,i)=>n+(i%2?p.dy:p.dx)));

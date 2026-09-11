@@ -10,6 +10,7 @@ export interface Primitive {
  unsupported?: boolean; designator?: string; rotation?: number; component_id?: string;
 }
 export interface Observation {
+drill_inventory?: import("./drill-inventory").DrillInventory;
  components: Primitive[]; pads: Primitive[]; traces: Primitive[]; vias: Primitive[]; fills: Primitive[];
  copper_layers: number[]; physical_stackup?: unknown; rules?: unknown; warnings?: string[]; outline_fingerprint_input?: Record<string, unknown>; revision_geometry?: unknown;
 }

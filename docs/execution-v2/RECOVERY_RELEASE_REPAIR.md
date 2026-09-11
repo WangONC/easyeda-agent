@@ -35,3 +35,7 @@ There is no implemented hot code reload or receipt/ownership handoff in the runn
 Offline results for the committed repair: Go full tests and build PASS; Connector 816 PASS; TypeScript typecheck PASS; MCP 28 PASS, 1 Host opt-in SKIP. The unified Connector production bundle and package were rebuilt successfully. Package: `extension/build/dist/easyeda-agent-connector_v1.4.15.eext`, SHA256 `8E53C334A4E20F69F14279023DC9E4F88FB82884D65D63CB316834E75BB6FC75`. Built, NOT INSTALLED.
 
 Live status, original evidence and unsupported-route probe were saved to `%TEMP%/easyeda-release-deployment/`. No mutation, original export replay, daemon restart or Connector reload occurred. Wire/outline/rebind, ECO, checkpoint and final E2E remain blocked behind live ownership recovery; no qualification was promoted.
+
+## Release repair update
+
+The minimal persistent receipt handoff and actual cross-session release are now verified; see [receipt handoff result](RECEIPT_HANDOFF_RESULT.md). Original manufacturing remains UNKNOWN for content qualification, with ownership_released=true. A subsequent controlled pcb.save succeeded. This closes the ownership dead-end only, not manufacturing content, checkpoint, ECO or full E2E qualification.

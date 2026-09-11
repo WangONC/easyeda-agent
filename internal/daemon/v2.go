@@ -195,6 +195,9 @@ func (s *Server) handleV2Status(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			s.releaseV2(p.request, digest)
+		} else if p.conn == nil {
+			http.Error(w, "V2_RECOVERY_CURRENT_TARGET_REQUIRED", 409)
+			return
 		} else if e := p.conn.write(r.Context(), map[string]any{"type": "v2_reconcile", "operation_id": id}); e != nil {
 			http.Error(w, e.Error(), 503)
 			return
@@ -261,6 +264,9 @@ func (s *Server) releaseV2(r executionv2.Request, digest string) {
 	recipient := p.conn
 	if p.releaseConn != nil {
 		recipient = p.releaseConn
+	}
+	if recipient == nil {
+		return
 	}
 	if recipient.snapshot().ActivationID != r.Target.Activation {
 		return

@@ -109,5 +109,6 @@ func newV2Cmd(out io.Writer) *cobra.Command {
 			return nil
 		}})
 	}
+	root.AddCommand(newV2CaptureHandoff(out, &base))
 	return root
 }

@@ -1,3 +1,4 @@
+import { cloneWireData } from './wire-geometry';
 import { wireAdditionProof, type WireSnapshot, wireGeometry as canonicalWireGeometry } from './wire-geometry';
 import { type NativeAction, unavailable, observed } from './execution-v2';
 import { array, declaredReadFields } from './v2-native-actions';
@@ -133,7 +134,7 @@ export function connectPin(plan: (p: Record<string, unknown>) => ConnectPlan): N
             // Capture values, not mutable Host primitive handles: native wire merging
             // may modify an existing wire while returning a different new identity.
             const wireSnapshot=(w:typeof initialWires[number]):WireSnapshot=>({id:w.getState_PrimitiveId(),line:w.getState_Line(),net:w.getState_Net(),color:w.getState_Color(),lineWidth:w.getState_LineWidth(),lineType:w.getState_LineType()});
-            const beforeWireSnapshots=structuredClone(initialWires.map(wireSnapshot));
+            const beforeWireSnapshots=cloneWireData(initialWires.map(wireSnapshot));
             let probeId: string | undefined, wireId: string | undefined, flagId: string | undefined, applied = p.rotation;
             let attemptedWire = false, attemptedFlag = false;
             c.prepare(async () => {

@@ -89,3 +89,17 @@ export function wireTouches(line:unknown,points:unknown):boolean {
  };
  return nativeWireSegments(line).some(a=>segments.some(b=>at(a[0],a[1],b)||at(a[2],a[3],b)||at(b[0],b[1],a)||at(b[2],b[3],a)));
 }
+
+// Snapshot only extracted wire data, never native handles. EasyEDA's extension
+// runtime does not provide structuredClone. Keep undefined/nonfinite values as
+// observed so malformed geometry cannot turn into valid empty JSON data.
+export function cloneWireData<T>(value:T):T {
+ const copy=(v:unknown,depth:number):unknown=>{
+  if(depth>32)throw Error('V2_WIRE_SNAPSHOT_DEPTH');
+  if(v===null||v===undefined||typeof v==='string'||typeof v==='number'||typeof v==='boolean')return v;
+  if(Array.isArray(v))return v.map(x=>copy(x,depth+1));
+  if(typeof v!=='object'||Object.getPrototypeOf(v)!==Object.prototype)throw Error('V2_WIRE_SNAPSHOT_SHAPE');
+  return Object.fromEntries(Object.entries(v).map(([k,x])=>[k,copy(x,depth+1)]));
+ };
+ return copy(value,0) as T;
+}

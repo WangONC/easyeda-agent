@@ -32,7 +32,7 @@ export function manufacture(pack: (b: Blob, k: string, n: string, m: string) => 
                 if (artifacts.size !== 3)
                     return { value: { delivered: [...artifacts.keys()] }, changed: null, verification: unavailable() };
                 const list = [...artifacts.values()];
-                return { ...observed({ artifactId: list[0].id, profile, project_uuid: t.project_uuid, document_uuid: t.document_uuid, revision: after.board_revision, revision_before: before.board_revision, relevant_verification_ids: p.verification_ids, native_api_call_count: port.calls, content_qualification: 'NOT_EVALUATED' }, ['three_native_files_delivered', 'fresh_board_content_unchanged'], null), evidence: { artifact_delivery: 'v2', artifacts: list } };
+                return { ...observed({ artifactId: list[0].id, profile, project_uuid: t.project_uuid, document_uuid: t.document_uuid, revision: after.board_revision, revision_before: before.board_revision, relevant_verification_ids: p.verification_ids, native_api_call_count: port.calls, content_qualification: 'NOT_EVALUATED' }, ['three_native_files_delivered', 'fresh_board_content_unchanged'], null), evidence: { artifact_delivery: 'v2', artifacts: list, drill_inventory: after.drill_inventory } };
             });
             for (const [format, run] of jobs) {
                 await c.effect(async () => { const file = await run(); if (file)

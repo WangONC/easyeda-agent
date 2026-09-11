@@ -1,0 +1,34 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "db6d4967-de98-40af-a3e6-0effe1201427",
+  "digest": "0cc7ad3ae4ed74ae1662842a8903534ffb38e7f794ae9ece975d9fdf34c16457",
+  "target_ref": {
+    "scope": "DOCUMENT",
+    "session": "a12bb438-05f7-4a65-abe2-d314a58c1aad",
+    "activation": "easyeda-agent-e158b0e9-a7d6-4db6-96cf-52f11ebae555",
+    "project_uuid": "e7c288be345149da97a48a8b908c2049",
+    "document_uuid": "6c1d9afdceb80680",
+    "document_type": "schematic",
+    "tab_id": "6c1d9afdceb80680@e7c288be345149da97a48a8b908c2049"
+  },
+  "effects": {
+    "effect_started": false,
+    "state_changed": false,
+    "native_settled": true,
+    "effect_scope": "DESIGN_CONTENT",
+    "reconciled": false
+  },
+  "verification": {
+    "verdict": "unchanged",
+    "checked": [
+      "controlled_effect_entry_not_called"
+    ],
+    "complete": true,
+    "required": 1,
+    "satisfied": 0,
+    "residual": 1
+  },
+  "evidence": {
+    "error": "TypeError: structuredClone is not a function"
+  }
+}

@@ -33,6 +33,7 @@ type Coordinator struct {
 	records    map[string]*record
 	owner      string
 	capacity   int
+	handingOff bool
 	validate   Validate
 	execute    Executor
 	onResolved func(Request, string)
@@ -68,6 +69,10 @@ func (c *Coordinator) Submit(ctx context.Context, r Request) (Result, error) {
 	if r.ParentOperationID != "" {
 		c.mu.Unlock()
 		return Result{}, errors.New("V2_CHILD_NOT_SUPPORTED")
+	}
+	if c.handingOff {
+		c.mu.Unlock()
+		return Result{}, errors.New("V2_HANDOFF_IN_PROGRESS")
 	}
 	a, e := c.validate(r)
 	if e != nil {
@@ -117,7 +122,7 @@ func (c *Coordinator) run(rec *record) {
 			return
 		case <-timer.C:
 			c.mu.Lock()
-			if rec.released {
+			if rec.released || c.handingOff {
 				c.mu.Unlock()
 				return
 			}
@@ -132,7 +137,7 @@ func (c *Coordinator) run(rec *record) {
 		case h, ok := <-ch:
 			if !ok {
 				c.mu.Lock()
-				if rec.released {
+				if rec.released || c.handingOff {
 					c.mu.Unlock()
 					return
 				}
@@ -142,7 +147,7 @@ func (c *Coordinator) run(rec *record) {
 				return
 			}
 			c.mu.Lock()
-			if rec.released {
+			if rec.released || c.handingOff {
 				c.mu.Unlock()
 				return
 			}
@@ -204,6 +209,9 @@ func SameRecoveryDocument(a, b Target) bool {
 func (c *Coordinator) ReleaseSettled(id, readbackID string) (Result, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	if c.handingOff {
+		return Result{}, errors.New("V2_HANDOFF_IN_PROGRESS")
+	}
 	rec, read := c.records[id], c.records[readbackID]
 	if rec == nil || read == nil || read == rec {
 		return Result{}, errors.New("V2_RECOVERY_RECORD_REQUIRED")

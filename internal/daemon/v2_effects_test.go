@@ -23,7 +23,7 @@ func TestV2ConsumersUseEffectFacts(t *testing.T) {
 
 func TestV2AdmissionPreservesStageGate(t *testing.T) {
 	t.Setenv(workflow.EnvDir, t.TempDir())
-	s := New(Options{})
+	s := New(Options{V2HostStartupConfirmed: true})
 	s.hub.add(&conn{windowID: "s", activationID: "a", caps: []string{"execution.v2"}, ctx: protocol.Context{ProjectUUID: "p", DocumentUUID: "d", DocumentType: "pcb", TabID: "t"}})
 	var spec *protocol.V2Action
 	for _, a := range protocol.AllActions() {

@@ -1,0 +1,27 @@
+{
+  "go": {
+    "packages_pass": 13,
+    "packages_skip": 4,
+    "test_and_subtest_pass": 2804,
+    "test_and_subtest_skip": 0,
+    "failures": 0
+  },
+  "connector": {
+    "pass": 815,
+    "fail": 0,
+    "skip": 0
+  },
+  "mcp": {
+    "pass": 27,
+    "fail": 0,
+    "skip": 1
+  },
+  "properties": {
+    "go_finalizer_seed583": 10000,
+    "batch": 1024,
+    "wire_axis": 2048,
+    "wire_diagonal": 1024
+  },
+  "baseline_differential_scenarios": 53,
+  "host_tests": "See ROUND3_HOST_EVIDENCE.md; not included in offline PASS counts"
+}

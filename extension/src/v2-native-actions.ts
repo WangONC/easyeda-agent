@@ -1,3 +1,4 @@
+import { wireGeometry, wireSegments, wireAdditionProof, type WireSnapshot } from './wire-geometry';
 import { fastPath } from './fast-path';
 import { nativePort } from './fast-path-native';
 import { verifySchematicPageName, waitSchematicPageSettle } from './schematic-readiness';
@@ -512,17 +513,23 @@ export const wireCreate: NativeAction = { mode: 'V2_NATIVE', scope: 'DESIGN_CONT
  if (p.lineType !== undefined && ![0,1,2,3].includes(p.lineType as number)) throw Error('V2_UNSUPPORTED_LINE_TYPE');
 }, run: async c => {
  const p = c.request.input, points = normalizeWirePoints(p.points);
- const before = new Set(array(await eda.sch_PrimitiveWire.getAll()).map(w => w.getState_PrimitiveId()));
- let id: string | undefined;
- c.prepare(async () => {
-  if (!id || before.has(id)) return { changed: null, verification: unavailable() };
-  // Use fresh list identity: same-session get(id) can miss newly created wires.
-  const matches = array(await eda.sch_PrimitiveWire.getAll()).filter(w => w.getState_PrimitiveId() === id);
-  if (matches.length !== 1) return { changed: null, verification: unavailable() };
-  const fresh = matches[0];
-  const actual = { points: normalizeWirePoints(fresh.getState_Line()), net: fresh.getState_Net(), color: fresh.getState_Color(), lineWidth: fresh.getState_LineWidth(), lineType: fresh.getState_LineType() };
-  const complete = JSON.stringify(actual.points) === JSON.stringify(points) && ['net','color','lineWidth','lineType'].every(k => p[k] === undefined || actual[k as keyof typeof actual] === p[k]);
-  return complete ? observed({ primitiveId: id, ...actual }, ['fresh_new_wire_identity', 'fresh_wire_points', ...['net','color','lineWidth','lineType'].filter(k => p[k] !== undefined).map(k => 'fresh_wire_' + k)], true) : { changed: null, verification: unavailable(), evidence: actual };
+ const snapshot = async ():Promise<WireSnapshot[]> => {
+  const rows=array(await eda.sch_PrimitiveWire.getAll()).map(w=>({id:w.getState_PrimitiveId(),line:w.getState_Line(),net:w.getState_Net(),color:w.getState_Color(),lineWidth:w.getState_LineWidth(),lineType:w.getState_LineType()}));
+  if(rows.some(w=>!w.id)||new Set(rows.map(w=>w.id)).size!==rows.length)throw Error('V2_AMBIGUOUS_WIRE_IDENTITY');
+  return structuredClone(rows);
+ };
+ const before=await snapshot(),beforeIds=new Set(before.map(w=>w.id));
+ const requestedSegments=wireSegments(points);
+ if(!requestedSegments.length)throw Error('V2_INVALID_WIRE_POINTS');
+ let id:string|undefined;
+ const style=(w:WireSnapshot)=>JSON.stringify([w.net,w.color,w.lineWidth,w.lineType]);
+ c.prepare(async()=>{
+  if(!id)return {changed:null,verification:unavailable()};
+  const after=await snapshot(),byId=new Map(after.map(w=>[w.id,w])),fresh=byId.get(id);
+  if(!fresh||after.some(w=>!beforeIds.has(w.id)&&w.id!==id))return {changed:null,verification:unavailable()};
+  const complete=wireAdditionProof(before,after,id,points,p);
+  const changed=before.length!==after.length||before.some(w=>{const a=byId.get(w.id);return !a||style(a)!==style(w)||wireGeometry(a.line,true)!==wireGeometry(w.line,true);});
+  return complete?observed({primitiveId:id,net:fresh.net,line:fresh.line},['native_returned_wire_identity','fresh_complete_wire_geometry_and_style','unrelated_wire_identity_preserved'],changed):{changed:null,verification:unavailable(),evidence:{created_id:id,before,after}};
  });
  await c.effect(async () => { const made = await eda.sch_PrimitiveWire.create(points, p.net as string | undefined, p.color as string | undefined ?? null, p.lineWidth as number | undefined ?? null, p.lineType as ESCH_PrimitiveLineType | undefined ?? null); id = made?.getState_PrimitiveId(); });
  return c.verify();
@@ -560,12 +567,17 @@ export const pourCreate: NativeAction = { mode:'V2_NATIVE',scope:'DESIGN_CONTENT
  if(!polygon)throw Error('V2_INVALID_POLYGON');
  const before=array(await eda.pcb_PrimitivePour.getAll());
  const beforeIds=new Set(before.map(x=>x.getState_PrimitiveId()));
+ if(beforeIds.size!==before.length||beforeIds.has(''))throw Error('V2_AMBIGUOUS_IDENTITY');
+ const signature=(x:IPCB_PrimitivePour)=>JSON.stringify([x.getState_Net(),x.getState_Layer(),x.getState_PourName(),x.getState_PourFillMethod(),x.getState_PourPriority(),x.getState_LineWidth(),x.getState_ComplexPolygon().getSource()]);
+ const previous=new Map(before.map(x=>[x.getState_PrimitiveId(),signature(x)]));
  let id:string|undefined;
  let poured=false;
  c.prepare(async()=>{
-  const matches=array(await eda.pcb_PrimitivePour.getAll()).filter(x=>!beforeIds.has(x.getState_PrimitiveId())&&(name===undefined||x.getState_PourName()===name));
-  if(matches.length!==1)return {changed:null,verification:unavailable()};
-  const fresh=matches[0];
+  if(!id||beforeIds.has(id))return {changed:null,verification:unavailable()};
+  const after=array(await eda.pcb_PrimitivePour.getAll()),byId=new Map(after.map(x=>[x.getState_PrimitiveId(),x]));
+  if(byId.size!==after.length||byId.has('')||after.some(x=>!beforeIds.has(x.getState_PrimitiveId())&&x.getState_PrimitiveId()!==id)||[...previous].some(([key,value])=>!byId.has(key)||signature(byId.get(key)!)!==value))return {changed:null,verification:unavailable()};
+  const fresh=byId.get(id);
+  if(!fresh || name!==undefined&&fresh.getState_PourName()!==name)return {changed:null,verification:unavailable()};
   const complete=fresh.getState_Net()===net&&fresh.getState_Layer()===layer&&fresh.getState_PourFillMethod()===fill&&JSON.stringify(fresh.getState_ComplexPolygon().getSource())===JSON.stringify(polygon.getSource())&&(p.priority===undefined||fresh.getState_PourPriority()===p.priority)&&(p.lineWidth===undefined||fresh.getState_LineWidth()===p.lineWidth);
   // Completion proves the region, not successful copper computation. Rebuild
   // remains best-effort as in a583; its return is business data, never proof.
@@ -584,16 +596,19 @@ export const reportFields: NativeAction['validate'] = p => {
  if(p.paths!==undefined&&!Array.isArray(p.paths))throw Error('V2_INVALID_REPORT_PATHS');
  if(p.telemetry===true)for(const key of Object.keys(p))if(!['telemetry','nets','project_uuid','document_uuid'].includes(key))throw Error('V2_INCOMPATIBLE_TELEMETRY_INPUT:'+key);
 };
-export function report(query:(input:Record<string,unknown>)=>Promise<unknown>):NativeAction {
- return read(async c=>{
+export function report(query:(input:Record<string,unknown>)=>Promise<{value:unknown;complete:boolean}>):NativeAction {
+ return {mode:'V2_NATIVE',scope:'NONE',validate:reportFields,run:async c=>{
   const p=c.request.input,t=c.request.target_ref;
   if(p.project_uuid!==undefined&&p.project_uuid!==t.project_uuid||p.document_uuid!==undefined&&p.document_uuid!==t.document_uuid)throw Error('V2_TARGET_MISMATCH');
-  if(p.telemetry!==true&&p.geometry!==true&&p.profile_id===undefined)return query(p);
-  const native=p.telemetry===true?{}:await query(p);
+  const observation=p.telemetry===true?{value:{},complete:true}:await query(p);
+  // Explicit section observation from this query, not inference from diagnostic
+  // error strings or old success flags. Preserve partial business report fields.
+  if(!observation.complete)return {value:observation.value,changed:false,verification:unavailable()};
+  if(p.telemetry!==true&&p.geometry!==true&&p.profile_id===undefined)return observed(observation.value,['fresh_requested_report_sections']);
   const inventory=p.telemetry===true?array(await eda.pcb_Net.getAllNetsName()):[];
   const snapshot=await fastPath.snapshotData(nativePort(),{project_uuid:t.project_uuid,document_uuid:t.document_uuid});
-  return {report_bundle:'report.v2',native,snapshot:snapshot.data,inventory};
- },reportFields);
+  return observed({report_bundle:'report.v2',native:observation.value,snapshot:snapshot.data,inventory},['fresh_requested_report_sections','fresh_routing_snapshot']);
+ }};
 }
 
 async function boundLibrary(c: NativeContext): Promise<string> {

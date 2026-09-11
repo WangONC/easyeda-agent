@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { rebindBoard } from './v2-board-actions';
+import { rebindBoard, newPcb } from './v2-board-actions';
 import { ControlledExecutor, V2, type Request } from './execution-v2';
 const target = { scope: 'PROJECT' as const, session: 's', activation: 'a', project_uuid: 'p' };
 for (const mode of ['normal', 'noop', 'reject', 'late', 'drift'] as const)
@@ -33,3 +33,19 @@ for (const mode of ['normal', 'noop', 'reject', 'late', 'drift'] as const)
             await ex.reconcile('o');
         assert.equal(writes, count);
     });
+
+for (const empty of [false, true]) test('new PCB preserves absent-current discovery and empty ACK compensation '+empty, async () => {
+ let rows:any[]=[{name:'Old',schematic:{uuid:'sch'}}], pcbs:any[]=[], creates=0, deletes=0;
+ (globalThis as any).eda={
+  dmt_Schematic:{getSchematicInfo:async()=>({uuid:'sch',parentProjectUuid:'p'})},
+  dmt_Board:{getAllBoardsInfo:async()=>structuredClone(rows),getCurrentBoardInfo:async()=>{throw Error('no active board');},
+   createBoard:async()=>{rows[0].schematic=undefined;rows.push({name:'New',schematic:{uuid:'sch'}});return 'New';},
+   deleteBoard:async()=>{deletes++;rows=rows.filter(x=>x.name!=='New');return true;}},
+  dmt_Pcb:{getAllPcbsInfo:async()=>structuredClone(pcbs),createPcb:async()=>{creates++;if(empty)return undefined;pcbs.push({uuid:'pcb',name:'PCB',parentProjectUuid:'p'});rows[1].pcb={uuid:'pcb'};return 'pcb';}}
+ };
+ const r:Request={protocol:V2,action:'board.new_pcb',action_revision:'1',schema:'test',request_id:'r',operation_id:'o',target_ref:target,input:{force:true},budget_ms:1000};
+ const x=new ControlledExecutor(()=>newPcb,async()=>target),result=await x.execute(r,'d');
+ assert.equal(creates,1);assert.equal(deletes,empty?1:0);
+ assert.equal(result.verification.verdict==='satisfied',!empty);
+ await x.reconcile('o');assert.equal(creates,1);assert.equal(deletes,empty?1:0);
+});

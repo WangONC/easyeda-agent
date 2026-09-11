@@ -175,11 +175,11 @@ func newRefineLoopDaemon(t *testing.T, comps []*refineFakeComp) (*appConfig, *re
 			reply(map[string]any{})
 		}
 	})
-	d.srv = httptest.NewServer(mux)
+	d.srv = httptest.NewServer(withV2ReadFixture(mux))
 	host, port := splitHostPortForTest(t, d.srv.URL)
 	// project 显式给定：resolveStageProject 直接用它当 workflow key，不再发
 	// project.current（与 CLI 上 --project 的真实路径一致）。
-	cfg := &appConfig{host: host, ports: port + "-" + port, project: "refinetest"}
+	cfg := &appConfig{v2Read: fixtureReadBinding(d.srv.URL), host: host, ports: port + "-" + port, project: "refinetest"}
 	return cfg, d, d.srv.Close
 }
 

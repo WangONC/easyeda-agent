@@ -1,3 +1,4 @@
+import { wireGeometry } from './wire-geometry';
 import { type NativeAction, unavailable } from './execution-v2';
 import { array, declaredReadFields } from './v2-native-actions';
 import { canonical } from './fast-path';
@@ -46,7 +47,7 @@ export function replaceComponent(plan: (p: Record<string, unknown>) => Promise<P
             if (c.request.input.client_transaction_id !== undefined && c.request.input.client_transaction_id !== c.request.operation_id)
                 throw Error('V2_TRANSACTION_ID_MISMATCH');
             const p = await plan(c.request.input), list = async () => array<Comp>(await eda.sch_PrimitiveComponent.getAll()), before = new Map((await list()).map(x => [x.getState_PrimitiveId(), canonical(serialize(x))]));
-            const wireState = async () => canonical(array(await eda.sch_PrimitiveWire.getAll()).map(x => [x.getState_PrimitiveId(), x.getState_Line(), x.getState_Net()]).sort());
+            const wireState = async () => canonical(array(await eda.sch_PrimitiveWire.getAll()).map(x => [x.getState_PrimitiveId(), wireGeometry(x.getState_Line(),true), x.getState_Net()]).sort());
             const wires = await wireState();
             let staged: string | undefined, restored: string | undefined, createAttempted = false, recoveryAttempted = false, rollbackAttempted = false;
             const receipts = new Map<string, string>();

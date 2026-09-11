@@ -788,11 +788,11 @@ func runPcbLayoutLint(cfg *appConfig, window string, minGapMil float64, asJSON b
 			minGapMil = assembly.MinGapMil
 		}
 	}
-	res, err := requestAction(cfg, "pcb.components.list", window, map[string]any{"includeBBox": true, "includePads": true})
+	res, err := readStageV2(cfg, "pcb.components.list", window, map[string]any{"includeBBox": true, "includePads": true})
 	if err != nil {
 		return fmt.Errorf("fetch PCB components: %w", err)
 	}
-	rawComps, _ := mnav(res.Result, "components").([]any)
+	rawComps, _ := mnav(res, "components").([]any)
 
 	var comps []pcbLComp
 	var pads []pcbLPad
@@ -839,8 +839,8 @@ func runPcbLayoutLint(cfg *appConfig, window string, minGapMil float64, asJSON b
 
 	// Board outline bbox (best-effort; nil → skip the off-board check).
 	var outline *layoutBBox
-	if ores, oerr := requestAction(cfg, "pcb.outline.get", window, nil); oerr == nil && ores != nil {
-		if bb, ok := mnav(ores.Result, "bbox").(map[string]any); ok {
+	if ores, oerr := readStageV2(cfg, "pcb.outline.get", window, nil); oerr == nil && ores != nil {
+		if bb, ok := mnav(ores, "bbox").(map[string]any); ok {
 			minX, ok1 := asFloatOK(bb["minX"])
 			minY, ok2 := asFloatOK(bb["minY"])
 			maxX, ok3 := asFloatOK(bb["maxX"])

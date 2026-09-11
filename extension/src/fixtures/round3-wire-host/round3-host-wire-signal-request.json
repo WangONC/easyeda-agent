@@ -1,0 +1,27 @@
+{
+  "budget_ms": 30000,
+  "request_id": "7978df5c-0f14-44a1-99e1-158db517fe86",
+  "action_revision": "1",
+  "target_ref": {
+    "tab_id": "e23cb29c7fdf8eb5@7707b8e8d86c44fb8fc8dde47587140f",
+    "document_type": "schematic",
+    "activation": "easyeda-agent-017e9fc6-4333-44d8-903f-443e2b8f0031",
+    "project_uuid": "7707b8e8d86c44fb8fc8dde47587140f",
+    "scope": "DOCUMENT",
+    "document_uuid": "e23cb29c7fdf8eb5",
+    "session": "1ff482d7-8847-4614-ad44-a0f7cdd54e30"
+  },
+  "schema": "0e0d428e2921e049deb917be98cbb6c84b41eece3c9cd261a4f33412ed551259",
+  "protocol": "execution.v2",
+  "operation_id": "c1535651-f51b-4cf3-9445-47b961d55274",
+  "action": "schematic.wire.create",
+  "input": {
+    "points": [
+      120,
+      100,
+      280,
+      100
+    ],
+    "net": "SMOKE_SIGNAL"
+  }
+}

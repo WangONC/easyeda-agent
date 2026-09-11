@@ -53,7 +53,7 @@ func (d *sbwDaemon) called(action string) bool {
 func newSbwDaemon(t *testing.T, projectResp string) (*appConfig, *sbwDaemon) {
 	t.Helper()
 	d := &sbwDaemon{projectResp: projectResp}
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(withV2ReadFixture(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/health":
 			_, _ = w.Write([]byte(`{"service":"easyeda-agent","windows":[{"windowId":"w1"}]}`))
@@ -77,7 +77,7 @@ func newSbwDaemon(t *testing.T, projectResp string) (*appConfig, *sbwDaemon) {
 		default:
 			http.NotFound(w, r)
 		}
-	}))
+	})))
 	t.Cleanup(srv.Close)
 
 	hostPort := strings.TrimPrefix(srv.URL, "http://")
@@ -86,7 +86,7 @@ func newSbwDaemon(t *testing.T, projectResp string) (*appConfig, *sbwDaemon) {
 	if err != nil {
 		t.Fatalf("parse test daemon port: %v", err)
 	}
-	return &appConfig{host: host, ports: fmt.Sprintf("%d-%d", port, port)}, d
+	return &appConfig{v2Read: fixtureReadBinding(srv.URL), host: host, ports: fmt.Sprintf("%d-%d", port, port)}, d
 }
 
 // sbwSpec 是一份最小 spec:MCU 声明了块,位号却停在计划值 C1/U1(真机上平台会

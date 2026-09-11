@@ -167,8 +167,15 @@ func Inspect(a ArtifactRef) (map[string]any, error) {
 			}
 		}
 		result["members"] = members
-		result["pth_hole_count"] = len(pthHits)
-		result["npth_hole_count"] = len(npthHits)
+		// A missing program is unavailable inventory, not an observed zero.
+		result["pth_hole_count"] = nil
+		result["npth_hole_count"] = nil
+		if len(pth) > 0 {
+			result["pth_hole_count"] = len(pthHits)
+		}
+		if len(npth) > 0 {
+			result["npth_hole_count"] = len(npthHits)
+		}
 		result["count_semantics"] = "unique coordinate/diameter hits per plating category; aggregate/via subset programs deduplicated"
 		for hit := range npthHits {
 			if pthHits[hit] {

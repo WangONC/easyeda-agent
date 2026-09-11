@@ -1,3 +1,7 @@
+# Round 3 qualification status
+
+**ROUND3_BLOCKED**. See [Round 3 result](ROUND3_RESULT.md), [151-action qualification matrix](ROUND3_QUALIFICATION_MATRIX.md), and [Host evidence](ROUND3_HOST_EVIDENCE.md). Offline convergence passed; current manufacturing ownership, checkpoint and full E2E remain blocked/unqualified. No complete autonomous Host certification is claimed.
+
 # Execution V2 current status
 
 Round 2: **144 V2_NATIVE / 7 UNSUPPORTED / 0 NOT_MIGRATED**, total 151. See [Round 2 implementation report](ROUND2_RESULT.md), [mechanical inventory](ACTION_MIGRATION.md), and [baseline business audit](round2-business-audit.json). This is offline implementation qualification, not real Host certification.

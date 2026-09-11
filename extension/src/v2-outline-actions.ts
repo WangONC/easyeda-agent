@@ -1,3 +1,4 @@
+import {sameClosedOutline} from './v2-outline-geometry';
 import { type NativeAction, unavailable } from './execution-v2';
 import { array, declaredReadFields } from './v2-native-actions';
 import { covered } from './v2-batch-actions';
@@ -42,7 +43,7 @@ export function outline(mode: 'set' | 'clear', inside: (x: number, y: number, ri
                 let matched = 0;
                 if (mode === 'set' && id) {
                     const fresh = await eda.pcb_PrimitivePolyline.get(id);
-                    matched = Number(!!fresh && fresh.getState_PrimitiveId() === id && fresh.getState_Layer() === 11 && fresh.getState_PrimitiveLock() === true && fresh.getState_LineWidth() === width && JSON.stringify(fresh.getState_Polygon().getSource()) === JSON.stringify(polygon!.getSource()));
+                    matched = Number(!!fresh && fresh.getState_PrimitiveId() === id && fresh.getState_Layer() === 11 && fresh.getState_PrimitiveLock() === true && fresh.getState_LineWidth() === width && sameClosedOutline(fresh.getState_Polygon().getSource(), polygon!.getSource()));
                 }
                 let value: Record<string, unknown> = { removed: gone.length };
                 if (mode === 'set') {

@@ -1182,12 +1182,12 @@ func findViaCrossesPlane(vias []pcbViaP, planes []pcbPlaneLayer) []pcbCheckFindi
 // copper layers whose type is PLANE (内电层). Net binding comes from the pours
 // (bindPlaneNets) — the layer item itself carries no net.
 func fetchPcbPlaneLayers(cfg *appConfig, window string) ([]pcbPlaneLayer, error) {
-	res, err := requestAction(cfg, "pcb.layers.list", window, nil)
+	res, err := readStageV2(cfg, "pcb.layers.list", window, nil)
 	if err != nil {
 		return nil, err
 	}
 	var planes []pcbPlaneLayer
-	for _, rl := range mnavSlice(res.Result, "layers") {
+	for _, rl := range mnavSlice(res, "layers") {
 		lm, ok := rl.(map[string]any)
 		if !ok {
 			continue
@@ -1203,11 +1203,11 @@ func fetchPcbPlaneLayers(cfg *appConfig, window string) ([]pcbPlaneLayer, error)
 }
 
 func fetchPcbPours(cfg *appConfig, window string) ([]pcbPourP, error) {
-	res, err := requestAction(cfg, "pcb.pour.list", window, nil)
+	res, err := readStageV2(cfg, "pcb.pour.list", window, nil)
 	if err != nil {
 		return nil, err
 	}
-	rawPours, _ := mnav(res.Result, "pours").([]any)
+	rawPours, _ := mnav(res, "pours").([]any)
 	var pours []pcbPourP
 	for _, rp := range rawPours {
 		pm, ok := rp.(map[string]any)
@@ -1709,9 +1709,9 @@ func gatherPcbCheckReport(cfg *appConfig, window string, couplingW float64, chec
 	// Copper-near-edge is a LIVE-only rule (needs the board outline). The floor is
 	// the live copper-to-edge rule (fallback: JLC routed-edge 8mil, doc §5.1
 	// recommends ~20mil/0.5mm — we gate on the fab floor, the doc value is advice).
-	if ores, oerr := requestAction(cfg, "pcb.outline.get", window, nil); oerr != nil {
+	if ores, oerr := readStageV2(cfg, "pcb.outline.get", window, nil); oerr != nil {
 		fmt.Fprintf(stderr, "warning: copper-near-edge check skipped (%v)\n", oerr)
-	} else if bb, ok := mnav(ores.Result, "bbox").(map[string]any); ok {
+	} else if bb, ok := mnav(ores, "bbox").(map[string]any); ok {
 		minX, ok1 := asFloatOK(bb["minX"])
 		minY, ok2 := asFloatOK(bb["minY"])
 		maxX, ok3 := asFloatOK(bb["maxX"])
@@ -1878,11 +1878,11 @@ func gatherPcbCheckReport(cfg *appConfig, window string, couplingW float64, chec
 }
 
 func fetchPcbPads(cfg *appConfig, window string) ([]pcbPadP, error) {
-	res, err := requestAction(cfg, "pcb.components.list", window, map[string]any{"includePads": true})
+	res, err := readStageV2(cfg, "pcb.components.list", window, map[string]any{"includePads": true})
 	if err != nil {
 		return nil, err
 	}
-	rawComps, _ := mnav(res.Result, "components").([]any)
+	rawComps, _ := mnav(res, "components").([]any)
 	var pads []pcbPadP
 	for _, rc := range rawComps {
 		cm, ok := rc.(map[string]any)
@@ -1910,11 +1910,11 @@ func fetchPcbPads(cfg *appConfig, window string) ([]pcbPadP, error) {
 }
 
 func fetchPcbTracks(cfg *appConfig, window string) ([]pcbTrack, error) {
-	res, err := requestAction(cfg, "pcb.line.list", window, nil)
+	res, err := readStageV2(cfg, "pcb.line.list", window, nil)
 	if err != nil {
 		return nil, err
 	}
-	rawLines, _ := mnav(res.Result, "lines").([]any)
+	rawLines, _ := mnav(res, "lines").([]any)
 	var tracks []pcbTrack
 	for _, rl := range rawLines {
 		lm, ok := rl.(map[string]any)
@@ -1938,11 +1938,11 @@ func fetchPcbTracks(cfg *appConfig, window string) ([]pcbTrack, error) {
 // returns them in an `arcs` field). An older connector that omits `arcs` yields an
 // empty slice — the dangling-end check simply loses arc-awareness, it does not fail.
 func fetchPcbArcs(cfg *appConfig, window string) ([]pcbArc, error) {
-	res, err := requestAction(cfg, "pcb.line.list", window, nil)
+	res, err := readStageV2(cfg, "pcb.line.list", window, nil)
 	if err != nil {
 		return nil, err
 	}
-	rawArcs, _ := mnav(res.Result, "arcs").([]any)
+	rawArcs, _ := mnav(res, "arcs").([]any)
 	var arcs []pcbArc
 	for _, ra := range rawArcs {
 		am, ok := ra.(map[string]any)
@@ -1962,11 +1962,11 @@ func fetchPcbArcs(cfg *appConfig, window string) ([]pcbArc, error) {
 }
 
 func fetchPcbVias(cfg *appConfig, window string) ([]pcbViaP, error) {
-	res, err := requestAction(cfg, "pcb.via.list", window, nil)
+	res, err := readStageV2(cfg, "pcb.via.list", window, nil)
 	if err != nil {
 		return nil, err
 	}
-	rawVias, _ := mnav(res.Result, "vias").([]any)
+	rawVias, _ := mnav(res, "vias").([]any)
 	var vias []pcbViaP
 	for _, rv := range rawVias {
 		vm, ok := rv.(map[string]any)
@@ -1987,12 +1987,12 @@ func fetchPcbVias(cfg *appConfig, window string) ([]pcbViaP, error) {
 // fetchPcbSlots reads board cutouts (MULTI-layer fills, layer 12) with bboxes —
 // the clearance rule keeps copper off the milled edges.
 func fetchPcbSlots(cfg *appConfig, window string) ([]pcbSlotP, error) {
-	res, err := requestAction(cfg, "pcb.fill.list", window, map[string]any{"layer": 12, "includeBBox": true})
+	res, err := readStageV2(cfg, "pcb.fill.list", window, map[string]any{"layer": 12, "includeBBox": true})
 	if err != nil {
 		return nil, err
 	}
 	var slots []pcbSlotP
-	for _, rf := range mnavSlice(res.Result, "fills") {
+	for _, rf := range mnavSlice(res, "fills") {
 		fm, ok := rf.(map[string]any)
 		if !ok {
 			continue
@@ -2014,11 +2014,11 @@ func fetchPcbSlots(cfg *appConfig, window string) ([]pcbSlotP, error) {
 }
 
 func fetchPcbSilk(cfg *appConfig, window string) ([]pcbSilkText, error) {
-	res, err := requestAction(cfg, "pcb.silk.list", window, nil)
+	res, err := readStageV2(cfg, "pcb.silk.list", window, nil)
 	if err != nil {
 		return nil, err
 	}
-	rawTexts, _ := mnav(res.Result, "texts").([]any)
+	rawTexts, _ := mnav(res, "texts").([]any)
 	var silk []pcbSilkText
 	for _, rt := range rawTexts {
 		tm, ok := rt.(map[string]any)
@@ -2063,8 +2063,8 @@ func fetchPcbSilk(cfg *appConfig, window string) ([]pcbSilkText, error) {
 func fetchAntennaContext(cfg *appConfig, window string, silk []pcbSilkText) ([]pcbAntComp, []pcbKeepRegion, int, error) {
 	// copper layer count (gates the inner-plane keep-out requirement).
 	copperLayers := 2
-	if lres, err := requestAction(cfg, "pcb.layers.list", window, nil); err == nil {
-		if n, ok := asFloatOK(mnav(lres.Result, "copperLayerCount")); ok && n > 0 {
+	if lres, err := readStageV2(cfg, "pcb.layers.list", window, nil); err == nil {
+		if n, ok := asFloatOK(mnav(lres, "copperLayerCount")); ok && n > 0 {
 			copperLayers = int(n)
 		}
 	}
@@ -2076,12 +2076,12 @@ func fetchAntennaContext(cfg *appConfig, window string, silk []pcbSilkText) ([]p
 		}
 	}
 
-	cres, err := requestAction(cfg, "pcb.components.list", window, map[string]any{"includeBBox": true})
+	cres, err := readStageV2(cfg, "pcb.components.list", window, map[string]any{"includeBBox": true})
 	if err != nil {
 		return nil, nil, copperLayers, err
 	}
 	var ants []pcbAntComp
-	for _, rc := range mnavSlice(cres.Result, "components") {
+	for _, rc := range mnavSlice(cres, "components") {
 		cm, ok := rc.(map[string]any)
 		if !ok {
 			continue
@@ -2106,12 +2106,12 @@ func fetchAntennaContext(cfg *appConfig, window string, silk []pcbSilkText) ([]p
 		ants = append(ants, ac)
 	}
 
-	rres, err := requestAction(cfg, "pcb.region.list", window, nil)
+	rres, err := readStageV2(cfg, "pcb.region.list", window, nil)
 	if err != nil {
 		return nil, nil, copperLayers, err
 	}
 	var regions []pcbKeepRegion
-	for _, rr := range mnavSlice(rres.Result, "regions") {
+	for _, rr := range mnavSlice(rres, "regions") {
 		rm, ok := rr.(map[string]any)
 		if !ok {
 			continue

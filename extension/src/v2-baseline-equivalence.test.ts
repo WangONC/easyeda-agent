@@ -10,7 +10,7 @@ import { ControlledExecutor, V2, type Request } from './execution-v2';
 // Test-only independent business oracle: immutable baseline handler bodies,
 // executed exclusively against fake eda. No legacy runtime bridge is shipped.
 const source = execFileSync('git', ['show','a583bf731d946d2d39f1223e078d711bd41710d5:extension/src/actions.ts'], {encoding:'utf8'});
-const oracleSource = source + '\nexport const baselineQueries = { "schematic.library.search": schematicLibrarySearch, "schematic.library.get_by_lcsc": schematicLibraryGetByLcscIds, "library.model3d.search": libraryModel3DSearch, "pcb.report": pcbReport, "pcb.outline.get": pcbOutlineGet, "pcb.components.arrange": pcbComponentsArrange, "pcb.align": pcbAlign, "pcb.distribute": pcbDistribute, "pcb.grid_snap": pcbGridSnap, "pcb.components.move": pcbComponentsMove, "schematic.check": schematicCheck, "schematic.bridgeCheck": schematicBridgeCheck, "schematic.read": schematicRead, "pcb.silk.netnames": pcbSilkNetnames, "pcb.silk.label_pads": pcbSilkLabelPads, "pcb.add_component": pcbAddComponent, "pcb.component.attrs_backfill": pcbComponentAttrsBackfill, "board.rebind": boardRebind };';
+const oracleSource = source + '\nexport const baselineQueries = HANDLERS;';
 const baseline = new Module(path.join(__dirname, 'baseline-actions.test-only.ts'), module) as Module & {paths:string[];_compile(source:string,filename:string):void;exports:{baselineQueries:Record<string,(input:Record<string,unknown>)=>Promise<{result:unknown}>>}};
 baseline.filename = path.join(__dirname, 'baseline-actions.test-only.ts');
 baseline.paths = module.paths;
@@ -56,3 +56,21 @@ function attrsHost(){const props={Value:'',User:'kept'};const part={getState_Pri
 for(const overwrite of [false,true])test('baseline-equivalent attribute backfill overwrite '+overwrite,()=>equivalent('pcb.component.attrs_backfill',{overwrite},attrsHost));
 function boardHost(){let rows:any[]=[{name:'B',schematic:{uuid:'old'}}];return {dmt_Schematic:{getSchematicInfo:async(uuid:string)=>({uuid,parentProjectUuid:'p'})},dmt_Board:{getAllBoardsInfo:async()=>structuredClone(rows),getCurrentBoardInfo:async()=>rows[0],deleteBoard:async(name:string)=>{rows=rows.filter(x=>x.name!==name);return true;},createBoard:async(uuid:string)=>{rows.push({name:'New',schematic:{uuid}});return 'New';},modifyBoardName:async(from:string,to:string)=>{rows.find(x=>x.name===from).name=to;return true;}}};}
 for(const input of [{schematicUuid:'new'},{schematicUuid:'new',name:'B'}])test('baseline-equivalent rebind current/name resolution '+JSON.stringify(input),()=>equivalent('board.rebind',input,boardHost));
+
+function newBoardHost(){
+ let rows:any[]=[{name:'Old',schematic:{uuid:'sch'}}],pcbs:any[]=[];
+ return {dmt_Schematic:{getSchematicInfo:async()=>({uuid:'sch',parentProjectUuid:'p'})},
+ dmt_Board:{getAllBoardsInfo:async()=>structuredClone(rows),getCurrentBoardInfo:async()=>{throw Error('no current board');},createBoard:async()=>{rows[0].schematic=undefined;rows.push({name:'New',schematic:{uuid:'sch'}});return 'New';}},
+ dmt_Pcb:{getAllPcbsInfo:async()=>structuredClone(pcbs),createPcb:async()=>{pcbs.push({uuid:'pcb',name:'PCB',parentProjectUuid:'p'});rows[1].pcb={uuid:'pcb'};return 'pcb';}}};
+}
+for(const input of [{force:true},{force:true,schematic:'sch'},{force:true,schematicUuid:'sch'}])test('baseline-equivalent new PCB discovery/alias '+JSON.stringify(input),()=>equivalent('board.new_pcb',input,newBoardHost));
+
+for(const points of [[80,100,80,50,320,50,320,100],[[80,100],[80,50],[320,50],[320,100]]])test('baseline-equivalent wire native segment array and line output '+JSON.stringify(points),()=>equivalent('schematic.wire.create',{points,net:'GND'},()=>{
+ let made=false;const wire={getState_PrimitiveId:()=> 'wire',getState_Net:()=> 'GND',getState_Line:()=>[80,50,80,100,320,50,80,50,320,100,320,50],getState_Color:()=>null,getState_LineWidth:()=>null,getState_LineType:()=>null};
+ return {sch_PrimitiveWire:{getAll:async()=>made?[wire]:[],create:async(line:unknown)=>{assert.deepEqual(line,[80,100,80,50,320,50,320,100]);made=true;return wire;}}};
+}));
+// Formal baseline registry, used only in this test module. Valid empty data is
+// still a business success; unavailable native observations are tested separately.
+for(const action of ['schematic.text.list','schematic.library.search','schematic.library.get_by_lcsc','pcb.documents.list','pcb.silk.list','pcb.line.list','pcb.via.list','pcb.pour.list','pcb.region.list','pcb.fill.list'])test('baseline-equivalent valid empty list '+action,()=>equivalent(action,action==='schematic.library.search'?{query:'resistor'}:action==='schematic.library.get_by_lcsc'?{lcscIds:'C1'}:{},()=>{
+ const proxy:any=new Proxy(function(){return Promise.resolve([]);},{get:(_t,k)=>k==='then'?undefined:proxy});return proxy;
+}));

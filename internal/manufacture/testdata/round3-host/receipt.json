@@ -1,0 +1,163 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "ffa19787-8523-4362-ac06-89c570c523be",
+  "outcome": "UNKNOWN",
+  "effects": {
+    "effect_started": true,
+    "state_changed": null,
+    "native_settled": true,
+    "effect_scope": "UI_NATIVE",
+    "reconciled": true
+  },
+  "value": {
+    "artifact_delivery": "complete",
+    "content_qualification": "NOT_CERTIFIED",
+    "document_uuid": "a61d7f82ce7bb900",
+    "export_profile": {
+      "id": "round3-two-layer-fixture",
+      "layers": [
+        1,
+        2,
+        3,
+        4,
+        11
+      ],
+      "reviewed": true,
+      "units": "mm"
+    },
+    "files": [
+      {
+        "bytes": 3371,
+        "count_semantics": "unique coordinate/diameter hits per plating category; aggregate/via subset programs deduplicated",
+        "drill_files": [],
+        "file": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-2857ae1b4fa2b5a889a0b45ef449c947",
+        "file_name": "manufacturing",
+        "format": "manufacturing_gerber",
+        "gerber_files": [
+          "Gerber_TopLayer.GTL",
+          "Gerber_BottomLayer.GBL",
+          "Gerber_TopSilkscreenLayer.GTO",
+          "Gerber_BottomSilkscreenLayer.GBO",
+          "Gerber_BoardOutlineLayer.GKO"
+        ],
+        "layer_mapping": "requires review of native filenames/FileFunction against requested profile",
+        "members": [
+          {
+            "artifact": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-2857ae1b4fa2b5a889a0b45ef449c947",
+            "category": "Gerber",
+            "member": "Gerber_TopLayer.GTL",
+            "sha256": "3bad19cfd3dcdf4aaff8f1a6da0abe080168cbe0328d437d34f17b879745ed43",
+            "status": "structure_verified"
+          },
+          {
+            "artifact": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-2857ae1b4fa2b5a889a0b45ef449c947",
+            "category": "Gerber",
+            "member": "Gerber_BottomLayer.GBL",
+            "sha256": "21dc9954950b5801ec6e14e74808a9ab35ba5b920b6c77652b415807d5d10272",
+            "status": "structure_verified"
+          },
+          {
+            "artifact": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-2857ae1b4fa2b5a889a0b45ef449c947",
+            "category": "Gerber",
+            "member": "Gerber_TopSilkscreenLayer.GTO",
+            "sha256": "cbbd6ed5ba6abea5f6009215027017bb07dbb60d2aa2d36a1c39ffd447308c02",
+            "status": "structure_verified"
+          },
+          {
+            "artifact": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-2857ae1b4fa2b5a889a0b45ef449c947",
+            "category": "Gerber",
+            "member": "Gerber_BottomSilkscreenLayer.GBO",
+            "sha256": "7ba0e93bc8984c9f1f1483b0726157714f72b51de994d8ee02a2bfb36c6016bd",
+            "status": "structure_verified"
+          },
+          {
+            "artifact": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-2857ae1b4fa2b5a889a0b45ef449c947",
+            "category": "Gerber",
+            "member": "Gerber_BoardOutlineLayer.GKO",
+            "sha256": "4a410218ce580256438cfeeb4be755cfe197f1e1a30cfeb52efcb064f3150797",
+            "status": "structure_verified"
+          }
+        ],
+        "non_plated_drill_files": [],
+        "npth_hole_count": 0,
+        "plated_drill_files": [],
+        "pth_hole_count": 0,
+        "sha256": "84c67d1b72bdb1e6d68596190e67f6204e5d419bf218111cfeee7dcf3da2ed3f",
+        "structure_verified": false
+      },
+      {
+        "bytes": 388,
+        "columns": [
+          "编号",
+          "Quantity",
+          "Comment",
+          "Designator",
+          "Package",
+          "Value",
+          "MPN",
+          "Manufacturer",
+          "立创商城 SPN",
+          "Category",
+          "Name",
+          "Device",
+          "Unique ID"
+        ],
+        "component_count": 2,
+        "delimiter": "tab",
+        "encoding": "UTF-16LE",
+        "file": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-7a4280f7ce1e0f98b663cfd549e5b5fd.csv",
+        "file_name": "bom.csv",
+        "format": "manufacturing_bom",
+        "row_count": 1,
+        "sha256": "4b59302fed694376f27ae1e8160838a05919124a68667ccc85fff4de292cfa83",
+        "structure_verified": true
+      },
+      {
+        "bytes": 1036,
+        "columns": [
+          "Designator",
+          "Device",
+          "Footprint",
+          "Mid X",
+          "Mid Y",
+          "Ref X",
+          "Ref Y",
+          "Pad X",
+          "Pad Y",
+          "Pins",
+          "Layer",
+          "Rotation",
+          "SMD",
+          "Comment",
+          "Value",
+          "Type",
+          "Supplier",
+          "Datasheet"
+        ],
+        "delimiter": "tab",
+        "encoding": "UTF-16LE",
+        "file": "C:\\User\\Code\\easyeda-agent-execution-v2\\artifacts\\v2-80a7a8243916fd0ed72f8c4637dbf487",
+        "file_name": "pnp",
+        "format": "manufacturing_pnp",
+        "placement_count": 2,
+        "row_count": 2,
+        "sha256": "2c905ffe20b299e5fff9266127d2367030e34c4efbaf77d4d1fb59c9ed01b5f1",
+        "structure_verified": true,
+        "units": "mm"
+      }
+    ],
+    "manifest_file": "C:\\Users\\24985\\.easyeda-agent\\workflow\\export-manifests\\a0727b2c1b6a47d3e344b56fad2c6f30c31b902561e4edc364a2840cec2806ac.json",
+    "manifest_id": "a0727b2c1b6a47d3e344b56fad2c6f30c31b902561e4edc364a2840cec2806ac",
+    "native_api_call_count": 54,
+    "project_uuid": "e7c288be345149da97a48a8b908c2049",
+    "relevant_verification_ids": null,
+    "revision": "mtwgwvqe-x61guo70d1:1",
+    "revision_before": "mtwgwvqe-x61guo70d1:1",
+    "status": "unverified",
+    "warnings": [
+      "Basic structure inspection does not certify DFM or fabrication correctness; review native layer mapping against export profile.",
+      "manufacturing: archive lacks recognizable Gerber plus distinct plated/nonplated drill files"
+    ]
+  },
+  "evidence_ref": "ffa19787-8523-4362-ac06-89c570c523be"
+}

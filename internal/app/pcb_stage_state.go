@@ -117,15 +117,15 @@ func resolveStageIdentity(cfg *appConfig, window string) (key, uuid string, err 
 
 // resolveStageIdentityLive asks the window who it is (name + uuid).
 func resolveStageIdentityLive(cfg *appConfig, window string) (key, uuid string, err error) {
-	res, err := requestAction(cfg, "project.current", window, nil)
+	res, err := readStageV2(cfg, "project.current", window, nil)
 	if err != nil {
 		return "", "", fmt.Errorf("resolve project for workflow state: %w", err)
 	}
-	uuid = asString(res.Result["uuid"])
-	if name := asString(res.Result["friendlyName"]); name != "" {
+	uuid = asString(res["uuid"])
+	if name := asString(res["friendlyName"]); name != "" {
 		return name, uuid, nil
 	}
-	if name := asString(res.Result["name"]); name != "" {
+	if name := asString(res["name"]); name != "" {
 		return name, uuid, nil
 	}
 	if uuid != "" {
@@ -167,11 +167,11 @@ func warnForeignPages(project string, st *pcbStageState, stderr io.Writer) {
 // pullLayoutPoses reads the live placement poses (designator/x/y/rotation/layer)
 // the layout fingerprint is derived from.
 func pullLayoutPoses(cfg *appConfig, window string) ([]stageComponentPose, error) {
-	res, err := requestAction(cfg, "pcb.components.list", window, nil)
+	res, err := readStageV2(cfg, "pcb.components.list", window, nil)
 	if err != nil {
 		return nil, fmt.Errorf("fetch placement for fingerprint: %w", err)
 	}
-	raw, _ := res.Result["components"].([]any)
+	raw, _ := res["components"].([]any)
 	poses := make([]stageComponentPose, 0, len(raw))
 	for _, ri := range raw {
 		cm, ok := ri.(map[string]any)
@@ -209,21 +209,21 @@ func pullLayoutFingerprint(cfg *appConfig, window string) (*stageFingerprint, er
 
 // pullOutlineFingerprint hashes the live board outline snapshot (counts + bbox).
 func pullOutlineFingerprint(cfg *appConfig, window string) (*stageFingerprint, error) {
-	res, err := requestAction(cfg, "pcb.outline.get", window, nil)
+	res, err := readStageV2(cfg, "pcb.outline.get", window, nil)
 	if err != nil {
 		return nil, fmt.Errorf("fetch outline for fingerprint: %w", err)
 	}
 	snapshot := map[string]any{
-		"outline":  res.Result["outline"],
-		"segments": res.Result["segments"],
-		"arcs":     res.Result["arcs"],
-		"bbox":     res.Result["bbox"],
+		"outline":  res["outline"],
+		"segments": res["segments"],
+		"arcs":     res["arcs"],
+		"bbox":     res["bbox"],
 	}
 	hash, err := workflow.HashJSON(snapshot)
 	if err != nil {
 		return nil, err
 	}
-	count := int(asFloat(res.Result["outline"])) + int(asFloat(res.Result["segments"])) + int(asFloat(res.Result["arcs"]))
+	count := int(asFloat(res["outline"])) + int(asFloat(res["segments"])) + int(asFloat(res["arcs"]))
 	return workflow.NewFingerprint(hash, count), nil
 }
 

@@ -50,11 +50,11 @@ func (r pcbRules) clampWidth(w float64) float64 {
 // fetchPcbRules reads the board's live DRC rules via pcb.drc.rules and normalizes
 // them; any error degrades to the JLCPCB baseline (never blocks the caller).
 func fetchPcbRules(cfg *appConfig, window string) pcbRules {
-	res, err := requestAction(cfg, "pcb.drc.rules", window, nil)
+	res, err := readStageV2(cfg, "pcb.drc.rules", window, nil)
 	if err != nil || res == nil {
 		return defaultPcbRules()
 	}
-	return parsePcbRules(res.Result)
+	return parsePcbRules(res)
 }
 
 // mnav walks nested map[string]any by string keys; returns nil on any miss.

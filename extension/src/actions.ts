@@ -1,3 +1,4 @@
+import { nativeWireSegments } from './wire-geometry';
 import { silkCreate,type SilkAuthor } from './v2-silk-create';
 import { groupMove } from './v2-group-move';
 import { manufacture } from './v2-manufacturing';
@@ -1600,7 +1601,7 @@ export interface SchDeleteCascadeTree {
  */
 export function planSchDeleteCascadeTrees(
 	targets: Array<{ id: string; pins: Array<{ x: number; y: number }> }>,
-	wires: Array<{ id: string; points: Array<number> }>,
+	wires: Array<{ id: string; points: Array<number>; segments?: Array<[number,number,number,number]> }>,
 	markers: Array<{ id: string; x: number; y: number }>,
 	survivorPins: Array<{ x: number; y: number }>,
 ): Array<SchDeleteCascadeTree> {
@@ -1641,7 +1642,7 @@ export function planSchDeleteCascadeTrees(
 		const root = find(i);
 		const t = byRoot.get(root) ?? { wireIds: [], segs: [] };
 		t.wireIds.push(w.id);
-		t.segs.push(...segsOf(w.points));
+		t.segs.push(...(w.segments ?? segsOf(w.points)));
 		byRoot.set(root, t);
 	});
 
@@ -1669,17 +1670,11 @@ async function collectSchDeleteCascadePlan(ids: Array<string>, strict=false): Pr
 	if (!Array.isArray(components) || !Array.isArray(rawWires)) {
 		throw new Error('component/wire enumeration did not return arrays');
 	}
-	const wires: Array<{ id: string; points: Array<number> }> = [];
+	const wires: Array<{ id: string; points: Array<number>; segments: Array<[number,number,number,number]> }> = [];
 	for (const w of rawWires) {
 		try {
-			const line = w.getState_Line();
-			if (Array.isArray(line)) {
-				// Nested [[x,y],…] and flat [x,y,…] both occur; normalize to flat.
-				const flat: Array<number> = Array.isArray(line[0])
-					? (line as unknown as Array<Array<number>>).flatMap(p => [p[0], p[1]])
-					: (line as Array<number>);
-				wires.push({ id: String(w.getState_PrimitiveId?.() ?? ''), points: flat });
-			}
+			const segments=nativeWireSegments(w.getState_Line());
+            wires.push({id:String(w.getState_PrimitiveId?.()??''),points:segments.flat(),segments});
 		}
 		catch(e) { if(strict)throw e; }
 	}
@@ -3145,28 +3140,9 @@ interface NetlistComponentInfo {
 // 4-segment orthogonal GND merge tree "crossed itself" at the pseudo-diagonal's
 // midpoint). Same parse rule as the dangling fix: an EVEN vertex count ≥4 is a
 // segment array (stride 4); odd counts chain as a polyline (stride 2).
-function collectWireSegments(wires: Array<{ getState_Line: () => Array<number>; getState_Net?: () => string; getState_PrimitiveId?: () => string }>): Array<CheckWireSegment> {
-	const segs: Array<CheckWireSegment> = [];
-	for (const w of wires) {
-		let line: Array<number> | undefined;
-		try { line = w.getState_Line(); }
-		catch { continue; }
-		if (!Array.isArray(line)) continue;
-		let wirePrimitiveId = '';
-		let net = '';
-		try { wirePrimitiveId = String(w.getState_PrimitiveId?.() ?? ''); }
-		catch { /* optional */ }
-		try { net = String(w.getState_Net?.() ?? ''); }
-		catch { /* optional */ }
-		const verts = Math.floor(line.length / 2);
-		const stride = verts >= 4 && verts % 2 === 0 ? 4 : 2;
-		for (let i = 0; i + 3 < line.length; i += stride) {
-			segs.push({ seg: [line[i], line[i + 1], line[i + 2], line[i + 3]], wirePrimitiveId, net });
-		}
-	}
-	return segs;
+function collectWireSegments(wires: Array<{ getState_Line: () => unknown; getState_Net?: () => string; getState_PrimitiveId?: () => string }>): Array<CheckWireSegment> {
+    return wires.flatMap(w=>nativeWireSegments(w.getState_Line()).map(seg=>({seg,wirePrimitiveId:String(w.getState_PrimitiveId?.()??''),net:String(w.getState_Net?.()??'')})));
 }
-
 // Result of reading the JSON-authoritative netlist. `available` distinguishes
 // "netlist fetched+parsed" (trust its pin→net facts, even the ABSENCE of a net)
 // from "couldn't fetch/parse" (netlist muted → geometry alone decides). Without
@@ -4276,9 +4252,7 @@ const schematicLibrarySearchData = async (payload: Record<string, unknown>) => {
     catch (err) {
         throw edaError(err, 'Failed to search device library.');
     }
-    if (!Array.isArray(raw)) {
-        return { count: 0, components: [] };
-    }
+    if (!Array.isArray(raw) || raw.some(r=>!r || typeof r!=='object' || typeof (r as Record<string,unknown>).uuid!=='string' || !(r as Record<string,unknown>).uuid)) throw Error('V2_NATIVE_SHAPE');
     // Exact LCSC mode. When the query is itself a bare C-number (e.g. "C5665"),
     // EasyEDA's free-text search still ranks by keyword — so "C5665" surfaces the
     // op-amp CLC5665IMX (name contains "5665") over the real part whose LCSC id
@@ -4382,9 +4356,7 @@ const schematicLibraryGetByLcscIdsData = async (payload: Record<string, unknown>
     catch (err) {
         throw edaError(err, 'Failed to look up devices by LCSC id.');
     }
-    if (!Array.isArray(raw)) {
-        return { count: 0, requested: lcscIds, components: [], notFound: lcscIds };
-    }
+    if (!Array.isArray(raw) || raw.some(r=>!r || typeof r!=='object' || typeof (r as Record<string,unknown>).uuid!=='string' || !(r as Record<string,unknown>).uuid)) throw Error('V2_NATIVE_SHAPE');
     const components = (raw as Array<Record<string, unknown>>).map((r) => {
         const otherProperty = (r.otherProperty as Record<string, unknown> | undefined) ?? {};
         // supplierId / manufacturer(Id) are deprecated top-level fields, moved into
@@ -5456,7 +5428,7 @@ const schematicTextListData = async () => {
     catch (err) {
         throw edaError(err, 'Failed to list schematic text primitives.');
     }
-    const items = (Array.isArray(texts) ? texts : []).map(t => ({
+    const items = v2Native.array(texts).map(t => ({
         primitiveId: t.getState_PrimitiveId(),
         content: t.getState_Content(),
         x: t.getState_X(),
@@ -6769,23 +6741,10 @@ const pinDisconnectPlan = async (payload: Payload, strict=false) => {
 	// A generous tolerance shared with the check rules (grid-snap slop).
 	const TOL = CHECK_EPS * 8;
 	// Endpoints of a wire as [x,y] pairs (first + last vertex).
-	const endpointsOf = (w: { getState_Line: () => Array<number> | Array<Array<number>> }): Array<[number, number]> => {
-		let line;
-		try { line = w.getState_Line(); }
-		catch { return []; }
-		if (!Array.isArray(line) || line.length === 0) return [];
-		const verts: Array<[number, number]> = [];
-		if (Array.isArray(line[0])) {
-			for (const p of line as Array<Array<number>>) verts.push([p[0], p[1]]);
-		}
-		else {
-			const flat = line as Array<number>;
-			for (let i = 0; i + 1 < flat.length; i += 2) verts.push([flat[i], flat[i + 1]]);
-		}
-		if (verts.length === 0) return [];
-		return [verts[0], verts[verts.length - 1]];
-	};
-
+	const endpointsOf = (w: { getState_Line: () => unknown }): Array<[number, number]> => {
+        const segments=nativeWireSegments(w.getState_Line());
+        return [...new Map(segments.flatMap(([x,y,u,v])=>[[x,y],[u,v]] as Array<[number,number]>).map(p=>[JSON.stringify(p),p])).values()];
+    };
 	// Locate the stub wire(s). A pin can host SEVERAL stubs (one per flag, or a
 	// stub merged into a shared/collinear tree) — taking only the first one left
 	// the rest behind while the action still reported disconnected:true (real
@@ -6834,7 +6793,7 @@ const pinDisconnectPlan = async (payload: Payload, strict=false) => {
 	if (stubWires.length === 0 && pinX !== undefined && pinY !== undefined) {
 		for (const w of wires ?? []) {
 			const ends = endpointsOf(w);
-			if (ends.length !== 2) continue;
+			if (ends.length < 2) continue;
 			const onPin = ends.some(e => Math.hypot(e[0] - pinX!, e[1] - pinY!) <= TOL);
 			if (onPin) {
 				addStub(String(w.getState_PrimitiveId?.() ?? ''), ends);
@@ -6860,15 +6819,8 @@ const pinDisconnectPlan = async (payload: Payload, strict=false) => {
 	const wireSegsAll: Array<[number, number, number, number]> = [];
 	for (const w of wires ?? []) {
 		if (!stubPids.has(String(w.getState_PrimitiveId?.() ?? ''))) continue;
-		let line: Array<number> | undefined;
-		try { line = w.getState_Line() as Array<number>; }
-		catch(e) { if(strict)throw e;continue; }
-		if (Array.isArray(line)) {
-			for (let i = 0; i + 3 < line.length; i += 2) {
-				wireSegsAll.push([line[i], line[i + 1], line[i + 2], line[i + 3]]);
-			}
-		}
-	}
+        wireSegsAll.push(...nativeWireSegments(w.getState_Line()));
+    }
 	const distToSegD = (px: number, py: number, x0: number, y0: number, x1: number, y1: number): number => {
 		const dx = x1 - x0, dy = y1 - y0;
 		const len2 = dx * dx + dy * dy;
@@ -7026,9 +6978,7 @@ const pcbDocumentsListData = async () => {
     catch (err) {
         throw edaError(err, 'Failed to list PCB documents.');
     }
-    if (!Array.isArray(pcbs)) {
-        return { pcbs: [], count: 0 };
-    }
+    if (!Array.isArray(pcbs) || pcbs.some(p=>!p || typeof p.uuid!=='string' || !p.uuid)) throw Error('V2_NATIVE_SHAPE');
     return {
         pcbs: pcbs.map(p => ({
             uuid: p.uuid,
@@ -7882,7 +7832,7 @@ const pcbSilkListData = async () => {
     // component primitiveId → side layer (TOP=1 / BOTTOM=2), for attribute parents.
     const compLayer = new Map<string, number>();
     try {
-        for (const c of (await eda.pcb_PrimitiveComponent.getAll()) ?? []) {
+        for (const c of v2Native.array(await eda.pcb_PrimitiveComponent.getAll())) {
             compLayer.set(c.getState_PrimitiveId(), Number(c.getState_Layer()));
         }
     }
@@ -7909,7 +7859,7 @@ const pcbSilkListData = async () => {
     };
     // 1. designator / value attributes (component-bound silk text)
     try {
-        for (const a of (await eda.pcb_PrimitiveAttribute.getAll()) ?? []) {
+        for (const a of v2Native.array(await eda.pcb_PrimitiveAttribute.getAll())) {
             const layer = Number(a.getState_Layer());
             if (!isSilk(layer)) {
                 continue;
@@ -7938,7 +7888,7 @@ const pcbSilkListData = async () => {
     }
     // 2. free silk strings (board labels, logos, notes)
     try {
-        for (const s of (await eda.pcb_PrimitiveString.getAll()) ?? []) {
+        for (const s of v2Native.array(await eda.pcb_PrimitiveString.getAll())) {
             const layer = Number(s.getState_Layer());
             if (!isSilk(layer)) {
                 continue;
@@ -8663,6 +8613,7 @@ const pcbReportData = async (payload: Record<string, unknown>) => {
       if(!Array.isArray(value)||value.length>256||!value.every(n=>typeof n==='string'&&n.length>0))throw new ActionError('INVALID_PAYLOAD', `${key} must be an array of names`);
       return value as string[];
     };
+    let complete=true;
     const scoped=['nets','pairs','groups'].some(k=>payload[k]!==undefined);
     const netFilter=selected('nets')??(scoped?[]:undefined), pairFilter=selected('pairs')??(scoped?[]:undefined), groupFilter=selected('groups')??(scoped?[]:undefined);
 	const result: Record<string, unknown> = {measurement_semantics:'total_copper_length; endpoint path is unresolved without explicit path',units:'mil'};
@@ -8679,34 +8630,36 @@ const pcbReportData = async (payload: Record<string, unknown>) => {
 	};
 
 	try {
-		const names = netFilter ?? (await eda.pcb_Net.getAllNetsName()) ?? [];
-		const nets: Array<{ net: string; length: number | null }> = [];
+		const names = netFilter ?? v2Native.array(await eda.pcb_Net.getAllNetsName());
+		if(names.some(n=>typeof n!=='string')) throw Error('V2_NATIVE_SHAPE');
+        const nets: Array<{ net: string; length: number | null }> = [];
 		for (const net of names) nets.push({ net, length: await len(net) });
 		result.nets = nets;
 		result.netCount = nets.length;
 	}
-	catch (err) {
+	catch (err) { complete=false;
 		result.netsError = describeThrown(err);
 	}
 
 	try {
-		const classes = scoped ? [] : (await eda.pcb_Drc.getAllNetClasses()) ?? [];
-		result.netClasses = await Promise.all(classes.map(async (c) => {
+		const classes = scoped ? [] : v2Native.array(await eda.pcb_Drc.getAllNetClasses());
+		if(classes.some(c=>!c || typeof c.name!=='string' || !Array.isArray(c.nets) || c.nets.some(n=>typeof n!=='string'))) throw Error('V2_NATIVE_SHAPE');
+        result.netClasses = await Promise.all(classes.map(async (c) => {
 			let total = 0, measured = 0;
 			for (const n of c.nets ?? []) { const l = await len(n); if (typeof l === 'number') { total += l; measured++; } }
 			// null (not 0) when nothing measured — consistent with equalLength spread.
 			return { name: c.name, nets: c.nets, totalLength: measured ? total : null };
 		}));
 	}
-	catch (err) { result.netClassesError = describeThrown(err); }
+	catch (err) { complete=false; result.netClassesError = describeThrown(err); }
 
 	try {
 		const pairsRaw = await eda.pcb_Drc.getAllDifferentialPairs();
+        if(!pairsRaw || typeof pairsRaw!=='object') throw Error('V2_NATIVE_SHAPE');
 		// Since EDA v3.4 this may return an object map instead of an array (a
 		// documented breaking change) — normalize both shapes to a list of pairs.
-		const pairs = (Array.isArray(pairsRaw) ? pairsRaw : Object.values(pairsRaw ?? {}))
-			.filter((p): p is { name: string; positiveNet: string; negativeNet: string } =>
-				!!p && typeof p === 'object' && 'positiveNet' in p && 'negativeNet' in p);
+		const pairs = (Array.isArray(pairsRaw) ? pairsRaw : Object.values(pairsRaw)) as Array<{name:string;positiveNet:string;negativeNet:string}>;
+        if(pairs.some(p=>!p || typeof p.name!=='string' || typeof p.positiveNet!=='string' || typeof p.negativeNet!=='string')) throw Error('V2_NATIVE_SHAPE');
 		result.differentialPairs = await Promise.all(pairs.filter(p=>!pairFilter||pairFilter.includes(p.name)).map(async (p) => {
 			const lp = await len(p.positiveNet);
 			const ln = await len(p.negativeNet);
@@ -8714,11 +8667,12 @@ const pcbReportData = async (payload: Record<string, unknown>) => {
 			return { name: p.name, positiveNet: p.positiveNet, negativeNet: p.negativeNet, positiveLength: lp, negativeLength: ln, skew };
 		}));
 	}
-	catch (err) { result.differentialPairsError = describeThrown(err); }
+	catch (err) { complete=false; result.differentialPairsError = describeThrown(err); }
 
 	try {
-		const groups = (await eda.pcb_Drc.getAllEqualLengthNetGroups()) ?? [];
-		result.equalLengthNetGroups = await Promise.all(groups.filter(g=>!groupFilter||groupFilter.includes(g.name)).map(async (g) => {
+		const groups = v2Native.array(await eda.pcb_Drc.getAllEqualLengthNetGroups());
+		if(groups.some(g=>!g || typeof g.name!=='string' || !Array.isArray(g.nets) || g.nets.some(n=>typeof n!=='string'))) throw Error('V2_NATIVE_SHAPE');
+        result.equalLengthNetGroups = await Promise.all(groups.filter(g=>!groupFilter||groupFilter.includes(g.name)).map(async (g) => {
 			const members: Array<{ net: string; length: number | null }> = [];
 			const vals: Array<number> = [];
 			for (const n of g.nets ?? []) { const l = await len(n); members.push({ net: n, length: l }); if (typeof l === 'number') vals.push(l); }
@@ -8727,9 +8681,9 @@ const pcbReportData = async (payload: Record<string, unknown>) => {
 			return { name: g.name, members, spread, completeness:complete?'complete':'unresolved',unresolved_reason:complete?null:'one or more member lengths unavailable' };
 		}));
 	}
-	catch (err) { result.equalLengthNetGroupsError = describeThrown(err); }
+	catch (err) { complete=false; result.equalLengthNetGroupsError = describeThrown(err); }
 
-	return result;
+	return {value:result,complete};
 };
 
 // ─── PCB length constraints: differential pairs + equal-length groups (#176) ─
@@ -10805,7 +10759,8 @@ const pcbDrcRulesData = async () => {
     catch (err) {
         throw edaError(err, 'Failed to read PCB DRC rule configuration (ensure the PCB document is the active/foreground tab).');
     }
-    return { rules: rules ?? null };
+    if (!rules || typeof rules !== 'object' || Array.isArray(rules)) throw Error('V2_NATIVE_SHAPE');
+    return { rules };
 };
 
 // ─── PCB routing (copper tracks + vias) ──────────────────────────────
@@ -10974,7 +10929,7 @@ const pcbPourListData = async (payload: Record<string, unknown>) => {
     catch (err) {
         throw edaError(err, 'Failed to list copper pours.');
     }
-    const list = (pours ?? []).map(p => ({
+    const list = v2Native.array(pours).map(p => ({
         logical_id: logicalPlaneId(p),
         primitiveId: p.getState_PrimitiveId(),
         net: p.getState_Net(),
@@ -11174,7 +11129,7 @@ const pcbRegionListData = async (payload: Record<string, unknown>) => {
         throw edaError(err, 'Failed to list PCB regions.');
     }
     const list: Array<Record<string, unknown>> = [];
-    for (const r of (regions ?? [])) {
+    for (const r of v2Native.array(regions)) {
         const rules = (r.getState_RuleType() ?? []) as unknown as number[];
         let bbox;
         try {
@@ -11273,7 +11228,7 @@ const pcbFillListData = async (payload: Record<string, unknown>) => {
         throw edaError(err, 'Failed to list PCB fills.');
     }
     const list: Array<Record<string, unknown>> = [];
-    for (const f of fills ?? []) {
+    for (const f of v2Native.array(fills)) {
         const id = f.getState_PrimitiveId();
         const item: Record<string, unknown> = {
             primitiveId: id,
@@ -11337,7 +11292,7 @@ const pcbLineListData = async (payload: Record<string, unknown>) => {
     // terminating on an arc endpoint as anchored, not floating. Best-effort: an
     // older API without pcb_PrimitiveArc must not break the line list.
     const arcs = await eda.pcb_PrimitiveArc.getAll(net, layer).catch(() => []);
-    const list = (lines ?? []).map(l => ({
+    const list = v2Native.array(lines).map(l => ({
         primitiveId: l.getState_PrimitiveId(),
         net: l.getState_Net(),
         layer: l.getState_Layer(),
@@ -11348,7 +11303,7 @@ const pcbLineListData = async (payload: Record<string, unknown>) => {
         lineWidth: l.getState_LineWidth(),
         locked: l.getState_PrimitiveLock(),
     }));
-    const arcList = (arcs ?? []).map(a => ({
+    const arcList = v2Native.array<IPCB_PrimitiveArc>(arcs).map(a => ({
         primitiveId: a.getState_PrimitiveId(),
         net: a.getState_Net(),
         layer: a.getState_Layer(),
@@ -11372,7 +11327,7 @@ const pcbViaListData = async (payload: Record<string, unknown>) => {
     catch (err) {
         throw edaError(err, 'Failed to list PCB vias.');
     }
-    const list = (vias ?? []).map(v => ({
+    const list = v2Native.array(vias).map(v => ({
         primitiveId: v.getState_PrimitiveId(),
         net: v.getState_Net(),
         x: v.getState_X(),

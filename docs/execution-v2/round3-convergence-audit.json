@@ -1,0 +1,192 @@
+{
+  "scope": [
+    "internal/executionv2/coordinator.go",
+    "internal/executionv2/model.go",
+    "internal/daemon/v2.go",
+    "internal/daemon/v2_artifact.go",
+    "internal/daemon/v2_drc.go",
+    "internal/daemon/v2_effects.go",
+    "internal/daemon/v2_fast.go",
+    "internal/daemon/v2_manufacturing.go",
+    "internal/daemon/v2_report.go",
+    "internal/daemon/v2_telemetry.go",
+    "extension/src/execution-v2.ts",
+    "extension/src/v2-add-pcb-component.ts",
+    "extension/src/v2-backfill-actions.ts",
+    "extension/src/v2-batch-actions.ts",
+    "extension/src/v2-board-actions.ts",
+    "extension/src/v2-drc-compare.ts",
+    "extension/src/v2-export-actions.ts",
+    "extension/src/v2-group-move.ts",
+    "extension/src/v2-library-build.ts",
+    "extension/src/v2-lifecycle-actions.ts",
+    "extension/src/v2-manufacturing.ts",
+    "extension/src/v2-native-actions.ts",
+    "extension/src/v2-outline-actions.ts",
+    "extension/src/v2-outline-geometry.ts",
+    "extension/src/v2-pcb-clear.ts",
+    "extension/src/v2-place-component.ts",
+    "extension/src/v2-plane-actions.ts",
+    "extension/src/v2-replace-component.ts",
+    "extension/src/v2-route-batch.ts",
+    "extension/src/v2-routing-actions.ts",
+    "extension/src/v2-schematic-actions.ts",
+    "extension/src/v2-schematic-delete.ts",
+    "extension/src/v2-silk-actions.ts",
+    "extension/src/v2-silk-create.ts",
+    "extension/src/v2-via-hop.ts",
+    "internal/app/v2.go",
+    "internal/app/v2_read.go",
+    "mcp/src/server.mjs",
+    "mcp/src/v2-projection.mjs"
+  ],
+  "baseline_oracle": "test-only git show a583bf7:extension/src/actions.ts; deliberately retained",
+  "patterns": [
+    {
+      "pattern": "legacy reducer / prior merge / repeated Interpret",
+      "production_matches": [],
+      "disposition": "No compatibility reducer is referenced by the scoped V2 runtime files."
+    },
+    {
+      "pattern": "raw business flags",
+      "production_matches": [
+        {
+          "file": "extension/src/v2-routing-actions.ts",
+          "line": 76,
+          "text": "value.ok = false;"
+        },
+        {
+          "file": "extension/src/v2-routing-actions.ts",
+          "line": 80,
+          "text": "value.ok = false;"
+        },
+        {
+          "file": "extension/src/v2-silk-actions.ts",
+          "line": 56,
+          "text": "}>).filter(row => row.ok).length;"
+        },
+        {
+          "file": "mcp/src/server.mjs",
+          "line": 8,
+          "text": "if(!loaded.ok || !Array.isArray(loaded.result)) throw Error('V2_CATALOG_UNAVAILABLE');"
+        },
+        {
+          "file": "mcp/src/server.mjs",
+          "line": 20,
+          "text": "if(params.name==='easyeda_health'){const r=await runEasyeda(['daemon','health']);if(!r.ok)throw Error(JSON.stringify(r.error));return {content:[{type:'text',text:JSON.stringify(r.result)}]};}"
+        },
+        {
+          "file": "mcp/src/server.mjs",
+          "line": 24,
+          "text": "const r=await runEasyeda(['v2',p.view,p.operation_id]);if(!r.ok)throw Error(JSON.stringify(r.error));"
+        },
+        {
+          "file": "mcp/src/server.mjs",
+          "line": 32,
+          "text": "const result=r.ok?r.result:r.error?.stdout;"
+        }
+      ],
+      "disposition": "routing assigns diagnostic value.ok; silk counts row.ok that was just authored from fresh appliedIDs. MCP runEasyeda.ok is subprocess transport status used to locate the unchanged daemon result, never a mutation completion proof. None enters Finalize."
+    },
+    {
+      "pattern": "replay / retry mentions",
+      "production_matches": [
+        {
+          "file": "extension/src/v2-board-actions.ts",
+          "line": 135,
+          "text": "// Compensation is a distinct old-binding restoration, never replay of the"
+        },
+        {
+          "file": "extension/src/v2-native-actions.ts",
+          "line": 50,
+          "text": "try { await c.effect(()=>eda.pcb_PrimitiveComponent.modify(id,patch as Parameters<typeof eda.pcb_PrimitiveComponent.modify>[1])); } catch { /* always fresh verify; no replay */ }"
+        },
+        {
+          "file": "extension/src/v2-native-actions.ts",
+          "line": 452,
+          "text": "// Preserve the Host metadata commit workaround. Only retry reads, never write."
+        },
+        {
+          "file": "extension/src/v2-route-batch.ts",
+          "line": 58,
+          "text": "const value = { created_ids: [...createdIDs].filter(id => now.has(id)), deleted_ids: [...removed].filter(id => !now.has(id)), item_results: items, failed_index: failed, revision_before: before.board_revision, revision_after: after.board_revision, readback_verified: !unknown && satisfied === ops.length, rollback_attempted: rollbackAttempted, rollback_complete: rollbackAttempted && [...createdIDs].every(id => !now.has(id)) && [...removed].every(id => now.has(id)), warnings: unknown ? ['Residual scope is unknown; reconcile without replay.'] : [], native_api_call_count: n.calls };"
+        },
+        {
+          "file": "extension/src/v2-silk-actions.ts",
+          "line": 84,
+          "text": "catch { /* verifier still owns the first operation; no automatic retry here */ }"
+        },
+        {
+          "file": "internal/app/v2_read.go",
+          "line": 24,
+          "text": "// implicit navigation or replay is available through this read-only boundary."
+        },
+        {
+          "file": "mcp/src/server.mjs",
+          "line": 13,
+          "text": "...[...DOMAIN_NAMES,'library'].map(domain=>({name:'easyeda_'+domain,description:'Execution V2 '+domain+' actions. Inspect catalog before calling. Never replay an UNKNOWN operation.',inputSchema:{type:'object',properties:{...requestProperties,action:{enum:catalog.filter(a=>a.domain===domain).map(a=>a.name)}},required:['protocol','action','action_revision','schema','request_id','operation_id','target_ref','input','budget_ms'],additionalProperties:false}})),"
+        },
+        {
+          "file": "mcp/src/server.mjs",
+          "line": 16,
+          "text": "{name:'easyeda_operation',description:'Read stored status/evidence or request fresh reconciliation without replay',inputSchema:{type:'object',properties:{operation_id:{type:'string'},view:{enum:['status','evidence','reconcile']}},required:['operation_id','view'],additionalProperties:false}}"
+        },
+        {
+          "file": "mcp/src/server.mjs",
+          "line": 33,
+          "text": "if(!result || result.operation_id!==p.operation_id)throw Error('V2_RECEIPT_UNAVAILABLE: query the same operation_id; do not replay');"
+        }
+      ],
+      "disposition": "Review references individually; comments and explicit rejection do not dispatch effects."
+    },
+    {
+      "pattern": "legacy /action and /writeverify",
+      "production_matches": [
+        {
+          "file": "internal/daemon/daemon.go",
+          "entry": "/action and /writeverify"
+        }
+      ],
+      "disposition": "HTTP 410 rejectLegacy; no executable handler."
+    },
+    {
+      "pattern": "old Go/TS handlers retained in source",
+      "production_matches": [
+        {
+          "file": "internal/daemon/hub.go",
+          "entry": "conn.dispatch"
+        },
+        {
+          "file": "extension/src/actions.ts",
+          "entry": "runAction"
+        }
+      ],
+      "disposition": "Both unconditional rejection stubs; old helpers/tests are reference business code, not a fallback runtime."
+    },
+    {
+      "pattern": "effect before verifier / reconcile mutation",
+      "production_matches": [],
+      "disposition": "ControlledExecutor rejects effect without prepare and rejects effects while verifying or after accepting=false. Tested with controllable native promises; the lexical scan is not a proof of arbitrary callback purity."
+    },
+    {
+      "pattern": "V2 parent to non-V2 child",
+      "production_matches": [],
+      "disposition": "Both coordinator and Connector reject nonempty parent_operation_id. Current composites use fixed native sequences, not typed legacy children."
+    },
+    {
+      "pattern": "background autosave / extension management",
+      "production_matches": [
+        {
+          "file": "internal/daemon/autosave.go",
+          "entry": "dispatchSave reference implementation"
+        },
+        {
+          "file": "extension/src/index.ts",
+          "entry": "toggleAutoConnect"
+        }
+      ],
+      "disposition": "Autosaver is not constructed by Server.New and its legacy conn.dispatch is closed. ToggleAutoConnect changes extension connection preference from its user menu, not EDA document content or Agent execution."
+    }
+  ],
+  "limits": "Text/entrypoint checks plus invariant tests, not a formal whole-program proof. Live Host findings are recorded separately."
+}

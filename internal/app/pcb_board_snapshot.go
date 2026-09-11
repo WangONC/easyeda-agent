@@ -579,12 +579,12 @@ type boardSnapshotOpts struct {
 func fetchBoardSnapshot(cfg *appConfig, window string, opts boardSnapshotOpts) (*boardSnapshot, error) {
 	snap := &boardSnapshot{CapturedAt: time.Now().UTC().Format(time.RFC3339)}
 
-	res, err := requestAction(cfg, "pcb.components.list", window,
+	res, err := readStageV2(cfg, "pcb.components.list", window,
 		map[string]any{"includeBBox": true, "includePads": true})
 	if err != nil {
 		return nil, fmt.Errorf("fetch PCB components: %w", err)
 	}
-	snap.Components = parseBoardComponents(res.Result)
+	snap.Components = parseBoardComponents(res)
 	if len(snap.Components) == 0 {
 		snap.note("no components on the board")
 	}
@@ -600,14 +600,14 @@ func fetchBoardSnapshot(cfg *appConfig, window string, opts boardSnapshotOpts) (
 
 	// 板框：pcb.outline.get 在 PCB 非前台时返 null（既有坑），此时 outline 为 nil，
 	// 所有「到板边」维度必须降级而不是当成 0 距离。
-	if ores, oerr := requestAction(cfg, "pcb.outline.get", window, nil); oerr == nil && ores != nil {
-		snap.Outline = parseBoardOutline(ores.Result)
+	if ores, oerr := readStageV2(cfg, "pcb.outline.get", window, nil); oerr == nil && ores != nil {
+		snap.Outline = parseBoardOutline(ores)
 	}
 	snap.sanitizeOutline()
 	// 已布线段计数（best-effort）：routable 维靠它识别成品板。读不到保持 nil
 	//（未知），与「真没布线」(0) 区分。
-	if lres, lerr := requestAction(cfg, "pcb.line.list", window, nil); lerr == nil && lres != nil {
-		if raw, ok := mnav(lres.Result, "lines").([]any); ok {
+	if lres, lerr := readStageV2(cfg, "pcb.line.list", window, nil); lerr == nil && lres != nil {
+		if raw, ok := mnav(lres, "lines").([]any); ok {
 			n := len(raw)
 			snap.RoutedLines = &n
 		}
@@ -665,11 +665,11 @@ func fetchBoardSnapshot(cfg *appConfig, window string, opts boardSnapshotOpts) (
 // pcb_check.go:2019 的 fetchAntennaContext 早就是这么读的，这里保持同一判据，
 // 不引入第二套铜层口径。
 func fetchCopperLayerCount(cfg *appConfig, window string) (int, error) {
-	res, err := requestAction(cfg, "pcb.layers.list", window, nil)
+	res, err := readStageV2(cfg, "pcb.layers.list", window, nil)
 	if err != nil {
 		return 0, err
 	}
-	if n, ok := asFloatOK(mnav(res.Result, "copperLayerCount")); ok && n > 0 {
+	if n, ok := asFloatOK(mnav(res, "copperLayerCount")); ok && n > 0 {
 		return int(n), nil
 	}
 	return 0, fmt.Errorf("connector reported no copperLayerCount")

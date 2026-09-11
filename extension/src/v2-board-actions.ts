@@ -6,8 +6,12 @@ const signature = (b: IDMT_BoardItem) => JSON.stringify([b.name, b.schematic?.uu
 export const newPcb: NativeAction = { mode: 'V2_NATIVE', scope: 'PROJECT_TOPOLOGY', validate: declaredReadFields('board.new_pcb'), run: async (c) => {
         const p = c.request.input, before = await boards();
         let schematic = (p.schematicUuid ?? p.schematic) as string | undefined;
-        if (!schematic)
-            schematic = (await eda.dmt_Board.getCurrentBoardInfo())?.schematic?.uuid ?? before[0]?.schematic?.uuid;
+        if (!schematic) {
+            // Preserve baseline discovery when the Host has no active board.
+            try { schematic = (await eda.dmt_Board.getCurrentBoardInfo())?.schematic?.uuid; }
+            catch { /* discovery only; the complete project inventory is already fresh */ }
+            schematic ??= before[0]?.schematic?.uuid;
+        }
         if (!schematic)
             throw Error('V2_SCHEMATIC_REQUIRED');
         const sch = await eda.dmt_Schematic.getSchematicInfo(schematic);
@@ -51,6 +55,7 @@ export const newPcb: NativeAction = { mode: 'V2_NATIVE', scope: 'PROJECT_TOPOLOG
         try {
             await c.effect(async () => { const b = await shell(); if (b.pcb?.uuid)
                 throw Error('V2_UNEXPECTED_PCB'); id = await eda.dmt_Pcb.createPcb(name!); });
+            if (!id) throw Error('V2_CREATE_ID_UNAVAILABLE');
         }
         catch (e) {
             const pcbs = array(await eda.dmt_Pcb.getAllPcbsInfo());

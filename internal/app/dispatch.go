@@ -41,6 +41,7 @@ var errActionFailed = errors.New("action returned ok=false")
 // action subcommands. The fields are bound directly to Cobra persistent
 // flags so they are populated before any RunE executes.
 type appConfig struct {
+	v2Read  *v2ReadBinding // exact activation/document binding per CLI command
 	host    string
 	ports   string // "60832-60841"
 	project string // optional stable routing hint (project name/uuid) → windowId

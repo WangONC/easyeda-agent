@@ -15,22 +15,26 @@ type Item = {
         done(): Promise<unknown>;
     };
 };
-async function inventory(fills = false) {
+function present<T>(value: T | undefined): T {
+    if (value === undefined) throw Error('V2_SCOPE_CHANGED');
+    return value;
+}
+async function inventory(fills = false, only?: Item) {
     const map = new Map<string, Item>();
     const add = (p: Item['native'] & {
         getState_PrimitiveId(): string;
         getState_Net(): string | undefined;
         getState_PrimitiveLock(): boolean;
-    }, kind: Kind, layer: number, shape: unknown) => { const id = p.getState_PrimitiveId(); if (!id || map.has(id))
+    }, kind: Kind, layer: number, shape: unknown) => { if (!p) throw Error('V2_SCOPE_CHANGED'); const id = p.getState_PrimitiveId(); if (!id || map.has(id))
         throw Error('V2_AMBIGUOUS_IDENTITY'); map.set(id, { id, kind, layer, net: p.getState_Net() ?? '', locked: p.getState_PrimitiveLock(), signature: canonical([kind, layer, p.getState_Net(), shape]), native: p }); };
-    for (const p of array(await eda.pcb_PrimitiveLine.getAll()))
+    for (const p of (only ? only.kind === 'track' ? [present(await eda.pcb_PrimitiveLine.get(only.id))] : [] : array(await eda.pcb_PrimitiveLine.getAll())))
         add(p, 'track', p.getState_Layer(), [p.getState_StartX(), p.getState_StartY(), p.getState_EndX(), p.getState_EndY(), p.getState_LineWidth()]);
-    for (const p of array(await eda.pcb_PrimitiveArc.getAll()))
+    for (const p of (only ? only.kind === 'arc' ? [present(await eda.pcb_PrimitiveArc.get(only.id))] : [] : array(await eda.pcb_PrimitiveArc.getAll())))
         add(p, 'arc', p.getState_Layer(), [p.getState_StartX(), p.getState_StartY(), p.getState_EndX(), p.getState_EndY(), p.getState_LineWidth(), p.getState_ArcAngle()]);
-    for (const p of array(await eda.pcb_PrimitiveVia.getAll()))
+    for (const p of (only ? only.kind === 'via' ? [present(await eda.pcb_PrimitiveVia.get(only.id))] : [] : array(await eda.pcb_PrimitiveVia.getAll())))
         add(p, 'via', 12, [p.getState_X(), p.getState_Y(), p.getState_HoleDiameter(), p.getState_Diameter()]);
     if (fills)
-        for (const p of array(await eda.pcb_PrimitiveFill.getAll()))
+        for (const p of (only ? only.kind === 'fill' ? [present(await eda.pcb_PrimitiveFill.get(only.id))] : [] : array(await eda.pcb_PrimitiveFill.getAll())))
             add(p, 'fill', p.getState_Layer(), [p.getState_ComplexPolygon().getSource(), p.getState_LineWidth()]);
     return map;
 }
@@ -119,7 +123,7 @@ export const trackLock: NativeAction = { mode: 'V2_NATIVE', scope: 'DESIGN_CONTE
             return covered({ locked, counts, total: selected.size - failures.length, failures }, selected.size, selected.size - failures.length, changed, ['fresh_lock_of_each_selected_identity', 'unrelated_geometry_and_lock']);
         });
         for (const id of selected) {
-            const x = (await inventory(includeFills)).get(id);
+            const x = (await inventory(includeFills, before.get(id))).get(id);
             if (!x || x.signature !== before.get(id)!.signature)
                 throw Error('V2_SCOPE_CHANGED');
             if (x.locked !== locked)

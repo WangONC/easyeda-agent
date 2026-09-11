@@ -43,3 +43,23 @@ for (const partial of [false, true])
         assert.equal(creates, 2);
         assert.equal(deletes, 1);
     });
+
+test('group move accepts collinear native collapse, reordered endpoints and zero filler',async()=>{
+ let rows=new Map([['old',[0,0,10,0,10,0,20,0,20,0,20,0]]]);let creates=0,deletes=0;
+ const wire=(id:string)=>({getState_PrimitiveId:()=>id,getState_Line:()=>rows.get(id)!,getState_Net:()=> 'N',getState_Color:()=>null,getState_LineWidth:()=>null,getState_LineType:()=>null});
+ (globalThis as any).eda={sch_PrimitiveComponent:{getAll:async()=>[]},sch_PrimitiveWire:{getAll:async()=>[...rows.keys()].map(wire),delete:async(ids:string[])=>{deletes++;ids.forEach(id=>rows.delete(id));return true;},create:async()=>{creates++;rows.set('merged',creates===1?[15,7,5,7]:[25,7,5,7,5,7,5,7]);return wire('merged');}}};
+ const action=groupMove(async()=>({elements:[],flagPlans:[],allComponents:[],allWires:[wire('old') as never],wantIds:new Set(['old']),dx:5,dy:7}),()=>({}),x=>x as number[]);
+ const req:Request={protocol:V2,action:'schematic.group.move',action_revision:'1',schema:'s',request_id:'r',operation_id:'o',target_ref:target,input:{primitiveIds:['old'],dx:5,dy:7},budget_ms:1000};
+ const ex=new ControlledExecutor(()=>action,async()=>target),result=await ex.execute(req,'d');assert.equal(result.verification.verdict,'satisfied');
+ await ex.reconcile('o');assert.equal(creates,2);assert.equal(deletes,1);
+});
+
+for(const bad of [false,true])test('group move merge into touching stationary wire keeps exact residual scope '+bad,async()=>{
+ const rows=new Map([['old',[0,0,10,0]],['stationary',[30,0,40,0]]]);let creates=0,deletes=0;
+ const wire=(id:string)=>({getState_PrimitiveId:()=>id,getState_Line:()=>rows.get(id)!,getState_Net:()=> 'N',getState_Color:()=>null,getState_LineWidth:()=>null,getState_LineType:()=>null});
+ (globalThis as any).eda={sch_PrimitiveComponent:{getAll:async()=>[]},sch_PrimitiveWire:{getAll:async()=>[...rows.keys()].map(wire),delete:async(ids:string[])=>{deletes++;ids.forEach(id=>rows.delete(id));return true;},create:async()=>{creates++;rows.set('stationary',[20,0,bad?50:40,0]);return wire('stationary');}}};
+ const action=groupMove(async()=>({elements:[],flagPlans:[],allComponents:[],allWires:[wire('old') as never,wire('stationary') as never],wantIds:new Set(['old']),dx:20,dy:0}),()=>({}),x=>x as number[]);
+ const req:Request={protocol:V2,action:'schematic.group.move',action_revision:'1',schema:'s',request_id:'r',operation_id:'o',target_ref:target,input:{primitiveIds:['old'],dx:20,dy:0},budget_ms:1000};
+ const ex=new ControlledExecutor(()=>action,async()=>target),result=await ex.execute(req,'d');
+ assert.equal(result.verification.verdict,bad?'unavailable':'satisfied');await ex.reconcile('o');assert.equal(creates,1);assert.equal(deletes,1);
+});

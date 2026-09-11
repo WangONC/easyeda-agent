@@ -20,6 +20,11 @@ const Service = "easyeda-agent"
 
 // Options configures a daemon Server.
 type Options struct {
+	// V2HostStartupConfirmed is an explicit operator assertion for this daemon
+	// lifetime. Receipt memory cannot prove that a previous lifetime left no
+	// native effects pending. Never infer this from reconnect or a new window ID.
+	V2HostStartupConfirmed bool
+
 	Host      string
 	PortStart int
 	PortEnd   int
@@ -166,12 +171,13 @@ func New(opts Options) *Server {
 }
 
 type health struct {
-	V2Session string   `json:"v2_session"`
-	Service   string   `json:"service"`
-	Version   string   `json:"version"`
-	Status    string   `json:"status"`
-	Port      int      `json:"port"`
-	Windows   []Window `json:"windows"`
+	V2Session       string   `json:"v2_session"`
+	V2StartupFenced bool     `json:"v2_startup_fenced"`
+	Service         string   `json:"service"`
+	Version         string   `json:"version"`
+	Status          string   `json:"status"`
+	Port            int      `json:"port"`
+	Windows         []Window `json:"windows"`
 	// WriteHealth is the rolling per-window forwarded-action failure window
 	// (writehealth.go): degraded=true flags a connector that is failing under
 	// load (REPORT round2 新 3 — clients should insert light reads and verify
@@ -198,13 +204,14 @@ func (s *Server) routes(port int) *http.ServeMux {
 		enc := json.NewEncoder(w)
 		enc.SetIndent("", "  ")
 		_ = enc.Encode(health{
-			V2Session:   s.v2Session,
-			Service:     Service,
-			Version:     s.opts.Version,
-			Status:      "ok",
-			Port:        port,
-			Windows:     s.hub.listAnnotated(s.opts.Version),
-			WriteHealth: s.writeHealth.all(),
+			V2Session:       s.v2Session,
+			V2StartupFenced: !s.opts.V2HostStartupConfirmed,
+			Service:         Service,
+			Version:         s.opts.Version,
+			Status:          "ok",
+			Port:            port,
+			Windows:         s.hub.listAnnotated(s.opts.Version),
+			WriteHealth:     s.writeHealth.all(),
 		})
 	})
 	mux.HandleFunc("/eda", s.handleConnect)

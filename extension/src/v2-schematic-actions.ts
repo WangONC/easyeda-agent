@@ -1,3 +1,4 @@
+import { wireAdditionProof, type WireSnapshot, wireGeometry as canonicalWireGeometry } from './wire-geometry';
 import { type NativeAction, unavailable, observed } from './execution-v2';
 import { array, declaredReadFields } from './v2-native-actions';
 import { covered } from './v2-batch-actions';
@@ -126,26 +127,35 @@ export function connectPin(plan: (p: Record<string, unknown>) => ConnectPlan): N
     return { mode: 'V2_NATIVE', scope: 'DESIGN_CONTENT', validate: declaredReadFields('schematic.power.connect_pin'), run: async (c) => {
             const p = plan(c.request.input);
             const components = async () => array<Awaited<ReturnType<typeof eda.sch_PrimitiveComponent.getAll>>[number]>(await eda.sch_PrimitiveComponent.getAll());
-            const beforeComponents = new Set((await components()).map(x => x.getState_PrimitiveId())), beforeWires = new Set(array(await eda.sch_PrimitiveWire.getAll()).map(x => x.getState_PrimitiveId()));
+            const initialComponents = await components(), initialWires = array(await eda.sch_PrimitiveWire.getAll());
+            const beforeComponents = new Set(initialComponents.map(x => x.getState_PrimitiveId())), beforeWires = new Set(initialWires.map(x => x.getState_PrimitiveId()));
+            if (beforeComponents.size !== initialComponents.length || beforeWires.size !== initialWires.length || beforeComponents.has('') || beforeWires.has('')) throw Error('V2_AMBIGUOUS_IDENTITY');
+            // Capture values, not mutable Host primitive handles: native wire merging
+            // may modify an existing wire while returning a different new identity.
+            const wireSnapshot=(w:typeof initialWires[number]):WireSnapshot=>({id:w.getState_PrimitiveId(),line:w.getState_Line(),net:w.getState_Net(),color:w.getState_Color(),lineWidth:w.getState_LineWidth(),lineType:w.getState_LineType()});
+            const beforeWireSnapshots=structuredClone(initialWires.map(wireSnapshot));
             let probeId: string | undefined, wireId: string | undefined, flagId: string | undefined, applied = p.rotation;
             let attemptedWire = false, attemptedFlag = false;
             c.prepare(async () => {
                 const flags = await components(), wires = array(await eda.sch_PrimitiveWire.getAll());
+                if (new Set(flags.map(x => x.getState_PrimitiveId())).size !== flags.length || new Set(wires.map(x => x.getState_PrimitiveId())).size !== wires.length)
+                    return { changed: null, verification: unavailable() };
                 if (!probeId || (attemptedWire && !wireId) || (attemptedFlag && !flagId))
                     return { changed: null, verification: unavailable() };
                 if (flags.some(x => !beforeComponents.has(x.getState_PrimitiveId()) && ![probeId, flagId].includes(x.getState_PrimitiveId())) || wires.some(x => !beforeWires.has(x.getState_PrimitiveId()) && x.getState_PrimitiveId() !== wireId))
                     return { changed: null, verification: unavailable() };
-                if ([...beforeComponents].some(id => !flags.some(x => x.getState_PrimitiveId() === id)) || [...beforeWires].some(id => !wires.some(x => x.getState_PrimitiveId() === id)))
+                if ([...beforeComponents].some(id => !flags.some(x => x.getState_PrimitiveId() === id)))
                     return { changed: null, verification: unavailable() };
                 const wire = wires.find(x => x.getState_PrimitiveId() === wireId), flag = flags.find(x => x.getState_PrimitiveId() === flagId);
-                const line = wire?.getState_Line();
-                const flat = Array.isArray(line) ? line.flat() : [];
-                const wireOK = !!wireId && !beforeWires.has(wireId) && JSON.stringify(flat) === JSON.stringify([p.pinGX, p.pinGY, p.endX, p.endY]);
+                const afterWireSnapshots=wires.map(wireSnapshot);
+
+                const wireOK=!!wireId&&wireAdditionProof(beforeWireSnapshots,afterWireSnapshots,wireId,[p.pinGX,p.pinGY,p.endX,p.endY],flagId?{net:p.net}:{},!!flagId);
+                if(attemptedWire&&!wireOK)return {changed:null,verification:unavailable(),evidence:{before:beforeWireSnapshots,after:afterWireSnapshots}};
                 const norm = (v: number) => (v % 360 + 360) % 360;
                 const flagOK = !!flagId && !beforeComponents.has(flagId) && !!flag && flag.getState_Net() === p.net && flag.getState_X() === p.endX && flag.getState_Y() === p.endY && norm(flag.getState_Rotation()) === norm(p.rotation);
                 const probeGone = !!probeId && !flags.some(x => x.getState_PrimitiveId() === probeId);
                 const changed = flags.some(x => !beforeComponents.has(x.getState_PrimitiveId())) || wires.some(x => !beforeWires.has(x.getState_PrimitiveId()));
-                return covered({ wirePrimitiveId: wireId, flagPrimitiveId: flagId, endPoint: { x: p.endX, y: p.endY }, direction: p.direction, offset: p.offset, rotation: p.rotation, appliedRotation: applied, ...(!probeGone ? { probe_residual: probeId } : {}) }, 3, Number(wireOK) + Number(flagOK) + Number(probeGone), changed, ['fresh_wire_geometry_identity', 'fresh_flag_net_position_rotation', 'fresh_probe_absence', 'complete_new_identity_inventory']);
+                return covered({ wirePrimitiveId: wireId, flagPrimitiveId: flagId, endPoint: { x: p.endX, y: p.endY }, direction: p.direction, offset: p.offset, rotation: p.rotation, appliedRotation: applied, ...(!probeGone ? { probe_residual: probeId } : {}) }, 3, Number(wireOK) + Number(flagOK) + Number(probeGone), changed, ['fresh_wire_geometry_identity', 'fresh_flag_net_position_rotation', 'fresh_probe_absence', 'complete_new_identity_inventory', 'unrelated_wire_geometry']);
             });
             // The old calibration workaround is retained, but even its probe is owned.
             await c.effect(async () => { const x = await eda.sch_PrimitiveComponent.createNetFlag('Power', '__ROTPROBE__', 990000, 990000, 90); probeId = x?.getState_PrimitiveId(); });
@@ -162,7 +172,7 @@ export function connectPin(plan: (p: Record<string, unknown>) => ConnectPlan): N
             if ((await components()).some(x => x.getState_PrimitiveId() === probeId))
                 return c.verify();
             await c.effect(async () => { attemptedWire = true; const x = await eda.sch_PrimitiveWire.create([p.pinGX, p.pinGY, p.endX, p.endY]); wireId = x?.getState_PrimitiveId(); });
-            if (!wireId || beforeWires.has(wireId))
+            if (!wireId)
                 throw Error('V2_WIRE_IDENTITY');
             await c.effect(async () => { attemptedFlag = true; const x = p.flag ? await eda.sch_PrimitiveComponent.createNetFlag(p.flag, p.net, p.endX, p.endY, applied) : await eda.sch_PrimitiveComponent.createNetPort(p.port!, p.net, p.endX, p.endY, applied); flagId = x?.getState_PrimitiveId(); });
             return c.verify();
@@ -180,10 +190,14 @@ interface DisconnectPlan {
 export function disconnect(plan: (p: Record<string, unknown>) => Promise<DisconnectPlan>): NativeAction {
     return { mode: 'V2_NATIVE', scope: 'DESIGN_CONTENT', validate: declaredReadFields('schematic.pin.disconnect'), run: async (c) => {
             const p = await plan(c.request.input), ids = [...p.wireIds, ...p.validFlags];
-            const pull = async () => { const wires = array(await eda.sch_PrimitiveWire.getAll()), flags = array<Awaited<ReturnType<typeof eda.sch_PrimitiveComponent.getAll>>[number]>(await eda.sch_PrimitiveComponent.getAll()); return new Set([...wires, ...flags].map(x => x.getState_PrimitiveId())); };
+            const pull=async()=>{
+                const wires=array(await eda.sch_PrimitiveWire.getAll()),flags=array<Awaited<ReturnType<typeof eda.sch_PrimitiveComponent.getAll>>[number]>(await eda.sch_PrimitiveComponent.getAll());
+                const entries:[string,string][]=[...wires.map(w=>[w.getState_PrimitiveId(),JSON.stringify([canonicalWireGeometry(w.getState_Line(),true),w.getState_Net(),w.getState_Color(),w.getState_LineWidth(),w.getState_LineType()])] as [string,string]),...flags.map(f=>[f.getState_PrimitiveId(),'component'] as [string,string])];
+                const map=new Map(entries);if(map.size!==entries.length||map.has(''))throw Error('V2_AMBIGUOUS_IDENTITY');return map;
+            };
             const before = await pull();
-            c.prepare(async () => { const after = await pull(); if ([...after].some(id => !before.has(id)) || [...before].some(id => !ids.includes(id) && !after.has(id)))
-                return { changed: null, verification: unavailable() }; const survivedIds = ids.filter(id => after.has(id)), deletedWires = p.wireIds.filter(id => !after.has(id)), deletedFlags = p.validFlags.filter(id => !after.has(id)); return covered({ disconnected: !survivedIds.length, ...(survivedIds.length ? { partial: true } : {}), pin: p.designator && p.pinNumber ? `${p.designator}:${p.pinNumber}` : undefined, at: p.pinX !== undefined && p.pinY !== undefined ? { x: p.pinX, y: p.pinY } : undefined, deletedWires, deletedFlags, notApplied: survivedIds.map(id => ({ kind: p.wireIds.includes(id) ? 'wire' : 'flag', id })), survivedIds, ...(p.alsoDisconnectedPins.length ? { alsoDisconnectedPins: p.alsoDisconnectedPins } : {}) }, ids.length, ids.length - survivedIds.length, deletedWires.length + deletedFlags.length > 0, ['fresh_stub_and_flag_absence', 'unrelated_inventory']); });
+            c.prepare(async () => { const after = await pull(); if ([...after.keys()].some(id => !before.has(id)) || [...before].some(([id,geometry]) => !ids.includes(id) && after.get(id)!==geometry))
+                return { changed: null, verification: unavailable() }; const survivedIds = ids.filter(id => after.has(id)), deletedWires = p.wireIds.filter(id => !after.has(id)), deletedFlags = p.validFlags.filter(id => !after.has(id)); return covered({ disconnected: !survivedIds.length, ...(survivedIds.length ? { partial: true } : {}), pin: p.designator && p.pinNumber ? `${p.designator}:${p.pinNumber}` : undefined, at: p.pinX !== undefined && p.pinY !== undefined ? { x: p.pinX, y: p.pinY } : undefined, deletedWires, deletedFlags, notApplied: survivedIds.map(id => ({ kind: p.wireIds.includes(id) ? 'wire' : 'flag', id })), survivedIds, ...(p.alsoDisconnectedPins.length ? { alsoDisconnectedPins: p.alsoDisconnectedPins } : {}) }, ids.length, ids.length - survivedIds.length, deletedWires.length + deletedFlags.length > 0, ['fresh_stub_and_flag_absence', 'unrelated_inventory_and_wire_geometry']); });
             for (let i = 0; i < p.wireIds.length; i += 50)
                 await c.effect(async () => { const part = p.wireIds.slice(i, i + 50), generic = (eda as unknown as {
                     sch_PrimitiveObject?: {

@@ -41,16 +41,19 @@ func newDaemonCmd(cfg *appConfig, stdout, stderr io.Writer) *cobra.Command {
 func newDaemonStartCmd(cfg *appConfig, stdout, stderr io.Writer) *cobra.Command {
 	var autosaveDebounce time.Duration
 	var autoUpdateSkill bool
+	var v2HostStartupConfirmed bool
 	c := &cobra.Command{
 		Use:   "start",
 		Short: "Start the daemon (blocks until SIGINT/SIGTERM)",
 		Long: `Start the daemon (blocks until SIGINT/SIGTERM).
 
-Daemon-level autosave (--autosave-debounce) is a safety net for in-memory edits:
-place/wire/modify only change the EasyEDA document in memory, so a window reload,
-daemon restart, or crash loses unsaved work. With autosave on, the daemon saves a
-window once its edits quiesce for the debounce window (a burst coalesces into one
-save). Set to 0 to disable.
+Execution V2 starts with Host effects fenced because receipts are in memory.
+Reads remain available. After checking that no prior native operation is unresolved
+and freshly checking the Host target/checkpoint, an operator may start with
+--v2-host-startup-confirmed. This is a per-start assertion, not persisted trust:
+do not add it to an automatic restart command. Restart/reconnect never proves
+cancellation, and this flag cannot reconstruct or complete a lost receipt.
+The legacy --autosave-debounce option is retained but V2 does not arm autosave.
 
 Skill auto-update (--auto-update-skill, on by default) keeps your installed
 easyeda-agent skill dirs (CLAUDE_CONFIG_DIR / CODEX_HOME, default ~/.claude / ~/.codex) in sync with this daemon's release on
@@ -105,11 +108,12 @@ extension/src/transport.ts).`,
 			}
 
 			srv := daemon.New(daemon.Options{
-				Host:             cfg.host,
-				PortStart:        port,
-				PortEnd:          port, // single fixed port — no spill
-				Version:          version.Version,
-				AutosaveDebounce: autosaveDebounce,
+				Host:                   cfg.host,
+				PortStart:              port,
+				PortEnd:                port, // single fixed port — no spill
+				Version:                version.Version,
+				AutosaveDebounce:       autosaveDebounce,
+				V2HostStartupConfirmed: v2HostStartupConfirmed,
 			})
 			if err := srv.Run(ctx, stdout); err != nil {
 				return err
@@ -117,6 +121,8 @@ extension/src/transport.ts).`,
 			return nil
 		},
 	}
+	c.Flags().BoolVar(&v2HostStartupConfirmed, "v2-host-startup-confirmed", false,
+		"operator confirms this Host has no unresolved prior native effect and its target/checkpoint was freshly checked; never set automatically on restart")
 	c.Flags().DurationVar(&autosaveDebounce, "autosave-debounce", 3*time.Second,
 		"autosave a window this long after its last mutating action (0 = disable)")
 	c.Flags().BoolVar(&autoUpdateSkill, "auto-update-skill", true,

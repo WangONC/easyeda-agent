@@ -34,7 +34,7 @@ func (d *autolayoutTestDaemon) snapshot() []autolayoutTestCall {
 func newAutolayoutTestDaemon(t *testing.T, responder func(int, autolayoutTestCall) string) (*appConfig, *autolayoutTestDaemon, func()) {
 	t.Helper()
 	state := &autolayoutTestDaemon{}
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(withV2ReadFixture(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/health":
 			_, _ = w.Write([]byte(`{"service":"easyeda-agent","windows":[{"windowId":"w1"}]}`))
@@ -61,7 +61,7 @@ func newAutolayoutTestDaemon(t *testing.T, responder func(int, autolayoutTestCal
 		default:
 			http.NotFound(w, r)
 		}
-	}))
+	})))
 
 	hostPort := strings.TrimPrefix(srv.URL, "http://")
 	host, portText, _ := strings.Cut(hostPort, ":")
@@ -70,7 +70,7 @@ func newAutolayoutTestDaemon(t *testing.T, responder func(int, autolayoutTestCal
 		srv.Close()
 		t.Fatalf("parse test daemon port: %v", err)
 	}
-	return &appConfig{host: host, ports: fmt.Sprintf("%d-%d", port, port)}, state, srv.Close
+	return &appConfig{v2Read: fixtureReadBinding(srv.URL), host: host, ports: fmt.Sprintf("%d-%d", port, port)}, state, srv.Close
 }
 
 func autolayoutOK(docUUID, resultJSON string) string {

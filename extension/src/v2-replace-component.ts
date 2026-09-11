@@ -1,4 +1,4 @@
-import { wireGeometry } from './wire-geometry';
+import { cloneWireData, nativeWireSegments, segmentCoverage } from './wire-geometry';
 import { type NativeAction, unavailable } from './execution-v2';
 import { array, declaredReadFields } from './v2-native-actions';
 import { canonical } from './fast-path';
@@ -47,14 +47,32 @@ export function replaceComponent(plan: (p: Record<string, unknown>) => Promise<P
             if (c.request.input.client_transaction_id !== undefined && c.request.input.client_transaction_id !== c.request.operation_id)
                 throw Error('V2_TRANSACTION_ID_MISMATCH');
             const p = await plan(c.request.input), list = async () => array<Comp>(await eda.sch_PrimitiveComponent.getAll()), before = new Map((await list()).map(x => [x.getState_PrimitiveId(), canonical(serialize(x))]));
-            const wireState = async () => canonical(array(await eda.sch_PrimitiveWire.getAll()).map(x => [x.getState_PrimitiveId(), wireGeometry(x.getState_Line(),true), x.getState_Net()]).sort());
+            const wireObservations:unknown[]=[];
+            const wireState = async () => {
+                for(const delay of [0,100,250,500]){
+                    if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
+                    const rows=array(await eda.sch_PrimitiveWire.getAll()).map(x=>[x.getState_PrimitiveId(),cloneWireData(x.getState_Line()),x.getState_Net()]);
+                    try{return canonical(rows.map(([id,line,net])=>[id,segmentCoverage(nativeWireSegments(line)),net]).sort());}
+                    catch(error){wireObservations.push({rows,error:String(error)});}
+                }
+                throw Error('V2_WIRE_SHAPE');
+            };
             const wires = await wireState();
             let staged: string | undefined, restored: string | undefined, createAttempted = false, recoveryAttempted = false, rollbackAttempted = false;
             const receipts = new Map<string, string>();
             let expected: Record<string, unknown> = {};
             let finalContractReady = false;
-            const pull = async (id: string) => { const found = (await list()).find(x => x.getState_PrimitiveId() === id); if (!found)
-                throw Error('V2_COMPONENT_ABSENT'); return found; };
+            let stagedObserved=false;
+            let failure:unknown;
+            let failedFields:unknown;
+            const pull = async (id: string) => {
+                for(const delay of [0,100,250,500]){
+                    if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
+                    const found=(await list()).find(x=>x.getState_PrimitiveId()===id);
+                    if(found){if(id===staged)stagedObserved=true;return found;}
+                }
+                throw Error('V2_COMPONENT_ABSENT');
+            };
             const equal = (state: Record<string, unknown>, patch: Record<string, unknown>) => Object.entries(patch).every(([k, v]) => k === 'otherProperty' ? Object.entries(object(v)).every(([key, value]) => Object.hasOwn(object(state[k]), key) && String(object(state[k])[key]) === String(value)) : state[k] === v);
             const persist = async (id: string, source: unknown) => { const receipt = sourceReceipt(serialize(await pull(id)), source); if (receipt.length > 8192)
                 throw Error('V2_SOURCE_TOO_LARGE'); const key = sourceStorageKey(c.request.target_ref.project_uuid!, c.request.target_ref.document_uuid!, id); await c.effect(async () => { await eda.sys_Storage.setExtensionUserConfig(key, receipt); receipts.set(id, receipt); }); };
@@ -63,13 +81,17 @@ export function replaceComponent(plan: (p: Record<string, unknown>) => Promise<P
                 const liveSource = sourceAsset(await eda.lib_Device.get(p.target.uuid, p.target.libraryUuid));
                 if (canonical(liveSource) !== canonical(sourceAsset(p.targetSource)))
                     return { changed: null, verification: unavailable() };
+                let freshWires:string;
+                try{freshWires=await wireState();}catch{return {changed:null,verification:unavailable(),evidence:{failure,wireObservations}};}
                 const fresh = await list(), map = new Map(fresh.map(x => [x.getState_PrimitiveId(), x]));
-                if (createAttempted && !staged || recoveryAttempted && !restored || staged && before.has(staged) || restored && before.has(restored) || fresh.some(x => !before.has(x.getState_PrimitiveId()) && x.getState_PrimitiveId() !== staged && x.getState_PrimitiveId() !== restored) || [...before].some(([id, v]) => id !== p.primitiveId && (!map.has(id) || canonical(serialize(map.get(id)!)) !== v)) || await wireState() !== wires)
+                if (createAttempted && !staged || recoveryAttempted && !restored || staged && before.has(staged) || restored && before.has(restored) || fresh.some(x => !before.has(x.getState_PrimitiveId()) && x.getState_PrimitiveId() !== staged && x.getState_PrimitiveId() !== restored) || [...before].some(([id, v]) => id !== p.primitiveId && (!map.has(id) || canonical(serialize(map.get(id)!)) !== v)) || freshWires !== wires)
                     return { changed: null, verification: unavailable() };
+                if(staged&&map.has(staged))stagedObserved=true;
+                if(createAttempted&&!stagedObserved)return {changed:null,verification:unavailable(),evidence:{failure,staged,reason:'returned_creation_not_observed'}};
                 const replacement = staged ? map.get(staged) : undefined, original = map.get(p.primitiveId), recovered = restored ? map.get(restored) : original;
                 const rollbackComplete = rollbackAttempted && !replacement && !!recovered && equal(serialize(recovered), { ...p.rollbackProps, x: p.x, y: p.y, ...(p.rotation !== undefined ? { rotation: p.rotation } : {}), ...(p.mirror !== undefined ? { mirror: p.mirror } : {}), ...(p.addIntoBom !== undefined ? { addIntoBom: p.addIntoBom } : {}), ...(p.addIntoPcb !== undefined ? { addIntoPcb: p.addIntoPcb } : {}) }) && (restored ? bound(restored, recovered, p.oldSource) : canonical(serialize(recovered)) === before.get(p.primitiveId));
                 if (rollbackComplete)
-                    return covered({ previousPrimitiveId: p.primitiveId, primitiveId: recovered!.getState_PrimitiveId(), component: serialize(recovered!), rollbackAttempted, rollbackComplete }, 3, 0, restored !== undefined, ['fresh_compensation_instance_and_source', 'staged_absence', 'wires_unchanged']);
+                    return {...covered({ previousPrimitiveId: p.primitiveId, primitiveId: recovered!.getState_PrimitiveId(), component: serialize(recovered!), rollbackAttempted, rollbackComplete }, 3, 0, restored !== undefined, ['fresh_compensation_instance_and_source', 'staged_absence', 'wires_unchanged']),evidence:{failure,failedFields,wireObservations}};
                 const newPins = staged && replacement ? await pins(staged) : undefined;
                 const matched = finalContractReady && !!replacement && equal(serialize(replacement), expected) && bound(staged!, replacement, p.targetSource) && !!newPins;
                 let pinDiff: Record<string, unknown> = { available: false };
@@ -91,13 +113,22 @@ export function replaceComponent(plan: (p: Record<string, unknown>) => Promise<P
                 await c.effect(async () => { await eda.sch_PrimitiveComponent.modify(staged!, { otherProperty: props, ...(/^C\d+$/.test(supplier) ? { supplierId: supplier } : {}) } as never); });
                 await persist(staged, p.targetSource);
                 const stagedState = serialize(await pull(staged));
-                if (!equal(stagedState, { ...expected, otherProperty: props }) || !await pins(staged))
+                if (!equal(stagedState, { ...expected, otherProperty: props }) || !await pins(staged)){
+                    failedFields={expected:{...expected,otherProperty:props},observed:stagedState};
                     throw Error('V2_STAGED_VERIFICATION_FAILED');
+                }
                 // Freeze the final postcondition before the destructive step; a late delete
                 // must never certify the temporary staged identity as the replacement.
                 Object.assign(expected, p.carryProps, { otherProperty: { ...props, ...(p.keepProperties ? p.carried : {}) } });
                 finalContractReady = true;
-                if (await wireState() !== wires)
+                const stagedWires=JSON.parse(await wireState()) as Array<[string,string,unknown]>;
+                const originalWires=JSON.parse(wires) as Array<[string,string,unknown]>;
+                const originalWireIds=new Set(originalWires.map(([id])=>id));
+                // Host staging at the original pin positions can create zero-length
+                // placeholders. Permit them only before deleting the original;
+                // final/rollback verification still requires the entire original
+                // inventory, so no placeholder residual is silently accepted.
+                if(canonical(stagedWires.filter(([id])=>originalWireIds.has(id)))!==wires||stagedWires.some(([id,geometry,net])=>!originalWireIds.has(id)&&(geometry!=='[]'||net!=='')))
                     throw Error('V2_WIRE_DRIFT');
                 await c.effect(async () => { if (canonical(serialize(await pull(p.primitiveId))) !== before.get(p.primitiveId))
                     throw Error('V2_ORIGINAL_DRIFT'); await eda.sch_PrimitiveComponent.delete(p.primitiveId); });
@@ -106,15 +137,17 @@ export function replaceComponent(plan: (p: Record<string, unknown>) => Promise<P
                 await c.effect(async () => { await eda.sch_PrimitiveComponent.modify(staged!, expected as never); });
                 await persist(staged, p.targetSource);
                 const finalState = await pull(staged);
-                if (!equal(serialize(finalState), expected) || !bound(staged, finalState, p.targetSource))
-                    throw Error('V2_FINAL_REPLACEMENT_MISMATCH');
+                if (!equal(serialize(finalState), expected) || !bound(staged, finalState, p.targetSource)){failedFields={expected,observed:serialize(finalState)};throw Error('V2_FINAL_REPLACEMENT_MISMATCH');}
             }
-            catch {
+            catch (error) {
+                failure=String(error);
                 // Reconcile exact identities before compensation. No create with missing ID,
                 // no mutation in the reconciler, and deadline admission prevents late cleanup.
                 if (staged && !before.has(staged))
                     try {
                         const state = await list();
+                        if(!state.some(x=>x.getState_PrimitiveId()===staged))throw Error('V2_STAGED_NOT_VISIBLE');
+                        stagedObserved=true;
                         if (state.some(x => !before.has(x.getState_PrimitiveId()) && x.getState_PrimitiveId() !== staged))
                             throw Error('V2_UNKNOWN_RESIDUAL');
                         await c.effect(async () => { rollbackAttempted = true; await eda.sch_PrimitiveComponent.delete(staged!); });

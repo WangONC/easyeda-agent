@@ -42,7 +42,14 @@ func ValidateV2(r executionv2.Request) (executionv2.Admission, error) {
 		if r.ExpectedRevision != nil {
 			return executionv2.Admission{}, errors.New("V2_REVISION_NOT_SUPPORTED")
 		}
-		if v.Target != "ANY" && v.Target != r.Target.Scope && !(r.Target.Scope == "DOCUMENT" && v.Target == r.Target.DocumentType) {
+		targetKind := v.Target
+		if r.Action == "document.open" && r.Input["reload"] == true {
+			targetKind = "DOCUMENT"
+			if r.Input["uuid"] != r.Target.DocumentUUID || (r.Target.DocumentType != "pcb" && r.Target.DocumentType != "schematic") {
+				return executionv2.Admission{}, errors.New("V2_RELOAD_TARGET_MISMATCH")
+			}
+		}
+		if targetKind != "ANY" && targetKind != r.Target.Scope && !(r.Target.Scope == "DOCUMENT" && targetKind == r.Target.DocumentType) {
 			return executionv2.Admission{}, errors.New("V2_TARGET_MISMATCH")
 		}
 		for k, t := range v.Input {

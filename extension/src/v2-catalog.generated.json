@@ -216,11 +216,12 @@
     "input": {}
   },
   "document.open": {
-    "schema": "90e040ef41b1f385c6b71fcb746e5cf11e42e538c086f4725beb3f510d9554ea",
+    "schema": "a876f06fc15bbde89301b6dddc929370fae17ac8d11aeac32136e52321808323",
     "revision": "1",
     "effect_scope": "NAVIGATION_SELECTION",
     "target": "PROJECT",
     "input": {
+      "reload": "boolean",
       "uuid": "!string"
     }
   },

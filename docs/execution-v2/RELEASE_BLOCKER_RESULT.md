@@ -1,5 +1,9 @@
 # Execution V2 Release Blocker Repair
 
+Latest bounded repair and actual Host outcome: [CHECKPOINT_RELEASE_PROGRESS.md](CHECKPOINT_RELEASE_PROGRESS.md). Group move, connect_pin and actual source replacement cases passed. Automatic checkpoint remains blocked by close ACK/tab-inventory inconsistency; final E2E NOT_RUN. Current ownership is released.
+
+Superseding product decision: see [PRODUCT_BOUNDARY.md](PRODUCT_BOUNDARY.md). Existing-board ECO is a Host API capability limitation, no longer a release blocker. The historical evidence below remains unchanged.
+
 Verdict: **RELEASE_BLOCKED**. This is a bounded continuation of Round 3, not a new audit or architecture round.
 
 ## Implemented and deployed recovery

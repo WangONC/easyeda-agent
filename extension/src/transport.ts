@@ -61,6 +61,8 @@ import { describeThrown } from './util';
 // activation its own host-managed socket; the daemon coalesces registrations
 // that report the same project/document/tab when routing an action.
 const WS_ID_BASE = createWebSocketId();
+// Checkpoint reload starts a new controlled binding epoch.
+let activationIdentity=WS_ID_BASE;
 // 叠加在 PR #154 的 activation-scoped id 之上:即便每个激活已有独立 id,真机 soak
 // 实测(2026-08-04,停 daemon 45s/60s 各一轮)仍会卡死 —— 第二轮 210s 没能自愈,
 // 60832 上持续报 "closed before the connection is established"。activation-scoped
@@ -607,7 +609,7 @@ function sendRegister(): void {
 	}
 	const frame: RegisterFrame = {
 		type: 'register',
-  activationId:WS_ID_BASE,
+  activationId:activationIdentity,
 		windowId,
 		connectorVersion: CONNECTOR_VERSION,
 		easyedaVersion: readEasyEdaVersion(),
@@ -865,6 +867,7 @@ function clearRetryTimer(): void {
 
 // ─── Inbound message handling ─────────────────────────────────────────
 
+const reloadReleases=new Map<string,string>();
 async function handleMessage(msg: InboundFrame): Promise<void> {
 	switch (msg.type) {
 		case 'ping':
@@ -879,11 +882,14 @@ async function handleMessage(msg: InboundFrame): Promise<void> {
    const f=msg as unknown as {request:V2Request;digest:string;deadline_unix_ms:number};
    const spec=(v2Catalog as Record<string,{schema:string;revision:string}>)[f.request.action];
    if(!spec || f.request.protocol!=='execution.v2' || f.request.schema!==spec.schema || f.request.action_revision!==spec.revision || !Number.isFinite(f.deadline_unix_ms)) {sendFrame({type:'log',msg:'V2_SCHEMA_OR_DEADLINE_REJECTED'});return;}
+   if(f.request.action==='document.open'&&f.request.input.reload===true)reloadReleases.set(f.request.operation_id,f.digest);
    void v2Executor.execute(f.request,f.digest,f.deadline_unix_ms).then(result=>sendFrame({type:'v2_result',result})).catch(error=>sendFrame({type:'log',msg:String(error)}));
    return;
   }
   case 'v2_release': {
-   const f=msg as unknown as {operation_id:string;digest:string};v2Executor.release(f.operation_id,f.digest);return;
+   const f=msg as unknown as {operation_id:string;digest:string};v2Executor.release(f.operation_id,f.digest);
+   if(reloadReleases.get(f.operation_id)===f.digest){reloadReleases.delete(f.operation_id);activationIdentity=createWebSocketId();reconnect();}
+   return;
   }
   case 'v2_reconcile':
    void v2Executor.reconcile((msg as unknown as {operation_id:string}).operation_id).then(result=>sendFrame({type:'v2_result',result})).catch(error=>sendFrame({type:'log',msg:String(error)}));
@@ -922,12 +928,12 @@ function toResponseError(err: unknown): ResponseFrame['error'] {
 
 // Pure context reads only: never activate a tab as part of target checking.
 const v2Executor=new ControlledExecutor(nativeAction,async (wanted: V2Target):Promise<V2Target>=>{
- if(!windowId || windowId!==wanted.session || WS_ID_BASE!==wanted.activation) throw Error('V2_SESSION_LOST');
+ if(!windowId || windowId!==wanted.session || activationIdentity!==wanted.activation) throw Error('V2_SESSION_LOST');
  const project=await eda.dmt_Project.getCurrentProjectInfo();
  const doc=await eda.dmt_SelectControl.getCurrentDocumentInfo();
  if(wanted.scope==='HOME') {
   if(project || (doc && documentTypeLabel(doc.documentType)!=='home')) throw Error('V2_TARGET_MISMATCH');
-  return {scope:'HOME',session:windowId,activation:WS_ID_BASE};
+  return {scope:'HOME',session:windowId,activation:activationIdentity};
  }
  if(wanted.scope==='LIBRARY') {
   const libraries=await eda.lib_LibrariesList.getAllLibrariesList();
@@ -936,9 +942,9 @@ const v2Executor=new ControlledExecutor(nativeAction,async (wanted: V2Target):Pr
   return wanted;
  }
  if(!project?.uuid) throw Error('V2_TARGET_MISMATCH');
- if(wanted.scope==='PROJECT') return {scope:'PROJECT',session:windowId,activation:WS_ID_BASE,project_uuid:project.uuid};
+ if(wanted.scope==='PROJECT') return {scope:'PROJECT',session:windowId,activation:activationIdentity,project_uuid:project.uuid};
  if(!doc?.uuid || !doc.tabId || doc.parentProjectUuid!==project.uuid) throw Error('V2_TARGET_MISMATCH');
- return {scope:'DOCUMENT',session:windowId,activation:WS_ID_BASE,project_uuid:project.uuid,document_uuid:doc.uuid,document_type:documentTypeLabel(doc.documentType),tab_id:doc.tabId};
+ return {scope:'DOCUMENT',session:windowId,activation:activationIdentity,project_uuid:project.uuid,document_uuid:doc.uuid,document_type:documentTypeLabel(doc.documentType),tab_id:doc.tabId};
 },2048,(run,request)=>new Promise((resolve,reject)=>{
  void actionQueue.submit({id:request.operation_id,timeoutMs:request.budget_ms,bypass:request.action==='document.current',run:async()=>{try {const result=await run();resolve(result);}catch(error){reject(error);}}}).then(outcome=>{if(outcome.status==='overflow')reject(Error('V2_QUEUE_OVERFLOW'));});
 }));

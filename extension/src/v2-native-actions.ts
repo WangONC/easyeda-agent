@@ -112,7 +112,59 @@ export function assetDelete(kind:'footprint'|'device'|'model3d'):NativeAction {
   return c.verify();
  }};
 }
-export const documentOpen:NativeAction={mode:'V2_NATIVE',scope:'NAVIGATION_SELECTION',validate:p=>{fields(p,{uuid:'string',schematicPageUuid:'string'});if(!p.uuid&&!p.schematicPageUuid)throw Error('V2_MISSING_ID');if(p.uuid&&p.schematicPageUuid&&p.uuid!==p.schematicPageUuid)throw Error('V2_CONFLICTING_ID');},run:async c=>{
+
+// A fixed save/close/open operation, never a legacy reload or mutation replay.
+// Persistence is checked separately after the daemon authorizes session renewal.
+async function reloadDocument(c:NativeContext):Promise<Observation> {
+ const t=c.request.target_ref,id=c.request.input.uuid;
+ if(t.scope!=='DOCUMENT'||id!==t.document_uuid||!['pcb','schematic'].includes(t.document_type??''))throw Error('V2_RELOAD_TARGET_MISMATCH');
+ const before=await eda.dmt_SelectControl.getCurrentDocumentInfo();
+ if(!before||before.uuid!==id||before.tabId!==t.tab_id)throw Error('V2_RELOAD_TARGET_MISMATCH');
+ const originalType=before.documentType;
+ const split=await eda.dmt_EditorControl.getSplitScreenIdByTabId(t.tab_id!);if(!split)throw Error('V2_TAB_SPLIT_UNAVAILABLE');
+ c.navigationTarget({scope:'PROJECT',session:t.session,activation:t.activation,project_uuid:t.project_uuid});
+ const tabs=async()=>{
+  let tree:Awaited<ReturnType<typeof eda.dmt_EditorControl.getSplitScreenTree>>;
+  try{tree=await eda.dmt_EditorControl.getSplitScreenTree();}catch{/* last-editor close can invalidate its tree model */}
+  if(!tree){
+   // Query the captured split identity, never turn a failed tree read into [].
+   const rows=await eda.dmt_EditorControl.getTabsBySplitScreenId(split);
+   if(!Array.isArray(rows)||rows.some(row=>!row?.tabId))throw Error('V2_TAB_INVENTORY_UNAVAILABLE');
+   return rows.map(row=>row.tabId);
+  }
+  const out:string[]=[];
+  const walk=(node:typeof tree)=>{if(node.tabs){if(!Array.isArray(node.tabs))throw Error('V2_TAB_SHAPE');for(const tab of node.tabs){if(!tab.tabId)throw Error('V2_TAB_SHAPE');out.push(tab.tabId);}}if(node.children){if(!Array.isArray(node.children))throw Error('V2_TAB_SHAPE');node.children.forEach(walk);}};
+  walk(tree);if(new Set(out).size!==out.length)throw Error('V2_TAB_IDENTITY');return out;
+ };
+ // Keeping another verified editor alive avoids the Host's last-editor model
+ // teardown exception. This is navigation only, resolved by UUID in this project.
+ const siblings=t.document_type==='schematic'?array(await eda.dmt_Pcb.getAllPcbsInfo()):array(await eda.dmt_Schematic.getAllSchematicPagesInfo());
+ const companion=siblings.map(row=>row.uuid).filter(uuid=>typeof uuid==='string'&&uuid!==id).sort()[0];
+ let saved=false,closed=false,opened:string|undefined,closeAck:unknown,closeError:unknown;const closeObservations:string[][]=[];
+ c.prepare(async()=>{
+  const after=await eda.dmt_SelectControl.getCurrentDocumentInfo();
+  if(saved&&closed&&opened&&after?.uuid===id&&after.tabId===opened&&after.documentType===originalType&&(await tabs()).includes(opened))
+   return observed({tabId:opened,reloaded:true,saved:true,checkpoint_proven:false,...(companion?{companion_uuid:companion}:{})},['save_ack','observed_old_tab_absence','native_open_returned_tab','fresh_document_uuid_type_tab'],true);
+  return {changed:null,verification:unavailable(),evidence:{saved,closed,opened,after,closeAck,closeError,closeObservations}};
+ });
+ await c.effect(async()=>{saved=(t.document_type==='pcb'?await eda.pcb_Document.save():await eda.sch_Document.save())===true;});
+ if(!saved)return c.verify();
+ if(companion){
+  await c.effect(()=>eda.dmt_EditorControl.openDocument(companion));
+  if((await eda.dmt_SelectControl.getCurrentDocumentInfo())?.uuid!==companion)throw Error('V2_CHECKPOINT_COMPANION_MISMATCH');
+ }
+ try{closeAck=await c.effect(()=>eda.dmt_EditorControl.closeDocument(id as string));}catch(error){closeError=String(error);/* fresh absence only */}
+ for(const delay of [0,100,250,500,1000]){
+  if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
+  const liveTabs=await tabs();closeObservations.push(liveTabs);closed=!liveTabs.includes(t.tab_id!);if(closed)break;
+ }
+ if(!closed)return c.verify();
+ await c.effect(async()=>{opened=await eda.dmt_EditorControl.openDocument(id as string);});
+ return c.verify();
+}
+
+export const documentOpen:NativeAction={mode:'V2_NATIVE',scope:'NAVIGATION_SELECTION',validate:p=>{fields(p,{uuid:'string',schematicPageUuid:'string',reload:'boolean'});if(!p.uuid&&!p.schematicPageUuid)throw Error('V2_MISSING_ID');if(p.uuid&&p.schematicPageUuid&&p.uuid!==p.schematicPageUuid)throw Error('V2_CONFLICTING_ID');},run:async c=>{
+ if(c.request.input.reload===true)return reloadDocument(c);
  const id=(c.request.input.schematicPageUuid??c.request.input.uuid) as string;
  const pages=array(await eda.dmt_Schematic.getAllSchematicPagesInfo());const pcbs=array(await eda.dmt_Pcb.getAllPcbsInfo());
  if((c.request.action==='schematic.page.open'&&!pages.some(p=>p.uuid===id))||(!pages.some(p=>p.uuid===id)&&!pcbs.some(p=>p.uuid===id)))throw Error('V2_DESTINATION_NOT_IN_PROJECT');

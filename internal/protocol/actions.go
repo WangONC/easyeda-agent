@@ -92,13 +92,13 @@ func AllActions() []ActionSpec {
 			Outputs:     []string{"document uuid", "document type", "tab id"},
 		},
 		{
-			Name: "document.open", V2: &V2Action{Revision: "1", EffectScope: "NAVIGATION_SELECTION", Target: "PROJECT", Input: map[string]string{"uuid": "!string"}},
+			Name: "document.open", V2: &V2Action{Revision: "1", EffectScope: "NAVIGATION_SELECTION", Target: "PROJECT", Input: map[string]string{"uuid": "!string", "reload": "boolean"}},
 			Domain:      DomainDocument,
 			Phase:       1,
 			Mutates:     false,
 			NeedsWindow: true,
-			Description: "Open any document (schematic page or PCB) by UUID and activate its editor tab. A generalization of schematic.page.open that works for all document types.",
-			Inputs:      []string{"uuid"},
+			Description: "Open any document (schematic page or PCB) by UUID and activate its editor tab. A generalization of schematic.page.open that works for all document types. Optional reload=true requires an exact DOCUMENT target and performs controlled save/close/open; this alone is not persistence proof. Use v2 checkpoint for new-session exact rebind and semantic comparison.",
+			Inputs:      []string{"uuid", "reload optional"},
 			Outputs:     []string{"tab id"},
 		},
 		// ── view (editor canvas, document-agnostic — schematic & PCB) ──────
@@ -1007,7 +1007,7 @@ func AllActions() []ActionSpec {
 			VerifyWith:  []string{"pcb.components.list"},
 		},
 		{
-			Name: "pcb.import_changes", V2Disposition: &V2Disposition{Mode: "UNSUPPORTED", Reason: "The documented Host import promise may settle when its confirmation dialog opens, before delayed component materialization. The dialog has no operation-bound identity and no native settlement/complete schematic-to-PCB mapping receipt. Count stabilization cannot prove completion or release ownership; full import requires Host qualification of a trustworthy lifecycle and mapping contract."},
+			Name: "pcb.import_changes", V2Disposition: &V2Disposition{Mode: "UNSUPPORTED", Reason: "EasyEDA Host API capability limitation: the documented Host import promise may settle when its confirmation dialog opens, before delayed component materialization. The dialog has no operation-bound identity and no native settlement/complete schematic-to-PCB mapping receipt. Count stabilization cannot prove completion or release ownership; full import requires Host qualification of a trustworthy lifecycle and mapping contract."},
 			Domain:           DomainPcb,
 			Phase:            2,
 			Mutates:          true,

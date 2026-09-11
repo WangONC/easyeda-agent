@@ -2,11 +2,13 @@ package daemon
 
 import (
 	"context"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
 	"io"
 	"net"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -36,4 +38,30 @@ func TestHandoffCorruptionRefusesBeforeListen(t *testing.T) {
 		t.Fatal("port bound before restore", err)
 	}
 	ln.Close()
+}
+func TestHandoffHistoricalSchemaIsReceiptOnly(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "receipts.json")
+	old := executionv2.Request{Protocol: executionv2.Version, Action: "document.open", ActionRevision: "1", Schema: "historical-schema", RequestID: "r", OperationID: "o", Target: executionv2.Target{Scope: "PROJECT", Session: "old", Activation: "old", ProjectUUID: "p"}, Input: map[string]any{"uuid": "d"}, BudgetMS: 1000}
+	c := executionv2.New(10, func(executionv2.Request) (executionv2.Admission, error) {
+		return executionv2.Admission{EffectScope: "NAVIGATION_SELECTION"}, nil
+	}, func(r executionv2.Request, d string) <-chan executionv2.HandlerResult {
+		ch := make(chan executionv2.HandlerResult, 1)
+		ch <- executionv2.HandlerResult{Protocol: executionv2.Version, OperationID: r.OperationID, Digest: d, Target: r.Target, Effects: executionv2.Effects{Started: executionv2.Bool(false), Changed: executionv2.Bool(false), Settled: true, Scope: "NAVIGATION_SELECTION"}, Verification: executionv2.Verification{Verdict: "satisfied", Complete: true, Required: 1, Satisfied: 1, Checked: []string{"fresh_destination"}}}
+		return ch
+	})
+	if _, e := c.Submit(context.Background(), old); e != nil {
+		t.Fatal(e)
+	}
+	if e := c.SaveHandoff(path); e != nil {
+		t.Fatal(e)
+	}
+	s := New(Options{V2ReceiptFile: path, V2HostStartupConfirmed: true})
+	if result, e := s.v2.Submit(context.Background(), old); e != nil || result.Outcome != executionv2.Succeeded {
+		t.Fatalf("receipt lost: %v %#v", e, result)
+	}
+	old.OperationID = "new"
+	old.RequestID = "new"
+	if _, e := s.v2.Submit(context.Background(), old); e == nil || !strings.Contains(e.Error(), "V2_SCHEMA_MISMATCH") {
+		t.Fatalf("historical request was admitted: %v", e)
+	}
 }

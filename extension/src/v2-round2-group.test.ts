@@ -63,3 +63,22 @@ for(const bad of [false,true])test('group move merge into touching stationary wi
  const ex=new ControlledExecutor(()=>action,async()=>target),result=await ex.execute(req,'d');
  assert.equal(result.verification.verdict,bad?'unavailable':'satisfied');await ex.reconcile('o');assert.equal(creates,1);assert.equal(deletes,1);
 });
+for(const converges of [true,false])test('group scoped readback refresh records delayed Host label '+converges,async()=>{
+ let rows=new Map([['old',[500,100,650,100]]]),creates=0,deletes=0,reads=0;
+ const w=(id:string)=>({getState_PrimitiveId:()=>id,getState_Line:()=>rows.get(id)!,getState_Net:()=>id==='old'||converges&&reads>1?'QUAL_WIRE':'',getState_Color:()=>null,getState_LineWidth:()=>null,getState_LineType:()=>null});
+ (globalThis as any).eda={sch_PrimitiveComponent:{getAll:async()=>[]},sch_PrimitiveWire:{getAll:async()=>{if(creates)reads++;return [...rows.keys()].map(w)},delete:async()=>{deletes++;rows.clear();},create:async()=>{creates++;rows.set('new',[650,150,500,150]);return w('new')}}};
+ const action=groupMove(async()=>({elements:[],flagPlans:[],allComponents:[],allWires:[w('old') as never],wantIds:new Set(['old']),dx:0,dy:50}),()=>({}),x=>x as number[]);
+ const r:Request={protocol:V2,action:'schematic.group.move',action_revision:'1',schema:'s',request_id:'r',operation_id:'o',target_ref:target,input:{primitiveIds:['old'],dx:0,dy:50},budget_ms:5000};
+ const ex=new ControlledExecutor(()=>action,async()=>target),result=await ex.execute(r,'d');
+ assert.equal(result.verification.verdict,converges?'satisfied':'partial');assert.ok((result.evidence as any).first_readback.wire_coverage_mismatch);await ex.reconcile('o');assert.equal(creates,1);assert.equal(deletes,1);
+});
+
+for(const appears of [true,false])test('group returned identity delayed visibility '+appears,async()=>{
+ let created=false,reads=0,creates=0,deletes=0;
+ const wire=(id:string)=>({getState_PrimitiveId:()=>id,getState_Line:()=>id==='old'?[500,150,650,150]:[650,200,500,200],getState_Net:()=> 'QUAL_WIRE',getState_Color:()=>null,getState_LineWidth:()=>null,getState_LineType:()=>null});
+ (globalThis as any).eda={sch_PrimitiveComponent:{getAll:async()=>[]},sch_PrimitiveWire:{getAll:async()=>created&&appears&&++reads>1?[wire('new')]:[],delete:async()=>{deletes++},create:async()=>{created=true;creates++;return wire('new')}}};
+ const action=groupMove(async()=>({elements:[],flagPlans:[],allComponents:[],allWires:[wire('old') as never],wantIds:new Set(['old']),dx:0,dy:50}),()=>({}),x=>x as number[]);
+ const req:Request={protocol:V2,action:'schematic.group.move',action_revision:'1',schema:'s',request_id:'r',operation_id:'o',target_ref:target,input:{primitiveIds:['old'],dx:0,dy:50},budget_ms:5000};
+ const ex=new ControlledExecutor(()=>action,async()=>target),result=await ex.execute(req,'d');assert.equal(result.verification.verdict,appears?'satisfied':'unavailable');
+ await ex.reconcile('o');assert.equal(creates,1);assert.equal(deletes,1);
+});

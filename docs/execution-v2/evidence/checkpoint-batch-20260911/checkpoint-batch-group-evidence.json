@@ -1,0 +1,98 @@
+{
+  "protocol": "execution.v2",
+  "operation_id": "56edff15-2a5c-4c93-8f37-1c57188a6dc3",
+  "digest": "90a75200cb4978a773fbb8e1110762fb4c9935aa748d41de2625816a6389ddf8",
+  "target_ref": {
+    "scope": "DOCUMENT",
+    "session": "1dcd6aed-6dcc-423b-b367-4c3f61594a17",
+    "activation": "easyeda-agent-a74fc1ef-4290-4bfb-a2b5-d43cd1fd0dc8",
+    "project_uuid": "e7c288be345149da97a48a8b908c2049",
+    "document_uuid": "6c1d9afdceb80680",
+    "document_type": "schematic",
+    "tab_id": "6c1d9afdceb80680@e7c288be345149da97a48a8b908c2049"
+  },
+  "effects": {
+    "effect_started": true,
+    "state_changed": true,
+    "native_settled": true,
+    "effect_scope": "DESIGN_CONTENT",
+    "reconciled": false
+  },
+  "verification": {
+    "verdict": "satisfied",
+    "checked": [
+      "fresh_element_pose_and_fields",
+      "fresh_flag_identity_net_pose",
+      "complete_owned_wire_segment_coverage",
+      "probe_absence",
+      "unrelated_scope_unchanged"
+    ],
+    "complete": true,
+    "required": 1,
+    "satisfied": 1,
+    "residual": 0
+  },
+  "value": {
+    "dx": 0,
+    "dy": 50,
+    "movedComponents": [],
+    "movedFlags": [],
+    "movedWires": [
+      {
+        "oldPrimitiveId": "12c73f2f0726d7e7",
+        "newPrimitiveId": "5f1b6d3ff882de3a",
+        "net": "QUAL_WIRE"
+      }
+    ],
+    "count": 1
+  },
+  "evidence": {
+    "first_readback": {
+      "wire_coverage_mismatch": true,
+      "expected": "[[\"[\\\"QUAL_WIRE\\\",null,null,null]\",\"[[\\\"[\\\\\\\"1\\\\\\\",\\\\\\\"0\\\\\\\",\\\\\\\"200000000\\\\\\\"]\\\",[[500,650]]]]\"]]",
+      "actual": "[]",
+      "planned": [
+        {
+          "id": "12c73f2f0726d7e7",
+          "state": {
+            "line": "[[\"[\\\"1\\\",\\\"0\\\",\\\"150000000\\\"]\",[[500,650]]]]",
+            "net": "QUAL_WIRE",
+            "color": null,
+            "lineWidth": null,
+            "lineType": null
+          },
+          "lines": [
+            [
+              650,
+              200,
+              500,
+              200
+            ]
+          ],
+          "merged": false,
+          "ids": [
+            "5f1b6d3ff882de3a"
+          ],
+          "attempts": 1
+        }
+      ],
+      "after": []
+    },
+    "last_readback": {
+      "verification": {
+        "verdict": "satisfied",
+        "complete": true,
+        "required": 1,
+        "satisfied": 1,
+        "residual": 0,
+        "checked": [
+          "fresh_element_pose_and_fields",
+          "fresh_flag_identity_net_pose",
+          "complete_owned_wire_segment_coverage",
+          "probe_absence",
+          "unrelated_scope_unchanged"
+        ]
+      }
+    }
+  }
+}

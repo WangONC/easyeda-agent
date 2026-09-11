@@ -20,8 +20,17 @@ func (s *Server) restoreV2Handoff() error {
 		return err
 	}
 	for _, r := range receipts {
-		a, err := protocol.ValidateV2(r.Request)
-		if err != nil || a.EffectScope != r.Scope {
+		// Immutable receipt restore is not current-schema request admission.
+		// RestoreHandoff checks digest, identity, settlement and ownership; restored
+		// records have no executor. New operation IDs still require ValidateV2.
+		scope := ""
+		for _, action := range protocol.AllActions() {
+			if action.Name == r.Request.Action && action.V2 != nil {
+				scope = action.V2.EffectScope
+				break
+			}
+		}
+		if scope == "" || scope != r.Scope {
 			return errors.New("V2_HANDOFF_CATALOG_MISMATCH")
 		}
 		s.v2Pending[r.Request.OperationID] = v2Pending{request: r.Request}

@@ -1,6 +1,6 @@
 import { cloneWireData } from './wire-geometry';
 import { wireGeometry, nativeWireSegments, wireInventoryCoverage, wireTouches } from './wire-geometry';
-import { type NativeAction, unavailable } from './execution-v2';
+import { type NativeAction, type Observation, unavailable } from './execution-v2';
 import { array, declaredReadFields } from './v2-native-actions';
 import { canonical } from './fast-path';
 import { covered } from './v2-batch-actions';
@@ -55,7 +55,7 @@ export function groupMove(plan: (p: Record<string, unknown>) => Promise<Plan>, s
             const flagIds = new Map<string, string>(), flagAttempts = new Set<string>();
             let probeId: string | undefined, probeAttempt = false, negates = false;
             const norm = (n: number) => (n % 360 + 360) % 360;
-            c.prepare(async () => {
+            const readback = async ():Promise<Observation> => {
                 const cm = unique(await components()), wm = unique(await wires()), newFlags = new Set(flagIds.values()), newWires = new Set(wp.flatMap(x => x.ids));
                 if (probeAttempt && !probeId || [...flagAttempts].some(id => !flagIds.has(id)) || wp.some(w => w.attempts > w.ids.length) || [...newFlags].some(id => before.has(id)) || [...newWires].some(id => beforeW.has(id) && !mergeEligible.has(id)) || [...cm.keys()].some(id => !before.has(id) && !newFlags.has(id) && id !== probeId) || [...wm.keys()].some(id => !beforeW.has(id) && !newWires.has(id)) || [...before].some(([id, x]) => !selected.has(id) && (!cm.has(id) || canonical(serialize(cm.get(id)!)) !== canonical(componentBefore.get(id)))) || [...wireBefore].some(([id, s]) => !selected.has(id) && (!wm.has(id) || canonical(wireState(wm.get(id)!)) !== s) && !(mergeEligible.has(id) && (!wm.has(id) || newWires.has(id)))))
                     return { changed: null, verification: unavailable() };
@@ -72,7 +72,25 @@ export function groupMove(plan: (p: Record<string, unknown>) => Promise<Plan>, s
                 const probeGone = !probeId || !cm.has(probeId);
                 if (!probeGone)
                     return { changed: null, verification: unavailable() };
-                return covered({ dx: p.dx, dy: p.dy, movedComponents, movedFlags, movedWires, count: movedComponents.length + movedFlags.length + movedWires.length, ...(notFound.length ? { notFound } : {}) }, selected.size, movedComponents.length + movedFlags.length + movedWires.length, changed, ['fresh_element_pose_and_fields', 'fresh_flag_identity_net_pose', 'complete_owned_wire_segment_coverage', 'probe_absence', 'unrelated_scope_unchanged']);
+                const result=covered({ dx: p.dx, dy: p.dy, movedComponents, movedFlags, movedWires, count: movedComponents.length + movedFlags.length + movedWires.length, ...(notFound.length ? { notFound } : {}) }, selected.size, movedComponents.length + movedFlags.length + movedWires.length, changed, ['fresh_element_pose_and_fields', 'fresh_flag_identity_net_pose', 'complete_owned_wire_segment_coverage', 'probe_absence', 'unrelated_scope_unchanged']);
+                if(!allWireOK){
+                    result.evidence={wire_coverage_mismatch:true,expected,actual,planned:cloneWireData(wp),after:cloneWireData([...wm].map(([id,w])=>({id,...wireState(w),line:w.getState_Line()})))};
+                    // A returned creation ID that has never become visible is not a
+                    // settled residual: native materialization/read projection may lag.
+                    if(wp.some(w=>w.ids.some(id=>!wm.has(id)))){result.changed=null;result.verification=unavailable();}
+                }
+                return result;
+            };
+            c.prepare(async()=>{
+                let result=await readback();const first=result.evidence;
+                // Only refresh an incomplete wire projection, never repeat a native write.
+                // Host wire geometry/style materialization can lag the native ACK.
+                for(const delay of [100,250,500]){
+                    if(!(result.evidence as {wire_coverage_mismatch?:boolean}|undefined)?.wire_coverage_mismatch)break;
+                    await new Promise(resolve=>setTimeout(resolve,delay));result=await readback();
+                }
+                if(first)result.evidence={first_readback:first,last_readback:result.evidence??{verification:result.verification}};
+                return result;
             });
             if (p.flagPlans.length) {
                 await c.effect(async () => { probeAttempt = true; probeId = (await eda.sch_PrimitiveComponent.createNetFlag('Power', '__ROTPROBE__', 990000, 990000, 90))?.getState_PrimitiveId(); });

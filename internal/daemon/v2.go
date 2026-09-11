@@ -14,10 +14,11 @@ import (
 )
 
 type v2Pending struct {
-	started time.Time
-	request executionv2.Request
-	conn    *conn
-	results chan executionv2.HandlerResult
+	started     time.Time
+	request     executionv2.Request
+	conn        *conn
+	releaseConn *conn
+	results     chan executionv2.HandlerResult
 }
 
 func rejectLegacy(w http.ResponseWriter, r *http.Request) {
@@ -169,6 +170,10 @@ func (s *Server) handleV2(w http.ResponseWriter, r *http.Request) {
 }
 func (s *Server) handleV2Status(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
+	if r.Method == "POST" && (r.URL.Query().Get("view") == "recover" || r.URL.Query().Get("view") == "release") {
+		s.handleV2Recovery(w, r, id)
+		return
+	}
 	if r.Method == "POST" {
 		if r.URL.Query().Get("view") != "reconcile" {
 			http.Error(w, "V2_UNSUPPORTED_OPERATION", 400)
@@ -181,7 +186,7 @@ func (s *Server) handleV2Status(w http.ResponseWriter, r *http.Request) {
 			http.NotFound(w, r)
 			return
 		}
-		if result, exists := s.v2.Status(id); exists && result.Outcome != executionv2.Unknown {
+		if result, exists := s.v2.Status(id); exists && (result.Outcome != executionv2.Unknown || result.OwnershipReleased) {
 			// Repeat only the daemon's resolved release authorization. A lost
 			// release frame must not require a second native invocation.
 			digest, err := p.request.Digest()
@@ -253,7 +258,14 @@ func (s *Server) releaseV2(r executionv2.Request, digest string) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	if e := p.conn.write(ctx, map[string]any{"type": "v2_release", "operation_id": r.OperationID, "digest": digest, "deadline_unix_ms": r.ExecutionDeadline.UnixMilli()}); e != nil {
+	recipient := p.conn
+	if p.releaseConn != nil {
+		recipient = p.releaseConn
+	}
+	if recipient.snapshot().ActivationID != r.Target.Activation {
+		return
+	} // new activation has no original slot
+	if e := recipient.write(ctx, map[string]any{"type": "v2_release", "operation_id": r.OperationID, "digest": digest, "deadline_unix_ms": r.ExecutionDeadline.UnixMilli()}); e != nil {
 		s.logf("V2 release notification failed for %s: %v", r.OperationID, e)
 	}
 }

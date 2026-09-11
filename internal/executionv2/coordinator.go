@@ -25,6 +25,8 @@ type record struct {
 	complete bool
 	timedOut bool
 	scope    string
+	released bool
+	stop     chan struct{}
 }
 type Coordinator struct {
 	mu         sync.Mutex
@@ -76,12 +78,12 @@ func (c *Coordinator) Submit(ctx context.Context, r Request) (Result, error) {
 		c.mu.Unlock()
 		return Result{}, errors.New("V2_RECEIPT_CAPACITY")
 	}
-	if c.owner != "" && (a.EffectScope != "NONE" || !a.Diagnostic) {
+	if c.owner != "" && a.EffectScope != "NONE" {
 		c.mu.Unlock()
 		return Result{}, errors.New("V2_EFFECT_BARRIER")
 	}
 	r.ExecutionDeadline = time.Now().Add(time.Duration(r.BudgetMS) * time.Millisecond)
-	rec := &record{scope: a.EffectScope, request: r, digest: digest, ready: make(chan struct{}), result: Result{Protocol: Version, OperationID: r.OperationID, Outcome: Unknown, EvidenceRef: r.OperationID, Effects: Effects{Scope: a.EffectScope}}}
+	rec := &record{stop: make(chan struct{}), scope: a.EffectScope, request: r, digest: digest, ready: make(chan struct{}), result: Result{Protocol: Version, OperationID: r.OperationID, Outcome: Unknown, EvidenceRef: r.OperationID, Effects: Effects{Scope: a.EffectScope}}}
 	c.records[r.OperationID] = rec
 	if a.EffectScope != "NONE" {
 		c.owner = r.OperationID
@@ -111,8 +113,14 @@ func (c *Coordinator) run(rec *record) {
 	ch := c.execute(rec.request, rec.digest)
 	for {
 		select {
+		case <-rec.stop:
+			return
 		case <-timer.C:
 			c.mu.Lock()
+			if rec.released {
+				c.mu.Unlock()
+				return
+			}
 			rec.timedOut = true
 			rec.result.Outcome = Unknown
 			rec.result.Code = "V2_DEADLINE"
@@ -124,12 +132,20 @@ func (c *Coordinator) run(rec *record) {
 		case h, ok := <-ch:
 			if !ok {
 				c.mu.Lock()
+				if rec.released {
+					c.mu.Unlock()
+					return
+				}
 				rec.result.Code = "V2_EXECUTOR_LOST"
 				c.publish(rec)
 				c.mu.Unlock()
 				return
 			}
 			c.mu.Lock()
+			if rec.released {
+				c.mu.Unlock()
+				return
+			}
 			if h.Effects.Scope != rec.scope {
 				h.Protocol = "invalid"
 			}
@@ -174,4 +190,42 @@ func (c *Coordinator) Evidence(id string) (HandlerResult, bool) {
 		return HandlerResult{}, false
 	}
 	return r.evidence, true
+}
+
+// SameRecoveryDocument never consults names or treats a missing UUID as a match.
+// Session/activation/tab are newly bound by the read operation's normal guards.
+func SameRecoveryDocument(a, b Target) bool {
+	return a.Validate() == nil && b.Validate() == nil && a.Scope == "DOCUMENT" && b.Scope == "DOCUMENT" && a.ProjectUUID == b.ProjectUUID && a.DocumentUUID == b.DocumentUUID && a.DocumentType == b.DocumentType
+}
+
+// ReleaseSettled ends effect ownership, not the semantic operation conclusion.
+// The original terminal HandlerResult proves the handler/native chain settled.
+// A new, exact-document read proves current binding. Neither may be client facts.
+func (c *Coordinator) ReleaseSettled(id, readbackID string) (Result, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	rec, read := c.records[id], c.records[readbackID]
+	if rec == nil || read == nil || read == rec {
+		return Result{}, errors.New("V2_RECOVERY_RECORD_REQUIRED")
+	}
+	if read.request.Action != "document.current" || read.scope != "NONE" || read.result.Outcome != Succeeded || read.result.Effects.Started == nil || *read.result.Effects.Started || !read.result.Effects.Settled || !SameRecoveryDocument(rec.request.Target, read.request.Target) {
+		return Result{}, errors.New("V2_RECOVERY_TARGET_UNPROVEN")
+	}
+	h := rec.evidence
+	if !rec.complete || h.Protocol != Version || h.OperationID != id || h.Digest != rec.digest || h.Target != rec.request.Target || h.Effects.Scope != rec.scope || h.Effects.Started == nil || !h.Effects.Settled || !rec.result.Effects.Settled || (!*h.Effects.Started && h.Effects.Changed != nil && *h.Effects.Changed) {
+		return Result{}, errors.New("V2_NATIVE_NOT_SETTLED")
+	}
+	if !rec.released {
+		rec.released = true
+		rec.result.OwnershipReleased = true
+		close(rec.stop)
+	}
+	// Resending a lost release authorization is idempotent and never dispatches run.
+	if c.onResolved != nil {
+		c.onResolved(rec.request, rec.digest)
+	}
+	if c.owner == id {
+		c.owner = ""
+	}
+	return rec.result, nil
 }

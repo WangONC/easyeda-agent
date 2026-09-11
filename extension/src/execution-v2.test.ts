@@ -104,3 +104,37 @@ test('failed late readback retains ownership; explicit reconciliation reads with
  await assert.rejects(runtime.execute(req('await-daemon-release'), 'other'), /BARRIER/);
  runtime.release('late-readback-failure', 'digest');
 });
+
+test('recovery reads survive transport rebind while pending; only daemon releases settled UNKNOWN', async () => {
+ let settle!: () => void;
+ const native = new Promise<void>(resolve => { settle = resolve; });
+ let writes = 0;
+ let current = target;
+ const mutation: NativeAction = { mode:'V2_NATIVE', scope:'DESIGN_CONTENT', validate:()=>{}, run:async c=>{
+  c.prepare(async()=>{throw Error('semantic proof unavailable');});
+  await c.effect(async()=>{writes++;await native;});
+  return c.verify();
+ }};
+ const read: NativeAction = { mode:'V2_NATIVE', scope:'NONE', validate:()=>{}, run:async()=>observed({document:current.document_uuid},['fresh identity'],false) };
+ const runtime = new ControlledExecutor(name=>name==='read'?read:mutation,async()=>current);
+ const original = req('recovery-original');
+ const pending = runtime.execute(original,'original-digest');
+ await new Promise(resolve=>setTimeout(resolve,20));
+ current={...target,session:'reconnected',tab_id:'rebound-tab'};
+ const readRequest={...req('recovery-read'),action:'read',target_ref:current};
+ const result=await runtime.execute(readRequest,'read-digest');
+ assert.equal(result.effects.effect_started,false);
+ assert.equal(result.verification.verdict,'satisfied');
+ assert.throws(()=>runtime.release(original.operation_id,'original-digest'),/PENDING/);
+ await assert.rejects(runtime.execute({...req('blocked'),target_ref:current},'b'),/BARRIER/);
+ settle();
+ const unknown=await pending;
+ assert.equal(unknown.effects.native_settled,true);
+ assert.notEqual(unknown.verification.verdict,'satisfied');
+ assert.equal(writes,1);
+ // Transport release authorization, not read success, terminates ownership.
+ runtime.release(original.operation_id,'original-digest');
+ runtime.release(original.operation_id,'original-digest');
+ await runtime.execute(original,'original-digest');
+ assert.equal(writes,1);
+});

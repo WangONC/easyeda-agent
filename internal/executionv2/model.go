@@ -126,13 +126,14 @@ type HandlerResult struct {
 	Evidence     json.RawMessage `json:"evidence,omitempty"`
 }
 type Result struct {
-	Protocol    string          `json:"protocol"`
-	OperationID string          `json:"operation_id"`
-	Outcome     Outcome         `json:"outcome"`
-	Effects     Effects         `json:"effects"`
-	Code        string          `json:"code,omitempty"`
-	Value       json.RawMessage `json:"value,omitempty"`
-	EvidenceRef string          `json:"evidence_ref"`
+	OwnershipReleased bool            `json:"ownership_released,omitempty"`
+	Protocol          string          `json:"protocol"`
+	OperationID       string          `json:"operation_id"`
+	Outcome           Outcome         `json:"outcome"`
+	Effects           Effects         `json:"effects"`
+	Code              string          `json:"code,omitempty"`
+	Value             json.RawMessage `json:"value,omitempty"`
+	EvidenceRef       string          `json:"evidence_ref"`
 }
 
 func Bool(v bool) *bool { return &v }

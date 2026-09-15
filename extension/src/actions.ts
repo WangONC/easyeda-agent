@@ -13,6 +13,7 @@ import { compareDrc } from './v2-drc-compare';
 import { silkPatch } from './v2-silk-actions';
 import { resolveLcsc, attrsBackfill } from './v2-backfill-actions';
 import { placeComponent } from './v2-place-component';
+import { normalizeSchematicRotation } from './schematic-rotation';
 import { pageClear } from './v2-pcb-clear';
 import { footprintBuild, symbolBuild } from './v2-library-build';
 import { exportAction } from './v2-export-actions';
@@ -1381,6 +1382,9 @@ const schematicModifyPlan = async (payload: Payload) => {
 	}
 
 	const normalizedPatch = { ...(patch as Record<string, unknown>) };
+	if (typeof normalizedPatch.rotation === 'number') {
+		normalizedPatch.rotation = normalizeSchematicRotation(normalizedPatch.rotation);
+	}
 	const hasCustomAttributes = Object.prototype.hasOwnProperty.call(normalizedPatch, 'customAttributes');
 	const hasOtherProperty = Object.prototype.hasOwnProperty.call(normalizedPatch, 'otherProperty');
 	if (hasCustomAttributes && hasOtherProperty) {

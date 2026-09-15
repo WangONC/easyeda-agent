@@ -115,6 +115,21 @@ type Verification struct {
 	Satisfied int      `json:"satisfied"`
 	Residual  int      `json:"residual"`
 }
+
+// Timing is descriptive execution evidence. It never participates in Outcome
+// finalization. Nullable split fields mean the Connector could only measure a
+// combined legacy verifier; callers must not invent a phase breakdown.
+type Timing struct {
+	QueueWaitMS            int64  `json:"queue_wait_ms"`
+	TargetGuardMS          int64  `json:"target_binding_guard_ms"`
+	PreReadSnapshotMS      int64  `json:"pre_read_snapshot_ms"`
+	NativeEffectMS         int64  `json:"native_effect_ms"`
+	PostReadMS             *int64 `json:"post_read_ms"`
+	VerificationMS         *int64 `json:"verification_ms"`
+	PostReadVerificationMS *int64 `json:"post_read_verification_ms,omitempty"`
+	ReconcileMS            int64  `json:"reconcile_ms"`
+	TotalMS                int64  `json:"total_ms"`
+}
 type HandlerResult struct {
 	Protocol     string          `json:"protocol"`
 	OperationID  string          `json:"operation_id"`
@@ -122,6 +137,7 @@ type HandlerResult struct {
 	Target       Target          `json:"target_ref"`
 	Effects      Effects         `json:"effects"`
 	Verification Verification    `json:"verification"`
+	Timing       Timing          `json:"timing"`
 	Value        json.RawMessage `json:"value,omitempty"`
 	Evidence     json.RawMessage `json:"evidence,omitempty"`
 }
@@ -131,6 +147,7 @@ type Result struct {
 	OperationID       string          `json:"operation_id"`
 	Outcome           Outcome         `json:"outcome"`
 	Effects           Effects         `json:"effects"`
+	Timing            Timing          `json:"timing"`
 	Code              string          `json:"code,omitempty"`
 	Value             json.RawMessage `json:"value,omitempty"`
 	EvidenceRef       string          `json:"evidence_ref"`
@@ -140,9 +157,10 @@ func Bool(v bool) *bool { return &v }
 
 // Finalize does not read Value/Evidence, action names, error strings, or prior results.
 func Finalize(r Request, digest string, h HandlerResult, timedOut bool) Result {
-	out := Result{Protocol: Version, OperationID: r.OperationID, Outcome: Unknown, Effects: h.Effects, EvidenceRef: r.OperationID}
+	out := Result{Protocol: Version, OperationID: r.OperationID, Outcome: Unknown, Effects: h.Effects, Timing: h.Timing, EvidenceRef: r.OperationID}
 	if h.Protocol != Version || h.OperationID != r.OperationID || h.Digest != digest || h.Target != r.Target {
 		out.Effects = Effects{}
+		out.Timing = Timing{}
 		out.Code = "V2_FOREIGN_OR_MALFORMED_RESULT"
 		return out
 	}
@@ -150,9 +168,11 @@ func Finalize(r Request, digest string, h HandlerResult, timedOut bool) Result {
 		out.Code = "V2_MALFORMED_EFFECTS"
 		return out
 	}
-	if len(h.Value) <= 8192 {
-		out.Value = h.Value
-	}
+	// Value is the public business result. Silently removing a large successful
+	// read turns "data returned" into "success with empty data" and is not a
+	// recoverable contract. The bounded HTTP/CLI transports enforce their own
+	// explicit limits; every accepted HandlerResult keeps its complete Value.
+	out.Value = h.Value
 	if h.Effects.Started == nil {
 		out.Effects = Effects{}
 		return out

@@ -216,7 +216,7 @@ func publicActionV2(cfg *appConfig, action, window string, payload any, timeout 
 		}
 	}
 	if timeout <= 0 {
-		timeout = defaultActionTimeout
+		timeout = actionTimeout(action)
 	}
 	req := executionv2.Request{Protocol: executionv2.Version, Action: action, ActionRevision: spec.Revision, Schema: spec.SchemaID(), RequestID: op, OperationID: op, Target: t, Input: input, BudgetMS: int(timeout / time.Millisecond)}
 	if e = req.Validate(); e != nil {

@@ -93,7 +93,7 @@ func (c *appConfig) portRange() (int, int, error) {
 // caller must return that error without printing again). Any other error
 // (daemon not found, network, etc.) is a fresh error the caller may print.
 func dispatch(cfg *appConfig, action, window string, payload any, stdout, stderr io.Writer) error {
-	return dispatchTimed(cfg, action, window, payload, defaultActionTimeout, stdout, stderr)
+	return dispatchTimed(cfg, action, window, payload, actionTimeout(action), stdout, stderr)
 }
 
 // dispatchTimed is dispatch with a caller-chosen round-trip timeout. Use it for
@@ -221,7 +221,7 @@ type actionResult struct {
 // touching stdout. A non-nil error means the daemon was unreachable or the
 // action returned ok=false (with the connector's error message attached).
 func requestAction(cfg *appConfig, action, window string, payload any) (*actionResult, error) {
-	return requestActionTimed(cfg, action, window, payload, defaultActionTimeout)
+	return requestActionTimed(cfg, action, window, payload, actionTimeout(action))
 }
 
 // requestActionTimed is requestAction with a caller-chosen round-trip timeout,
@@ -263,7 +263,7 @@ func actionValueV2(raw []byte, action string) (*actionResult, error) {
 		}
 	}
 	if !res.OK {
-		return res, &actionError{Action: action, Code: string(r.Outcome), Message: fmt.Sprintf("operation %s: %s; use operation status/reconcile, never replay", r.OperationID, string(r.Outcome)+" "+r.Code)}
+		return res, &actionError{Action: action, Code: string(r.Outcome), OperationID: r.OperationID, Message: fmt.Sprintf("operation %s: %s; use operation status/reconcile, never replay", r.OperationID, string(r.Outcome)+" "+r.Code)}
 	}
 	return res, nil
 }
@@ -287,7 +287,7 @@ func encodeResultEnvelope(res *actionResult, report any, stdout io.Writer) error
 // so the caller can post-process artifacts. The streamed bytes are unchanged;
 // callers read res.Artifacts for the persisted file path.
 func dispatchCapture(cfg *appConfig, action, window string, payload any, stdout io.Writer) (*actionResult, error) {
-	raw, e := postAction(cfg, action, window, payload, defaultActionTimeout)
+	raw, e := postAction(cfg, action, window, payload, actionTimeout(action))
 	if e != nil {
 		return nil, e
 	}

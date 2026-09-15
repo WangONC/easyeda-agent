@@ -2,10 +2,28 @@ package executionv2
 
 import (
 	"context"
+	"encoding/json"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 )
+
+func TestFinalizerPreservesLargeBusinessValue(t *testing.T) {
+	r := request("large-read")
+	h := evidence(r, "satisfied", false, 1, 0)
+	h.Effects.Started = Bool(false)
+	payload, err := json.Marshal(map[string]any{"component": "STM32G474CBT6", "pins": strings.Repeat("pin-data-", 1200)})
+	if err != nil || len(payload) <= 8192 {
+		t.Fatalf("fixture must exceed old threshold: %d, %v", len(payload), err)
+	}
+	h.Value = payload
+	digest, _ := r.Digest()
+	result := Finalize(r, digest, h, false)
+	if result.Outcome != Succeeded || string(result.Value) != string(payload) {
+		t.Fatalf("large successful read was projected incorrectly: outcome=%s value=%d want=%d", result.Outcome, len(result.Value), len(payload))
+	}
+}
 
 func request(id string) Request {
 	return Request{Protocol: Version, Action: "test", ActionRevision: "1", Schema: "schema", RequestID: "request", OperationID: id, Target: Target{Scope: "DOCUMENT", Session: "s", Activation: "a", ProjectUUID: "p", DocumentUUID: "d", DocumentType: "pcb", TabID: "t"}, Input: map[string]any{}, BudgetMS: 20}

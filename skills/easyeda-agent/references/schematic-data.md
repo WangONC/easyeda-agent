@@ -1,7 +1,8 @@
 # 原理图数据与 SCH Apply（1.4）
 
 适用于从本地 JSON 绘图、整理已有原理图、修正位号和验证转换结果。
-CLI 参数以 `easyeda sch <command> --help` 为准；电路选型依据具体器件的数据手册，
+CLI 参数以 `easyeda sch <command> --help` 为准；具体 MPN/LCSC 已确定时先做 exact local
+Device Knowledge lookup，HIT 证据之外的缺失字段或工况不匹配再读取官方数据手册；
 通过 `lib device get` 的属性可取得 Datasheet 地址。转换器不会推断缺失的外围电路。
 
 ## 数据分层
@@ -55,7 +56,7 @@ FOOTPRINT `DOCHEAD` 和唯一 `META.source` 证明实例封装到库资产的出
 | 基础放置 | `sch materialize`：已知库身份和 placement → 放件队列，可选逐脚标记。它不是完整模块绘图器。 |
 | 明确的标记增量 | `sch plan before.json after.json`：仅新增 `power/ground/net_port_in/net_port_out/net_port_bi` 连接；对应脚原为 `unconnected` 时，目标移除此声明；原为 NC 时，目标须同时清 NC 并新增明确标记连接。其他器件/引脚/NC 变更、删网或重接均拒绝。 |
 | 只画框和标题 | `sch frame apply/check --from frames.json`；字段见 `sch frame --help` 与 [actions.md](actions.md)。 |
-| 执行队列 | `sch apply plan.json`，顺序等待 WebSocket 响应并记录 journal。 |
+| 执行队列 | `sch apply plan.json`，顺序等待 V2 operation；mutation UNKNOWN 时不重放，reconcile 同一个 operation_id，证明 SUCCEEDED 后记 `ok(reconciled)` 并续跑。 |
 
 `sch plan` 的 NC→连接转换逐脚执行：初始完整连接守卫 → `no_connect off` →
 明确空网/非 NC 的中间守卫 → autoconnect → 目标守卫 → 保存及最终守卫。
@@ -249,8 +250,8 @@ easyeda sch apply apply.json --yes
 ## 验证与恢复
 
 - `sch apply --dry-run` 只校验队列，不证明现场状态与电路正确。
-- `requireFullExecution:true` 或含连接守卫的队列须完整执行，不能续跑/跳步或更换目标。
-  前检失败、写入超时或部分成功后，保留日志、读取实际状态，再生成新队列。
+- `requireFullExecution:true` 或含连接守卫的队列须完整执行，不能人工续跑/跳步或更换目标。
+  写入 timeout/UNKNOWN 先由 apply 对同一 operation_id 正式 reconcile；只有仍无法证明成功或结果为 PARTIAL/NOT_APPLIED 时，才保留日志、读取实际状态并重新生成新队列。
 - Apply 不提供事务回滚。`checkpoint` 只是日志标记，只有 save 动作才保存。
 - `sch connectivity-diff` 以稳定 ID 对账；位号修复还须核对 ref 映射，重新布局还须核对
   库 UUID、完整引脚、真实导线和框。DRC 单项结果不替代这些检查。

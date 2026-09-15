@@ -143,6 +143,19 @@ else:
         result = self.run_lint(env)
         self.assertIn("easyeda CLI not found", result.stderr)
 
+    def test_skill_contract_is_exact_local_first_and_uses_formal_unknown_recovery(self):
+        skill = (REPO / "skills/easyeda-agent/SKILL.md").read_text(encoding="utf-8")
+        parts = (REPO / "skills/easyeda-agent/references/part-selection.md").read_text(encoding="utf-8")
+        schematic = (REPO / "skills/easyeda-agent/references/schematic-data.md").read_text(encoding="utf-8")
+        joined = "\n".join((skill, parts, schematic))
+        self.assertIn("在任何联网 datasheet 读取之前必须先使用", skill)
+        self.assertIn("HIT 后优先使用", skill)
+        self.assertIn("MISS、所需字段缺失", skill)
+        self.assertNotIn("## 数据手册优先", parts)
+        self.assertIn("不得用于模糊选型或候选枚举", parts)
+        self.assertIn("ok(reconciled)", joined)
+        self.assertIn("不得为绕过 UNKNOWN 自制 shell/Python", skill)
+
 
 if __name__ == "__main__":
     unittest.main()

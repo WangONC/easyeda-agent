@@ -23,6 +23,6 @@ for(const mode of ['V2_NATIVE','NOT_MIGRATED','RETIRED','UNSUPPORTED']){
  md+='\n';
 }
 for(const [file,data] of [['docs/execution-v2/migration-inventory.json',json],['docs/execution-v2/ACTION_MIGRATION.md',md.trimEnd()+'\n']]){
- if(process.argv.includes('--check'))assert.equal(fs.readFileSync(file,'utf8'),data,file+' is stale');else fs.writeFileSync(file,data);
+ if(process.argv.includes('--check'))assert.equal(fs.readFileSync(file,'utf8').replaceAll('\r\n','\n'),data,file+' is stale');else fs.writeFileSync(file,data);
 }
 console.log(JSON.stringify(counts));

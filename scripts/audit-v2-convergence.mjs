@@ -23,7 +23,7 @@ assert.match(actions,/entry\.mode==='V2_NATIVE' \? entry : undefined/);
 assert.match(transport,/case 'request':[^]*?Legacy dispatch disabled/);
 assert.match(runtime,/if \(!verifier\) throw Error\('V2_SCOPED_VERIFIER_REQUIRED_BEFORE_EFFECT'\)/);
 assert.match(runtime,/if \(!accepting \|\| action.scope==='NONE' \|\| verifying \|\| activeNative/);
-assert.match(runtime,/slot\.reconcile=async\(\)=>\{[^]*?observation=await verifier!\(\)/);
+assert.match(runtime,/slot\.reconcile=async\(\)=>\{[^]*?observation=await runVerifier\(true\)/);
 rows.push(
  {pattern:'legacy /action and /writeverify',production_matches:[{file:'internal/daemon/daemon.go',entry:'/action and /writeverify'}],disposition:'HTTP 410 rejectLegacy; no executable handler.'},
  {pattern:'old Go/TS handlers retained in source',production_matches:[{file:'internal/daemon/hub.go',entry:'conn.dispatch'},{file:'extension/src/actions.ts',entry:'runAction'}],disposition:'Both unconditional rejection stubs; old helpers/tests are reference business code, not a fallback runtime.'},

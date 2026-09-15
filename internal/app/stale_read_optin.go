@@ -107,9 +107,10 @@ var errStaleRead = errors.New(staleReadCode)
 // 逐字一致**(旧版是 fmt.Errorf("%s failed: %s")),所以既有的报文、测试、日志都
 // 不受影响;新增的只是可编程判别的 Code。
 type actionError struct {
-	Action  string
-	Code    string
-	Message string
+	Action      string
+	Code        string
+	OperationID string
+	Message     string
 }
 
 func (e *actionError) Error() string {

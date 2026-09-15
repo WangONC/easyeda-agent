@@ -3,6 +3,7 @@ import { array, declaredReadFields } from './v2-native-actions';
 import { sourceAsset, sourceReceipt, sourceStorageKey, object } from './component-source';
 import { canonical } from './fast-path';
 import { covered } from './v2-batch-actions';
+import { normalizeSchematicRotation, schematicComponentCreateRotation } from './schematic-rotation';
 type Comp = Awaited<ReturnType<typeof eda.sch_PrimitiveComponent.getAll>>[number];
 export function placeComponent(serialize: (c: Comp) => Record<string, unknown>, backfill: (a: Record<string, unknown>, b: Record<string, unknown>, o: {
     onlyExistingKeys: boolean;
@@ -21,6 +22,8 @@ export function placeComponent(serialize: (c: Comp) => Record<string, unknown>, 
             for (const key of ['rotation', 'mirror', 'addIntoBom', 'addIntoPcb', 'designator', 'subPartName'])
                 if (p[key] !== undefined && p[key] !== '')
                     expected[key] = p[key];
+            if (typeof p.rotation === 'number')
+                expected.rotation = normalizeSchematicRotation(p.rotation);
             const pull = async () => { const parts = await all(); if (!id || before.has(id))
                 throw Error('V2_CREATED_ID_UNAVAILABLE'); const x = parts.find(x => x.getState_PrimitiveId() === id); if (!x)
                 throw Error('V2_CREATED_COMPONENT_ABSENT'); return x; };
@@ -37,7 +40,10 @@ export function placeComponent(serialize: (c: Comp) => Record<string, unknown>, 
                 const bound = !!receipt && eda.sys_Storage.getExtensionUserConfig(key) === receipt && sourceReceipt(state, device) === receipt && canonical(sourceAsset(await eda.lib_Device.get(uuid, lib))) === canonical(source);
                 return covered({ primitiveId: id, component: state, sourceIdentity: { uuid, libraryUuid: lib, storage: 'host-extension-user-config', verified: bound }, ...(supplier ? { supplierIdBackfilled: supplier } : {}), ...(filled.length ? { otherPropertyBackfilled: [...filled].sort() } : {}) }, fields.length + 2, 1 + matched + Number(bound), true, ['fresh_created_identity', 'explicit_requested_component_fields', 'source_asset_and_instance_binding', 'unrelated_components_unchanged']);
             });
-            await c.effect(async () => { attempted = true; const x = await eda.sch_PrimitiveComponent.create({ uuid, libraryUuid: lib }, p.x as number, p.y as number, p.subPartName as string | undefined, p.rotation as number | undefined, p.mirror as boolean | undefined, p.addIntoBom as boolean | undefined, p.addIntoPcb as boolean | undefined); id = x?.getState_PrimitiveId(); });
+            // Current EasyEDA Host builds negate the rotation passed to create
+            // (0→0, 90→270, 180→180, 270→90). Convert once at this Host write
+            // boundary so public absolute/readback degrees require one create.
+            await c.effect(async () => { attempted = true; const x = await eda.sch_PrimitiveComponent.create({ uuid, libraryUuid: lib }, p.x as number, p.y as number, p.subPartName as string | undefined, typeof p.rotation === 'number' ? schematicComponentCreateRotation(p.rotation) : undefined, p.mirror as boolean | undefined, p.addIntoBom as boolean | undefined, p.addIntoPcb as boolean | undefined); id = x?.getState_PrimitiveId(); });
             let fresh = await pull();
             if (p.designator)
                 await c.effect(async () => { await eda.sch_PrimitiveComponent.modify(id!, { designator: p.designator as string }); });

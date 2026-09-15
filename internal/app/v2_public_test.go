@@ -87,6 +87,31 @@ func TestPublicV2NeverRetriesOrInfersNativeSuccess(t *testing.T) {
 	}
 }
 
+func TestPublicImmediateResponsePreservesValueOver8KiB(t *testing.T) {
+	large := json.RawMessage(`{"component":"STM32G474CBT6","pins":"` + strings.Repeat("complete-pin-data-", 700) + `"}`)
+	if len(large) <= 8192 {
+		t.Fatalf("fixture is only %d bytes", len(large))
+	}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req executionv2.Request
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		_ = json.NewEncoder(w).Encode(executionv2.Result{Protocol: executionv2.Version, OperationID: req.OperationID, EvidenceRef: req.OperationID, Outcome: executionv2.Succeeded, Effects: executionv2.Effects{Scope: "NONE", Settled: true}, Value: large})
+	}))
+	defer server.Close()
+	cfg := &appConfig{v2Read: fixtureSchematicBinding(server.URL)}
+	raw, err := publicActionV2(cfg, "schematic.read", "", nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var result executionv2.Result
+	if err := json.Unmarshal(raw, &result); err != nil {
+		t.Fatal(err)
+	}
+	if result.Outcome != executionv2.Succeeded || string(result.Value) != string(large) {
+		t.Fatalf("public response lost large value: outcome=%s got=%d want=%d", result.Outcome, len(result.Value), len(large))
+	}
+}
+
 func TestPublicV2NavigationPinsNewDocumentWithoutReplay(t *testing.T) {
 	for _, mode := range []string{"normal", "wrong-project", "wrong-document", "new-transport"} {
 		t.Run(mode, func(t *testing.T) {

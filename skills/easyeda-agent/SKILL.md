@@ -26,7 +26,8 @@ metadata:
 4. 所有 Host 读写使用公开高层 CLI 或 MCP domain 工具，由 CLI 内部生成 V2 请求并绑定当前逻辑窗口。
    MCP 只传 action、input，以及需要时的 window/project/document 选择器；不手填内部 envelope、会话标识或 schema。
    不使用旧通用调用或独立 Bridge；不通过源码内部目录寻找调用参数。遇到多个真实窗口明确选择，不猜最新连接。
-   UNKNOWN/PARTIAL 立即停止后续写入，用 `easyeda operation status <id>` / `reconcile <id>` 查看原操作，不重放。
+   单次 action 的 UNKNOWN/PARTIAL 立即停止后续写入，用 `easyeda operation status <id>` / `reconcile <id>` 查看原操作，不重放。
+   `sch apply` 遇到 mutation UNKNOWN 会正式 reconcile 同一个 operation_id；仅在其收敛为 SUCCEEDED 后记为 `ok(reconciled)` 并自动续跑，仍为 UNKNOWN/PARTIAL/NOT_APPLIED 时停止。
 5. 以 `easyeda <domain> <command> --help` 和 `easyeda actions` 为参数真值。
    MCP 若可用，只是同一套 CLI/typed action 的入口。
 
@@ -47,7 +48,7 @@ metadata:
 
 ## 原理图主流程
 
-**先确定连接数据，再计算几何，最后转换与回读。** 新设计依据具体型号的数据手册和典型电路；
+**先确定连接数据，再计算几何，最后转换与回读。** 新设计依据具体型号的可追溯证据和典型电路；
 已有图先导出 `sch connectivity`，未知引脚或网不能靠截图推断。
 
 - `component.id` 是不透明稳定 ID，`ref` 是显示位号，功能名存 `role`。
@@ -78,6 +79,7 @@ metadata:
 ## 执行与验证约束
 
 - 仅使用正式 V2-native 能力；没有对应能力时明确报告不支持，不使用任意脚本或调试旁路。
+- 一次 timeout/UNKNOWN 不构成放弃 MCP 或正式 CLI 高层入口的理由。不得为绕过 UNKNOWN 自制 shell/Python 拆步、解析文本 operation_id 或重放 mutation；正式 operation reconcile 与 `sch apply` recovery 承担恢复。只有正式能力确实缺失时才可增加额外 orchestration，并明确说明缺口。
 - 使用真实非零导线连接 netflag 与 pin，坐标重合不算连接。原理图坐标 **y 向上**，网格 5 raw。
   符号方向以 [orientation.json](references/orientation.json) 和实际回读为准。
 - 保留明确 NC，不删除器件物理引脚，也不将缺失连接自动改为 NC。
@@ -111,9 +113,9 @@ PCB 制造交付还须确认层叠、GND、电源、丝印与导出文件。离�
 
 先根据用户需求、EasyEDA/LCSC 库和正常工程判断独立选型。Device Knowledge 不是候选池：选型阶段不得读取或枚举 data/devices/index.json、parts 目录或全部内置条目；index.json 仅供 CI、打包、去重及 helper 内部索引使用。
 
-确定具体 MPN / LCSC ID 后，才使用 [精确查询 helper](scripts/device-lookup.py)：`python <Skill目录>/scripts/device-lookup.py --mpn <已选MPN>` 或 `--lcsc <已选LCSC编号>`；可同时传入两者，必须共同匹配。只返回精确命中条目，不支持 list、category browse 或模糊候选。
+确定具体 MPN / LCSC ID 后，在任何联网 datasheet 读取之前必须先使用 [精确查询 helper](scripts/device-lookup.py)：`python <Skill目录>/scripts/device-lookup.py --mpn <已选MPN>` 或 `--lcsc <已选LCSC编号>`；可同时传入两者，必须共同匹配。只返回精确命中条目，不支持 list、category browse 或模糊候选。
 
-命中后使用证据覆盖范围内的引脚、电气/layout 约束及参考应用；miss、来源不可靠、修订不符或工况超出范围时正常读取官方 datasheet。未写出的内容不得由模型补全，topology_only 不能当通用推荐电路。现有 Standard Blocks 是设计知识层，仍允许搜索并优先复用成熟电路块，不受 Device Knowledge 查询限制。
+HIT 后优先使用证据覆盖范围内的引脚、电气/layout 约束及参考应用；只有 MISS、所需字段缺失、来源不可靠、修订不符或工作条件不匹配时才读取官方 datasheet 补足。未写出的内容不得由模型补全，topology_only 不能当通用推荐电路。现有 Standard Blocks 是设计知识层，仍允许搜索并优先复用成熟电路块，不受 Device Knowledge 查询限制。
 
 ### 退役文件
 

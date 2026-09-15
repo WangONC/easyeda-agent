@@ -71,6 +71,11 @@ easyeda sch apply steps.json --from 12 --to 30
 | `checkpoint` | 日志语义标记，本身不会保存；需要真实 `schematic.save` 步骤。 |
 | `verify` | 普通步骤失败后执行的只读核对；成功可将原步骤记为 `ok(verified)`，不能绕过强制状态守卫。 |
 
+对 typed mutation step，首次 V2 receipt 为 UNKNOWN 时，apply 不重新提交 action：
+它 POST reconcile 原 operation_id 并轮询同一 receipt。只有结果收敛为 SUCCEEDED，才写
+`ok(reconciled)`、恢复 capture/assert 并继续下一步；UNKNOWN/PARTIAL/NOT_APPLIED 或
+reconcile 通道失败仍按 fail-fast 停止。
+
 `capture/assert` 路径相对于响应的 `result`，支持 `.key` 和 `[index]`，不支持筛选表达式。
 判定式支持数值比较、`==字符串`、`exists`、`true/false` 和 `len==N/len>=N/len<=N` 等长度比较。
 所有字符串值支持 `${变量}`；没有条件分支或循环，生成侧须先展开步骤。
@@ -139,7 +144,10 @@ journal 默认写入 `<playbook>.journal.jsonl`，头部记录文件哈希与目
 状态、耗时、错误和捕获变量。执行日志可定位停止在哪一项；它不撤销已经落地的动作。
 
 只读步骤可按策略重试临时故障；变更步骤超时可能已经生效，不自动重复写入。
-先保存 journal、回读目标，确认器件、引脚、线和标记的真实状态，再决定修正数据或重新规划。
+apply 会先 reconcile 同一个 operation_id；只有证明 SUCCEEDED 才自动续跑。无法收敛时再保存
+journal、回读目标，确认器件、引脚、线和标记的真实状态，再决定修正数据或重新规划。
+一次 UNKNOWN 不应触发自制 shell/Python 拆步 runner；正式 CLI/MCP 与 operation recovery
+仍是 public execution path，除非正式能力确实缺失并明确记录原因。
 普通队列的 `--resume` 会恢复已成功步骤的捕获变量，并拒绝文件哈希变化；受保护队列始终
 重新生成并完整执行。不要把离线预检成功、WebSocket 返回成功或保存成功单独写成最终验收通过。
 

@@ -29,6 +29,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/zhoushoujianwork/easyeda-agent/internal/connectivity"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
 	"github.com/zhoushoujianwork/easyeda-agent/internal/protocol"
 )
 
@@ -103,7 +104,7 @@ type journalHeader struct {
 type journalEntry struct {
 	Idx      int               `json:"idx"`
 	ID       string            `json:"id"`
-	Status   string            `json:"status"` // ok | ok(verified) | fail | skipped
+	Status   string            `json:"status"` // ok | ok(verified) | ok(reconciled) | fail | skipped
 	Ms       int64             `json:"ms"`
 	Captured map[string]string `json:"captured,omitempty"`
 	Error    string            `json:"error,omitempty"`
@@ -766,6 +767,9 @@ func (r *applyRunner) isReadOnly(s *playbookStep, catalog map[string]protocol.Ac
 
 func (r *applyRunner) policy(s *playbookStep) (timeout time.Duration, retry int, contOnErr bool) {
 	timeout = defaultActionTimeout
+	if s.Action != "" {
+		timeout = actionTimeout(s.Action)
+	}
 	retry = 2 // design: factory default retry for read-only steps
 	if r.pb.Defaults.TimeoutSec != nil {
 		timeout = time.Duration(*r.pb.Defaults.TimeoutSec) * time.Second
@@ -885,19 +889,18 @@ func (r *applyRunner) execute() error {
 		}
 
 		start := time.Now()
-		captured, execErr := r.executeStep(s, catalog)
+		captured, status, execErr := r.executeStep(s, catalog)
 		ms := time.Since(start).Milliseconds()
 
 		if execErr == nil {
 			okCount++
-			status := "ok"
 			r.writeJournal(journalEntry{Idx: i + 1, ID: ref, Status: status, Ms: ms, Captured: captured})
 			if !r.quiet {
 				mark := ""
 				if s.Checkpoint {
 					mark = " 💾"
 				}
-				fmt.Fprintf(r.stdout, "[%d/%d] %-16s ok (%.1fs)%s\n", i+1, len(r.pb.Steps), ref, float64(ms)/1000, mark)
+				fmt.Fprintf(r.stdout, "[%d/%d] %-16s %s (%.1fs)%s\n", i+1, len(r.pb.Steps), ref, status, float64(ms)/1000, mark)
 			}
 			if r.stepDelay > 0 && i < r.toIdx {
 				time.Sleep(r.stepDelay)
@@ -951,9 +954,9 @@ func (r *applyRunner) execute() error {
 }
 
 // executeStep runs one step with retry/verify semantics and returns captured vars.
-func (r *applyRunner) executeStep(s *playbookStep, catalog map[string]protocol.ActionSpec) (map[string]string, error) {
+func (r *applyRunner) executeStep(s *playbookStep, catalog map[string]protocol.ActionSpec) (map[string]string, string, error) {
 	if err := validateSchematicExpectationStep(s); err != nil {
-		return nil, &schematicExpectationError{err}
+		return nil, "", &schematicExpectationError{err}
 	}
 	timeout, retry, _ := r.policy(s)
 	readOnly := r.isReadOnly(s, catalog)
@@ -965,7 +968,7 @@ func (r *applyRunner) executeStep(s *playbookStep, catalog map[string]protocol.A
 
 	var lastErr error
 	for attempt := 0; ; attempt++ {
-		result, err := r.executeOnce(s, timeout)
+		result, reconciled, err := r.executeOnce(s, timeout)
 		if s.ExpectSchematic != nil {
 			// A read failure provides no evidence either. Never let verify or
 			// retry turn an absent or mismatched snapshot into a successful gate.
@@ -973,28 +976,40 @@ func (r *applyRunner) executeStep(s *playbookStep, catalog map[string]protocol.A
 				err = s.ExpectSchematic.check(result, r.vars)
 			}
 			if err != nil {
-				return nil, &schematicExpectationError{err}
+				return nil, "", &schematicExpectationError{err}
 			}
 		}
 		if err == nil {
 			captured, aerr := r.captureAndAssert(s.Capture, s.Assert, result)
 			if aerr == nil {
-				return captured, nil
+				if reconciled {
+					return captured, "ok(reconciled)", nil
+				}
+				return captured, "ok", nil
 			}
 			err = aerr
 		}
 		lastErr = err
+
+		// A formal V2 outcome is authoritative. PARTIAL/NOT_APPLIED, or an
+		// UNKNOWN that same-operation reconcile could not prove, must stop here;
+		// a user-authored secondary read cannot overwrite the V2 receipt.
+		var actionErr *actionError
+		var reconcileErr *applyReconcileError
+		if errors.As(err, &actionErr) || errors.As(err, &reconcileErr) {
+			return nil, "", lastErr
+		}
 
 		// verify block: did the mutation actually land?
 		if s.Verify != nil {
 			if ok := r.runVerify(s.Verify, timeout); ok {
 				// treat as success; captures from the verify result are not
 				// supported in v1 (verify is a boolean gate)
-				return nil, nil
+				return nil, "ok(verified)", nil
 			}
 		}
 		if attempt >= retry {
-			return nil, lastErr
+			return nil, "", lastErr
 		}
 		backoff := 2 * time.Second
 		if attempt >= 1 {
@@ -1006,31 +1021,46 @@ func (r *applyRunner) executeStep(s *playbookStep, catalog map[string]protocol.A
 }
 
 // executeOnce dispatches the step body once and returns the decoded JSON result.
-func (r *applyRunner) executeOnce(s *playbookStep, timeout time.Duration) (any, error) {
+func (r *applyRunner) executeOnce(s *playbookStep, timeout time.Duration) (any, bool, error) {
 	if s.ExpectedConnectivity != nil {
-		return r.checkConnectivity(s.ExpectedConnectivity)
+		result, err := r.checkConnectivity(s.ExpectedConnectivity)
+		return result, false, err
 	}
 	switch {
 	case s.Notify != "":
 		msg, err := substVars(s.Notify, r.vars)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
-		return r.runAction("system.notify", map[string]any{"message": msg, "type": "info"}, timeout)
+		result, err := r.runAction("system.notify", map[string]any{"message": msg, "type": "info"}, timeout)
+		return result, false, err
 	case s.Action != "":
 		payload, err := substVars(s.Payload, r.vars)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 		var pm map[string]any
 		if payload != nil {
 			pm, _ = payload.(map[string]any)
 		}
-		return r.runAction(s.Action, pm, timeout)
+		result, err := r.runAction(s.Action, pm, timeout)
+		if err == nil {
+			return result, false, nil
+		}
+		var actionErr *actionError
+		if actionMutates(s.Action) && errors.As(err, &actionErr) && actionErr.Code == string(executionv2.Unknown) {
+			fmt.Fprintf(r.stderr, "  UNKNOWN operation %s — reconciling the same operation; mutation will not be replayed\n", actionErr.OperationID)
+			result, recoveryErr := r.reconcileApplyOperation(s.Action, actionErr.OperationID, timeout)
+			if recoveryErr == nil {
+				return result, true, nil
+			}
+			return nil, false, &applyReconcileError{err: recoveryErr}
+		}
+		return nil, false, err
 	case s.Run != "":
 		flags, err := substVars(s.Flags, r.vars)
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 		var fm map[string]any
 		if flags != nil {
@@ -1040,13 +1070,14 @@ func (r *applyRunner) executeOnce(s *playbookStep, timeout time.Duration) (any, 
 		for i, a := range s.Args {
 			v, err := substVars(a, r.vars)
 			if err != nil {
-				return nil, err
+				return nil, false, err
 			}
 			args[i] = v.(string)
 		}
-		return r.runSubcommand(s.Run, fm, args)
+		result, err := r.runSubcommand(s.Run, fm, args)
+		return result, false, err
 	}
-	return nil, errors.New("empty step")
+	return nil, false, errors.New("empty step")
 }
 
 // runAction POSTs a typed action and returns its decoded `result`.

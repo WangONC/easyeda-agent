@@ -595,14 +595,14 @@ export const wireCreate: NativeAction = { mode: 'V2_NATIVE', scope: 'DESIGN_CONT
  if(!requestedSegments.length)throw Error('V2_INVALID_WIRE_POINTS');
  let id:string|undefined;
  const style=(w:WireSnapshot)=>JSON.stringify([w.net,w.color,w.lineWidth,w.lineType]);
- c.prepare(async()=>{
+ c.prepare({read:snapshot,verify:after=>{
   if(!id)return {changed:null,verification:unavailable()};
-  const after=await snapshot(),byId=new Map(after.map(w=>[w.id,w])),fresh=byId.get(id);
+  const byId=new Map(after.map(w=>[w.id,w])),fresh=byId.get(id);
   if(!fresh||after.some(w=>!beforeIds.has(w.id)&&w.id!==id))return {changed:null,verification:unavailable()};
   const complete=wireAdditionProof(before,after,id,points,p);
   const changed=before.length!==after.length||before.some(w=>{const a=byId.get(w.id);return !a||style(a)!==style(w)||wireGeometry(a.line,true)!==wireGeometry(w.line,true);});
   return complete?observed({primitiveId:id,net:fresh.net,line:fresh.line},['native_returned_wire_identity','fresh_complete_wire_geometry_and_style','unrelated_wire_identity_preserved'],changed):{changed:null,verification:unavailable(),evidence:{created_id:id,before,after}};
- });
+ }});
  await c.effect(async () => { const made = await eda.sch_PrimitiveWire.create(points, p.net as string | undefined, p.color as string | undefined ?? null, p.lineWidth as number | undefined ?? null, p.lineType as ESCH_PrimitiveLineType | undefined ?? null); id = made?.getState_PrimitiveId(); });
  return c.verify();
 } };

@@ -18,15 +18,25 @@ export interface Verification {
  verdict: 'satisfied' | 'unchanged' | 'partial' | 'unavailable'; checked: string[];
  complete: boolean; required: number; satisfied: number; residual: number;
 }
+export interface Timing {
+ queue_wait_ms: number; target_binding_guard_ms: number; pre_read_snapshot_ms: number;
+ native_effect_ms: number; post_read_ms: number | null; verification_ms: number | null;
+ post_read_verification_ms?: number; reconcile_ms: number; total_ms: number;
+}
 export interface Observation { value?: unknown; evidence?: unknown; verification: Verification; changed: boolean | null }
 export interface HandlerResult {
  protocol: typeof V2; operation_id: string; digest: string; target_ref: Target;
- effects: Effects; verification: Verification; value?: unknown; evidence?: unknown;
+ effects: Effects; verification: Verification; timing: Timing; value?: unknown; evidence?: unknown;
+}
+export interface VerificationStages<T = unknown> {
+ read(): Promise<T>;
+ verify(fresh: T): Promise<Observation> | Observation;
 }
 export interface NativeContext {
  request: Request;
  effect<T>(invoke: () => Promise<T> | T): Promise<T>;
  prepare(readback: () => Promise<Observation>): void;
+ prepare<T>(stages: VerificationStages<T>): void;
  navigationTarget(target: Target): void;
  verify(): Promise<Observation>;
 }
@@ -70,8 +80,8 @@ export class ControlledExecutor {
   if (action.scope!=='NONE' && this.owner) return Promise.reject(Error('V2_EFFECT_BARRIER'));
   if (action.scope!=='NONE') this.owner=request.operation_id;
   // Reserve the slot before scheduling any Host call, even a context read.
-  const deadline=deadlineAt;
-  const promise=Promise.resolve().then(()=>this.schedule(()=>this.run(request,digest,action,deadline),request));
+  const deadline=deadlineAt,enqueuedAt=Date.now();
+  const promise=Promise.resolve().then(()=>this.schedule(()=>this.run(request,digest,action,deadline,enqueuedAt),request));
   this.slots.set(request.operation_id,{digest,promise});
   return promise;
  }
@@ -87,54 +97,81 @@ export class ControlledExecutor {
   if(!slot?.result || !slot.reconcile) throw Error("V2_RECONCILIATION_UNAVAILABLE");
   return slot.reconcile();
  }
- private async run(request: Request,digest: string,action: NativeAction,deadline: number): Promise<HandlerResult> {
+ private async run(request: Request,digest: string,action: NativeAction,deadline: number,enqueuedAt: number): Promise<HandlerResult> {
+  const startedAt=Date.now();
+  const timing:Timing={queue_wait_ms:Math.max(0,startedAt-enqueuedAt),target_binding_guard_ms:0,pre_read_snapshot_ms:0,native_effect_ms:0,post_read_ms:null,verification_ms:null,reconcile_ms:0,total_ms:0};
   const effects: Effects={effect_started:false,state_changed:false,native_settled:true,effect_scope:action.scope,reconciled:false};
   let expired=Date.now()>=deadline;
   let verifier: (()=>Promise<Observation>) | undefined;
+  let splitVerifier: VerificationStages<unknown> | undefined;
   let destination:Target|undefined;
   let verifying=false;
   let activeNative=0;
   let accepting=true;
+  let actionStartedAt=0,preReadCaptured=false;
   let pendingDone:Promise<void>|undefined;
   const cancel=armDeadline(Math.max(0,deadline-Date.now()),()=>{expired=true;});
-  const result: HandlerResult={protocol:V2,operation_id:request.operation_id,digest,target_ref:request.target_ref,effects,verification:unavailable()};
+  const result: HandlerResult={protocol:V2,operation_id:request.operation_id,digest,target_ref:request.target_ref,effects,verification:unavailable(),timing};
   const guard=async()=>{
-   try {if(sameTarget(await this.target(request.target_ref),request.target_ref))return;}catch{/* a registered navigation destination is checked below */}
-   if(effects.effect_started&&destination&&sameTarget(await this.target(destination),destination))return;
-   throw Error('V2_TARGET_MISMATCH');
+   const began=Date.now();
+   try {
+    try {if(sameTarget(await this.target(request.target_ref),request.target_ref))return;}catch{/* a registered navigation destination is checked below */}
+    if(effects.effect_started&&destination&&sameTarget(await this.target(destination),destination))return;
+    throw Error('V2_TARGET_MISMATCH');
+   } finally {timing.target_binding_guard_ms+=Math.max(0,Date.now()-began);}
+  };
+  const runVerifier=async(reconcile:boolean)=>{
+   const began=Date.now();
+   try {
+    if(splitVerifier){
+     const readAt=Date.now(),fresh=await splitVerifier.read();
+     const readMS=Math.max(0,Date.now()-readAt),verifyAt=Date.now(),observation=await splitVerifier.verify(fresh),verifyMS=Math.max(0,Date.now()-verifyAt);
+     timing.post_read_ms=(timing.post_read_ms??0)+readMS;
+     timing.verification_ms=(timing.verification_ms??0)+verifyMS;
+     return observation;
+    }
+    if(!verifier)throw Error('V2_VERIFICATION_NOT_READY');
+    const observation=await verifier(),elapsed=Math.max(0,Date.now()-began);
+    timing.post_read_verification_ms=(timing.post_read_verification_ms??0)+elapsed;
+    return observation;
+   } finally {if(reconcile)timing.reconcile_ms+=Math.max(0,Date.now()-began);}
   };
   try {
    action.validate(request.input);
    await guard();
+   actionStartedAt=Date.now();
    let observation=await action.run({request,navigationTarget:target=>{
     if(effects.effect_started||action.scope!=='NAVIGATION_SELECTION'||target.session!==request.target_ref.session||target.activation!==request.target_ref.activation||target.scope!=='PROJECT'||!target.project_uuid)throw Error('V2_INVALID_NAVIGATION_TARGET');
     if(destination&&!sameTarget(destination,target))throw Error('V2_NAVIGATION_TARGET_ALREADY_BOUND');
     destination={...target};
-   },prepare:readback=>{
+   },prepare:(readback: (()=>Promise<Observation>) | VerificationStages<unknown>)=>{
     if(effects.effect_started) throw Error('V2_VERIFIER_MUST_BE_PREPARED_BEFORE_EFFECT');
-    verifier=readback;
+    if(typeof readback==='function')verifier=readback;
+    else {splitVerifier=readback;verifier=()=>runVerifier(false);}
    },verify:async()=>{
     if(!verifier || activeNative) throw Error('V2_VERIFICATION_NOT_READY');
-    verifying=true;try{return await verifier();}finally{verifying=false;}
+    verifying=true;try{return await runVerifier(false);}finally{verifying=false;}
    },effect:async invoke=>{
     if (!verifier) throw Error('V2_SCOPED_VERIFIER_REQUIRED_BEFORE_EFFECT');
     if (!accepting || action.scope==='NONE' || verifying || activeNative || expired || Date.now()>=deadline) throw Error('V2_EFFECT_NOT_ADMITTED');
+    if(!preReadCaptured){timing.pre_read_snapshot_ms=Math.max(0,Date.now()-actionStartedAt);preReadCaptured=true;}
     activeNative++;let finished!:()=>void;pendingDone=new Promise<void>(r=>{finished=r;});
     try {await guard();
      if(expired || Date.now()>=deadline)throw Error('V2_DEADLINE');
      effects.effect_started=true;effects.state_changed=null;effects.native_settled=false;
-     return await invoke();
+     const began=Date.now();try{return await invoke();}finally{timing.native_effect_ms+=Math.max(0,Date.now()-began);}
     }finally{activeNative--;effects.native_settled=activeNative===0;finished();}
    }});
+   if(!preReadCaptured){timing.pre_read_snapshot_ms=Math.max(0,Date.now()-actionStartedAt);preReadCaptured=true;}
    accepting=false;
-   if(activeNative && pendingDone){await pendingDone;if(verifier){observation=await verifier();effects.reconciled=true;}}
+   if(activeNative && pendingDone){await pendingDone;if(verifier){observation=await runVerifier(true);effects.reconciled=true;}}
    // run() must perform its semantic readback after awaiting native settlement.
    // A target change at any point invalidates its entire observation.
    await guard();
    expired ||= Date.now()>=deadline;
    if(expired && effects.effect_started) {
     if(!verifier) {observation={changed:null,verification:unavailable()};}
-    else {verifying=true;try{observation=await verifier();await guard();effects.reconciled=true;}finally{verifying=false;}}
+    else {verifying=true;try{observation=await runVerifier(true);await guard();effects.reconciled=true;}finally{verifying=false;}}
    }
    result.verification=observation.verification; result.value=observation.value; result.evidence=observation.evidence;
    effects.state_changed=observation.changed;
@@ -147,7 +184,7 @@ export class ControlledExecutor {
    // skip the pre-registered scoped readback. This path NEVER invokes run().
    if(effects.effect_started && effects.native_settled && verifier) {
     try {
-     await guard();verifying=true;const observation=await verifier();await guard();
+     await guard();verifying=true;const observation=await runVerifier(true);await guard();
      result.verification=observation.verification;result.value=observation.value;
      result.evidence={handler_error:String(e),readback:observation.evidence};
      effects.state_changed=observation.changed;effects.reconciled=true;
@@ -159,12 +196,13 @@ export class ControlledExecutor {
     effects.reconciled=expired||Date.now()>=deadline;
     result.verification={verdict:'unchanged',checked:['controlled_effect_entry_not_called'],complete:true,required:1,satisfied:0,residual:1};
    }
-  } finally { cancel.cancel(); }
+  } finally { cancel.cancel();timing.total_ms=Math.max(0,Date.now()-enqueuedAt); }
   const slot=this.slots.get(request.operation_id)!;
   slot.result=result;
   if(verifier) slot.reconcile=async()=>{
-   await guard();verifying=true;let observation:Observation;try{observation=await verifier!();await guard();}finally{verifying=false;}
-   const fresh: HandlerResult={...result,effects:{...effects,state_changed:observation.changed,reconciled:true},verification:observation.verification,value:observation.value,evidence:observation.evidence};
+   await guard();verifying=true;let observation:Observation;try{observation=await runVerifier(true);await guard();}finally{verifying=false;}
+   timing.total_ms=Math.max(0,Date.now()-enqueuedAt);
+   const fresh: HandlerResult={...result,effects:{...effects,state_changed:observation.changed,reconciled:true},verification:observation.verification,timing:{...timing},value:observation.value,evidence:observation.evidence};
    slot.result=fresh;return fresh;
   };
   return result;

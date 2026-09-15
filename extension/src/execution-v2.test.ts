@@ -138,3 +138,41 @@ test('recovery reads survive transport rebind while pending; only daemon release
  await runtime.execute(original,'original-digest');
  assert.equal(writes,1);
 });
+
+test('timing evidence separates queue, guard, snapshot, native, post-read, verification and reconcile', async()=>{
+ let state=false;
+ const action:NativeAction={mode:'V2_NATIVE',scope:'DESIGN_CONTENT',validate:()=>{},run:async c=>{
+  await new Promise(r=>setTimeout(r,3));
+  c.prepare({read:async()=>{await new Promise(r=>setTimeout(r,3));return state;},verify:async fresh=>{await new Promise(r=>setTimeout(r,3));return observed({state:fresh},['fresh_state'],fresh);}});
+  await c.effect(async()=>{await new Promise(r=>setTimeout(r,3));state=true;});
+  return c.verify();
+ }};
+ const scheduled=async(run:()=>Promise<any>)=>{await new Promise(r=>setTimeout(r,5));return run();};
+ const runtime=new ControlledExecutor(()=>action,async()=>target,8,scheduled);
+ const result=await runtime.execute({...req('timing'),budget_ms:1000}, 'd');
+ assert.ok(result.timing.queue_wait_ms>=4);
+ assert.ok(result.timing.target_binding_guard_ms>=0);
+ assert.ok(result.timing.pre_read_snapshot_ms>=2);
+ assert.ok(result.timing.native_effect_ms>=2);
+ assert.ok((result.timing.post_read_ms??0)>=2);
+ assert.ok((result.timing.verification_ms??0)>=2);
+ assert.equal(result.timing.post_read_verification_ms,undefined);
+ assert.equal(result.timing.reconcile_ms,0);
+ assert.ok(result.timing.total_ms>=result.timing.queue_wait_ms);
+ const reconciled=await runtime.reconcile('timing');
+ assert.ok(reconciled.timing.reconcile_ms>=5);
+});
+
+test('Connector executor uses the daemon absolute deadline without falling back to request budget', async()=>{
+ let writes=0;
+ const action:NativeAction={mode:'V2_NATIVE',scope:'DESIGN_CONTENT',validate:()=>{},run:async c=>{
+  c.prepare(async()=>observed({primitiveId:'wire-1'},['fresh_wire_geometry'],true));
+  await c.effect(async()=>{writes++;await new Promise(r=>setTimeout(r,25));});
+  return c.verify();
+ }};
+ const request={...req('forwarded-deadline'),action:'schematic.wire.create',budget_ms:5};
+ const result=await new ControlledExecutor(()=>action,async()=>target).execute(request,'d',Date.now()+250);
+ assert.equal(writes,1);
+ assert.equal(result.effects.reconciled,false,'a hidden request-budget deadline would force reconciliation');
+ assert.equal(result.verification.verdict,'satisfied');
+});

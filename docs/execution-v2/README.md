@@ -23,15 +23,21 @@ This is the frozen execution-model implementation, not Host qualification. No re
 | Operation | Daemon coordinator, 2,048 retained in-memory records, no eviction/replay. Same ID+digest joins/returns one operation; different digest refuses. Caller budget/request ID do not alter the operation digest. |
 | Effect gate | One Host-wide effect owner; Connector controlled effect entry plus existing FIFO. Gated routing actions reuse catalog workflow stage gates. Disabled action policy remains enforced. |
 | Pending barrier | Deadline publishes UNKNOWN without releasing native ownership. Only explicitly diagnostic no-effect reads may pass. Connector reload is not cancellation. |
-| HandlerResult | Fixed protocol/op/digest/target, explicit effect facts and verification coverage; business value and diagnostic evidence are separate. `prepare()` must register the verifier before `effect()`. |
+| HandlerResult | Fixed protocol/op/digest/target, explicit effect facts, verification coverage and timing evidence; business value and diagnostic evidence are separate. `prepare()` must register the verifier before `effect()`. |
 | Verification | Fresh identity/geometry/metadata/absence/selection checks, or a documented native command-return contract. Late resolve, late reject and continuation failure all reach the registered fresh verifier. |
 | Finalizer | Only `internal/executionv2/model.go:Finalize` creates public Outcomes. Four outcomes only. No action-name/raw-status/evidence-shape reducer. Full postcondition proof can establish success without inventing a measured state change. Unknown residual coverage still cannot establish success. |
-| Receipt/evidence | Compact public result; values over 8 KiB remain in operation evidence instead of being repeatedly returned. Full current HandlerResult retained once; no prior-execution interpretation. |
+| Receipt/evidence | A SUCCEEDED public result retains its complete business `value`; payload size can never project a successful read as empty. Bounded transports fail explicitly, while the full current HandlerResult remains independently available as evidence. |
 | Reconcile | `POST /v2/operation?id=…&view=reconcile` invokes the stored verifier, never handler replay. The request returns current status; poll status for the fresh result. A settled but unverifiable operation remains fenced. |
 | Projection | `easyeda v2 call/status/evidence/reconcile/catalog`; MCP domain multiplex tools consume the same daemon result. Exit/isError projection does not reinterpret business success. |
 | Isolation | `/action` and `/writeverify` return 410; `conn.dispatch` and `runAction` refuse. Missing V2 catalog metadata/handler means `V2_ACTION_NOT_MIGRATED`. All parent operations are refused this round, so no V2 parent can invoke a legacy child. |
 
 Public effect facts are `effect_started`, nullable `state_changed`, `native_settled`, `effect_scope`, `reconciled`. A verified no-op records no change. Save/notification command acceptance does not claim a physical persistence/UI change. Stage invalidation uses effect facts, not Outcome. Legacy autosave construction is disabled; no background save bypass remains. Connection/menu diagnostics use logging instead of uncoordinated Host toasts/dialogs. Extension connection preferences remain control-plane configuration, not design operations.
+
+Every receipt also carries `timing`: queue wait, target/binding guard, pre-read/snapshot,
+native effect, post-read, verification, reconcile and total milliseconds. Actions migrated
+to split verifier stages report post-read and verification separately; older combined
+verifiers expose `post_read_verification_ms` and leave the split fields null rather than
+inventing precision. Timing is diagnostic only and cannot change Outcome.
 
 ## Business API preservation audit
 

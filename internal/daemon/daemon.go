@@ -20,9 +20,8 @@ const Service = "easyeda-agent"
 
 // Options configures a daemon Server.
 type Options struct {
-	// V2HostStartupConfirmed is an explicit operator assertion for this daemon
-	// lifetime after an unclean exit. It never releases restored receipt ownership.
-	// Never infer this from reconnect or a new window ID.
+	// V2HostStartupConfirmed is retained for CLI compatibility. It never releases
+	// a lifecycle marker; legacy orphan recovery requires exact fingerprint retire.
 	V2HostStartupConfirmed bool
 	V2ReceiptFile          string
 
@@ -53,14 +52,17 @@ type Options struct {
 // connector WebSockets on /connect, and forwards typed actions on /action.
 // Artifact storage and audit logging come later.
 type Server struct {
-	v2StartupErr    error
-	v2UncleanStart  bool
-	v2UncleanOwner  string
-	v2RestoredOwner string
-	v2Session       string
-	v2              *executionv2.Coordinator
-	v2Mu            sync.Mutex
-	v2Pending       map[string]v2Pending
+	v2StartupErr         error
+	v2UncleanStart       bool
+	v2UncleanOwner       string
+	v2UncleanDigest      string
+	v2UncleanFingerprint string
+	v2RestoredOwner      string
+	v2Session            string
+	v2                   *executionv2.Coordinator
+	v2Mu                 sync.Mutex
+	v2RecoveryMu         sync.Mutex
+	v2Pending            map[string]v2Pending
 
 	fastPlans fastPlans
 	opts      Options
@@ -186,15 +188,16 @@ func New(opts Options) *Server {
 }
 
 type health struct {
-	V2EffectOwner   string   `json:"v2_effect_owner,omitempty"`
-	V2Session       string   `json:"v2_session"`
-	V2StartupFenced bool     `json:"v2_startup_fenced"`
-	Service         string   `json:"service"`
-	Version         string   `json:"version"`
-	SourceRevision  string   `json:"source_revision"`
-	Status          string   `json:"status"`
-	Port            int      `json:"port"`
-	Windows         []Window `json:"windows"`
+	V2EffectOwner   string                `json:"v2_effect_owner,omitempty"`
+	V2Session       string                `json:"v2_session"`
+	V2StartupFenced bool                  `json:"v2_startup_fenced"`
+	V2LegacyOrphan  *v2LegacyOrphanStatus `json:"v2_legacy_orphan,omitempty"`
+	Service         string                `json:"service"`
+	Version         string                `json:"version"`
+	SourceRevision  string                `json:"source_revision"`
+	Status          string                `json:"status"`
+	Port            int                   `json:"port"`
+	Windows         []Window              `json:"windows"`
 	// WriteHealth is the rolling per-window forwarded-action failure window
 	// (writehealth.go): degraded=true flags a connector that is failing under
 	// load (REPORT round2 新 3 — clients should insert light reads and verify
@@ -229,6 +232,7 @@ func (s *Server) routes(port int) *http.ServeMux {
 			V2Session:       s.v2Session,
 			V2EffectOwner:   s.v2.EffectOwner(),
 			V2StartupFenced: s.v2StartupFenced(),
+			V2LegacyOrphan:  s.v2LegacyOrphan(),
 			Service:         Service,
 			Version:         s.opts.Version,
 			SourceRevision:  s.opts.SourceRevision,

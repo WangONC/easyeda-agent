@@ -159,7 +159,12 @@ else:
         self.assertIn("mutation 必须逐个提交", skill)
         self.assertIn("metadata 缺失只产生 warning/diagnostic", skill)
         self.assertIn("不要同时触发独立 easyeda-api Bridge", skill)
-        self.assertIn("easyeda daemon restart", (REPO / "skills/easyeda-agent/references/environment-setup.md").read_text(encoding="utf-8"))
+        environment = (REPO / "skills/easyeda-agent/references/environment-setup.md").read_text(encoding="utf-8")
+        self.assertIn("easyeda daemon restart", environment)
+        self.assertIn("operation retire-legacy-orphan", environment)
+        self.assertIn("RETIRED_UNRESOLVED", environment)
+        self.assertIn("durable UNKNOWN 必须继续", environment)
+        self.assertIn("不会重放 mutation", environment)
 
 
 if __name__ == "__main__":

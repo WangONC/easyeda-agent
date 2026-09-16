@@ -81,7 +81,7 @@ func TestV2CleanStartupAllowsReadsAndWrites(t *testing.T) {
 		t.Fatal("handoff reopened writes")
 	}
 }
-func TestV2UncleanStartupPersistsUntilExplicitConfirmation(t *testing.T) {
+func TestV2IdentifiedLegacyOrphanPersistsUntilFormalRetirement(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "receipts.json")
 	old := New(Options{V2ReceiptFile: path})
 	if e := old.markV2Running(); e != nil {
@@ -110,17 +110,33 @@ func TestV2UncleanStartupPersistsUntilExplicitConfirmation(t *testing.T) {
 	}
 	confirmed := New(Options{V2ReceiptFile: path, V2HostStartupConfirmed: true})
 	startupConn(confirmed)
-	if confirmed.v2StartupFenced() {
-		t.Fatal("explicit confirmation ignored")
+	if !confirmed.v2StartupFenced() {
+		t.Fatal("startup confirmation bypassed an identified legacy orphan")
 	}
-	if _, e := confirmed.validateV2(startupRequest("pcb.save", "write")); e != nil {
+	if _, e := confirmed.validateV2(startupRequest("pcb.save", "write")); e == nil || !strings.Contains(e.Error(), "STARTUP") {
+		t.Fatal("identified legacy orphan admitted write", e)
+	}
+	if _, e := os.Stat(path + ".active"); e != nil {
+		t.Fatal("identified marker disappeared", e)
+	}
+	if e := confirmed.markV2Running(); e != nil {
 		t.Fatal(e)
 	}
 	if e := confirmed.saveV2Handoff(); e != nil {
 		t.Fatal(e)
 	}
-	if _, e := os.Stat(path + ".active"); !os.IsNotExist(e) {
+	if restarted := New(Options{V2ReceiptFile: path}); !restarted.v2StartupFenced() || restarted.v2LegacyOrphan() == nil {
+		t.Fatal("identified legacy orphan was erased by broad confirmation")
+	}
+
+	unrecognized := filepath.Join(t.TempDir(), "receipts.json")
+	if e := os.WriteFile(unrecognized+".active", []byte("legacy-unrecognized"), 0600); e != nil {
 		t.Fatal(e)
+	}
+	asserted := New(Options{V2ReceiptFile: unrecognized, V2HostStartupConfirmed: true})
+	startupConn(asserted)
+	if !asserted.v2StartupFenced() || asserted.v2LegacyOrphan() == nil {
+		t.Fatal("broad confirmation bypassed an unrecognized marker")
 	}
 }
 func TestV2RestoredUnknownOwnerCannotBeBypassed(t *testing.T) {
@@ -160,6 +176,7 @@ func TestV2RestoredUnknownOwnerCannotBeBypassed(t *testing.T) {
 			recovered := New(Options{})
 			startupConn(recovered)
 			recovered.v2 = executionv2.New(20, recovered.validateV2, startupExecutor(&calls, true, false))
+			recovered.v2.OnResolved(recovered.resolveV2)
 			if _, e := recovered.v2.RestoreHandoff(path); e != nil {
 				t.Fatal(e)
 			}

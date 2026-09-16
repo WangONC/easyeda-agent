@@ -55,11 +55,10 @@ A clean start permits normal V2 reads and writes without extra flags.
 Restored unresolved ownership still blocks effects until explicit recovery.
 An interrupted read-only lifetime remains writable on restart. A durable effect-start
 marker without saved handoff, or unrecognized recovery state, activates the safety fence.
-Reads remain available. After checking that no prior native operation is unresolved
-and freshly checking the Host target/checkpoint, an operator may start with
---v2-host-startup-confirmed. This is a per-start assertion, not persisted trust:
-do not add it to an automatic restart command. Restart/reconnect never proves
-cancellation, and this flag cannot reconstruct or complete a lost receipt.
+Reads remain available. A legacy marker without a recoverable operation must use
+easyeda operation retire-legacy-orphan with the exact health-reported raw marker
+fingerprint after fresh Host verification. Neither recognized nor malformed markers are
+released by --v2-host-startup-confirmed; restart/reconnect never proves cancellation.
 The legacy --autosave-debounce option is retained but V2 does not arm autosave.
 
 Skill sync is opt-in (--auto-update-skill). Missing installation metadata is a
@@ -141,7 +140,7 @@ extension/src/transport.ts).`,
 	}
 	c.Flags().StringVar(&v2ReceiptFile, "v2-receipt-file", "", "local atomic receipt handoff; restored before listening")
 	c.Flags().BoolVar(&v2HostStartupConfirmed, "v2-host-startup-confirmed", false,
-		"operator confirms this Host has no unresolved prior native effect and its target/checkpoint was freshly checked; never set automatically on restart")
+		"deprecated compatibility flag; never releases lifecycle markers or durable operations")
 	c.Flags().DurationVar(&autosaveDebounce, "autosave-debounce", 3*time.Second,
 		"autosave a window this long after its last mutating action (0 = disable)")
 	c.Flags().BoolVar(&autoUpdateSkill, "auto-update-skill", false,

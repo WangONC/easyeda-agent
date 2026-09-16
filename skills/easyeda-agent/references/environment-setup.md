@@ -110,6 +110,9 @@ health、journal 和日志。多个真实工程/窗口可以同时存在；要�
 2. 检查扩展管理器只保留所选渠道的当前连接器，卸载重复旧项后完全退出并重启 EasyEDA。
    网页版若同一 tab 重载仍无法重连，保存后关闭该 tab，再打开目标工程。
 3. 只有 daemon 本身版本或状态异常时才重启它；正式环境用 `easyeda daemon restart`（或 `stop` 后 `start`），它先保存 durable operation handoff，再 graceful shutdown。`make dev` 管理的进程通过其终端恢复。
+   若 `health` 明确给出 `v2_legacy_orphan`，表示旧版只留下带 operation ID/digest 的 effect marker、却没有可查询的 durable operation。先用正式只读入口新鲜核对 Host 状态，再由 operator 使用
+   `easyeda operation retire-legacy-orphan <operation_id> --digest <digest> --fingerprint <marker_fingerprint> --reason "<核对依据>" --confirm-host-state`。若旧 marker 无完整 operation identity，则省略 operation ID 与 digest，但仍必须逐字匹配 health 给出的 fingerprint。
+   该入口只把这个精确 legacy orphan 记为 `RETIRED_UNRESOLVED` 并释放 startup fence，语义 outcome 仍是 `UNKNOWN`，不会重放 mutation，也不会伪造成功；审计记录写入 daemon 状态目录。正常可查询的 durable UNKNOWN 必须继续 `operation status/evidence/reconcile`，不得使用 retire 绕过。
 4. 用 `health` 确认目标只剩预期连接和版本，再读取目标页，例如
    `sch list --page <uuid> --include-pins`。读回稳定且未完成步骤已核清后，再继续 Apply。
 

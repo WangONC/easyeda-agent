@@ -47,7 +47,7 @@ func (s *Server) validateV2(r executionv2.Request) (executionv2.Admission, error
 	if e != nil {
 		return a, e
 	}
-	if a.EffectScope != "NONE" && s.v2UncleanStart && !s.opts.V2HostStartupConfirmed {
+	if a.EffectScope != "NONE" && s.v2LifecycleBlocked() {
 		return a, errors.New("V2_HOST_STARTUP_RECONCILIATION_REQUIRED")
 	}
 	if protocol.ActionDisabled(r.Action) {
@@ -192,6 +192,10 @@ func (s *Server) handleV2(w http.ResponseWriter, r *http.Request) {
 }
 func (s *Server) handleV2Status(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
+	if r.Method == "POST" && r.URL.Query().Get("view") == "retire-legacy-orphan" {
+		s.handleV2LegacyOrphanRetire(w, r, id)
+		return
+	}
 	if r.Method == "POST" && (r.URL.Query().Get("view") == "recover" || r.URL.Query().Get("view") == "release") {
 		s.handleV2Recovery(w, r, id)
 		return

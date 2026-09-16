@@ -20,6 +20,7 @@ func newV2Cmd(out io.Writer) *cobra.Command {
 	root := &cobra.Command{Use: "v2", Short: "Explicit Execution V2 requests and operation receipts"}
 	root.PersistentFlags().StringVar(&base, "endpoint", base, "daemon endpoint")
 	root.AddCommand(newV2CheckpointCmd(&base, out))
+	root.AddCommand(newV2LegacyOrphanRetireCmd(&base, out))
 	root.AddCommand(&cobra.Command{Use: "catalog", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, args []string) error {
 		list := []map[string]any{}
 		for _, a := range protocol.AllActions() {

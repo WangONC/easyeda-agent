@@ -2,6 +2,8 @@ package daemon
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
@@ -33,44 +35,62 @@ func (s *Server) inspectV2Lifecycle() error {
 		return err
 	}
 	var m v2Lifecycle
+	sum := sha256.Sum256(data)
+	s.v2UncleanFingerprint = hex.EncodeToString(sum[:])
 	d := json.NewDecoder(bytes.NewReader(data))
 	d.DisallowUnknownFields()
 	var extra any
 	valid := len(data) <= 4096 && d.Decode(&m) == nil && d.Decode(&extra) == io.EOF
 	// Legacy/unrecognizable markers cannot prove that no effect started.
 	s.v2UncleanStart = !valid || m.Version != "execution.v2.lifecycle.1" || m.State != "no_effect_started" || m.OperationID != "" || m.Digest != ""
-	if valid && m.Version == "execution.v2.lifecycle.1" && m.State == "effect_started" {
+	s.v2UncleanOwner = ""
+	s.v2UncleanDigest = ""
+	if valid && m.Version == "execution.v2.lifecycle.1" && m.State == "effect_started" && m.OperationID != "" && m.Digest != "" {
 		s.v2UncleanOwner = m.OperationID
+		s.v2UncleanDigest = m.Digest
 		if result, ok := s.v2.Status(m.OperationID); ok && result.Outcome != executionv2.Unknown {
 			s.v2UncleanStart = false
 			s.v2UncleanOwner = ""
+			s.v2UncleanDigest = ""
+			s.v2UncleanFingerprint = ""
 		}
 	}
 	return nil
 }
 
+// v2LifecycleBlocked is deliberately lock-free because admission calls it
+// while Coordinator.Submit owns its mutex. Every residual lifecycle marker,
+// including malformed/partial legacy state, needs exact fingerprint retirement.
+func (s *Server) v2LifecycleBlocked() bool { return s.v2UncleanStart }
+
 func (s *Server) v2StartupFenced() bool {
-	owner := s.v2.EffectOwner()
-	if s.v2RestoredOwner != "" && owner == s.v2RestoredOwner {
+	// validateV2 is called while Coordinator.Submit holds its mutex, so this
+	// path must not call EffectOwner (which would recursively take that mutex).
+	// Restored ownership is mirrored here and cleared only by terminal resolve.
+	if s.v2RestoredOwner != "" {
 		return true
 	}
 	// A recognized marker backed by the same durable operation is discharged
 	// only by that operation reaching a terminal result. An unrecognized marker
-	// still requires the explicit operator assertion.
-	if s.v2UncleanStart && !s.opts.V2HostStartupConfirmed {
+	// still requires exact raw-marker fingerprint retirement.
+	if s.v2UncleanStart {
 		if s.v2UncleanOwner != "" {
 			if result, ok := s.v2.Status(s.v2UncleanOwner); ok && result.Outcome != executionv2.Unknown {
 				return false
 			}
+			// A recognized effect marker has an exact identity. If its operation
+			// record is absent, only the audited legacy-orphan retirement path may
+			// release it; the broad startup assertion is intentionally insufficient.
+			return true
 		}
-		return true
+		return s.v2LifecycleBlocked()
 	}
 	return false
 }
 
 // Called only after binding the singleton port, before accepting requests.
 func (s *Server) markV2Running() error {
-	if s.v2UncleanStart && !s.opts.V2HostStartupConfirmed {
+	if s.v2LifecycleBlocked() {
 		return nil
 	}
 	return s.writeV2Lifecycle(v2Lifecycle{Version: "execution.v2.lifecycle.1", State: "no_effect_started"})
@@ -131,7 +151,7 @@ func (s *Server) saveV2Handoff() error {
 		return err
 	}
 	// A clean shutdown of a fenced lifetime cannot erase unknown prior work.
-	if s.v2UncleanStart && !s.opts.V2HostStartupConfirmed {
+	if s.v2LifecycleBlocked() {
 		return nil
 	}
 	err := os.Remove(s.opts.V2ReceiptFile + ".active")
@@ -144,6 +164,9 @@ func (s *Server) saveV2Handoff() error {
 func (s *Server) resolveV2(r executionv2.Request, digest string) {
 	s.releaseV2(r, digest)
 	if r.OperationID != s.v2UncleanOwner {
+		if r.OperationID == s.v2RestoredOwner {
+			s.v2RestoredOwner = ""
+		}
 		return
 	}
 	if err := s.writeV2Lifecycle(v2Lifecycle{Version: "execution.v2.lifecycle.1", State: "no_effect_started"}); err != nil {
@@ -152,5 +175,7 @@ func (s *Server) resolveV2(r executionv2.Request, digest string) {
 	}
 	s.v2UncleanStart = false
 	s.v2UncleanOwner = ""
+	s.v2UncleanDigest = ""
+	s.v2UncleanFingerprint = ""
 	s.v2RestoredOwner = ""
 }

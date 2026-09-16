@@ -206,7 +206,7 @@ func newOperationCmd(out io.Writer) *cobra.Command {
 	c.Use = "operation"
 	c.Short = "Inspect or reconcile an existing V2 operation; never replay"
 	for _, child := range c.Commands() {
-		if child.Name() != "status" && child.Name() != "evidence" && child.Name() != "reconcile" {
+		if child.Name() != "status" && child.Name() != "evidence" && child.Name() != "reconcile" && child.Name() != "retire-legacy-orphan" {
 			c.RemoveCommand(child)
 		}
 	}

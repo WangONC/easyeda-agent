@@ -66,3 +66,16 @@ func TestOperationRetireLegacyOrphanRequiresExplicitConfirmationBeforeNetwork(t 
 		t.Fatalf("network calls before confirmation = %d", calls.Load())
 	}
 }
+
+func TestPublicOperationExposesLegacyOrphanRetire(t *testing.T) {
+	command := newOperationCmd(&bytes.Buffer{})
+	found := false
+	for _, child := range command.Commands() {
+		if child.Name() == "retire-legacy-orphan" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("public operation command filtered retire-legacy-orphan")
+	}
+}

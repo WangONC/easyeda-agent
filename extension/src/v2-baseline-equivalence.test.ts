@@ -23,7 +23,7 @@ async function equivalent(action:string,input:Record<string,unknown>,hostFactory
  const binding=action.startsWith('board.')?{scope:'PROJECT' as const,session:'s',activation:'a',project_uuid:'p'}:target;
  const request:Request={protocol:V2,action,action_revision:'1',schema:'test',request_id:'r',operation_id:'o',target_ref:binding,input,budget_ms:1000};
  const result=await new ControlledExecutor(nativeAction,async()=>binding).execute(request,'d');
- assert.equal(result.verification.verdict,'satisfied');const actual=result.value as Record<string,unknown>;if(action.startsWith("pcb.silk."))delete actual.verification;if(action==='board.rebind')delete actual.rollback;assert.deepEqual(actual,expected.result);
+ assert.equal(result.verification.verdict,'satisfied');const actual=result.value as Record<string,unknown>;if(action.startsWith("pcb.silk."))delete actual.verification;if(action==='board.rebind')delete actual.rollback;if(action==='schematic.read'){delete actual.noConnectPins;delete actual.noConnectPinCount}assert.deepEqual(actual,expected.result);
 }
 const devices=[{uuid:'resistor',name:'0402 resistor',supplierId:'C1',otherProperty:{Value:'100k'},description:'resistor'},{uuid:'capacitor',name:'100nF 0402',supplierId:'C2',otherProperty:{Value:'100nF'},description:'capacitor'}];
 test('baseline-equivalent device search ranking and compact output',()=>equivalent('schematic.library.search',{query:'100nF 0402'},()=>({lib_Device:{search:async()=>devices}})));

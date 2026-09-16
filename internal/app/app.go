@@ -236,7 +236,7 @@ func publicV2InputSchema(action string, internal map[string]string) map[string]s
 		if key == "expected_project_uuid" || key == "session_token" {
 			continue
 		}
-		if (action == "project.create" || action == "schematic.create") && key == "client_transaction_id" {
+		if (action == "project.create" || action == "schematic.create" || action == "route.apply_batch" || action == "placement.apply_batch" || action == "pcb.add_components_batch") && key == "client_transaction_id" {
 			continue
 		}
 		out[key] = kind

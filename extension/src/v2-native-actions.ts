@@ -608,6 +608,16 @@ export const wireCreate: NativeAction = { mode: 'V2_NATIVE', scope: 'DESIGN_CONT
   return complete?observed({primitiveId:id,net:fresh.net,line:fresh.line},['native_returned_wire_identity','fresh_complete_wire_geometry_and_style','unrelated_wire_identity_preserved'],changed):{changed:null,verification:unavailable(),evidence:{created_id:id,before,after}};
  }});
  await c.effect(async () => { const made = await eda.sch_PrimitiveWire.create(points, p.net as string | undefined, p.color as string | undefined ?? null, p.lineWidth as number | undefined ?? null, p.lineType as ESCH_PrimitiveLineType | undefined ?? null); id = made?.getState_PrimitiveId(); });
+ // Host may return the created identity before getAll() publishes it. Stabilize
+ // that exact identity with a read-only getter, then perform the single strict
+ // full-inventory verification above (including duplicate/unrelated proofs).
+ if(id&&typeof eda.sch_PrimitiveWire.get==='function') for(const delay of [0,20,50,100,200,400]){
+  if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
+  let w;try{w=await eda.sch_PrimitiveWire.get(id)}catch{continue}
+  if(!w)continue;
+  const one:WireSnapshot={id:w.getState_PrimitiveId(),line:w.getState_Line(),net:w.getState_Net(),color:w.getState_Color(),lineWidth:w.getState_LineWidth(),lineType:w.getState_LineType()};
+  if(wireAdditionProof(before,[...before.filter(x=>x.id!==id),one],id,points,p))break;
+ }
  return c.verify();
 } };
 
@@ -749,7 +759,7 @@ export function declaredReadFields(name:string):NativeAction['validate'] {
   for(const [key,value]of Object.entries(input)){
    const type=entry.input[key];if(!type)throw Error('V2_UNKNOWN_INPUT:'+key);
    const alternatives=type.replace(/^!/, '').split('|');
-   const valid=alternatives.some(t=>t==='array'?Array.isArray(value):t==='string[]'?Array.isArray(value)&&value.every(x=>typeof x==='string'):t==='object'?value!==null&&typeof value==='object'&&!Array.isArray(value):typeof value===t&&(t!=='number'||Number.isFinite(value)));
+   const valid=alternatives.some(t=>t==='array'?Array.isArray(value):t==='number[4]'?Array.isArray(value)&&value.length===4&&value.every(x=>typeof x==='number'&&Number.isFinite(x)):t==='string[]'?Array.isArray(value)&&value.every(x=>typeof x==='string'):t==='object'?value!==null&&typeof value==='object'&&!Array.isArray(value):typeof value===t&&(t!=='number'||Number.isFinite(value)));
    if(!valid)throw Error('V2_INVALID_INPUT:'+key);
   }
  };

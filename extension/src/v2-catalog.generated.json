@@ -137,12 +137,12 @@
     }
   },
   "board.snapshot_compact": {
-    "schema": "6202592821edd4896ae1e5c02396b2536731441689dfa9136438c48d460f4835",
+    "schema": "a528cc663ed78c1a1aa0ea70f43d50f887ea14b3fedbdcbf8476e683a9822e3a",
     "revision": "1",
     "effect_scope": "NONE",
     "target": "pcb",
     "input": {
-      "bbox": "array",
+      "bbox": "number[4]",
       "document_uuid": "string",
       "include": "object",
       "layers": "array",
@@ -177,6 +177,32 @@
       "client_transaction_id": "!string",
       "document_uuid": "string",
       "operations": "array",
+      "plan_hash": "!string",
+      "project_uuid": "string"
+    }
+  },
+  "placement.preflight": {
+    "schema": "b5fb8837167f015c0b1813b05dcc192fdd8945b40622a7cd2d03b060d015a652",
+    "revision": "1",
+    "effect_scope": "NONE",
+    "target": "pcb",
+    "input": {
+      "base_revision": "!string",
+      "document_uuid": "string",
+      "placements": "!array",
+      "project_uuid": "string"
+    }
+  },
+  "placement.apply_batch": {
+    "schema": "6c5fa6b1fc8448a2e25f5a10fec4ff5cf0af995025bf9969e4fd60edb7cefc7e",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "base_revision": "!string",
+      "client_transaction_id": "!string",
+      "document_uuid": "string",
+      "placements": "!array",
       "plan_hash": "!string",
       "project_uuid": "string"
     }
@@ -1242,6 +1268,16 @@
       "uuid": "string",
       "x": "!number",
       "y": "!number"
+    }
+  },
+  "pcb.add_components_batch": {
+    "schema": "6a5c2be5c591e81873fcd12c9e23a719bf5f356f9b7baa960cf31749daa84591",
+    "revision": "1",
+    "effect_scope": "DESIGN_CONTENT",
+    "target": "pcb",
+    "input": {
+      "client_transaction_id": "!string",
+      "components": "!array"
     }
   },
   "pcb.component.modify": {

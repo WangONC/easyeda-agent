@@ -12,7 +12,7 @@ import (
 // Pure business computation over the one operation's fresh native observation.
 // This function neither consumes legacy Response nor decides public Outcome.
 func (s *Server) completeFastReadV2(req executionv2.Request, h executionv2.HandlerResult) executionv2.HandlerResult {
-	if req.Action != "board.snapshot_compact" && req.Action != "route.tuning_plan" && req.Action != "route.pair_plan" && req.Action != "route.preflight" && req.Action != "pcb.routing_profile" {
+	if req.Action != "board.snapshot_compact" && req.Action != "route.tuning_plan" && req.Action != "route.pair_plan" && req.Action != "route.preflight" && req.Action != "placement.preflight" && req.Action != "pcb.routing_profile" {
 		return h
 	}
 	digest, e := req.Digest()
@@ -58,6 +58,9 @@ func (s *Server) fastReadValueV2(req executionv2.Request, raw json.RawMessage) (
 	if req.Action == "route.preflight" {
 		return s.preflightV2(req, snapshot)
 	}
+	if req.Action == "placement.preflight" {
+		return s.placementPreflightV2(req, snapshot)
+	}
 	if req.Action == "pcb.routing_profile" {
 		return profileOperation(snapshot, req.Target.ProjectUUID, req.Target.DocumentUUID, req.Input)
 	}
@@ -98,6 +101,52 @@ func (s *Server) fastReadValueV2(req executionv2.Request, raw json.RawMessage) (
 	}
 	data["board_revision"] = snapshot.Revision
 	return data, nil
+}
+
+func (s *Server) placementPreflightV2(req executionv2.Request, snapshot fastpath.Snapshot) (any, error) {
+	base, _ := req.Input["base_revision"].(string)
+	var placements []fastpath.Placement
+	if err := fastpath.Decode(req.Input["placements"], &placements); err != nil {
+		return nil, err
+	}
+	checked, err := fastpath.PlacementPreflight(snapshot, base, placements)
+	if err != nil {
+		return nil, err
+	}
+	if checked.OK {
+		s.fastPlans.Lock()
+		defer s.fastPlans.Unlock()
+		if s.fastPlans.receipts == nil {
+			s.fastPlans.receipts = map[string]fastReceipt{}
+		}
+		if _, exists := s.fastPlans.receipts[checked.PlanHash]; !exists && len(s.fastPlans.receipts) >= 2048 {
+			return nil, fmt.Errorf("PLAN_CACHE_FULL")
+		}
+		s.fastPlans.receipts[checked.PlanHash] = fastReceipt{Base: base, Document: req.Target.DocumentUUID, Project: req.Target.ProjectUUID, OperationsHash: fastpath.Hash(placements)}
+	}
+	return checked, nil
+}
+
+func (s *Server) validatePlacementBatchV2(req executionv2.Request) error {
+	if req.Input["client_transaction_id"] != req.OperationID {
+		return fmt.Errorf("V2_TRANSACTION_ID_MISMATCH")
+	}
+	var placements []fastpath.Placement
+	if err := fastpath.Decode(req.Input["placements"], &placements); err != nil {
+		return err
+	}
+	if err := fastpath.ValidatePlacements(placements); err != nil {
+		return err
+	}
+	hash, _ := req.Input["plan_hash"].(string)
+	base, _ := req.Input["base_revision"].(string)
+	s.fastPlans.Lock()
+	receipt, ok := s.fastPlans.receipts[hash]
+	s.fastPlans.Unlock()
+	if !ok || receipt.Base != base || receipt.Document != req.Target.DocumentUUID || receipt.Project != req.Target.ProjectUUID || receipt.OperationsHash != fastpath.Hash(placements) {
+		return fmt.Errorf("PREFLIGHT_REQUIRED")
+	}
+	return nil
 }
 
 func (s *Server) preflightV2(req executionv2.Request, snapshot fastpath.Snapshot) (any, error) {

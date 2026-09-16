@@ -49,7 +49,7 @@ const GateRouting = "routing"
 
 func AllActions() []ActionSpec {
 	return append(closureActions(), []ActionSpec{
-		{Name: "board.snapshot_compact", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{"document_uuid": "string", "project_uuid": "string", "nets": "string[]", "bbox": "array", "layers": "array", "include": "object"}}, Domain: DomainPcb, Phase: 1, NeedsWindow: true,
+		{Name: "board.snapshot_compact", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{"document_uuid": "string", "project_uuid": "string", "nets": "string[]", "bbox": "number[4]", "layers": "array", "include": "object"}}, Domain: DomainPcb, Phase: 1, NeedsWindow: true,
 			Description: "Fast manual PCB routing snapshot; structured geometry only, no DRC or reload. Requires pcb.fast_manual.v0.1.",
 			Inputs:      []string{"document_uuid", "project_uuid", "nets[] optional", "bbox [minX,minY,maxX,maxY] optional (mil)", "layers[] optional", "include {components,pads,traces,vias,fills} optional"}, Outputs: []string{"board_revision", "geometry_hash", "scope", "components[]", "pads[]", "traces[]", "vias[]", "fills[]", "telemetry"}},
 		{Name: "route.preflight", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{"document_uuid": "string", "project_uuid": "string", "base_revision": "!string", "routes": "array", "vias": "array", "delete_ids": "string[]", "protected_nets": "string[]", "clearance_profile": "object", "profile_id": "string"}}, Domain: DomainPcb, Phase: 1, NeedsWindow: true,
@@ -59,6 +59,13 @@ func AllActions() []ActionSpec {
 			RequiresGate: GateRouting, InvalidatesStage: "post_route_checked",
 			Description: "Execute 1..512 explicit trace/via add/delete operations in ONE Connector action. Requires a matching successful preflight. Best-effort compensation; timeout is NOT cancellation.",
 			Inputs:      []string{"document_uuid", "project_uuid", "base_revision", "plan_hash", "client_transaction_id", "operations[{type:add_trace|add_via|delete_trace|delete_via, exact geometry or id}]"}, Outputs: []string{"status:complete|partial|stale|uncertain", "created_ids", "deleted_ids", "item_results", "failed_index", "revision_before", "revision_after", "readback_verified", "rollback_attempted", "rollback_complete", "warnings", "telemetry"}, VerifyWith: []string{"board.snapshot_compact"}},
+		{Name: "placement.preflight", V2: &V2Action{Revision: "1", EffectScope: "NONE", Target: "pcb", Input: map[string]string{"document_uuid": "string", "project_uuid": "string", "base_revision": "!string", "placements": "!array"}}, Domain: DomainPcb, Phase: 1, NeedsWindow: true,
+			Description: "Validate explicit caller-selected component poses against the current revision, outline, locks, component boxes and component keepouts. It never chooses or adjusts geometry.",
+			Inputs:      []string{"base_revision", "placements[{primitiveId,x,y,rotation,layer,locked?}]"}, Outputs: []string{"ok", "plan_hash", "base_revision", "placements", "conflicts", "affected_bbox", "telemetry"}, VerifyWith: []string{"board.snapshot_compact"}},
+		{Name: "placement.apply_batch", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"document_uuid": "string", "project_uuid": "string", "base_revision": "!string", "plan_hash": "!string", "client_transaction_id": "!string", "placements": "!array"}}, Domain: DomainPcb, Phase: 1, Mutates: true, NeedsWindow: true,
+			InvalidatesStage: "placement_confirmed",
+			Description:      "Apply a matching preflighted explicit placement batch sequentially in one Connector action. No automatic placement, rotation, layer choice or collision repair.",
+			Inputs:           []string{"base_revision", "plan_hash", "client_transaction_id", "placements[{primitiveId,x,y,rotation,layer,locked?}]"}, Outputs: []string{"status", "applied", "failed", "skipped", "item_results", "revision_before", "revision_after", "readback_verified", "telemetry"}, VerifyWith: []string{"board.snapshot_compact"}},
 		{
 			Name: "system.health", V2: &V2Action{Diagnostic: true, Revision: "1", EffectScope: "NONE", Target: "HOME", Input: map[string]string{}},
 			Domain:      DomainSystem,
@@ -615,9 +622,9 @@ func AllActions() []ActionSpec {
 			Domain:      DomainSchematic,
 			Phase:       1,
 			NeedsWindow: true,
-			Description: "ONE-call semantic snapshot of the whole circuit — so the agent reads everything at once instead of stitching components.list + netlist + check. Returns: components[] (primitiveId — the MUTATION handle for select/modify/delete/replace/rebind — plus designator, type, name/value, uniqueId, footprint, supplierId=LCSC, x/y, pins[] each with its JSON-authoritative net), nets[] (net → connected {designator.pin} keys, degree, isGlobal power/ground flag), floatingPins[] (unconnected pins), and the geometric design check (same as schematic.check; pass includeCheck=false to skip for a faster read). Pin→net comes from the authoritative netlist (getNetlistFile), same source as schematic.check. WARNING: uniqueId (\"gge…\") is the sch↔PCB link key, NOT a primitiveId — feeding it to by-id mutations returns notFound (live incident: primitiveId used to be missing from this output, so agents grabbed uniqueId and every mutation failed).",
+			Description: "ONE-call semantic snapshot of the circuit. floatingPins contains only unconnected pins whose noConnected flag is false; noConnectPins contains explicit NC pins. schematic.check remains the formal gate. uniqueId is the schematic↔PCB link key, never a primitiveId.",
 			Inputs:      []string{"allPages optional", "includeCheck optional (default true)"},
-			Outputs:     []string{"components[].primitiveId (mutation handle)", "components[]", "componentCount", "nets[]", "netCount", "floatingPins[]", "floatingPinCount", "check"},
+			Outputs:     []string{"components[].primitiveId (mutation handle)", "components[].pins[].noConnected", "components[]", "componentCount", "nets[]", "netCount", "floatingPins[]", "floatingPinCount", "noConnectPins[]", "noConnectPinCount", "check"},
 		},
 		{
 			Name: "schematic.save", V2: &V2Action{Revision: "1", EffectScope: "SAVE", Target: "schematic", Input: map[string]string{}},
@@ -1031,6 +1038,14 @@ func AllActions() []ActionSpec {
 			Outputs:          []string{"primitiveId", "designator", "uniqueId", "padCount", "assignedNets", "unmatchedPads"},
 			VerifyWith:       []string{"pcb.components.list", "pcb.nets.list", "pcb.drc.check"},
 			InvalidatesStage: "placement_confirmed",
+		},
+		{
+			Name: "pcb.add_components_batch", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"client_transaction_id": "!string", "components": "!array"}},
+			Domain: DomainPcb, Phase: 2, Mutates: true, NeedsWindow: true, NeedsConfirm: true,
+			Description: "Materialize 1..256 explicitly identified schematic components on the PCB in one sequential Connector batch. Each item supplies exact library/device identity, schematic identity, pad-number net mapping and pose; no import_changes or automatic placement is used.",
+			Inputs:      []string{"client_transaction_id", "components[{libraryUuid,uuid,designator,uniqueId,channelId?,nets,x,y,layer,rotation}]"},
+			Outputs:     []string{"status", "applied", "failed", "skipped", "item_results", "unmatchedPads", "readback_verified"},
+			VerifyWith:  []string{"pcb.components.list", "pcb.nets.list"}, InvalidatesStage: "placement_confirmed",
 		},
 		{
 			Name: "pcb.component.modify", V2: &V2Action{Revision: "1", EffectScope: "DESIGN_CONTENT", Target: "pcb", Input: map[string]string{"primitiveId": "!string", "patch": "!object"}},

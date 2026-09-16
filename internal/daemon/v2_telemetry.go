@@ -9,7 +9,7 @@ import (
 // Business telemetry is descriptive only; the finalizer never consumes it.
 func telemetryV2(req executionv2.Request, started time.Time, source, h executionv2.HandlerResult) executionv2.HandlerResult {
 	switch req.Action {
-	case "board.snapshot_compact", "route.preflight", "route.apply_batch", "route.tuning_plan", "route.pair_plan":
+	case "board.snapshot_compact", "route.preflight", "route.apply_batch", "placement.preflight", "placement.apply_batch", "route.tuning_plan", "route.pair_plan":
 	default:
 		return h
 	}

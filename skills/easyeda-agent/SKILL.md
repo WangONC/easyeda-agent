@@ -40,7 +40,7 @@ metadata:
 | 原理图排版、已有连线的移动/整理 | [schematic-placement.md](references/schematic-placement.md)、[auto-layout-sop.md](references/auto-layout-sop.md) |
 | 从需求到整板、原理图转 PCB | [design-flow.md](references/design-flow.md)；未确定的设计选项见 [design-decisions.md](references/design-decisions.md) |
 | RevB 批处理、阶段冻结与上下文恢复 | [RevB Agent contract](references/revb-agent-contract.md)；正式验收前不得宣称 RevB ready |
-| 严格手工 PCB 显式路径批量写入 | [fast-manual-pcb.md](references/fast-manual-pcb.md)；不选路、不修线，uncertain 必须停止重发 |
+| 严格手工 PCB 显式布线、显式批量放置、exact component materialization | [fast-manual-pcb.md](references/fast-manual-pcb.md)；不选路、不自动布局、不修 geometry，uncertain 必须停止重发 |
 | PCB 放置/布线/检查 | [pcb.md](references/pcb.md)，再按任务读 [pcb-layout.md](references/pcb-layout.md) 或 [pcb-routing.md](references/pcb-routing.md) |
 | 选型、库器件、手册与标准电路 | [part-selection.md](references/part-selection.md)、[standard-parts.json](references/standard-parts.json)；先 `easyeda blocks search` 查可复用电路 |
 | 原理图/PCB 绘图规范 | [schematic-layout-conventions.md](references/schematic-layout-conventions.md)、[pcb-layout-conventions.md](references/pcb-layout-conventions.md) |

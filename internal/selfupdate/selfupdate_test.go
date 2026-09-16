@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +14,18 @@ import (
 	"path/filepath"
 	"testing"
 )
+
+func TestLatestReleaseNotFoundIsNoPublishedRelease(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { http.NotFound(w, nil) }))
+	defer srv.Close()
+	old := latestAPIURL
+	latestAPIURL = func() string { return srv.URL }
+	t.Cleanup(func() { latestAPIURL = old })
+	_, err := LatestReleaseVersion(context.Background())
+	if !errors.Is(err, ErrNoPublishedRelease) {
+		t.Fatalf("%v", err)
+	}
+}
 
 func TestSemverCore(t *testing.T) {
 	cases := map[string]string{

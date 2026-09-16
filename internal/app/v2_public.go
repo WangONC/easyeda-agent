@@ -134,7 +134,7 @@ func publicActionV2(cfg *appConfig, action, window string, payload any, timeout 
 	if doc, ok := input["document_uuid"].(string); ok && doc != "" && cfg.doc != "" && doc != cfg.doc {
 		return nil, fmt.Errorf("document_uuid conflicts with --doc")
 	}
-	if err := protocol.ValidateV2Input(input, publicV2InputSchema(action, spec.Input)); err != nil {
+	if err := protocol.ValidateV2BusinessInput(action, input, publicV2InputSchema(action, spec.Input)); err != nil {
 		return nil, fmt.Errorf("INVALID_PUBLIC_INPUT: %s: %w", action, err)
 	}
 	b, e := bindPublicExecutor(cfg, window, action == "system.health")
@@ -152,6 +152,9 @@ func publicActionV2(cfg *appConfig, action, window string, payload any, timeout 
 			return nil, err
 		}
 		if id != b.target.DocumentUUID {
+			if spec.EffectScope == "NONE" {
+				return nil, fmt.Errorf("V2_READ_TARGET_NOT_ACTIVE: read action %s has EffectScope=NONE and cannot navigate from %s to %s; activate the document explicitly first", action, b.target.DocumentUUID, id)
+			}
 			scoped := *cfg
 			scoped.doc = ""
 			raw, err := publicActionV2(&scoped, "document.open", window, map[string]any{"uuid": id}, timeout)
@@ -199,6 +202,9 @@ func publicActionV2(cfg *appConfig, action, window string, payload any, timeout 
 		return nil, e
 	}
 	op := hex.EncodeToString(id)
+	if action == "route.apply_batch" || action == "placement.apply_batch" || action == "pcb.add_components_batch" {
+		input["client_transaction_id"] = op
+	}
 	if action == "project.create" || action == "schematic.create" {
 		_, project := input["expected_project_uuid"]
 		_, session := input["session_token"]

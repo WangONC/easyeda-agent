@@ -19,12 +19,28 @@ export interface Operation {
  layer?: number; points?: Point[]; width?: number; x?: number; y?: number; diameter?: number;
  arc_angle?: number; hole?: number; from_layer?: number; to_layer?: number;
 }
+export interface Placement {
+ primitiveId: string; x: number; y: number; rotation: number; layer: number; locked?: boolean;
+}
 export interface NativePort {
  context(): Promise<{ projectUuid: string; documentUuid: string; documentType: string; tabId?: string }>;
  read(): Promise<Observation>;
  create(op: Operation): Promise<string | undefined>;
  remove(kind: string, id: string): Promise<boolean>;
+ place?(placement: Placement): Promise<void>;
  calls: number;
+}
+export function normalizeRotation(v:number):number { const n=v%360; return Object.is(n<0?n+360:n,-0)?0:(n<0?n+360:n); }
+export function validPlacements(value:unknown): asserts value is Placement[] {
+ if(!Array.isArray(value)||value.length<1||value.length>256)failure('INVALID_PLACEMENTS');
+ const ids=new Set<string>();
+ for(const raw of value){
+  const p=raw as Placement;
+  if(!p||typeof p!=='object'||typeof p.primitiveId!=='string'||!p.primitiveId||ids.has(p.primitiveId)||
+   !Number.isFinite(p.x)||!Number.isFinite(p.y)||!Number.isFinite(p.rotation)||!Number.isInteger(p.layer)||(p.layer!==1&&p.layer!==2)||
+   (p.locked!==undefined&&typeof p.locked!=='boolean'))failure('INVALID_PLACEMENTS');
+  ids.add(p.primitiveId);p.rotation=normalizeRotation(p.rotation);
+ }
 }
 export function canonical(v: unknown): string {
  if (Array.isArray(v)) return `[${v.map(canonical).join(',')}]`;

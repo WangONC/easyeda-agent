@@ -37,6 +37,8 @@ const (
 	PreserveEnv = "EASYEDA_SKILL_PRESERVE"
 )
 
+var ErrNoPublishedRelease = errors.New("NO_PUBLISHED_RELEASE")
+
 // clientOrder is the deterministic client iteration order.
 var clientOrder = []string{"claude", "codex"}
 
@@ -154,6 +156,9 @@ func LatestReleaseVersion(ctx context.Context) (string, error) {
 		return "", err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return "", ErrNoPublishedRelease
+	}
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("github releases/latest: %s", resp.Status)
 	}

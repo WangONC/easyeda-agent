@@ -13,7 +13,7 @@ func addFastPCBCommands(pcb *cobra.Command, cfg *appConfig, stdout, stderr io.Wr
 	addPlaneRefresh(pcb, cfg, stdout, stderr)
 	addDRCCompare(pcb, cfg, stdout, stderr)
 	addManufacturingExport(pcb, cfg, stdout, stderr)
-	for _, entry := range []struct{ name, action string }{{"snapshot-compact", "board.snapshot_compact"}, {"route-preflight", "route.preflight"}, {"route-apply-batch", "route.apply_batch"}, {"tuning-plan", "route.tuning_plan"}, {"pair-plan", "route.pair_plan"}, {"routing-profile", "pcb.routing_profile"}} {
+	for _, entry := range []struct{ name, action string }{{"snapshot-compact", "board.snapshot_compact"}, {"route-preflight", "route.preflight"}, {"route-apply-batch", "route.apply_batch"}, {"placement-preflight", "placement.preflight"}, {"placement-apply-batch", "placement.apply_batch"}, {"tuning-plan", "route.tuning_plan"}, {"pair-plan", "route.pair_plan"}, {"routing-profile", "pcb.routing_profile"}} {
 		var payload, window string
 		var timeout time.Duration
 		cmd := &cobra.Command{Use: entry.name, Short: "Fast manual PCB V0.1: " + entry.action, Args: cobra.NoArgs,

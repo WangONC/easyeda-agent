@@ -6,6 +6,7 @@ import { groupMove } from './v2-group-move';
 import { manufacture } from './v2-manufacturing';
 import { replaceComponent } from './v2-replace-component';
 import { addPcbComponent } from './v2-add-pcb-component';
+import { addPcbComponentsBatch } from './v2-add-pcb-components-batch';
 import { rebuildPlanes } from './v2-plane-actions';
 import { rebindBoard } from './v2-board-actions';
 import { viaHop } from './v2-via-hop';
@@ -19,6 +20,7 @@ import { footprintBuild, symbolBuild } from './v2-library-build';
 import { exportAction } from './v2-export-actions';
 import { routingDelete, trackLock } from './v2-routing-actions';
 import { routeBatch } from './v2-route-batch';
+import { placementBatch } from './v2-placement-batch';
 import { outline as v2Outline } from './v2-outline-actions';
 import { schematicDelete as v2SchematicDelete } from './v2-schematic-delete';
 import * as v2Board from './v2-board-actions';
@@ -4142,6 +4144,7 @@ const schematicReadData = async (payload: Payload) => {
 
 	const netToPins = new Map<string, Array<string>>();
 	const floating: Array<string> = [];
+	const noConnect: Array<string> = [];
 	const components: Array<Record<string, unknown>> = [];
 
 	for (const c of comps ?? []) {
@@ -4153,16 +4156,20 @@ const schematicReadData = async (payload: Payload) => {
 			for (const p of pinPrims ?? []) {
 				const number = String(p.getState_PinNumber?.() ?? '');
 				const net = pinNetMap.get(number) ?? '';
+				const noConnected = p.getState_NoConnected?.() === true;
 				if (net) {
 					const key = `${designator}.${number}`;
 					const list = netToPins.get(net) ?? [];
 					list.push(key);
 					netToPins.set(net, list);
 				}
+				else if (noConnected && designator && number) {
+					noConnect.push(`${designator}.${number}`);
+				}
 				else if (designator && number) {
 					floating.push(`${designator}.${number}`);
 				}
-				pins.push({ number, name: p.getState_PinName?.() ?? '', net: net || null });
+				pins.push({ number, name: p.getState_PinName?.() ?? '', net: net || null, noConnected });
 			}
 		}
 		catch (err) { throw edaError(err, 'Requested pin inventory unavailable.'); }
@@ -4207,6 +4214,8 @@ const schematicReadData = async (payload: Payload) => {
 			netCount: nets.length,
 			floatingPins: floating,
 			floatingPinCount: floating.length,
+			noConnectPins: noConnect,
+			noConnectPinCount: noConnect.length,
 			check,
             ...(payload.includeNetlistDiagnostic === true ? {netlist_diagnostic:await netlistDiagnostic('schematic',comps)} : {}),
 		};
@@ -4322,6 +4331,7 @@ const schematicLibrarySearchData = async (payload: Record<string, unknown>) => {
     };
     const ranked = (raw as Array<Record<string, unknown>>)
         .map((d, i) => ({ d, i, s: scoreOf(d) }))
+        .filter(({s}) => allowFuzzy || s > 0)
         .sort((a, b) => (b.s - a.s) || (a.i - b.i))
         .slice(0, limit);
     const components = ranked.map(({ d: r, s }) => {
@@ -12216,6 +12226,8 @@ const HANDLERS: Record<string, NativeAction> = {
 	'pcb.routing_profile': v2Native.fastRead('pcb.routing_profile'),
 	'route.preflight': v2Native.fastRead('route.preflight'),
 	'route.apply_batch': routeBatch(),
+	'placement.preflight': v2Native.fastRead('placement.preflight'),
+	'placement.apply_batch': placementBatch(),
 	'project.current': v2Native.read(c => projectCurrentData(), v2Native.declaredReadFields('project.current')),
 	'document.current': v2Native.read(c => documentCurrentData(), v2Native.declaredReadFields('document.current')),
 	'document.open': v2Native.documentOpen,
@@ -12311,6 +12323,7 @@ const HANDLERS: Record<string, NativeAction> = {
 	'board.delete': v2Native.boardMutation('delete'),
 	'board.rebind': rebindBoard,
 	'pcb.add_component': addPcbComponent(pad=>padExtent(pad as PcbPad)),
+	'pcb.add_components_batch': addPcbComponentsBatch(),
 	'pcb.component.attrs_backfill': attrsBackfill(planOtherPropertyBackfill),
 	'pcb.component.modify': v2Native.componentModify,
 	'pcb.component.lock': v2Batch.componentLock,

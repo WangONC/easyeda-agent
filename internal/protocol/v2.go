@@ -57,12 +57,104 @@ func ValidateV2(r executionv2.Request) (executionv2.Admission, error) {
 		if targetKind != "ANY" && targetKind != r.Target.Scope && !(r.Target.Scope == "DOCUMENT" && targetKind == r.Target.DocumentType) {
 			return executionv2.Admission{}, errors.New("V2_TARGET_MISMATCH")
 		}
-		if err := ValidateV2Input(r.Input, v.Input); err != nil {
+		if err := ValidateV2BusinessInput(r.Action, r.Input, v.Input); err != nil {
 			return executionv2.Admission{}, err
 		}
 		return executionv2.Admission{EffectScope: v.EffectScope, Diagnostic: v.Diagnostic}, nil
 	}
 	return executionv2.Admission{}, errors.New("V2_ACTION_NOT_MIGRATED")
+}
+
+func ValidateV2BusinessInput(action string, input map[string]any, schema map[string]string) error {
+	if err := ValidateV2Input(input, schema); err != nil {
+		return err
+	}
+	return validateActionSpecificInput(action, input)
+}
+
+func validateActionSpecificInput(action string, input map[string]any) error {
+	finiteNumber := func(v any) bool {
+		n, ok := v.(float64)
+		return ok && !math.IsNaN(n) && !math.IsInf(n, 0) && math.Abs(n) < 1e8
+	}
+	objects := func(key string, min, max int) ([]any, error) {
+		rows, ok := input[key].([]any)
+		if !ok || len(rows) < min || len(rows) > max {
+			return nil, errors.New("V2_INVALID_INPUT:" + key)
+		}
+		for _, row := range rows {
+			if _, ok := row.(map[string]any); !ok {
+				return nil, errors.New("V2_INVALID_INPUT:" + key)
+			}
+		}
+		return rows, nil
+	}
+	if action == "placement.preflight" || action == "placement.apply_batch" {
+		rows, err := objects("placements", 1, 256)
+		if err != nil {
+			return err
+		}
+		ids := map[string]bool{}
+		for _, raw := range rows {
+			p := raw.(map[string]any)
+			id, ok := p["primitiveId"].(string)
+			layer, lok := p["layer"].(float64)
+			if !ok || id == "" || ids[id] || !finiteNumber(p["x"]) || !finiteNumber(p["y"]) || !finiteNumber(p["rotation"]) || !lok || (layer != 1 && layer != 2) {
+				return errors.New("V2_INVALID_INPUT:placements")
+			}
+			ids[id] = true
+			for key := range p {
+				if key != "primitiveId" && key != "x" && key != "y" && key != "rotation" && key != "layer" && key != "locked" {
+					return errors.New("V2_UNKNOWN_INPUT:placements." + key)
+				}
+			}
+			if locked, exists := p["locked"]; exists {
+				if _, ok := locked.(bool); !ok {
+					return errors.New("V2_INVALID_INPUT:placements.locked")
+				}
+			}
+		}
+	}
+	if action == "pcb.add_components_batch" {
+		rows, err := objects("components", 1, 256)
+		if err != nil {
+			return err
+		}
+		designators, uniqueIDs := map[string]bool{}, map[string]bool{}
+		for _, raw := range rows {
+			p := raw.(map[string]any)
+			for key := range p {
+				if key != "libraryUuid" && key != "uuid" && key != "designator" && key != "uniqueId" && key != "channelId" && key != "nets" && key != "x" && key != "y" && key != "rotation" && key != "layer" {
+					return errors.New("V2_UNKNOWN_INPUT:components." + key)
+				}
+			}
+			lib, lok := p["libraryUuid"].(string)
+			uuid, uok := p["uuid"].(string)
+			d, dok := p["designator"].(string)
+			u, iok := p["uniqueId"].(string)
+			layer, laok := p["layer"].(float64)
+			nets, nok := p["nets"].(map[string]any)
+			if !lok || lib == "" || !uok || uuid == "" || !dok || d == "" || !iok || u == "" || designators[d] || uniqueIDs[u] || !finiteNumber(p["x"]) || !finiteNumber(p["y"]) || !finiteNumber(p["rotation"]) || !laok || (layer != 1 && layer != 2) || !nok || len(nets) == 0 {
+				return errors.New("V2_INVALID_INPUT:components")
+			}
+			designators[d] = true
+			uniqueIDs[u] = true
+			for pad, net := range nets {
+				if pad == "" {
+					return errors.New("V2_INVALID_INPUT:components.nets")
+				}
+				if _, ok := net.(string); !ok {
+					return errors.New("V2_INVALID_INPUT:components.nets")
+				}
+			}
+			if ch, exists := p["channelId"]; exists {
+				if value, ok := ch.(string); !ok || value == "" {
+					return errors.New("V2_INVALID_INPUT:components.channelId")
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // ValidateV2Input validates a value against an action catalog input map. Public
@@ -130,6 +222,15 @@ func ValidateV2Input(input map[string]any, schema map[string]string) error {
 			}
 		case "array":
 			_, valid = x.([]any)
+		case "number[4]":
+			values, ok := x.([]any)
+			valid = ok && len(values) == 4
+			for _, item := range values {
+				v, ok := item.(float64)
+				if !ok || math.IsNaN(v) || math.IsInf(v, 0) {
+					valid = false
+				}
+			}
 		case "object":
 			_, valid = x.(map[string]any)
 		}

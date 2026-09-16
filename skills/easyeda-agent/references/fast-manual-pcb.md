@@ -1,6 +1,6 @@
 # Fast Manual PCB Path V0.1
 
-范围冻结：telemetry、board_revision、board.snapshot_compact、route.preflight、route.apply_batch。没有路径搜索、自动避障/改线、自动 layer/via/width、autorouter、placement、Push&Shove、原生 whole-board DRC 调用或铺铜刷新。
+范围冻结：telemetry、board_revision、board.snapshot_compact、route.preflight/apply_batch、placement.preflight/apply_batch、pcb.add_components_batch。没有路径搜索、自动避障/改线、自动 layer/via/width、自动布局、autorouter、Push&Shove、原生 whole-board DRC 调用或铺铜刷新。
 
 ## Agent 调用
 
@@ -9,16 +9,31 @@
 | `board.snapshot_compact` | `easyeda pcb snapshot-compact --payload '{…}'` | `easyeda_board_snapshot_compact` |
 | `route.preflight` | `easyeda pcb route-preflight --payload '{…}'` | `easyeda_route_preflight` |
 | `route.apply_batch` | `easyeda pcb route-apply-batch --payload '{…}'` | `easyeda_route_apply_batch` |
+| `placement.preflight` | `easyeda pcb placement-preflight --payload '{…}'` | `easyeda_placement_preflight` |
+| `placement.apply_batch` | `easyeda pcb placement-apply-batch --payload '{…}'` | `easyeda_placement_apply_batch` |
+| `pcb.add_components_batch` | `easyeda action pcb.add_components_batch --input '{…}'` | `easyeda_pcb` |
 
 CLI 使用 `--project <name/uuid> --doc <active PCB uuid>`。Fast Path 的 doc 必须是 **UUID**，不自动开页、不按名称查找、不切换文档；Connector 在执行时核对 project/document/tab。使用现有高层 Fast CLI 或 `easyeda_pcb` MCP domain 工具，CLI 内部创建 V2 请求并绑定精确目标；无需手工组装执行 envelope。专用 CLI 默认预算 60s，可用 `--timeout` 修改。
 
-所有坐标、宽度和 clearance 单位为 **mil**；points 是 `[x,y]`，bbox 是 `[minX,minY,maxX,maxY]`。AI 决定完整 geometry 和工程约束。工具只能执行或拒绝，不修复路线。
+所有坐标、宽度和 clearance 单位为 **mil**；points 是 `[x,y]`。省略 bbox 表示不按范围过滤；提供时必须恰为四个 number：`[minX,minY,maxX,maxY]`，`[]` 非法。AI 决定完整 geometry、placement pose 和工程约束。工具只能执行或拒绝，不修复路线或位置。
+
+真正 `EffectScope=NONE` 的 Fast read 不打开页面、不切 tab。目标 PCB 未激活时先串行调用正式 `document.open`，确认新 target binding 后再读；不要并发提交 navigation/context action 与 exact-target read。
+
+## Explicit Manual Placement
+
+`placement.preflight` 接收 snapshot 的 `base_revision` 和 1..256 个完整 `{primitiveId,x,y,rotation,layer,locked?}` pose，检查 ID/锁、板框、已知 component keepout、既有与候选间 bbox overlap；它不写 Host，也不调整任何值。只有 `ok:true` 时，才把完全相同的 placements 与 `plan_hash` 交给 `placement.apply_batch`。public CLI/MCP 内部绑定 transaction identity；Agent 不构造 V2 envelope。
+
+apply 在一个 Connector action 中按给定顺序写入，fresh readback 对每个 x/y/rotation/layer/lock 做 exact verification，并确认未涉及 component identity 不变。stale 在 effect 前拒绝；partial/uncertain 不 replay。
+
+## Exact component materialization batch
+
+`pcb.add_components_batch` 独立于 placement batch。每项必须给出 exact `libraryUuid/uuid`、`designator`、`uniqueId`、可选 exact `channelId`、`nets`（padNumber→net）以及 x/y/layer/rotation。它不调用 `pcb.import_changes`、不猜 Channel ID、不自动布局。重复 designator/uniqueId 在 effect 前拒绝；结果逐项返回 applied/failed/skipped 与 unmatchedPads，并 fresh verify schematic↔PCB identity 和 pad nets。partial/uncertain 不 replay。
 
 一次正常流程：
 
 1. `board.snapshot_compact`：`nets[]`、`bbox`、`layers[]` 和 `include:{components,pads,traces,vias,fills}` 可选。空过滤表示更大范围；未提供 include 返回五组，提供后只返回 true 的组。返回稳定排序的紧凑数组、scope、geometry_hash、board_revision、可识别的 rule_profile 和 telemetry。
 2. `route.preflight`：提交下面的显式计划。保存返回的 `plan_hash`；只有 `ok:true` 才授权下一步。
-3. `route.apply_batch`：提交相同 base_revision/plan_hash、唯一 client_transaction_id 和下述规范化 operations。一个 Connector action 顺序执行所有 primitive。
+3. `route.apply_batch`：提交相同 base_revision/plan_hash 和下述规范化 operations。public CLI/MCP 内部绑定唯一 transaction identity；一个 Connector action 顺序执行所有 primitive。
 4. 需要独立观察时再调用局部 snapshot_compact；apply 自带创建几何/删除 ID 的批量回读验证，不需要逐段回读。
 
 示例 preflight（此例仅展示数据格式，路径由调用方提供）：
@@ -34,7 +49,7 @@ CLI 使用 `--project <name/uuid> --doc <active PCB uuid>`。Fast Path 的 doc �
 }
 ```
 
-对应 apply（加上 base_revision、plan_hash、client_transaction_id）：
+对应 apply（加上 base_revision、plan_hash；public path 内部绑定 transaction identity）：
 
 ```json
 {
@@ -80,7 +95,7 @@ apply result：
 
 失败后尽力删除本批已创建图元；**不恢复已删除的旧图元**。未知 create 效果或删除已发生时不声称完整 rollback。deadline/identity 已不可靠时不再继续补偿写入。uncertain 不触发成功 autosave；已知部分效果/complete 复用现有 debounced autosave。保存不是本接口的原子提交。
 
-client_transaction_id 由调用方生成且保留。同一 Connector session 内相同 ID+相同请求不重执行；进行中返回 uncertain，已完成返回缓存结果（标记 duplicate，缓存回执不是新的回读）。相同 ID 不同请求拒绝。Connector ledger 与 daemon receipt 各有 2048 条上限，不静默淘汰防重证据；达到上限拒绝新请求。daemon 重启丢失 receipt 会拒绝旧计划；Connector reload 改变 session revision。没有持久化 exactly-once。
+client_transaction_id 由正式 public executor 生成并与 operation identity 绑定，Agent 不手填。同一 Connector session 内相同 ID+相同请求不重执行；进行中返回 uncertain，已完成返回缓存结果（标记 duplicate，缓存回执不是新的回读）。相同 ID 不同请求拒绝。Connector ledger 与 daemon receipt 各有 2048 条上限，不静默淘汰防重证据；达到上限拒绝新请求。daemon 重启丢失 receipt 会拒绝旧计划；Connector reload 改变 session revision。没有持久化 exactly-once。
 
 ## telemetry 与构建
 
@@ -91,7 +106,7 @@ result.telemetry 统一包含 operation_id/name、duration_ms、board_revision_b
 - native_api_call_count：Connector 计数的 native 方法调用（同步 state getter 投影不计）；没收到计数时为 null，不能当 0。
 - retry_count：新 Fast Path 不自动重发，恒为 0；duplicate 回执标记独立存在。
 
-Connector/Skill 版本 1.4.4；MCP 独立包版本 0.18.4。wire 仍为 v1，新增必需 capability `pcb.fast_manual.v0.1`；旧 Connector 即便通过旧 semver gate 也会被明确拒绝。CLI/daemon 应来自同次构建，MCP 只为实际 CLI catalog 中存在的 Fast actions 注册专用工具。
+CLI/daemon/Connector/Skill 正式版本保持 2.0.0，运行 build identity 另行核对；Fast Path 必需 capability 为 `pcb.fast_manual.v0.1`。CLI/daemon/Connector 应来自同次构建，MCP 只为实际 CLI catalog 中存在的 Fast actions 注册专用工具。
 
 离线验证：
 
@@ -106,4 +121,4 @@ go test ./internal/daemon -run TestFastPathFixture -v
 go test ./internal/daemon -run '^$' -bench BenchmarkFastPathPreflight -benchmem
 ```
 
-`npm --prefix extension run build` 使用现有 esbuild/zip 打包，输出 `extension/build/dist/easyeda-agent-connector_v1.4.4.eext`。此命令不安装。要做真实 smoke，需要用户在 EasyEDA 扩展管理器安装/重载此文件，确认 capability，再使用新建专用测试工程；不能在当前 RevA 工程试跑。
+`npm --prefix extension run build` 使用现有 esbuild/zip 打包并保持正式 extension version 2.0.0。此命令不安装。本轮离线修复不得扩大为整板 E2E。

@@ -5,7 +5,7 @@ import catalog from './v2-catalog.generated.json';
 
 test('every generated native action has a native handler; legacy dispatcher stays closed', async () => {
  const names=Object.keys(catalog);
- assert.equal(names.length,144);
+ assert.equal(names.length,147);
  for(const name of names){
   if(name==='system.health')continue; // daemon local
   assert.equal(nativeAction(name)?.mode,'V2_NATIVE',name);

@@ -138,6 +138,23 @@ def check_bulk_connect_envelope(failures):
         print(f"{GREEN}✓{RESET} bulk-connect parses enveloped sch check findings")
 
 
+def check_fast_manual_contract(failures):
+    """Keep the PCB reliability rules machine-checked at the Skill boundary."""
+    path = os.path.join(ROOT, '..', 'references', 'fast-manual-pcb.md')
+    with open(path, encoding='utf-8') as f:
+        text = f.read()
+    required = [
+        'placement.preflight', 'placement.apply_batch', 'pcb.add_components_batch',
+        '省略 bbox', '`[]` 非法', '不自动布局',
+        '不要并发提交 navigation/context action', 'partial/uncertain 不 replay',
+    ]
+    missing = [value for value in required if value not in text]
+    if missing:
+        failures.append(f"fast-manual-pcb: missing reliability contract(s): {missing}")
+    else:
+        print(f"{GREEN}✓{RESET} fast manual PCB reliability contracts are explicit")
+
+
 def run_lint(path):
     proc = subprocess.run([sys.executable, LINT, path], capture_output=True, text=True)
     if proc.returncode != 0:
@@ -222,6 +239,7 @@ def main():
     check_orientation(failures)
     check_ts_consistency(failures)
     check_bulk_connect_envelope(failures)
+    check_fast_manual_contract(failures)
     check_fixtures(update, failures)
     check_diffs(update, failures)
     if update:

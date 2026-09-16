@@ -4,7 +4,7 @@ import { polygonRings, arcPoints, projectionError } from './compact-polygon';
 import { projectPoured } from './poured-projection';
 /// <reference types="@jlceda/pro-api-types" />
 import { ActionError } from './protocol';
-import { fastPath, type NativePort, type Observation, type Operation, type Primitive, type Point, type Box } from './fast-path';
+import { fastPath, type NativePort, type Observation, type Operation, type Placement, type Primitive, type Point, type Box } from './fast-path';
 
 // Keep native calls here; state getters are synchronous projections, not API round trips.
 export function nativePort(): NativePort {
@@ -71,6 +71,8 @@ export function nativePort(): NativePort {
    let physical: unknown = null;
    try { physical=await call(()=>eda.pcb_Layer.getCurrentPhysicalStackingConfiguration())??null; } catch { /* profile validity remains UNKNOWN */ }
    const rules = await call(() => eda.pcb_Drc.getCurrentRuleConfiguration());
+   const componentBoxes = new Map<string,Box>();
+   if(eda.pcb_Primitive?.getPrimitivesBBox)await Promise.all(components.map(async c=>{const id=c.getState_PrimitiveId();const b=await call(()=>eda.pcb_Primitive.getPrimitivesBBox([id]));if(b&&[b.minX,b.minY,b.maxX,b.maxY].every(Number.isFinite))componentBoxes.set(id,[b.minX,b.minY,b.maxX,b.maxY]);}));
    const outlinePolys = polys.filter(p => Number(p.getState_Layer()) === 11);
    const outlineLines = lines.filter(p => Number(p.getState_Layer()) === 11);
    let outlineBox: Record<string, number> | null = null;
@@ -82,7 +84,7 @@ export function nativePort(): NativePort {
    }
    const copper = layers.filter(l => (String(l.type) === 'SIGNAL' || String(l.type) === 'PLANE') && Number(l.layerStatus) !== 0).map(l => Number(l.id));
    const result: Observation = {
-    components: components.map(c => ({ id: c.getState_PrimitiveId(), kind: 'component', designator: c.getState_Designator(), x: c.getState_X(), y: c.getState_Y(), rotation: c.getState_Rotation(), layer: Number(c.getState_Layer()), locked: c.getState_PrimitiveLock() })),
+    components: components.map(c => ({ id: c.getState_PrimitiveId(), kind: 'component', designator: c.getState_Designator(), x: c.getState_X(), y: c.getState_Y(), rotation: c.getState_Rotation(), layer: Number(c.getState_Layer()), locked: c.getState_PrimitiveLock(), bbox:componentBoxes.get(c.getState_PrimitiveId()) })),
     pads: [...padMap.values()].map(p => {
      const shape = p.getState_Pad(); const x = p.getState_X(); const y = p.getState_Y();
      const w = Number(shape?.[1]); const h = Number(shape?.[2]); const angle = p.getState_Rotation() * Math.PI / 180;
@@ -146,6 +148,9 @@ drill_inventory: observeDrills([...padMap.values()],vias,components.every(c=>Arr
   },
   async remove(kind: string, id: string) {
    return kind === 'arc' ? call(() => eda.pcb_PrimitiveArc.delete([id])) : kind === 'trace' ? call(() => eda.pcb_PrimitiveLine.delete([id])) : call(() => eda.pcb_PrimitiveVia.delete([id]));
+  },
+  async place(p:Placement) {
+   await call(()=>eda.pcb_PrimitiveComponent.modify(p.primitiveId,{x:p.x,y:p.y,rotation:p.rotation,layer:p.layer as TPCB_LayersOfComponent,...(p.locked===undefined?{}:{primitiveLock:p.locked})}));
   },
  };
  async function call<T>(f: () => T | Promise<T>): Promise<T> { port.calls++; return f(); }

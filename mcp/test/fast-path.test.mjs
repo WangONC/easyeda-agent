@@ -2,10 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fastTools, fastInput, compactFastResult } from '../src/fast-path.mjs';
 import { buildCallArgs, toMcpResult } from '../src/core.mjs';
-test('Fast Path exposes three typed explicit-geometry schemas',()=>{
- const tools=fastTools();assert.equal(tools.length,3);assert.equal(tools[2].inputSchema.properties.operations.maxItems,512);assert.equal(tools[1].annotations.readOnlyHint,true);
+test('Fast Path exposes routing and placement typed explicit-geometry schemas',()=>{
+ const tools=fastTools();assert.equal(tools.length,5);const route=tools.find(t=>t.name==='easyeda_route_apply_batch');assert.equal(route.inputSchema.properties.operations.maxItems,512);assert.equal(tools.find(t=>t.name==='easyeda_route_preflight').annotations.readOnlyHint,true);
+ const placement=tools.find(t=>t.name==='easyeda_placement_apply_batch');assert.equal(placement.inputSchema.properties.placements.maxItems,256);assert.equal(placement.inputSchema.properties.client_transaction_id,undefined);
  assert.throws(()=>fastInput({project:'x'}),/project and doc/);
- const args=buildCallArgs('route.apply_batch',fastInput({project:'p',doc:'uuid',base_revision:'r',plan_hash:'h',client_transaction_id:'t',operations:[]}));
+ const args=buildCallArgs('route.apply_batch',fastInput({project:'p',doc:'uuid',base_revision:'r',plan_hash:'h',operations:[]}));
  assert.deepEqual(args.slice(0,6),['--project','p','--doc','uuid','pcb','route-apply-batch']);assert.equal(JSON.parse(args[7]).base_revision,'r');
 });
 test('compact MCP retains structured partial/uncertain and omits envelopes',()=>{

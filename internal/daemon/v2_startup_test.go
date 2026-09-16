@@ -39,6 +39,12 @@ func TestV2StartupFenceAllNativeEffectScopes(t *testing.T) {
 				input[key] = "value"
 			}
 		}
+		switch action.Name {
+		case "placement.preflight", "placement.apply_batch":
+			input["placements"] = []any{map[string]any{"primitiveId": "c", "x": float64(1), "y": float64(2), "rotation": float64(0), "layer": float64(1)}}
+		case "pcb.add_components_batch":
+			input["components"] = []any{map[string]any{"libraryUuid": "lib", "uuid": "dev", "designator": "U1", "uniqueId": "u1", "nets": map[string]any{"1": "N"}, "x": float64(1), "y": float64(2), "rotation": float64(0), "layer": float64(1)}}
+		}
 		target := executionv2.Target{Scope: "DOCUMENT", Session: "s", Activation: "a", ProjectUUID: "p", DocumentUUID: "d", DocumentType: v.Target, TabID: "t"}
 		if v.Target == "HOME" || v.Target == "ANY" {
 			target = executionv2.Target{Scope: "HOME", Session: "s", Activation: "a"}

@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"sort"
@@ -24,16 +25,17 @@ const exitCodeUpdatesAvailable = 10
 // binary, the skill dirs, and the EasyEDA connector — only the first two can be
 // updated from here (see connectorNote).
 type updateReport struct {
-	Mode       string                 `json:"mode"` // check | apply
-	CLIVersion string                 `json:"cliVersion"`
-	Latest     string                 `json:"latest,omitempty"`
-	LatestErr  string                 `json:"latestError,omitempty"`
-	Target     string                 `json:"target,omitempty"`
-	CLI        *selfupdate.CLIOutcome `json:"cli,omitempty"`
-	Skills     []updateSkillRow       `json:"skills,omitempty"`
-	Connector  *connectorReport       `json:"connector,omitempty"`
-	Behind     int                    `json:"behind"` // components behind the target
-	Notes      []string               `json:"notes,omitempty"`
+	Mode          string                 `json:"mode"` // check | apply
+	CLIVersion    string                 `json:"cliVersion"`
+	Latest        string                 `json:"latest,omitempty"`
+	LatestErr     string                 `json:"latestError,omitempty"`
+	ReleaseStatus string                 `json:"releaseStatus,omitempty"`
+	Target        string                 `json:"target,omitempty"`
+	CLI           *selfupdate.CLIOutcome `json:"cli,omitempty"`
+	Skills        []updateSkillRow       `json:"skills,omitempty"`
+	Connector     *connectorReport       `json:"connector,omitempty"`
+	Behind        int                    `json:"behind"` // components behind the target
+	Notes         []string               `json:"notes,omitempty"`
 }
 
 // updateSkillRow is one skill dir's before/after. In check mode only the
@@ -121,6 +123,16 @@ If the binary lives in a root-owned dir, re-run with sudo.`,
 			if pinVersion == "" {
 				latest, err := selfupdate.LatestReleaseVersion(ctx)
 				if err != nil {
+					if checkOnly && errors.Is(err, selfupdate.ErrNoPublishedRelease) {
+						rep.ReleaseStatus = "NO_PUBLISHED_RELEASE"
+						rep.Notes = []string{"No published GitHub release exists; build identity health/versionGate remains authoritative."}
+						if jsonOut {
+							emitJSON(stdout, rep)
+						} else {
+							fmt.Fprintln(stdout, "NO_PUBLISHED_RELEASE: no published GitHub release; no version mismatch was inferred")
+						}
+						return nil
+					}
 					rep.LatestErr = err.Error()
 					if jsonOut {
 						emitJSON(stdout, rep)

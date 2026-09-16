@@ -21,3 +21,10 @@ test('MCP rejects unknown, missing and wrong-type business fields before CLI',()
   assert.match(validateActionInput(create,{name:'Personal',[field]:'injected'}),/unknown business field/);
  }
 });
+
+test('catalog fixed-length numeric arrays reject empty bbox',()=>{
+ const snapshot={name:'board.snapshot_compact',inputs:{bbox:'number[4]'}};
+ assert.equal(validateActionInput(snapshot,{bbox:[1,2,3,4]}),'');
+ assert.match(validateActionInput(snapshot,{bbox:[]}),/wrong type: bbox/);
+ assert.match(validateActionInput(snapshot,{bbox:[1,2,3,'4']}),/wrong type: bbox/);
+});

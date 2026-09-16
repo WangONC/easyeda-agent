@@ -95,6 +95,11 @@ func (s *Server) validateV2(r executionv2.Request) (executionv2.Admission, error
 			return a, err
 		}
 	}
+	if r.Action == "placement.apply_batch" {
+		if err := s.validatePlacementBatchV2(r); err != nil {
+			return a, err
+		}
+	}
 	if gateForAction[r.Action] != "" {
 		keys := []string{r.Target.ProjectUUID}
 		if snapshot.Context.ProjectName != "" {

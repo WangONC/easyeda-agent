@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 )
 
@@ -265,5 +267,85 @@ func TestProjectCreateRejectsInternalFieldsAtPublicBoundary(t *testing.T) {
 		if err == nil || !strings.Contains(err.Error(), "INVALID_PUBLIC_INPUT") {
 			t.Fatalf("%s: %v", field, err)
 		}
+	}
+}
+
+func TestSnapshotBBoxShapeRejectedBeforeDaemon(t *testing.T) {
+	for _, bbox := range []any{[]any{}, []any{1., 2., 3.}, []any{1., 2., 3., "4"}} {
+		_, err := publicActionV2(&appConfig{ports: "invalid"}, "board.snapshot_compact", "", map[string]any{"bbox": bbox}, 0)
+		if err == nil || !strings.Contains(err.Error(), "INVALID_PUBLIC_INPUT") {
+			t.Fatalf("bbox=%#v err=%v", bbox, err)
+		}
+	}
+	requests := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		var q executionv2.Request
+		json.NewDecoder(r.Body).Decode(&q)
+		json.NewEncoder(w).Encode(executionv2.Result{Protocol: executionv2.Version, OperationID: q.OperationID, EvidenceRef: q.OperationID, Outcome: executionv2.Succeeded, Effects: executionv2.Effects{Scope: "NONE", Settled: true}, Value: json.RawMessage(`{"board_revision":"r"}`)})
+	}))
+	defer server.Close()
+	if _, err := publicActionV2(&appConfig{v2Read: fixtureReadBinding(server.URL)}, "board.snapshot_compact", "", map[string]any{"bbox": []any{1., 2., 3., 4.}}, 0); err != nil || requests != 1 {
+		t.Fatal(err, requests)
+	}
+}
+
+func TestBatchTransactionIdentityIsInternal(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var q executionv2.Request
+		json.NewDecoder(r.Body).Decode(&q)
+		if q.Input["client_transaction_id"] != q.OperationID {
+			t.Errorf("not internally bound: %+v", q.Input)
+		}
+		json.NewEncoder(w).Encode(executionv2.Result{Protocol: executionv2.Version, OperationID: q.OperationID, EvidenceRef: q.OperationID, Outcome: executionv2.Succeeded, Effects: executionv2.Effects{Scope: "DESIGN_CONTENT", Settled: true}})
+	}))
+	defer server.Close()
+	cfg := &appConfig{v2Read: fixtureReadBinding(server.URL)}
+	_, err := publicActionV2(cfg, "placement.apply_batch", "", map[string]any{"base_revision": "r", "plan_hash": "h", "placements": []any{map[string]any{"primitiveId": "c", "x": 1., "y": 2., "rotation": 0., "layer": 1.}}}, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestEffectScopeNoneReadNeverImplicitlyNavigates(t *testing.T) {
+	var opened atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var q executionv2.Request
+		json.NewDecoder(r.Body).Decode(&q)
+		if q.Action == "document.open" {
+			opened.Add(1)
+		}
+		value := `{}`
+		if q.Action == "schematic.pages.list" {
+			value = `{"pages":[]}`
+		}
+		if q.Action == "pcb.documents.list" {
+			value = `{"pcbs":[{"uuid":"new-a","name":"new-a"},{"uuid":"new-b","name":"new-b"}]}`
+		}
+		json.NewEncoder(w).Encode(executionv2.Result{Protocol: executionv2.Version, OperationID: q.OperationID, EvidenceRef: q.OperationID, Outcome: executionv2.Succeeded, Effects: executionv2.Effects{Scope: "NONE", Settled: true}, Value: json.RawMessage(value)})
+	}))
+	defer server.Close()
+	b := fixtureReadBinding(server.URL)
+	b.target.DocumentUUID = "old"
+	b.target.TabID = "old-tab"
+	errors := make(chan error, 2)
+	var wg sync.WaitGroup
+	for _, doc := range []string{"new-a", "new-b"} {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err := publicActionV2(&appConfig{doc: doc, v2Read: b}, "pcb.nets.list", "", nil, 0)
+			errors <- err
+		}()
+	}
+	wg.Wait()
+	close(errors)
+	for err := range errors {
+		if err == nil || !strings.Contains(err.Error(), "V2_READ_TARGET_NOT_ACTIVE") {
+			t.Fatal(err)
+		}
+	}
+	if opened.Load() != 0 {
+		t.Fatal("read raced through implicit navigation", opened.Load())
 	}
 }

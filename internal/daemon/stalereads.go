@@ -107,6 +107,7 @@ var staleViewOnlyActions = map[string]bool{
 var staleBlockExemptReads = map[string]bool{
 	"board.snapshot_compact": true,
 	"route.preflight":        true,
+	"placement.preflight":    true,
 	"pcb.snapshot":           true,
 }
 

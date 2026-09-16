@@ -28,7 +28,7 @@ func TestV2TerminalDispositionsFailClosed(t *testing.T) {
 
 func TestV2Round2CompleteCatalog(t *testing.T) {
 	actions := AllActions()
-	if len(actions) != 151 {
+	if len(actions) != 154 {
 		t.Fatal(len(actions))
 	}
 	native := 0
@@ -42,7 +42,7 @@ func TestV2Round2CompleteCatalog(t *testing.T) {
 			t.Fatalf("unmigrated: %s", a.Name)
 		}
 	}
-	if native != 144 {
+	if native != 147 {
 		t.Fatal(native)
 	}
 }

@@ -208,6 +208,20 @@ func TestVersionGateFromHealth(t *testing.T) {
 	}
 }
 
+func TestVersionGateDetectsSameSemverMixedBuilds(t *testing.T) {
+	old := version.SourceRevision
+	version.SourceRevision = "commit-a"
+	defer func() { version.SourceRevision = old }()
+	raw := []byte(`{"service":"easyeda-agent","version":"2.0.0","source_revision":"commit-b","windows":[{"connectorVersion":"2.0.0","connectorBuild":"commit-c"}]}`)
+	rep := versionGateFromHealth(raw)
+	if rep.Verdict != versionSevBlock || rep.CLISourceRevision != "commit-a" || rep.DaemonSourceRevision != "commit-b" || len(rep.ConnectorSourceRevisions) != 1 {
+		t.Fatalf("mixed build not detected: %+v", rep)
+	}
+	if findingFor(t, rep, "daemon-build").Severity != versionSevBlock || findingFor(t, rep, "connector-build").Severity != versionSevBlock {
+		t.Fatalf("missing build findings: %+v", rep.Findings)
+	}
+}
+
 // ── runVersionGate: refusal, warning, escape hatch ─────────────────────────
 
 // healthBody builds a /health payload with the given daemon + connector version.

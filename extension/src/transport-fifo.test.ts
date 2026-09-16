@@ -64,3 +64,19 @@ test('same physical window reconnect retains pending native ownership, rejects o
   receive({type:'v2_release',operation_id:'reconnect-next',digest:'reconnect-next'});
  } finally {settle();nativeGate=undefined;transport.stop(false);}
 });
+
+test('daemon restart announcement reconnects in background with stable logical and activation identity',async()=>{
+ const connect=async()=>{const previous=onMessage;const before=sent.filter(f=>f.type==='register').length;transport.reconnect();await until(()=>onMessage!==previous);onMessage!({data:JSON.stringify({type:'handshake',service:'easyeda-agent'})});await until(()=>sent.filter(f=>f.type==='register').length>before);return sent.filter(f=>f.type==='register').at(-1)!;};
+ try{
+  const first=await connect();
+  const oldReceive=onMessage!;
+  oldReceive({data:JSON.stringify({type:'daemon_restarting',retry_after_ms:500})});
+  await until(()=>onMessage!==oldReceive);
+  onMessage!({data:JSON.stringify({type:'handshake',service:'easyeda-agent'})});
+  await until(()=>sent.filter(f=>f.type==='register').some(f=>f.transportId!==first.transportId&&f.windowId===first.windowId&&f.activationId===first.activationId));
+  const second=sent.filter(f=>f.type==='register').at(-1)!;
+  assert.equal(second.windowId,first.windowId);
+  assert.equal(second.activationId,first.activationId);
+  assert.notEqual(second.transportId,first.transportId);
+ }finally{transport.stop(false);}
+});

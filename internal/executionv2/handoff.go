@@ -25,19 +25,46 @@ type Receipt struct {
 	Evidence HandlerResult `json:"evidence"`
 	Scope    string        `json:"scope"`
 	TimedOut bool          `json:"timed_out"`
+	// WindowID is daemon routing provenance for restart reconciliation. It is
+	// not part of the immutable V2 target/digest and never authorizes retargeting.
+	WindowID string `json:"window_id,omitempty"`
 }
 
 // SaveHandoff closes admission before taking a consistent snapshot. On any IO
 // failure admission stays closed, so a failed save cannot silently resume writes.
-func (c *Coordinator) SaveHandoff(path string) error {
+func (c *Coordinator) SaveHandoff(path string, windows ...map[string]string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.handingOff = true
+	h := c.snapshotLocked(firstWindowMap(windows))
+	return PersistHandoff(path, h)
+}
+
+// Snapshot returns a consistent, non-closing restart snapshot.
+func (c *Coordinator) Snapshot(windows ...map[string]string) Handoff {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.snapshotLocked(firstWindowMap(windows))
+}
+
+func firstWindowMap(values []map[string]string) map[string]string {
+	if len(values) == 0 {
+		return nil
+	}
+	return values[0]
+}
+
+func (c *Coordinator) snapshotLocked(windows map[string]string) Handoff {
 	h := Handoff{Version: "execution.v2.handoff.1", Owner: c.owner, Receipts: []Receipt{}}
 	for _, r := range c.records {
-		h.Receipts = append(h.Receipts, Receipt{r.request, r.digest, r.result, r.evidence, r.scope, r.timedOut})
+		h.Receipts = append(h.Receipts, Receipt{Request: r.request, Digest: r.digest, Result: r.result, Evidence: r.evidence, Scope: r.scope, TimedOut: r.timedOut, WindowID: windows[r.request.OperationID]})
 	}
 	sort.Slice(h.Receipts, func(i, j int) bool { return h.Receipts[i].Request.OperationID < h.Receipts[j].Request.OperationID })
+	return h
+}
+
+// PersistHandoff atomically writes an already-consistent snapshot.
+func PersistHandoff(path string, h Handoff) error {
 	data, err := json.Marshal(h)
 	if err != nil {
 		return err

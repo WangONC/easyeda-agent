@@ -134,6 +134,9 @@ func publicActionV2(cfg *appConfig, action, window string, payload any, timeout 
 	if doc, ok := input["document_uuid"].(string); ok && doc != "" && cfg.doc != "" && doc != cfg.doc {
 		return nil, fmt.Errorf("document_uuid conflicts with --doc")
 	}
+	if err := protocol.ValidateV2Input(input, publicV2InputSchema(action, spec.Input)); err != nil {
+		return nil, fmt.Errorf("INVALID_PUBLIC_INPUT: %s: %w", action, err)
+	}
 	b, e := bindPublicExecutor(cfg, window, action == "system.health")
 	if e != nil {
 		return nil, e

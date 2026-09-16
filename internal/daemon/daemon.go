@@ -26,10 +26,11 @@ type Options struct {
 	V2HostStartupConfirmed bool
 	V2ReceiptFile          string
 
-	Host      string
-	PortStart int
-	PortEnd   int
-	Version   string
+	Host           string
+	PortStart      int
+	PortEnd        int
+	Version        string
+	SourceRevision string
 
 	// ArtifactDir is the FALLBACK directory for inline artifact bytes from the
 	// connector, used only when a request carries no outputDir. The CLI sends its
@@ -54,6 +55,7 @@ type Options struct {
 type Server struct {
 	v2StartupErr    error
 	v2UncleanStart  bool
+	v2UncleanOwner  string
 	v2RestoredOwner string
 	v2Session       string
 	v2              *executionv2.Coordinator
@@ -100,6 +102,8 @@ type Server struct {
 	// connCtx is cancelled on shutdown so connector read loops unblock.
 	connCtx    context.Context
 	connCancel context.CancelFunc
+	shutdown   chan struct{}
+	stopOnce   sync.Once
 }
 
 // acquireExclusive claims the per-window slot for a non-reentrant action.
@@ -165,12 +169,14 @@ func New(opts Options) *Server {
 		concurrentWrites: newConcurrentGuard(),
 		writeHealth:      newWriteHealthTracker(),
 		queueBlocks:      newQueueBlockTracker(),
+		shutdown:         make(chan struct{}),
 	}
 	s.v2Session = fmt.Sprintf("daemon-%d", time.Now().UnixNano())
 	s.v2Pending = make(map[string]v2Pending)
 	s.v2 = executionv2.New(2048, s.validateV2, s.executeV2)
-	s.v2.OnResolved(s.releaseV2)
+	s.v2.OnResolved(s.resolveV2)
 	s.v2.OnResult(s.consumeV2Effects)
+	s.v2.OnPersist(s.persistV2Snapshot)
 	s.v2StartupErr = s.restoreV2Handoff()
 	if s.v2StartupErr == nil {
 		s.v2RestoredOwner = s.v2.EffectOwner()
@@ -185,6 +191,7 @@ type health struct {
 	V2StartupFenced bool     `json:"v2_startup_fenced"`
 	Service         string   `json:"service"`
 	Version         string   `json:"version"`
+	SourceRevision  string   `json:"source_revision"`
 	Status          string   `json:"status"`
 	Port            int      `json:"port"`
 	Windows         []Window `json:"windows"`
@@ -224,6 +231,7 @@ func (s *Server) routes(port int) *http.ServeMux {
 			V2StartupFenced: s.v2StartupFenced(),
 			Service:         Service,
 			Version:         s.opts.Version,
+			SourceRevision:  s.opts.SourceRevision,
 			Status:          "ok",
 			Port:            port,
 			Windows:         s.hub.listAnnotated(s.opts.Version),
@@ -235,6 +243,19 @@ func (s *Server) routes(port int) *http.ServeMux {
 	mux.HandleFunc("/v2/operations", s.handleV2)
 	mux.HandleFunc("/v2/operation", s.handleV2Status)
 	mux.HandleFunc("/v2/bind", s.handleV2Bind)
+	mux.HandleFunc("/shutdown", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "POST required", http.StatusMethodNotAllowed)
+			return
+		}
+		host, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil || net.ParseIP(host) == nil || !net.ParseIP(host).IsLoopback() {
+			http.Error(w, "LOOPBACK_ONLY", http.StatusForbidden)
+			return
+		}
+		s.stopOnce.Do(func() { close(s.shutdown) })
+		writeV2(w, map[string]any{"service": Service, "shutdown": "accepted"})
+	})
 	// /writeverify is 通道 B of the write-health metric (writehealth.go): a
 	// command that VERIFIED a write by reading the canvas back posts its verdict
 	// here. Not a typed action on purpose — the verdict arrives after (and often
@@ -300,24 +321,30 @@ func (s *Server) Run(ctx context.Context, log io.Writer) error {
 
 	select {
 	case <-ctx.Done():
-		fmt.Fprintf(log, "%s daemon shutting down\n", Service)
-		if s.opts.V2ReceiptFile != "" {
-			if err := s.saveV2Handoff(); err != nil {
-				listener.Close()
-				return fmt.Errorf("V2_HANDOFF_SAVE_FAILED: %w", err)
-			}
-		}
-		s.autosave.stop()
-		// Unblock connector read loops so their handlers return and Shutdown
-		// does not wait the full timeout on long-lived WebSockets.
-		s.connCancel()
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		return httpServer.Shutdown(shutdownCtx)
+	case <-s.shutdown:
 	case err := <-errCh:
 		if errors.Is(err, http.ErrServerClosed) {
 			return nil
 		}
 		return err
 	}
+	fmt.Fprintf(log, "%s daemon shutting down\n", Service)
+	if s.opts.V2ReceiptFile != "" {
+		if err := s.saveV2Handoff(); err != nil {
+			listener.Close()
+			return fmt.Errorf("V2_HANDOFF_SAVE_FAILED: %w", err)
+		}
+	}
+	for _, c := range s.hub.connections() {
+		notifyCtx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+		_ = c.write(notifyCtx, map[string]any{"type": "daemon_restarting", "retry_after_ms": 500})
+		cancel()
+	}
+	s.autosave.stop()
+	// Unblock connector read loops so their handlers return and Shutdown
+	// does not wait the full timeout on long-lived WebSockets.
+	s.connCancel()
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return httpServer.Shutdown(shutdownCtx)
 }

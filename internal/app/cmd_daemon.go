@@ -31,6 +31,8 @@ func newDaemonCmd(cfg *appConfig, stdout, stderr io.Writer) *cobra.Command {
 	}
 	d.AddCommand(
 		newDaemonStartCmd(cfg, stdout, stderr),
+		newDaemonStopCmd(cfg, stdout),
+		newDaemonRestartCmd(cfg, stdout, stderr),
 		newDaemonHealthCmd(cfg, stdout, stderr),
 	)
 	return d
@@ -60,7 +62,9 @@ do not add it to an automatic restart command. Restart/reconnect never proves
 cancellation, and this flag cannot reconstruct or complete a lost receipt.
 The legacy --autosave-debounce option is retained but V2 does not arm autosave.
 
-Skill auto-update (--auto-update-skill, on by default) keeps your installed
+Skill sync is opt-in (--auto-update-skill). Missing installation metadata is a
+diagnostic, not permission to overwrite an otherwise compatible installation.
+When explicitly enabled it keeps your installed
 easyeda-agent skill dirs (CLAUDE_CONFIG_DIR / CODEX_HOME, default ~/.claude / ~/.codex) in sync with this daemon's release on
 startup, so you never hand-copy the skill after a CLI upgrade. It touches only
 dirs that already exist, honors EASYEDA_SKILL_PRESERVE=1, and logs each change.
@@ -124,6 +128,7 @@ extension/src/transport.ts).`,
 				PortStart:              port,
 				PortEnd:                port, // single fixed port — no spill
 				Version:                version.Version,
+				SourceRevision:         version.SourceRevision,
 				AutosaveDebounce:       autosaveDebounce,
 				V2HostStartupConfirmed: v2HostStartupConfirmed,
 				V2ReceiptFile:          v2ReceiptFile,
@@ -139,9 +144,70 @@ extension/src/transport.ts).`,
 		"operator confirms this Host has no unresolved prior native effect and its target/checkpoint was freshly checked; never set automatically on restart")
 	c.Flags().DurationVar(&autosaveDebounce, "autosave-debounce", 3*time.Second,
 		"autosave a window this long after its last mutating action (0 = disable)")
-	c.Flags().BoolVar(&autoUpdateSkill, "auto-update-skill", true,
-		"on startup, sync installed skill dirs to this daemon's release; skip dev builds (best-effort)")
+	c.Flags().BoolVar(&autoUpdateSkill, "auto-update-skill", false,
+		"explicitly sync installed skill dirs on startup; never inferred from missing metadata (best-effort)")
 	return c
+}
+
+func newDaemonStopCmd(cfg *appConfig, stdout io.Writer) *cobra.Command {
+	return &cobra.Command{Use: "stop", Short: "Gracefully stop only the easyeda-agent daemon", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, args []string) error {
+		stopped, err := stopDaemon(cfg, stdout)
+		if err != nil {
+			return err
+		}
+		if !stopped {
+			return fmt.Errorf("V2_DAEMON_NOT_RUNNING")
+		}
+		return nil
+	}}
+}
+
+func newDaemonRestartCmd(cfg *appConfig, stdout, stderr io.Writer) *cobra.Command {
+	c := newDaemonStartCmd(cfg, stdout, stderr)
+	c.Use = "restart"
+	c.Short = "Gracefully stop then start the easyeda-agent daemon"
+	start := c.RunE
+	c.RunE = func(cmd *cobra.Command, args []string) error {
+		if _, err := stopDaemon(cfg, stdout); err != nil {
+			return err
+		}
+		return start(cmd, args)
+	}
+	return c
+}
+
+func stopDaemon(cfg *appConfig, stdout io.Writer) (bool, error) {
+	port, _, err := cfg.portRange()
+	if err != nil {
+		return false, err
+	}
+	endpoint := fmt.Sprintf("http://%s", net.JoinHostPort(cfg.host, strconv.Itoa(port)))
+	client := &http.Client{Timeout: 3 * time.Second}
+	health, err := client.Get(endpoint + "/health")
+	if err != nil {
+		return false, nil
+	}
+	defer health.Body.Close()
+	var identity struct {
+		Service string `json:"service"`
+	}
+	if health.StatusCode != http.StatusOK || json.NewDecoder(health.Body).Decode(&identity) != nil || identity.Service != daemon.Service {
+		return false, fmt.Errorf("V2_DAEMON_IDENTITY_MISMATCH: refusing to stop port %d", port)
+	}
+	req, _ := http.NewRequest(http.MethodPost, endpoint+"/shutdown", nil)
+	res, err := client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("V2_DAEMON_STOP_FAILED: HTTP %d", res.StatusCode)
+	}
+	if !waitPortFree(cfg.host, port, 6*time.Second) {
+		return false, fmt.Errorf("V2_DAEMON_STOP_TIMEOUT: port %d still busy", port)
+	}
+	fmt.Fprintf(stdout, "%s daemon stopped\n", daemon.Service)
+	return true, nil
 }
 
 // runStartupSkillSync performs the daemon's best-effort skill refresh in the

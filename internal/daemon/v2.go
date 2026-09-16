@@ -19,6 +19,8 @@ type v2Pending struct {
 	conn        *conn
 	releaseConn *conn
 	results     chan executionv2.HandlerResult
+	windowID    string
+	restored    bool
 }
 
 func rejectLegacy(w http.ResponseWriter, r *http.Request) {
@@ -112,7 +114,7 @@ func (s *Server) validateV2(r executionv2.Request) (executionv2.Admission, error
 func (s *Server) executeV2(r executionv2.Request, digest string) <-chan executionv2.HandlerResult {
 	ch := make(chan executionv2.HandlerResult, 8)
 	if r.Action == "system.health" {
-		value, _ := json.Marshal(map[string]any{"service": Service, "windows": s.hub.listAnnotated(s.opts.Version)})
+		value, _ := json.Marshal(map[string]any{"service": Service, "version": s.opts.Version, "source_revision": s.opts.SourceRevision, "windows": s.hub.listAnnotated(s.opts.Version)})
 		ch <- executionv2.HandlerResult{Protocol: executionv2.Version, OperationID: r.OperationID, Digest: digest, Target: r.Target, Effects: executionv2.Effects{Started: executionv2.Bool(false), Changed: executionv2.Bool(false), Settled: true, Scope: "NONE"}, Verification: executionv2.Verification{Verdict: "satisfied", Checked: []string{"daemon_snapshot"}, Complete: true, Required: 1, Satisfied: 1}, Value: value}
 		close(ch)
 		return ch
@@ -122,15 +124,19 @@ func (s *Server) executeV2(r executionv2.Request, digest string) <-chan executio
 		close(ch)
 		return ch
 	}
-	// Fail closed before transport if the durable effect-intent cannot be saved.
+	s.v2Mu.Lock()
+	s.v2Pending[r.OperationID] = v2Pending{request: r, conn: c, results: ch, started: time.Now(), windowID: c.id()}
+	s.v2Mu.Unlock()
+	// Fail closed before transport unless both the public operation record and
+	// the effect-intent marker are durable.
 	if err := s.markV2Effect(r, digest); err != nil {
 		s.logf("V2 operation %s lifecycle persistence failed before dispatch: %v", r.OperationID, err)
+		s.v2Mu.Lock()
+		delete(s.v2Pending, r.OperationID)
+		s.v2Mu.Unlock()
 		close(ch)
 		return ch
 	}
-	s.v2Mu.Lock()
-	s.v2Pending[r.OperationID] = v2Pending{request: r, conn: c, results: ch, started: time.Now()}
-	s.v2Mu.Unlock()
 	// Never tie native ownership to an HTTP caller's context or wait budget.
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -155,8 +161,15 @@ func (s *Server) deliverV2(c *conn, data []byte) {
 	if !ok || p.conn != c {
 		return
 	} // exact transport ownership, never retired redirect
+	result := telemetryV2(p.request, p.started, frame.Result, s.completeArtifactV2(p.request, s.completeFastReadV2(p.request, completeDrcV2(p.request, completeReportV2(p.request, frame.Result)))))
+	if p.restored {
+		if _, err := s.v2.ReconcileResult(p.request.OperationID, result); err != nil {
+			s.logf("V2 restored reconciliation %s rejected: %v", p.request.OperationID, err)
+		}
+		return
+	}
 	select {
-	case p.results <- telemetryV2(p.request, p.started, frame.Result, s.completeArtifactV2(p.request, s.completeFastReadV2(p.request, completeDrcV2(p.request, completeReportV2(p.request, frame.Result))))):
+	case p.results <- result:
 	default:
 	}
 }
@@ -205,7 +218,7 @@ func (s *Server) handleV2Status(w http.ResponseWriter, r *http.Request) {
 			}
 			s.releaseV2(p.request, digest)
 		} else if p.conn == nil {
-			http.Error(w, "V2_RECOVERY_CURRENT_TARGET_REQUIRED", 409)
+			http.Error(w, "V2_RECONCILIATION_UNAVAILABLE_AFTER_RESTART: reconnect the original logical window/activation; operation remains queryable and fenced", 409)
 			return
 		} else if e := p.conn.write(r.Context(), map[string]any{"type": "v2_reconcile", "operation_id": id}); e != nil {
 			http.Error(w, e.Error(), 503)
@@ -278,7 +291,7 @@ func (s *Server) releaseV2(r executionv2.Request, digest string) {
 	if p.releaseConn != nil {
 		recipient = p.releaseConn
 	}
-	if recipient == nil {
+	if recipient == nil || recipient.ws == nil {
 		return
 	}
 	if recipient.snapshot().ActivationID != r.Target.Activation {
@@ -297,14 +310,19 @@ func (s *Server) rebindV2Transport(current *conn) []string {
 	defer s.v2Mu.Unlock()
 	var ids []string
 	for id, p := range s.v2Pending {
-		if p.conn == nil || p.conn == current {
+		if p.conn == current {
 			continue
 		}
-		before := p.conn.snapshot()
-		if before.WindowID != now.WindowID || before.ActivationID != now.ActivationID || p.request.Target.Activation != now.ActivationID {
+		beforeWindow, beforeActivation := p.windowID, p.request.Target.Activation
+		if p.conn != nil {
+			before := p.conn.snapshot()
+			beforeWindow, beforeActivation = before.WindowID, before.ActivationID
+		}
+		if beforeWindow == "" || beforeWindow != now.WindowID || beforeActivation != now.ActivationID || p.request.Target.Activation != now.ActivationID {
 			continue
 		}
 		p.conn = current
+		p.windowID = now.WindowID
 		if p.releaseConn != nil && p.releaseConn.snapshot().ActivationID == now.ActivationID && p.releaseConn.snapshot().WindowID == now.WindowID {
 			p.releaseConn = current
 		}

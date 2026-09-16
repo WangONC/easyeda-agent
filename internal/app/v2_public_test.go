@@ -250,5 +250,20 @@ func TestPublicCatalogOmitsInternalRequestSchema(t *testing.T) {
 		if _, ok := in["expected_project_uuid"]; ok {
 			t.Fatal(a)
 		}
+		if a["name"] == "project.create" {
+			if _, ok := in["client_transaction_id"]; ok {
+				t.Fatal(a)
+			}
+		}
+	}
+}
+
+func TestProjectCreateRejectsInternalFieldsAtPublicBoundary(t *testing.T) {
+	for _, field := range []string{"expected_project_uuid", "session_token", "client_transaction_id", "activation", "daemon_session", "target_ref"} {
+		input := map[string]any{"name": "Personal", field: "injected"}
+		_, err := publicActionV2(&appConfig{ports: "invalid"}, "project.create", "", input, 0)
+		if err == nil || !strings.Contains(err.Error(), "INVALID_PUBLIC_INPUT") {
+			t.Fatalf("%s: %v", field, err)
+		}
 	}
 }

@@ -21,6 +21,7 @@ type Window struct {
 	ActivationID     string           `json:"activationId"`
 	WindowID         string           `json:"windowId"`
 	ConnectorVersion string           `json:"connectorVersion"`
+	ConnectorBuild   string           `json:"connectorBuild"`
 	EasyEDAVersion   string           `json:"easyedaVersion"`
 	Capabilities     []string         `json:"capabilities"`
 	Context          protocol.Context `json:"context"`
@@ -45,6 +46,7 @@ type conn struct {
 	mu          sync.Mutex
 	windowID    string
 	connVersion string
+	connBuild   string
 	edaVersion  string
 	caps        []string
 	ctx         protocol.Context
@@ -71,6 +73,7 @@ func (c *conn) applyRegister(msg protocol.Register, now time.Time) {
 	c.activationID = msg.ActivationID
 	c.transportID = msg.TransportID
 	c.connVersion = msg.ConnectorVersion
+	c.connBuild = msg.ConnectorBuild
 	c.edaVersion = msg.EasyEDAVersion
 	c.caps = msg.Capabilities
 	c.lastSeen = now
@@ -136,6 +139,7 @@ func (c *conn) snapshot() Window {
 		TransportID:      c.transportID,
 		WindowID:         c.windowID,
 		ConnectorVersion: c.connVersion,
+		ConnectorBuild:   c.connBuild,
 		EasyEDAVersion:   c.edaVersion,
 		Capabilities:     c.caps,
 		Context:          c.ctx,
@@ -206,6 +210,16 @@ type hub struct {
 	// retired maps a disconnected windowId → the identity it carried, so
 	// resolveRetired can forward a stale-id request to its live successor.
 	retired map[string]retiredWindow
+}
+
+func (h *hub) connections() []*conn {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	out := make([]*conn, 0, len(h.windows))
+	for _, c := range h.windows {
+		out = append(out, c)
+	}
+	return out
 }
 
 func newHub() *hub {

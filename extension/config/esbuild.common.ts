@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 import type esbuild from 'esbuild';
 
@@ -11,6 +12,16 @@ import type esbuild from 'esbuild';
 const extJson = JSON.parse(
 	readFileSync(join(__dirname, '..', 'extension.json'), 'utf-8'),
 );
+
+function sourceRevision(): string {
+	if (process.env.EASYEDA_SOURCE_REVISION) return process.env.EASYEDA_SOURCE_REVISION;
+	try {
+		const root=join(__dirname,'..','..');
+		const commit=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
+		const dirty=execFileSync('git',['status','--porcelain'],{cwd:root,encoding:'utf8'}).trim();
+		return commit+(dirty?'-dirty':'');
+	} catch { return 'unknown'; }
+}
 
 export default {
 	entryPoints: {
@@ -30,6 +41,7 @@ export default {
 	ignoreAnnotations: true,
 	define: {
 		__CONNECTOR_VERSION__: JSON.stringify(extJson.version ?? '0.0.0-dev'),
+		__CONNECTOR_SOURCE_REVISION__: JSON.stringify(sourceRevision()),
 	},
 	external: [],
 } satisfies Parameters<(typeof esbuild)['build']>[0];

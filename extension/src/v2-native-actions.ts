@@ -213,9 +213,13 @@ export function schematicRename(page:boolean):NativeAction {
  return {mode:'V2_NATIVE',scope:'PROJECT_TOPOLOGY',validate:p=>{fields(p,page?{pageUuid:'string',uuid:'string',name:'string'}:{schematicUuid:'string',uuid:'string',name:'string'},['name']);if(!p[page?'pageUuid':'schematicUuid']&&!p.uuid)throw Error('V2_MISSING_ID');if(p.uuid&&p[page?'pageUuid':'schematicUuid']&&p.uuid!==p[page?'pageUuid':'schematicUuid'])throw Error('V2_CONFLICTING_ID');},run:async c=>{
   const id=(c.request.input[page?'pageUuid':'schematicUuid']??c.request.input.uuid) as string,name=c.request.input.name as string;
   const list=async()=>page?array(await eda.dmt_Schematic.getAllSchematicPagesInfo()):array(await eda.dmt_Schematic.getAllSchematicsInfo());
+  // Host-qualified contract: document/container names are canonicalized to
+  // lowercase by EasyEDA, while page names preserve case. Identity remains the
+  // exact UUID; only the Host-owned name representation is normalized.
+  const nameMatches=(actual:unknown)=>typeof actual==='string'&&(page?actual===name:actual.toLocaleLowerCase()===name.toLocaleLowerCase());
   const before=(await list()).find(x=>x.uuid===id);if(!before)throw Error('V2_OBJECT_NOT_IN_PROJECT');
-  if(before.name===name)return observed(before,['fresh_name'],false);
-  c.prepare(async()=>{if(page)await verifySchematicPageName(id,name);const after=(await list()).find(x=>x.uuid===id);if(after?.name===name)return observed(after,['fresh_uuid','fresh_name'],true);return {changed:null,verification:unavailable(),evidence:after};});
+  if(nameMatches(before.name))return observed({...before,requestedName:name},['fresh_uuid',page?'fresh_name':'fresh_host_canonical_name'],false);
+  c.prepare(async()=>{if(page)await verifySchematicPageName(id,name);const after=(await list()).find(x=>x.uuid===id);if(after&&nameMatches(after.name))return observed({...after,requestedName:name},['fresh_uuid',page?'fresh_name':'fresh_host_canonical_name'],true);return {changed:null,verification:unavailable(),evidence:after};});
  try{await c.effect(()=>page?eda.dmt_Schematic.modifySchematicPageName(id,name):eda.dmt_Schematic.modifySchematicName(id,name));}catch{/* verify */}
   return c.verify();
  }};

@@ -155,6 +155,11 @@ else:
         self.assertIn("不得用于模糊选型或候选枚举", parts)
         self.assertIn("ok(reconciled)", joined)
         self.assertIn("不得为绕过 UNKNOWN 自制 shell/Python", skill)
+        self.assertIn("不得因为后续“可能会用到”", skill)
+        self.assertIn("mutation 必须逐个提交", skill)
+        self.assertIn("metadata 缺失只产生 warning/diagnostic", skill)
+        self.assertIn("不要同时触发独立 easyeda-api Bridge", skill)
+        self.assertIn("easyeda daemon restart", (REPO / "skills/easyeda-agent/references/environment-setup.md").read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

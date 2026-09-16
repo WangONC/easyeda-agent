@@ -70,12 +70,13 @@ api-index: ## regenerate the embedded eda.* API index (run after bumping pro-api
 # Dev version stamp: `git describe` (e.g. v0.5.1-3-g1d7b7c8[-dirty]) so a locally
 # built binary reports a meaningful version via `easyeda -v` instead of "dev".
 DEV_VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
-DEV_LDFLAGS := -X 'github.com/zhoushoujianwork/easyeda-agent/internal/version.Version=$(DEV_VERSION)'
+SOURCE_REVISION := $(shell git rev-parse HEAD 2>/dev/null || echo unknown)$(shell test -z "$$(git status --porcelain 2>/dev/null)" || echo -dirty)
+DEV_LDFLAGS := -X 'github.com/zhoushoujianwork/easyeda-agent/internal/version.Version=$(DEV_VERSION)' -X 'github.com/zhoushoujianwork/easyeda-agent/internal/version.SourceRevision=$(SOURCE_REVISION)'
 # Where `make install` drops the binary (matches install.sh's default).
 PREFIX ?= /usr/local
 
 build: ## build formal bin/easyeda.exe (version from Connector manifest)
-	go build -ldflags "-X github.com/zhoushoujianwork/easyeda-agent/internal/version.Version=$(BUILD_VERSION)" -o $(LOCAL_BIN) ./cmd/easyeda
+	go build -ldflags "-X github.com/zhoushoujianwork/easyeda-agent/internal/version.Version=$(BUILD_VERSION) -X github.com/zhoushoujianwork/easyeda-agent/internal/version.SourceRevision=$(SOURCE_REVISION)" -o $(LOCAL_BIN) ./cmd/easyeda
 
 install: build ## build + install to $(PREFIX)/bin (default /usr/local/bin; may need sudo)
 	@mkdir -p "$(PREFIX)/bin" 2>/dev/null || true
@@ -145,7 +146,7 @@ eext-fresh: ## bump patch + FRESH uuid (imports as new entry; delete the old one
 #   • creates a git tag, pushes it, and creates a GitHub Release with all assets
 #   • publishes the skill to ClawHub at the same version (best-effort — a hub
 #     outage won't fail the release; retry with `make publish-skill VERSION=…`)
-_LDFLAGS = -s -w -X 'github.com/zhoushoujianwork/easyeda-agent/internal/version.Version=$(VERSION)'
+_LDFLAGS = -s -w -X 'github.com/zhoushoujianwork/easyeda-agent/internal/version.Version=$(VERSION)' -X 'github.com/zhoushoujianwork/easyeda-agent/internal/version.SourceRevision=$(SOURCE_REVISION)'
 
 skill-check: ## validate tracked skill contents and installed-package local links (offline)
 	python3 scripts/pack-skill.py --check

@@ -57,75 +57,85 @@ func ValidateV2(r executionv2.Request) (executionv2.Admission, error) {
 		if targetKind != "ANY" && targetKind != r.Target.Scope && !(r.Target.Scope == "DOCUMENT" && targetKind == r.Target.DocumentType) {
 			return executionv2.Admission{}, errors.New("V2_TARGET_MISMATCH")
 		}
-		for k, t := range v.Input {
-			if strings.HasPrefix(t, "!") {
-				if _, ok := r.Input[k]; !ok {
-					return executionv2.Admission{}, errors.New("V2_MISSING_INPUT:" + k)
-				}
-			}
-		}
-		for k, x := range r.Input {
-			t, ok := v.Input[k]
-			if !ok {
-				return executionv2.Admission{}, errors.New("V2_UNKNOWN_INPUT:" + k)
-			}
-			valid := false
-			switch strings.TrimPrefix(t, "!") {
-			case "string":
-				v, ok := x.(string)
-				valid = ok && (!strings.HasPrefix(t, "!") || v != "")
-			case "string|number":
-				switch v := x.(type) {
-				case string:
-					valid = strings.TrimSpace(v) != ""
-				case float64:
-					valid = !math.IsNaN(v) && !math.IsInf(v, 0)
-				}
-			case "number":
-				v, ok := x.(float64)
-				valid = ok && !math.IsNaN(v) && !math.IsInf(v, 0)
-			case "boolean":
-				_, valid = x.(bool)
-			case "string|array", "string|string[]":
-				switch v := x.(type) {
-				case string:
-					valid = v != ""
-				case []any:
-					valid = true
-					for _, item := range v {
-						if _, ok := item.(string); !ok {
-							valid = false
-						}
-					}
-				}
-			case "string[]":
-				values, ok := x.([]any)
-				valid = ok
-				for _, item := range values {
-					str, ok := item.(string)
-					if !ok || str == "" {
-						valid = false
-					}
-				}
-			case "string|number|array":
-				switch v := x.(type) {
-				case string:
-					valid = strings.TrimSpace(v) != ""
-				case float64:
-					valid = !math.IsNaN(v) && !math.IsInf(v, 0)
-				case []any:
-					valid = true
-				}
-			case "array":
-				_, valid = x.([]any)
-			case "object":
-				_, valid = x.(map[string]any)
-			}
-			if !valid {
-				return executionv2.Admission{}, errors.New("V2_INVALID_INPUT:" + k)
-			}
+		if err := ValidateV2Input(r.Input, v.Input); err != nil {
+			return executionv2.Admission{}, err
 		}
 		return executionv2.Admission{EffectScope: v.EffectScope, Diagnostic: v.Diagnostic}, nil
 	}
 	return executionv2.Admission{}, errors.New("V2_ACTION_NOT_MIGRATED")
+}
+
+// ValidateV2Input validates a value against an action catalog input map. Public
+// projections may pass a filtered map; this keeps catalog types as the single
+// schema source instead of reimplementing action contracts in CLI/MCP.
+func ValidateV2Input(input map[string]any, schema map[string]string) error {
+	for k, t := range schema {
+		if strings.HasPrefix(t, "!") {
+			if _, ok := input[k]; !ok {
+				return errors.New("V2_MISSING_INPUT:" + k)
+			}
+		}
+	}
+	for k, x := range input {
+		t, ok := schema[k]
+		if !ok {
+			return errors.New("V2_UNKNOWN_INPUT:" + k)
+		}
+		valid := false
+		switch strings.TrimPrefix(t, "!") {
+		case "string":
+			v, ok := x.(string)
+			valid = ok && (!strings.HasPrefix(t, "!") || v != "")
+		case "string|number":
+			switch v := x.(type) {
+			case string:
+				valid = strings.TrimSpace(v) != ""
+			case float64:
+				valid = !math.IsNaN(v) && !math.IsInf(v, 0)
+			}
+		case "number":
+			v, ok := x.(float64)
+			valid = ok && !math.IsNaN(v) && !math.IsInf(v, 0)
+		case "boolean":
+			_, valid = x.(bool)
+		case "string|array", "string|string[]":
+			switch v := x.(type) {
+			case string:
+				valid = v != ""
+			case []any:
+				valid = true
+				for _, item := range v {
+					if _, ok := item.(string); !ok {
+						valid = false
+					}
+				}
+			}
+		case "string[]":
+			values, ok := x.([]any)
+			valid = ok
+			for _, item := range values {
+				str, ok := item.(string)
+				if !ok || str == "" {
+					valid = false
+				}
+			}
+		case "string|number|array":
+			switch v := x.(type) {
+			case string:
+				valid = strings.TrimSpace(v) != ""
+			case float64:
+				valid = !math.IsNaN(v) && !math.IsInf(v, 0)
+			case []any:
+				valid = true
+			}
+		case "array":
+			_, valid = x.([]any)
+		case "object":
+			_, valid = x.(map[string]any)
+		}
+		if !valid {
+			return errors.New("V2_INVALID_INPUT:" + k)
+		}
+	}
+	return nil
 }

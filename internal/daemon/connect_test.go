@@ -20,7 +20,7 @@ import (
 func startDaemon(t *testing.T) (string, func()) {
 	t.Helper()
 	port := freePort(t)
-	srv := New(Options{Host: "127.0.0.1", PortStart: port, PortEnd: port, Version: "0.1.0-test", ArtifactDir: t.TempDir()})
+	srv := New(Options{Host: "127.0.0.1", PortStart: port, PortEnd: port, Version: "0.1.0-test", SourceRevision: "daemon-test-build", ArtifactDir: t.TempDir()})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan error, 1)
@@ -55,6 +55,7 @@ func dialConnector(t *testing.T, base, windowID string) *websocket.Conn {
 		ActivationID:     windowID,
 		TransportID:      windowID,
 		ConnectorVersion: "0.1.0",
+		ConnectorBuild:   "connector-test-build",
 		EasyEDAVersion:   "test",
 		Capabilities:     []string{"schematic.v1"},
 	}
@@ -157,6 +158,9 @@ func TestConnectorRegistersAndContextAppearsInHealth(t *testing.T) {
 	win := waitForWindow(t, base, "win-1")
 	if win.ConnectorVersion != "0.1.0" {
 		t.Fatalf("unexpected connector version: %q", win.ConnectorVersion)
+	}
+	if win.ConnectorBuild != "connector-test-build" || getHealth(t, base).SourceRevision != "daemon-test-build" {
+		t.Fatalf("build provenance missing: window=%q daemon=%q", win.ConnectorBuild, getHealth(t, base).SourceRevision)
 	}
 
 	// Context delivery is async relative to register; poll for it.

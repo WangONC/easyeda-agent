@@ -13,10 +13,10 @@ The connector runs inside EasyEDA's webview, which shapes the transport:
 
 ## Startup
 
-1. For each port in `127.0.0.1:60832-60841` (`0xEDA0`-`0xEDA9`), open a WebSocket to `ws://127.0.0.1:PORT/eda` via `eda.sys_WebSocket.register`.
+1. Connect to the pinned daemon port `127.0.0.1:60832` via `eda.sys_WebSocket.register` (an explicit `daemonPorts` override is the bounded exception).
 2. Wait briefly (~1.5s) for the daemon to send a `handshake` frame. Verify `service === "easyeda-agent"`.
-3. On a valid handshake, generate a `windowId` and send `register`, then `context`.
-4. Start a `ping`/`pong` heartbeat; on consecutive missed pongs or a socket error, re-scan and reconnect.
+3. On a valid handshake, reuse the Host-window logical `windowId` and activation identity, generate a new transport ID, then send `register` and `context`.
+4. Start a `ping`/`pong` heartbeat. On a daemon restart announcement, consecutive missed pongs, or a socket error, rotate the Host WebSocket ID and reconnect in the background. Reconnect never replays a mutation.
 
 ## Required Messages
 
@@ -28,7 +28,8 @@ Sent by the daemon immediately on connect so the connector can confirm it reache
 {
   "type": "handshake",
   "service": "easyeda-agent",
-  "version": "0.1.0-dev"
+  "version": "2.0.0",
+  "source_revision": "<commit-or-build-id>"
 }
 ```
 
@@ -38,7 +39,10 @@ Sent by the daemon immediately on connect so the connector can confirm it reache
 {
   "type": "register",
   "windowId": "uuid",
-  "connectorVersion": "0.1.0",
+  "activationId": "stable-activation",
+  "transportId": "fresh-transport",
+  "connectorVersion": "2.0.0",
+  "connectorBuild": "<commit-or-build-id>",
   "easyedaVersion": "3.x",
   "capabilities": ["schematic.v1"]
 }

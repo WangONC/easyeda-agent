@@ -23,9 +23,10 @@ const (
 // connector can confirm it reached an easyeda-agent daemon (not some other local
 // service) before registering.
 type Handshake struct {
-	Type    string `json:"type"`
-	Service string `json:"service"`
-	Version string `json:"version"`
+	Type           string `json:"type"`
+	Service        string `json:"service"`
+	Version        string `json:"version"`
+	SourceRevision string `json:"source_revision,omitempty"`
 }
 
 // Ping is a liveness probe; the receiver echoes its ID back in a Pong.
@@ -54,6 +55,7 @@ type Register struct {
 	Type             string   `json:"type"`
 	WindowID         string   `json:"windowId"`
 	ConnectorVersion string   `json:"connectorVersion"`
+	ConnectorBuild   string   `json:"connectorBuild"`
 	EasyEDAVersion   string   `json:"easyedaVersion"`
 	Capabilities     []string `json:"capabilities"`
 }

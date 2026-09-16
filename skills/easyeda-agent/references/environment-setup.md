@@ -8,6 +8,10 @@
 CLI/daemon、`easyeda-agent` Skill 和 EDA Agent Connector 是三个必须同版的组成部分；
 EasyEDA Pro 是宿主，不参与项目版本号对齐。
 
+安装 metadata 缺失只是诊断信息，不代表 Skill 未安装或不兼容。若当前 Skill、CLI、
+Connector 能正常完成 health 与正式调用，继续当前任务；不得自动 update/reinstall/覆盖。
+只有用户明确要求更新，或真实 version/protocol incompatibility 已证明阻塞时才执行下列升级命令。
+
 发布版安装 CLI 和 Skill：
 
 ```bash
@@ -35,8 +39,8 @@ Git Bash/WSL 与原生 Windows 是不同运行环境，选择相应的二进制�
 
 安装/升级失败须保留非零退出码，不能只依据最后一行提示判定成功。普通 Skill 更新
 应替换完整发布目录，清理已删除的旧参考；`--preserve` 是混合本地内容，保留旧版本标记，
-不能宣称全部文件已升级。daemon 启动时只同步自身版本的 Skill，版本升级由显式
-`easyeda update` 完成。
+不能宣称全部文件已升级。daemon 不因 metadata 缺失自动同步 Skill；只有显式
+`--auto-update-skill` 或 `easyeda update` 才授权更新。
 
 仓库开发使用 `make build` 构建 CLI，`make install` 安装，`make dev` 保持 daemon
 随 Go 代码热重建。`make dev` 会刷新仓库二进制和可写的安装路径；先用 `command -v easyeda`
@@ -75,14 +79,15 @@ easyeda doc switch "<doc-name-or-uuid>" --project "<project>"
 - 没有 daemon：检查当前安装路径与启动日志；开发环境恢复现有 `make dev`。
 - daemon 正常但 `windows` 为空：检查编辑器、登录态、扩展启用和外部交互权限。
 - 已连接：核对目标工程/文档、连接器版本及 `versionGate`。按 findings 的修复建议处理
-  版本错位；`--skip-version-check` 不是常规升级或恢复方法。
+  版本错位；同时核对 `source_revision` / `connectorBuild`，同为 `2.0.0` 但 build 不同仍是混版。
+  `--skip-version-check` 不是常规升级或恢复方法。
 - 写操作使用 `--project` 和 `--doc`，由 CLI 在派发前实时确认目标文档。没有独立的
   `easyeda context` 命令；`health` 显示连接状态，`doc ls/switch` 读取/切换实时文档。
 
 ## 上下文与缓存
 
-`windowId` 会随重连变化，不作为项目或文档的持久身份。优先用项目和文档 UUID 路由。
-daemon 接收心跳、context 和动作响应来更新窗口信息，过期连接会退休，同一
+`transportId` 会随重连变化；同一 Host 页面运行时的 logical `windowId` 与 activation 保持稳定，
+但都不替代项目/文档 UUID。daemon 接收心跳、context 和动作响应来更新窗口信息，过期连接会退休，同一
 project/document/tab 的重复连接会去重；缓存清理不需要手工删历史 windowId。
 
 `health` 中的连接上下文不能代替目标页的数据快照。切页、重连或 Apply 后，需要
@@ -104,9 +109,13 @@ health、journal 和日志。多个真实工程/窗口可以同时存在；要�
    不要直接重放整队列。
 2. 检查扩展管理器只保留所选渠道的当前连接器，卸载重复旧项后完全退出并重启 EasyEDA。
    网页版若同一 tab 重载仍无法重连，保存后关闭该 tab，再打开目标工程。
-3. 只有 daemon 本身版本或状态异常时才重启它；`make dev` 管理的进程通过其终端恢复。
+3. 只有 daemon 本身版本或状态异常时才重启它；正式环境用 `easyeda daemon restart`（或 `stop` 后 `start`），它先保存 durable operation handoff，再 graceful shutdown。`make dev` 管理的进程通过其终端恢复。
 4. 用 `health` 确认目标只剩预期连接和版本，再读取目标页，例如
    `sch list --page <uuid> --include-pins`。读回稳定且未完成步骤已核清后，再继续 Apply。
 
 恢复后仍有同一错误就根据新日志定位，不循环刷新、批量杀浏览器进程、重发写操作或
 清空 IndexedDB。离线数据准备可以继续，原生验证仍未完成时如实标明。
+
+Connector 的产品契约是 daemon restart 后后台自动 reconnect，logical window 不重复、
+activation 不变、transport 更新，且不会重放 mutation。若经过 health 显示的多个重连周期仍无窗口，
+停止并明确要求用户 reload/reopen EasyEDA Host；不得自动启用 computer-use、UI 或 browser automation 绕过恢复契约。

@@ -87,6 +87,13 @@ func TestDeadlineDuplicateAndReconcile(t *testing.T) {
 	if _, e = c.Submit(context.Background(), request("second")); e == nil {
 		t.Fatal("pending effect crossed barrier")
 	}
+	otherProject := request("other-project")
+	otherProject.Target.ProjectUUID = "completely-independent-project"
+	otherProject.Target.DocumentUUID = "other-document"
+	otherProject.Target.TabID = "other-tab"
+	if _, e = c.Submit(context.Background(), otherProject); e == nil || e.Error() != "V2_EFFECT_BARRIER" {
+		t.Fatal("Host-global owner was bypassed by a different project", e)
+	}
 	h := evidence(r, "satisfied", true, 1, 0)
 	ch <- h
 	deadline := time.Now().Add(time.Second)

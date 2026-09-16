@@ -71,11 +71,14 @@ type versionFinding struct {
 // versionGateReport is the whole three-way verdict, also surfaced by
 // `easyeda health` as the "versionGate" block.
 type versionGateReport struct {
-	CLI        string           `json:"cli"`
-	Daemon     string           `json:"daemon,omitempty"`
-	Connectors []string         `json:"connectors,omitempty"`
-	Verdict    string           `json:"verdict"` // ok | warn | block | skipped
-	Findings   []versionFinding `json:"findings,omitempty"`
+	CLI                      string           `json:"cli"`
+	Daemon                   string           `json:"daemon,omitempty"`
+	Connectors               []string         `json:"connectors,omitempty"`
+	CLISourceRevision        string           `json:"cli_source_revision,omitempty"`
+	DaemonSourceRevision     string           `json:"daemon_source_revision,omitempty"`
+	ConnectorSourceRevisions []string         `json:"connector_source_revisions,omitempty"`
+	Verdict                  string           `json:"verdict"` // ok | warn | block | skipped
+	Findings                 []versionFinding `json:"findings,omitempty"`
 }
 
 // evaluateVersionGate is the PURE core: given the three version strings it
@@ -244,19 +247,60 @@ func (r versionGateReport) warningFindings() []versionFinding {
 // ZERO extra round-trips.
 func versionGateFromHealth(raw []byte) versionGateReport {
 	var parsed struct {
-		Version string `json:"version"`
-		Windows []struct {
+		Version        string `json:"version"`
+		SourceRevision string `json:"source_revision"`
+		Windows        []struct {
 			ConnectorVersion string `json:"connectorVersion"`
+			ConnectorBuild   string `json:"connectorBuild"`
 		} `json:"windows"`
 	}
 	if json.Unmarshal(raw, &parsed) != nil {
 		return versionGateReport{CLI: version.Version, Verdict: versionSevSkipped}
 	}
 	conns := make([]string, 0, len(parsed.Windows))
+	builds := make([]string, 0, len(parsed.Windows))
 	for _, w := range parsed.Windows {
 		conns = append(conns, w.ConnectorVersion)
+		builds = append(builds, w.ConnectorBuild)
 	}
-	return evaluateVersionGate(version.Version, parsed.Version, conns)
+	rep := evaluateVersionGate(version.Version, parsed.Version, conns)
+	rep.CLISourceRevision = strings.TrimSpace(version.SourceRevision)
+	rep.DaemonSourceRevision = strings.TrimSpace(parsed.SourceRevision)
+	rep.Findings = append(rep.Findings, sourceRevisionFinding("daemon-build", rep.CLISourceRevision, rep.DaemonSourceRevision))
+	seen := map[string]bool{}
+	for _, build := range builds {
+		build = strings.TrimSpace(build)
+		if build == "" || seen[build] {
+			continue
+		}
+		seen[build] = true
+		rep.ConnectorSourceRevisions = append(rep.ConnectorSourceRevisions, build)
+		rep.Findings = append(rep.Findings, sourceRevisionFinding("connector-build", rep.CLISourceRevision, build))
+	}
+	rep.Verdict = worstSeverity(rep.Findings)
+	return rep
+}
+
+func sourceRevisionFinding(component, cli, actual string) versionFinding {
+	f := versionFinding{Component: component, Version: actual}
+	known := func(v string) bool { v = strings.TrimSpace(v); return v != "" && v != "unknown" }
+	switch {
+	case !known(cli) || !known(actual):
+		f.Severity = versionSevSkipped
+		f.Reason = "build/source revision unavailable; semver verdict remains independent"
+	case cli == actual:
+		f.Severity = versionSevOK
+		f.Reason = "source revision matches CLI: " + cli
+	default:
+		f.Severity = versionSevBlock
+		f.Reason = fmt.Sprintf("CLI source revision %s != %s %s; same semver can still be a mixed build", cli, component, actual)
+		if component == "daemon-build" {
+			f.Fix = fixDaemonStale
+		} else {
+			f.Fix = fixConnectorStale
+		}
+	}
+	return f
 }
 
 // ── 拦截点:每进程一次,在第一条真正要走连接器的动作之前 ────────────────────

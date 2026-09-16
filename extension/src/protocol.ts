@@ -7,8 +7,11 @@
 // Replaced at build time by esbuild `define` with extension.json's version
 // (see config/esbuild.common.ts). Falls back for non-esbuild contexts (tsc).
 declare const __CONNECTOR_VERSION__: string;
+declare const __CONNECTOR_SOURCE_REVISION__: string;
 export const CONNECTOR_VERSION =
 	typeof __CONNECTOR_VERSION__ === 'undefined' ? '0.0.0-dev' : __CONNECTOR_VERSION__;
+export const CONNECTOR_SOURCE_REVISION =
+	typeof __CONNECTOR_SOURCE_REVISION__ === 'undefined' ? 'unknown' : __CONNECTOR_SOURCE_REVISION__;
 export const PROTOCOL_VERSION = 'v1';
 export const SERVICE_ID = 'easyeda-agent';
 export const CAPABILITIES = ['execution.v2', 'schematic.v1', 'pcb.v1', 'pcb.fast_manual.v0.1'];
@@ -19,6 +22,7 @@ export interface HandshakeFrame {
 	type: 'handshake';
 	service: string;
 	version?: string;
+	source_revision?: string;
 }
 
 export interface RequestFrame {
@@ -61,6 +65,7 @@ export interface RegisterFrame {
 	type: 'register';
 	windowId: string;
 	connectorVersion: string;
+	connectorBuild: string;
 	easyedaVersion: string;
 	capabilities: Array<string>;
 }

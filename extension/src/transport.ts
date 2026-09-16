@@ -42,6 +42,7 @@ import {
 	ActionError,
 	CAPABILITIES,
 	CONNECTOR_VERSION,
+	CONNECTOR_SOURCE_REVISION,
 	ErrorCodes,
 	type ContextFrame,
 	type InboundFrame,
@@ -614,6 +615,7 @@ function sendRegister(): void {
   transportId: `${wsId}:${connectionSessionId}`,
 		windowId,
 		connectorVersion: CONNECTOR_VERSION,
+		connectorBuild: CONNECTOR_SOURCE_REVISION,
 		easyedaVersion: readEasyEdaVersion(),
 		capabilities: CAPABILITIES,
 	};
@@ -720,6 +722,10 @@ function heartbeatTick(): void {
 	const reconnectNow = (reason: string): void => {
 		diag(`${reason} -> reconnect`);
 		cancelConnectionFlow();
+		// A transport that died without releasing EasyEDA's host-managed socket id
+		// can make register() silently ignore every retry. Rotate immediately on a
+		// proven link loss; logical window + activation identities stay unchanged.
+		rotateWsId();
 		void scanAndConnect();
 	};
 
@@ -882,6 +888,15 @@ async function handleMessage(msg: InboundFrame): Promise<void> {
 			heartbeatPending = false;
 			missedPongs = 0;
 			return;
+		case 'daemon_restarting': {
+			diag('daemon announced restart -> reconnect with fresh transport id');
+			cancelConnectionFlow(false);
+			rotateWsId();
+			retryCount=0;
+			nextAttemptAt=Date.now()+500;
+			scheduleRetry(connectionSessionId,500);
+			return;
+		}
 		case 'v2_request': {
    const f=msg as unknown as {request:V2Request;digest:string;deadline_unix_ms:number};
    const spec=(v2Catalog as Record<string,{schema:string;revision:string}>)[f.request.action];

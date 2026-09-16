@@ -34,3 +34,21 @@ for(const ids of ['one',['one','one'],[]])test(`selection preserves scalar/dupli
  const result=await new ControlledExecutor(()=>selectSchematic,async()=>target).execute(request,'digest');
  assert.equal(result.verification.verdict,'satisfied');assert.deepEqual((result.value as {selectedPrimitiveIds:string[]}).selectedPrimitiveIds,ids.length?['one']:[]);
 });
+
+test('schematic document rename reconciles Host lowercase canonicalization with one native write',async()=>{
+ let writes=0,name='Old';
+ (globalThis as unknown as {eda:unknown}).eda={dmt_Schematic:{
+  getAllSchematicsInfo:async()=>[{uuid:'schematic',name}],
+  modifySchematicName:async(_id:string,wanted:string)=>{writes++;name=wanted.toLocaleLowerCase();return true;},
+ }};
+ const request:Request={protocol:V2,action:'schematic.rename',action_revision:'1',schema:'test',request_id:'r',operation_id:'rename',target_ref:target,input:{schematicUuid:'schematic',name:'USB-C_5V_to_3V3'},budget_ms:1000};
+ const executor=new ControlledExecutor(()=>schematicRename(false),async()=>target);
+ const result=await executor.execute(request,'digest');
+ assert.equal(result.verification.verdict,'satisfied');
+ assert.equal((result.value as {name:string}).name,'usb-c_5v_to_3v3');
+ assert.equal(writes,1);
+ const reconciled=await executor.reconcile('rename');
+ assert.equal(reconciled.verification.verdict,'satisfied');
+ assert.equal(reconciled.effects.reconciled,true);
+ assert.equal(writes,1);
+});

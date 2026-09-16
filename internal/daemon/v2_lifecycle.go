@@ -39,12 +39,33 @@ func (s *Server) inspectV2Lifecycle() error {
 	valid := len(data) <= 4096 && d.Decode(&m) == nil && d.Decode(&extra) == io.EOF
 	// Legacy/unrecognizable markers cannot prove that no effect started.
 	s.v2UncleanStart = !valid || m.Version != "execution.v2.lifecycle.1" || m.State != "no_effect_started" || m.OperationID != "" || m.Digest != ""
+	if valid && m.Version == "execution.v2.lifecycle.1" && m.State == "effect_started" {
+		s.v2UncleanOwner = m.OperationID
+		if result, ok := s.v2.Status(m.OperationID); ok && result.Outcome != executionv2.Unknown {
+			s.v2UncleanStart = false
+			s.v2UncleanOwner = ""
+		}
+	}
 	return nil
 }
 
 func (s *Server) v2StartupFenced() bool {
-	return (s.v2UncleanStart && !s.opts.V2HostStartupConfirmed) ||
-		(s.v2RestoredOwner != "" && s.v2.EffectOwner() == s.v2RestoredOwner)
+	owner := s.v2.EffectOwner()
+	if s.v2RestoredOwner != "" && owner == s.v2RestoredOwner {
+		return true
+	}
+	// A recognized marker backed by the same durable operation is discharged
+	// only by that operation reaching a terminal result. An unrecognized marker
+	// still requires the explicit operator assertion.
+	if s.v2UncleanStart && !s.opts.V2HostStartupConfirmed {
+		if s.v2UncleanOwner != "" {
+			if result, ok := s.v2.Status(s.v2UncleanOwner); ok && result.Outcome != executionv2.Unknown {
+				return false
+			}
+		}
+		return true
+	}
+	return false
 }
 
 // Called only after binding the singleton port, before accepting requests.
@@ -64,6 +85,9 @@ func (s *Server) markV2Effect(r executionv2.Request, digest string) error {
 	}
 	if a.EffectScope == "NONE" {
 		return nil
+	}
+	if err := s.persistV2Snapshot(s.v2.Snapshot(s.v2RecoveryBindings())); err != nil {
+		return err
 	}
 	return s.writeV2Lifecycle(v2Lifecycle{Version: "execution.v2.lifecycle.1", State: "effect_started", OperationID: r.OperationID, Digest: digest})
 }
@@ -103,7 +127,7 @@ func (s *Server) writeV2Lifecycle(m v2Lifecycle) error {
 func (s *Server) saveV2Handoff() error {
 	// SaveHandoff closes admission before saving. Even after /v2/handoff this
 	// lifetime cannot write again. Pending ownership remains in the snapshot.
-	if err := s.v2.SaveHandoff(s.opts.V2ReceiptFile); err != nil {
+	if err := s.v2.SaveHandoff(s.opts.V2ReceiptFile, s.v2RecoveryBindings()); err != nil {
 		return err
 	}
 	// A clean shutdown of a fenced lifetime cannot erase unknown prior work.
@@ -115,4 +139,18 @@ func (s *Server) saveV2Handoff() error {
 		return nil
 	}
 	return err
+}
+
+func (s *Server) resolveV2(r executionv2.Request, digest string) {
+	s.releaseV2(r, digest)
+	if r.OperationID != s.v2UncleanOwner {
+		return
+	}
+	if err := s.writeV2Lifecycle(v2Lifecycle{Version: "execution.v2.lifecycle.1", State: "no_effect_started"}); err != nil {
+		s.logf("V2 operation %s resolved but lifecycle marker reset failed: %v", r.OperationID, err)
+		return
+	}
+	s.v2UncleanStart = false
+	s.v2UncleanOwner = ""
+	s.v2RestoredOwner = ""
 }

@@ -6,13 +6,14 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { runEasyeda, DOMAIN_NAMES } from './core.mjs';
 import { projectV2 } from './v2-projection.mjs';
+import { domainCallSchema,validateActionInput } from './action-schema.mjs';
 const loaded=await runEasyeda(['actions']);
 if(!loaded.ok || !Array.isArray(loaded.result)) throw Error('V2_CATALOG_UNAVAILABLE');
 const catalog=loaded.result;
 const server=new Server({name:'easyeda-agent-mcp',version:packageVersion},{capabilities:{tools:{}}});
 const requestProperties={action:{type:'string'},input:{type:'object'},window:{type:'string'},project:{type:'string'},document:{type:'string'}};
 server.setRequestHandler(ListToolsRequestSchema,async()=>({tools:[
- ...[...DOMAIN_NAMES,'library'].map(domain=>({name:'easyeda_'+domain,description:'Execution V2 '+domain+' actions. Inspect catalog before calling. Never replay an UNKNOWN operation.',inputSchema:{type:'object',properties:{...requestProperties,action:{enum:catalog.filter(a=>a.domain===domain).map(a=>a.name)}},required:['action','input'],additionalProperties:false}})),
+ ...[...DOMAIN_NAMES,'library'].map(domain=>{const actions=catalog.filter(a=>a.domain===domain);return {name:'easyeda_'+domain,description:'Execution V2 '+domain+' actions. Inputs are action-specific business schemas from the catalog. Submit Host mutations serially unless an action explicitly declares otherwise. Never replay an UNKNOWN operation.',inputSchema:domainCallSchema(actions)};}),
  {name:'easyeda_health',description:'Read connection status and logical windows; CLI binds targets internally; no Host effect',inputSchema:{type:'object',properties:{},additionalProperties:false}},
  {name:'easyeda_actions',description:'Supported actions and business inputs; no manual request envelope',inputSchema:{type:'object',properties:{domain:{type:'string'}},additionalProperties:false}},
  {name:'easyeda_operation',description:'Read stored status/evidence or request fresh reconciliation without replay',inputSchema:{type:'object',properties:{operation_id:{type:'string'},view:{enum:['status','evidence','reconcile']}},required:['operation_id','view'],additionalProperties:false}}
@@ -30,7 +31,8 @@ server.setRequestHandler(CallToolRequestSchema,async ({params})=>{
  const action=catalog.find(a=>a.name===p.action&&a.domain===domain);
  if(!action)return {isError:true,content:[{type:'text',text:'V2_UNKNOWN_ACTION'}]};
  if(action.mode!=='V2_NATIVE')return {isError:true,content:[{type:'text',text:'V2_ACTION_'+action.mode+': '+(action.reason??'')}]};
- if(Object.keys(p).some(k=>!Object.hasOwn(requestProperties,k)) || (p.input!==undefined && (!p.input || typeof p.input!=='object' || Array.isArray(p.input))) || ['window','project','document'].some(k=>p[k]!==undefined && typeof p[k]!=='string')) return {isError:true,content:[{type:'text',text:'V2_INVALID_PUBLIC_INPUT'}]};
+ const inputError=validateActionInput(action,p.input);
+ if(Object.keys(p).some(k=>!Object.hasOwn(requestProperties,k)) || inputError || ['window','project','document'].some(k=>p[k]!==undefined && typeof p[k]!=='string')) return {isError:true,content:[{type:'text',text:'INVALID_PUBLIC_INPUT'+(inputError?': '+inputError:'')}]};
  const args=['action',p.action,'--input',JSON.stringify(p.input??{})];
  for(const [key,flag] of [['window','--window'],['project','--project'],['document','--doc']])if(p[key])args.push(flag,p[key]);
  const r=await runEasyeda(args);

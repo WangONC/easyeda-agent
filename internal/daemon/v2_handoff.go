@@ -33,9 +33,36 @@ func (s *Server) restoreV2Handoff() error {
 		if scope == "" || scope != r.Scope {
 			return errors.New("V2_HANDOFF_CATALOG_MISMATCH")
 		}
-		s.v2Pending[r.Request.OperationID] = v2Pending{request: r.Request}
+		s.v2Pending[r.Request.OperationID] = v2Pending{request: r.Request, windowID: r.WindowID, restored: true, started: r.Request.ExecutionDeadline}
 	}
 	return nil
+}
+
+func (s *Server) v2RecoveryBindings() map[string]string {
+	s.v2Mu.Lock()
+	defer s.v2Mu.Unlock()
+	out := make(map[string]string, len(s.v2Pending))
+	for id, p := range s.v2Pending {
+		window := p.windowID
+		if window == "" && p.conn != nil {
+			window = p.conn.id()
+		}
+		out[id] = window
+	}
+	return out
+}
+
+func (s *Server) persistV2Snapshot(h executionv2.Handoff) error {
+	if s.opts.V2ReceiptFile == "" {
+		return nil
+	}
+	bindings := s.v2RecoveryBindings()
+	for i := range h.Receipts {
+		if window := bindings[h.Receipts[i].Request.OperationID]; window != "" {
+			h.Receipts[i].WindowID = window
+		}
+	}
+	return executionv2.PersistHandoff(s.opts.V2ReceiptFile, h)
 }
 func (s *Server) handleV2Handoff(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {

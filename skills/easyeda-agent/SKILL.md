@@ -1,6 +1,6 @@
 ---
 name: easyeda-agent
-description: "通过本地 easyeda CLI、daemon 和连接器操作嘉立创EDA专业版（EasyEDA Pro）：设计或修复原理图、核对器件与引脚网表、从 JSON 组合功能电路并 Apply、布局布线 PCB、运行检查和导出制造文件。适用于已有 EDA 工程操作及数据驱动电路设计。"
+description: "通过本地 easyeda CLI、daemon 和正式 Connector V2 路径操作嘉立创EDA专业版（EasyEDA Pro）：设计或修复原理图、核对器件与引脚网表、从 JSON 组合功能电路并 Apply、布局布线 PCB、运行检查和导出制造文件。用户明确指定 easyeda-agent 时只使用本 Skill；不要同时触发独立 easyeda-api Bridge。"
 license: MIT
 metadata:
   compatibility: "Requires the local easyeda CLI/daemon and EasyEDA Agent Connector with Allow external interaction enabled. Python 3 is used by bundled helpers; online library lookup and updates need network access."
@@ -17,7 +17,8 @@ metadata:
 
 ## 开始工作
 
-1. 按用户任务选择下表中的流程，只加载相关参考。已有项目的小修复沿用已确认的需求和授权。
+1. 按用户任务选择下表中的流程，只加载**当前阶段**相关参考。已有项目的小修复沿用已确认的需求和授权。
+   需求/规划阶段只读 `design-flow` 与必要的 decision；进入选型才读 `part-selection`；进入原理图才读 schematic 对应参考；真正开始 PCB 才读 `pcb`/`pcb-layout`；真正开始布线才读 `pcb-routing`。不得因为后续“可能会用到”在开局预读尚未进入阶段的参考。
 2. 首次写入前运行 `easyeda update --check --exit-code` 核对三方版本，再运行
    `easyeda health` 确认工程、活动页和连接器；版本不齐时按环境说明升级后继续。
 3. 手动命令用 `--project <project>` 指定工程；变更带 `--doc <page>`，操作已有页面。
@@ -30,6 +31,7 @@ metadata:
    `sch apply` 遇到 mutation UNKNOWN 会正式 reconcile 同一个 operation_id；仅在其收敛为 SUCCEEDED 后记为 `ok(reconciled)` 并自动续跑，仍为 UNKNOWN/PARTIAL/NOT_APPLIED 时停止。
 5. 以 `easyeda <domain> <command> --help` 和 `easyeda actions` 为参数真值。
    MCP 若可用，只是同一套 CLI/typed action 的入口。
+6. 除非某个正式 action 明确声明可并行，同一 EasyEDA Host / 当前设计执行流中的 mutation 必须逐个提交并等待正式 Outcome；不同 metadata 字段、不同文档或不同 project 都不构成自行并发 mutation 的许可。effect barrier 是最终安全围栏，不是并发调度器。
 
 | 任务 | 先读 |
 |---|---|
@@ -80,6 +82,7 @@ metadata:
 
 - 仅使用正式 V2-native 能力；没有对应能力时明确报告不支持，不使用任意脚本或调试旁路。
 - 一次 timeout/UNKNOWN 不构成放弃 MCP 或正式 CLI 高层入口的理由。不得为绕过 UNKNOWN 自制 shell/Python 拆步、解析文本 operation_id 或重放 mutation；正式 operation reconcile 与 `sch apply` recovery 承担恢复。只有正式能力确实缺失时才可增加额外 orchestration，并明确说明缺口。
+- Skill 安装 metadata 缺失只产生 warning/diagnostic；只要当前 CLI/Connector/Skill 实际兼容且调用正常，就继续生产任务。不得因此自动 update、reinstall 或覆盖用户安装。只有用户明确要求更新，或已证明真实 version/protocol 不兼容并阻塞执行，才进入安装/升级流程。
 - 使用真实非零导线连接 netflag 与 pin，坐标重合不算连接。原理图坐标 **y 向上**，网格 5 raw。
   符号方向以 [orientation.json](references/orientation.json) 和实际回读为准。
 - 保留明确 NC，不删除器件物理引脚，也不将缺失连接自动改为 NC。

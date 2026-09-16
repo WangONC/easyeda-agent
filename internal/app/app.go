@@ -132,7 +132,7 @@ func newVersionCmd(stdout io.Writer) *cobra.Command {
 		Short: "Print version information",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Fprintf(stdout, "%s %s\n", version.Name, version.Version)
+			fmt.Fprintf(stdout, "%s %s\nsource_revision %s\n", version.Name, version.Version, version.SourceRevision)
 			return nil
 		},
 	}
@@ -223,13 +223,23 @@ func publicActionCatalog() []map[string]any {
 		}
 		inputs := map[string]string{}
 		if a.V2 != nil {
-			for key, kind := range a.V2.Input {
-				if key != "expected_project_uuid" && key != "session_token" {
-					inputs[key] = kind
-				}
-			}
+			inputs = publicV2InputSchema(a.Name, a.V2.Input)
 		}
 		out = append(out, map[string]any{"name": a.Name, "domain": a.Domain, "mode": mode, "reason": reason, "description": a.Description, "inputs": inputs, "outputs": a.Outputs})
+	}
+	return out
+}
+
+func publicV2InputSchema(action string, internal map[string]string) map[string]string {
+	out := make(map[string]string, len(internal))
+	for key, kind := range internal {
+		if key == "expected_project_uuid" || key == "session_token" {
+			continue
+		}
+		if (action == "project.create" || action == "schematic.create") && key == "client_transaction_id" {
+			continue
+		}
+		out[key] = kind
 	}
 	return out
 }

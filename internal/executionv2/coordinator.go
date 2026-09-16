@@ -30,8 +30,10 @@ type record struct {
 	stop     chan struct{}
 }
 type Coordinator struct {
-	mu         sync.Mutex
-	records    map[string]*record
+	mu      sync.Mutex
+	records map[string]*record
+	// owner is intentionally Host-domain global. EasyEDA mutations share one
+	// activation/editor state; project identity alone is not an isolation proof.
 	owner      string
 	capacity   int
 	handingOff bool
@@ -39,12 +41,17 @@ type Coordinator struct {
 	execute    Executor
 	onResolved func(Request, string)
 	onResult   func(Request, Result)
+	onPersist  func(Handoff) error
 }
 
 func New(capacity int, validate Validate, execute Executor) *Coordinator {
 	return &Coordinator{records: map[string]*record{}, capacity: capacity, validate: validate, execute: execute}
 }
 func (c *Coordinator) OnResult(callback func(Request, Result)) { c.onResult = callback }
+
+// OnPersist receives a consistent snapshot before a changed result becomes
+// publicly visible or effect ownership is released.
+func (c *Coordinator) OnPersist(callback func(Handoff) error) { c.onPersist = callback }
 
 func (c *Coordinator) OnResolved(callback func(Request, string)) { c.onResolved = callback }
 
@@ -130,11 +137,21 @@ func (c *Coordinator) run(rec *record) {
 			rec.timedOut = true
 			rec.result.Outcome = Unknown
 			rec.result.Code = "V2_DEADLINE"
-			if c.onResult != nil {
-				c.onResult(rec.request, rec.result)
+			request, result := rec.request, rec.result
+			snapshot := c.snapshotLocked(nil)
+			c.mu.Unlock()
+			if c.persist(snapshot) != nil {
+				c.mu.Lock()
+				rec.result.Code = "V2_RECEIPT_PERSIST_FAILED"
+				result = rec.result
+				c.mu.Unlock()
 			}
+			c.mu.Lock()
 			c.publish(rec)
 			c.mu.Unlock()
+			if c.onResult != nil {
+				c.onResult(request, result)
+			}
 		case h, ok := <-ch:
 			if !ok {
 				c.mu.Lock()
@@ -143,41 +160,114 @@ func (c *Coordinator) run(rec *record) {
 					return
 				}
 				rec.result.Code = "V2_EXECUTOR_LOST"
+				request, result := rec.request, rec.result
+				snapshot := c.snapshotLocked(nil)
+				c.mu.Unlock()
+				if c.persist(snapshot) != nil {
+					c.mu.Lock()
+					rec.result.Code = "V2_RECEIPT_PERSIST_FAILED"
+					result = rec.result
+					c.mu.Unlock()
+				}
+				c.mu.Lock()
 				c.publish(rec)
 				c.mu.Unlock()
+				if c.onResult != nil {
+					c.onResult(request, result)
+				}
 				return
 			}
-			c.mu.Lock()
-			if rec.released || c.handingOff {
-				c.mu.Unlock()
-				return
-			}
-			if h.Effects.Scope != rec.scope {
-				h.Protocol = "invalid"
-			}
-			result := Finalize(rec.request, rec.digest, h, rec.timedOut)
-			result.Effects.Scope = rec.scope
-			rec.result = result
-			rec.evidence = h
-			if c.onResult != nil {
-				c.onResult(rec.request, rec.result)
-			}
-			c.publish(rec)
-			// Unknown settlement/evidence remains fenced. A later fresh reconcile is
-			// accepted through the same operation channel; never redispatch the action.
-			resolved := result.Outcome != Unknown
-			if resolved && c.onResolved != nil {
-				c.onResolved(rec.request, rec.digest)
-			}
-			if resolved && c.owner == rec.request.OperationID {
-				c.owner = ""
-			}
-			c.mu.Unlock()
+			_, resolved := c.accept(rec, h)
 			if resolved {
 				return
 			}
 		}
 	}
+}
+
+func (c *Coordinator) persist(h Handoff) error {
+	if c.onPersist == nil {
+		return nil
+	}
+	return c.onPersist(h)
+}
+
+// accept records a fresh HandlerResult without invoking the native executor.
+// It is shared by the live result stream and restored reconciliation.
+func (c *Coordinator) accept(rec *record, h HandlerResult) (Result, bool) {
+	c.mu.Lock()
+	if rec.released || c.handingOff {
+		result := rec.result
+		c.mu.Unlock()
+		return result, result.Outcome != Unknown
+	}
+	if h.Effects.Scope != rec.scope {
+		h.Protocol = "invalid"
+	}
+	result := Finalize(rec.request, rec.digest, h, rec.timedOut)
+	result.Effects.Scope = rec.scope
+	rec.result = result
+	rec.evidence = h
+	resolved := result.Outcome != Unknown
+	owner := c.owner
+	if resolved && owner == rec.request.OperationID {
+		c.owner = ""
+	}
+	snapshot := c.snapshotLocked(nil)
+	if resolved && owner == rec.request.OperationID {
+		c.owner = owner // keep the live barrier until the terminal snapshot is durable
+	}
+	request, digest := rec.request, rec.digest
+	c.mu.Unlock()
+
+	if c.persist(snapshot) != nil {
+		c.mu.Lock()
+		result.Outcome = Unknown
+		result.Code = "V2_RECEIPT_PERSIST_FAILED"
+		rec.result = result
+		resolved = false
+		c.mu.Unlock()
+	} else if resolved {
+		c.mu.Lock()
+		if c.owner == rec.request.OperationID {
+			c.owner = ""
+		}
+		c.mu.Unlock()
+	}
+	c.mu.Lock()
+	c.publish(rec)
+	c.mu.Unlock()
+	if c.onResult != nil {
+		c.onResult(request, result)
+	}
+	if resolved && c.onResolved != nil {
+		c.onResolved(request, digest)
+	}
+	return result, resolved
+}
+
+// ReconcileResult applies a fresh readback result to an operation restored from
+// durable storage. It cannot execute or replay the original mutation.
+func (c *Coordinator) ReconcileResult(id string, h HandlerResult) (Result, error) {
+	c.mu.Lock()
+	rec := c.records[id]
+	if rec == nil {
+		c.mu.Unlock()
+		return Result{}, errors.New("V2_RECOVERY_RECORD_REQUIRED")
+	}
+	if rec.result.Outcome != Unknown || rec.released {
+		result := rec.result
+		c.mu.Unlock()
+		return result, nil
+	}
+	if c.owner != id || rec.scope == "NONE" {
+		c.mu.Unlock()
+		return Result{}, errors.New("V2_RECOVERY_OWNER_MISMATCH")
+	}
+	rec.timedOut = true
+	c.mu.Unlock()
+	result, _ := c.accept(rec, h)
+	return result, nil
 }
 func (c *Coordinator) Status(id string) (Result, bool) {
 	c.mu.Lock()
@@ -278,14 +368,21 @@ func (c *Coordinator) ReleaseSettled(id, readbackID string, expectedPCB ...strin
 	if !rec.released {
 		rec.released = true
 		rec.result.OwnershipReleased = true
+		previousOwner := c.owner
+		if c.owner == id {
+			c.owner = ""
+		}
+		if err := c.persist(c.snapshotLocked(nil)); err != nil {
+			rec.released = false
+			rec.result.OwnershipReleased = false
+			c.owner = previousOwner
+			return Result{}, errors.New("V2_RECEIPT_PERSIST_FAILED")
+		}
 		close(rec.stop)
 	}
 	// Resending a lost release authorization is idempotent and never dispatches run.
 	if c.onResolved != nil {
 		c.onResolved(rec.request, rec.digest)
-	}
-	if c.owner == id {
-		c.owner = ""
 	}
 	return rec.result, nil
 }

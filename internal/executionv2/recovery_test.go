@@ -56,22 +56,27 @@ func TestRecoveryReadsAndSettledUnknownOwnership(t *testing.T) {
 				}
 				return
 			}
-			if err != nil || out.Outcome != Unknown || !out.OwnershipReleased {
+			if err != nil || out.Outcome != RetiredUnresolved || !out.OwnershipReleased || out.BarrierMode != BarrierScoped {
 				t.Fatal(out, err)
 			}
 			before := effects.Load()
-			if dup, err := c.Submit(context.Background(), source); err != nil || dup.Outcome != Unknown || !dup.OwnershipReleased {
+			if dup, err := c.Submit(context.Background(), source); err != nil || dup.Outcome != RetiredUnresolved || !dup.OwnershipReleased {
 				t.Fatal(dup, err)
 			}
 			if effects.Load() != before || reads.Load() != 1 {
 				t.Fatal("recovery replay")
 			}
 			time.Sleep(time.Millisecond)
-			if current, _ := c.Status(source.OperationID); current.Outcome != Unknown {
+			if current, _ := c.Status(source.OperationID); current.Outcome != RetiredUnresolved {
 				t.Fatal(current)
 			}
-			if _, err = c.Submit(context.Background(), request("next-effect")); err != nil {
-				t.Fatal("released barrier", err)
+			if _, err = c.Submit(context.Background(), request("same-document")); err == nil {
+				t.Fatal("retired scope was not quarantined")
+			}
+			next := request("next-effect")
+			next.Target.ProjectUUID, next.Target.DocumentUUID, next.Target.TabID = "other-project", "other-document", "other-tab"
+			if _, err = c.Submit(context.Background(), next); err != nil {
+				t.Fatal("unrelated scope remained blocked", err)
 			}
 			if effects.Load() != 2 {
 				t.Fatal(effects.Load())

@@ -176,3 +176,40 @@ test('Connector executor uses the daemon absolute deadline without falling back 
  assert.equal(result.effects.reconciled,false,'a hidden request-budget deadline would force reconciliation');
  assert.equal(result.verification.verdict,'satisfied');
 });
+
+test('delayed wire visibility reconciles from the same slot and never repeats native create',async()=>{
+ let writes=0,reads=0;
+ const action:NativeAction={mode:'V2_NATIVE',scope:'DESIGN_CONTENT',validate:()=>{},run:async c=>{
+  c.prepare(async()=>{
+   reads++;
+   if(reads===1)return {changed:null,verification:{verdict:'unavailable',checked:[],complete:false,required:0,satisfied:0,residual:0}};
+   return observed({primitiveId:'wire-1',geometry:[[0,0],[10,0]],duplicates:0},['fresh_wire_identity','exact_geometry','no_duplicates'],true);
+  });
+  await c.effect(async()=>{writes++;});
+  return c.verify();
+ }};
+ const runtime=new ControlledExecutor(()=>action,async()=>target);
+ const initial=await runtime.execute({...req('delayed-wire'),budget_ms:1000},'digest');
+ assert.equal(initial.verification.verdict,'unavailable');assert.equal(initial.effects.native_settled,true);
+ const recovered=await runtime.reconcile('delayed-wire');
+ assert.equal(recovered.verification.verdict,'satisfied');assert.equal(recovered.effects.reconciled,true);
+ assert.equal(writes,1);assert.equal(reads,2);
+ runtime.release('delayed-wire','digest');
+});
+
+test('settled Host no-op produces authoritative unchanged evidence without replay',async()=>{
+ let writes=0,reads=0;
+ const unchanged={changed:false,verification:{verdict:'unchanged' as const,checked:['fresh_requested_state_absent'],complete:true,required:1,satisfied:0,residual:1},value:{name:'old'}};
+ const action:NativeAction={mode:'V2_NATIVE',scope:'PROJECT_TOPOLOGY',validate:()=>{},run:async c=>{
+  c.prepare(async()=>{reads++;return unchanged;});
+  await c.effect(async()=>{writes++;});
+  return c.verify();
+ }};
+ const runtime=new ControlledExecutor(()=>action,async()=>target);
+ const result=await runtime.execute({...req('rename-no-op'),budget_ms:1000},'digest');
+ assert.equal(result.effects.effect_started,true);assert.equal(result.effects.native_settled,true);
+ assert.equal(result.effects.state_changed,false);assert.equal(result.verification.verdict,'unchanged');
+ assert.equal(writes,1);assert.equal(reads,1);
+ const fresh=await runtime.reconcile('rename-no-op');assert.equal(fresh.verification.verdict,'unchanged');
+ assert.equal(writes,1);assert.equal(reads,2);
+});

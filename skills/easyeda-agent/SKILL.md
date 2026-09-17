@@ -27,8 +27,9 @@ metadata:
 4. 所有 Host 读写使用公开高层 CLI 或 MCP domain 工具，由 CLI 内部生成 V2 请求并绑定当前逻辑窗口。
    MCP 只传 action、input，以及需要时的 window/project/document 选择器；不手填内部 envelope、会话标识或 schema。
    不使用旧通用调用或独立 Bridge；不通过源码内部目录寻找调用参数。遇到多个真实窗口明确选择，不猜最新连接。
-   单次 action 的 UNKNOWN/PARTIAL 立即停止后续写入，用 `easyeda operation status <id>` / `reconcile <id>` 查看原操作，不重放。
-   `sch apply` 遇到 mutation UNKNOWN 会正式 reconcile 同一个 operation_id；仅在其收敛为 SUCCEEDED 后记为 `ok(reconciled)` 并自动续跑，仍为 UNKNOWN/PARTIAL/NOT_APPLIED 时停止。
+   mutation 的 UNKNOWN 禁止盲目 replay；public runtime 会先在同一 operation_id 上执行 bounded read-only recovery。若收敛为 SUCCEEDED、明确 NOT_APPLIED 或 known PARTIAL，就以 authoritative fresh state 为准继续决策；前一次明确 zero-effect 后可用新的 operation/transaction 另行尝试，绝不复用原 operation。
+   只有 `native_settled=false`，或 Connector/Host identity 无法建立因而不能证明旧 native lifecycle 已结束时，才停止整个 Host mutation flow。settled 但最终无法归因的 operation 进入 `RETIRED_UNRESOLVED` 与 scope quarantine；完成 health 所列 requalification 前只阻止受影响 scope，不把整个 daemon 永久冻结。`sch apply` 仍只在同一 operation 上 recovery，证明 SUCCEEDED 才记为 `ok(reconciled)`。
+   **UNKNOWN means “investigate before retry”, not “permanent global shutdown”.**
 5. 以 `easyeda <domain> <command> --help` 和 `easyeda actions` 为参数真值。
    MCP 若可用，只是同一套 CLI/typed action 的入口。
 6. 除非某个正式 action 明确声明可并行，同一 EasyEDA Host / 当前设计执行流中的 mutation 必须逐个提交并等待正式 Outcome；不同 metadata 字段、不同文档或不同 project 都不构成自行并发 mutation 的许可。effect barrier 是最终安全围栏，不是并发调度器。
@@ -81,7 +82,7 @@ metadata:
 ## 执行与验证约束
 
 - 仅使用正式 V2-native 能力；没有对应能力时明确报告不支持，不使用任意脚本或调试旁路。
-- 一次 timeout/UNKNOWN 不构成放弃 MCP 或正式 CLI 高层入口的理由。不得为绕过 UNKNOWN 自制 shell/Python 拆步、解析文本 operation_id 或重放 mutation；正式 operation reconcile 与 `sch apply` recovery 承担恢复。只有正式能力确实缺失时才可增加额外 orchestration，并明确说明缺口。
+- 一次 timeout/UNKNOWN 不构成放弃 MCP 或正式 CLI 高层入口的理由。先让 runtime 的 bounded recovery 收敛；必要时用正式 `operation status/evidence/reconcile` 检查同一 operation。hard global barrier 只对应未 settle native 或无法建立 Host lifecycle；`RETIRED_UNRESOLVED` 必须按 health 的 quarantined scope 和 `required_requalification` 做新鲜 NONE-effect reads，再用 `operation requalify` 提交这些独立 read receipts。不得为绕过 UNKNOWN 自制 shell/Python 拆步、解析文本 operation_id、重放 mutation 或 force-clear barrier。只有正式能力确实缺失时才可增加额外 orchestration，并明确说明缺口。
 - Skill 安装 metadata 缺失只产生 warning/diagnostic；只要当前 CLI/Connector/Skill 实际兼容且调用正常，就继续生产任务。不得因此自动 update、reinstall 或覆盖用户安装。只有用户明确要求更新，或已证明真实 version/protocol 不兼容并阻塞执行，才进入安装/升级流程。
 - 使用真实非零导线连接 netflag 与 pin，坐标重合不算连接。原理图坐标 **y 向上**，网格 5 raw。
   符号方向以 [orientation.json](references/orientation.json) 和实际回读为准。

@@ -21,6 +21,8 @@ func newV2Cmd(out io.Writer) *cobra.Command {
 	root.PersistentFlags().StringVar(&base, "endpoint", base, "daemon endpoint")
 	root.AddCommand(newV2CheckpointCmd(&base, out))
 	root.AddCommand(newV2LegacyOrphanRetireCmd(&base, out))
+	root.AddCommand(newV2UnresolvedRetireCmd(&base, out))
+	root.AddCommand(newV2RequalifyCmd(&base, out))
 	root.AddCommand(&cobra.Command{Use: "catalog", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, args []string) error {
 		list := []map[string]any{}
 		for _, a := range protocol.AllActions() {
@@ -73,7 +75,7 @@ func newV2Cmd(out io.Writer) *cobra.Command {
 			return fmt.Errorf("V2_FOREIGN_RESULT")
 		}
 		switch result.Outcome {
-		case executionv2.Succeeded, executionv2.NotApplied, executionv2.Partial, executionv2.Unknown:
+		case executionv2.Succeeded, executionv2.NotApplied, executionv2.Partial, executionv2.Unknown, executionv2.RetiredUnresolved:
 		default:
 			return fmt.Errorf("V2_MALFORMED_RESULT")
 		}

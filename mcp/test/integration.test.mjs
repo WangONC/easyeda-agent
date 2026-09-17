@@ -11,6 +11,9 @@ test('V2 stdio discovery covers 151 action dispositions and rejects terminal act
  const client=new Client({name:'round2-offline',version:'1'}),transport=new StdioClientTransport({command:process.execPath,args:[server],env:{...process.env,EASYEDA_BIN:easyedaBinary(),EASYEDA_HOST_READBACK:'0'}});
  try{
   await client.connect(transport);const {tools}=await client.listTools();assert.equal(tools.length,DOMAIN_NAMES.length+4);
+  const operation=tools.find(t=>t.name==='easyeda_operation');assert.ok(operation);
+  assert.deepEqual(operation.inputSchema.properties.view.enum,['status','evidence','reconcile','retire-unresolved','requalify']);
+  assert.equal(operation.inputSchema.properties.reason.type,'string');assert.equal(operation.inputSchema.properties.read_operation_id.type,'string');
   const discovered=await client.callTool({name:'easyeda_actions',arguments:{}});const actions=JSON.parse(discovered.content[0].text);assert.equal(actions.length,151);assert.equal(actions.filter(a=>a.mode==='V2_NATIVE').length,144);assert.equal(actions.filter(a=>a.mode==='UNSUPPORTED').length,7);
   for(const a of actions){assert.ok(a.description);if(a.mode==='V2_NATIVE'){assert.equal(a.schema,undefined);assert.equal(a.v2,undefined);const tool=tools.find(t=>t.name==='easyeda_'+a.domain);assert.ok(tool,a.name);assert.ok(tool.inputSchema.properties.action.enum.includes(a.name));}}
   const unsupported=await client.callTool({name:'easyeda_pcb',arguments:{action:'pcb.import_changes'}});assert.equal(unsupported.isError,true);assert.match(unsupported.content[0].text,/V2_ACTION_UNSUPPORTED/);

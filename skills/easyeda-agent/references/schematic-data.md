@@ -251,7 +251,7 @@ easyeda sch apply apply.json --yes
 
 - `sch apply --dry-run` 只校验队列，不证明现场状态与电路正确。
 - `requireFullExecution:true` 或含连接守卫的队列须完整执行，不能人工续跑/跳步或更换目标。
-  写入 timeout/UNKNOWN 先由 apply 对同一 operation_id 正式 reconcile；只有仍无法证明成功或结果为 PARTIAL/NOT_APPLIED 时，才保留日志、读取实际状态并重新生成新队列。
+  写入 timeout/UNKNOWN 先由 runtime/apply 对同一 operation_id 做 bounded recovery，绝不重放 mutation；明确 SUCCEEDED 才自动续跑。明确 NOT_APPLIED/known PARTIAL 时保留 authoritative current state 并生成新的后续计划；`native_settled=false` 时停止全部 mutation。settled 且仍无法归因时按正式 `RETIRED_UNRESOLVED` quarantine/requalification 契约处理受影响 scope，不把整个 daemon 永久冻结。
 - Apply 不提供事务回滚。`checkpoint` 只是日志标记，只有 save 动作才保存。
 - `sch connectivity-diff` 以稳定 ID 对账；位号修复还须核对 ref 映射，重新布局还须核对
   库 UUID、完整引脚、真实导线和框。DRC 单项结果不替代这些检查。

@@ -14,11 +14,33 @@ const Version = "execution.v2"
 type Outcome string
 
 const (
-	Succeeded  Outcome = "SUCCEEDED"
-	NotApplied Outcome = "NOT_APPLIED"
-	Partial    Outcome = "PARTIAL"
-	Unknown    Outcome = "UNKNOWN"
+	Succeeded         Outcome = "SUCCEEDED"
+	NotApplied        Outcome = "NOT_APPLIED"
+	Partial           Outcome = "PARTIAL"
+	Unknown           Outcome = "UNKNOWN"
+	RetiredUnresolved Outcome = "RETIRED_UNRESOLVED"
 )
+
+type BarrierMode string
+
+const (
+	BarrierNone   BarrierMode = "none"
+	BarrierGlobal BarrierMode = "global"
+	BarrierScoped BarrierMode = "scoped"
+)
+
+// QuarantineRef is the stable, minimum scope that must be requalified after a
+// settled operation is retired without a semantic conclusion. Session and tab
+// IDs are intentionally absent: reconnecting transport is not requalification.
+type QuarantineRef struct {
+	Kind         string `json:"kind"`
+	WindowID     string `json:"window_id,omitempty"`
+	ProjectUUID  string `json:"project_uuid,omitempty"`
+	DocumentUUID string `json:"document_uuid,omitempty"`
+	DocumentType string `json:"document_type,omitempty"`
+	LibraryUUID  string `json:"library_uuid,omitempty"`
+	Activation   string `json:"activation,omitempty"`
+}
 
 type Target struct {
 	Scope        string `json:"scope"`
@@ -65,7 +87,12 @@ func (t Target) Validate() error {
 }
 
 type Request struct {
-	ExecutionDeadline time.Time      `json:"-"`
+	ExecutionDeadline time.Time `json:"-"`
+	// LogicalWindowID is daemon-owned routing provenance. It is excluded from
+	// the public envelope and operation digest, but survives handoff through the
+	// Receipt.WindowID field so fallback WINDOW quarantine stays stable across
+	// transport/activation changes.
+	LogicalWindowID   string         `json:"-"`
 	Protocol          string         `json:"protocol"`
 	Action            string         `json:"action"`
 	ActionRevision    string         `json:"action_revision"`
@@ -142,22 +169,67 @@ type HandlerResult struct {
 	Evidence     json.RawMessage `json:"evidence,omitempty"`
 }
 type Result struct {
-	OwnershipReleased bool            `json:"ownership_released,omitempty"`
-	Protocol          string          `json:"protocol"`
-	OperationID       string          `json:"operation_id"`
-	Outcome           Outcome         `json:"outcome"`
-	Effects           Effects         `json:"effects"`
-	Timing            Timing          `json:"timing"`
-	Code              string          `json:"code,omitempty"`
-	Value             json.RawMessage `json:"value,omitempty"`
-	EvidenceRef       string          `json:"evidence_ref"`
+	OwnershipReleased       bool            `json:"ownership_released,omitempty"`
+	Protocol                string          `json:"protocol"`
+	OperationID             string          `json:"operation_id"`
+	Outcome                 Outcome         `json:"outcome"`
+	Effects                 Effects         `json:"effects"`
+	Timing                  Timing          `json:"timing"`
+	Code                    string          `json:"code,omitempty"`
+	Value                   json.RawMessage `json:"value,omitempty"`
+	EvidenceRef             string          `json:"evidence_ref"`
+	RecoveryAttempted       bool            `json:"recovery_attempted"`
+	RecoveryResult          string          `json:"recovery_result,omitempty"`
+	RecoveryDurationMS      int64           `json:"recovery_duration_ms"`
+	BarrierMode             BarrierMode     `json:"barrier_mode"`
+	QuarantineScope         *QuarantineRef  `json:"quarantine_scope,omitempty"`
+	RequiresRequalification []string        `json:"requires_requalification,omitempty"`
+	RetiredUnresolved       bool            `json:"retired_unresolved"`
+	NativeReplayed          bool            `json:"native_replayed"`
 }
 
 func Bool(v bool) *bool { return &v }
 
+func (o Outcome) Terminal() bool {
+	return o == Succeeded || o == NotApplied || o == Partial || o == RetiredUnresolved
+}
+
+func recoveryLabel(outcome Outcome, attempted bool, settled bool) string {
+	if !attempted {
+		if !settled {
+			return "NATIVE_PENDING"
+		}
+		return "NOT_ATTEMPTED"
+	}
+	switch outcome {
+	case Succeeded:
+		return "PROVEN_SUCCESS"
+	case NotApplied:
+		return "PROVEN_NO_EFFECT"
+	case Partial:
+		return "KNOWN_PARTIAL"
+	case RetiredUnresolved:
+		return "RETIRED_UNRESOLVED"
+	default:
+		if !settled {
+			return "NATIVE_PENDING"
+		}
+		return "UNRESOLVED"
+	}
+}
+
 // Finalize does not read Value/Evidence, action names, error strings, or prior results.
-func Finalize(r Request, digest string, h HandlerResult, timedOut bool) Result {
-	out := Result{Protocol: Version, OperationID: r.OperationID, Outcome: Unknown, Effects: h.Effects, Timing: h.Timing, EvidenceRef: r.OperationID}
+func Finalize(r Request, digest string, h HandlerResult, timedOut bool) (out Result) {
+	out = Result{Protocol: Version, OperationID: r.OperationID, Outcome: Unknown, Effects: h.Effects, Timing: h.Timing, EvidenceRef: r.OperationID, NativeReplayed: false}
+	defer func() {
+		out.RecoveryAttempted = out.Effects.Reconciled
+		out.RecoveryDurationMS = out.Timing.ReconcileMS
+		out.RecoveryResult = recoveryLabel(out.Outcome, out.RecoveryAttempted, out.Effects.Settled)
+		out.BarrierMode = BarrierNone
+		if out.Outcome == Unknown && out.Effects.Scope != "" && out.Effects.Scope != "NONE" {
+			out.BarrierMode = BarrierGlobal
+		}
+	}()
 	if h.Protocol != Version || h.OperationID != r.OperationID || h.Digest != digest || h.Target != r.Target {
 		out.Effects = Effects{}
 		out.Timing = Timing{}

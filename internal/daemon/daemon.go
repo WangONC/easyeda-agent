@@ -24,6 +24,11 @@ type Options struct {
 	// a lifecycle marker; legacy orphan recovery requires exact fingerprint retire.
 	V2HostStartupConfirmed bool
 	V2ReceiptFile          string
+	// V2RecoveryBudget is the bounded, read-only stabilization window used after
+	// an ordinary public mutation first becomes UNKNOWN. It never extends the
+	// native write deadline and never replays the mutation.
+	V2RecoveryBudget   time.Duration
+	V2RecoveryAttempts int
 
 	Host           string
 	PortStart      int
@@ -188,16 +193,18 @@ func New(opts Options) *Server {
 }
 
 type health struct {
-	V2EffectOwner   string                `json:"v2_effect_owner,omitempty"`
-	V2Session       string                `json:"v2_session"`
-	V2StartupFenced bool                  `json:"v2_startup_fenced"`
-	V2LegacyOrphan  *v2LegacyOrphanStatus `json:"v2_legacy_orphan,omitempty"`
-	Service         string                `json:"service"`
-	Version         string                `json:"version"`
-	SourceRevision  string                `json:"source_revision"`
-	Status          string                `json:"status"`
-	Port            int                   `json:"port"`
-	Windows         []Window              `json:"windows"`
+	V2EffectOwner   string                    `json:"v2_effect_owner,omitempty"`
+	V2Barrier       executionv2.BarrierStatus `json:"v2_barrier"`
+	V2Quarantines   []executionv2.Quarantine  `json:"v2_quarantines,omitempty"`
+	V2Session       string                    `json:"v2_session"`
+	V2StartupFenced bool                      `json:"v2_startup_fenced"`
+	V2LegacyOrphan  *v2LegacyOrphanStatus     `json:"v2_legacy_orphan,omitempty"`
+	Service         string                    `json:"service"`
+	Version         string                    `json:"version"`
+	SourceRevision  string                    `json:"source_revision"`
+	Status          string                    `json:"status"`
+	Port            int                       `json:"port"`
+	Windows         []Window                  `json:"windows"`
 	// WriteHealth is the rolling per-window forwarded-action failure window
 	// (writehealth.go): degraded=true flags a connector that is failing under
 	// load (REPORT round2 新 3 — clients should insert light reads and verify
@@ -231,6 +238,8 @@ func (s *Server) routes(port int) *http.ServeMux {
 		_ = enc.Encode(health{
 			V2Session:       s.v2Session,
 			V2EffectOwner:   s.v2.EffectOwner(),
+			V2Barrier:       s.v2.BarrierStatus(),
+			V2Quarantines:   s.v2.Quarantines(),
 			V2StartupFenced: s.v2StartupFenced(),
 			V2LegacyOrphan:  s.v2LegacyOrphan(),
 			Service:         Service,

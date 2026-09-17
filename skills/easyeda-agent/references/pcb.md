@@ -101,9 +101,11 @@ Act on the focused canvas; the editor view shortcuts. CLI: `easyeda view …`.
 ## 写入后的状态确认
 
 以 V2 operation receipt 和 fresh readback 为准。UNKNOWN/PARTIAL 不算成功，不重放写入。
-使用 `easyeda operation status <id>` / `easyeda operation reconcile <id>` 检查原操作；
-不要通过强制读、另起脚本或重启绕过 ownership。Host 生命周期异常需要人工恢复时，
-恢复后重新 exact bind 并核对语义状态，再继续。save ACK 不等于 reload persistence proof。
+runtime 先对同一 operation 做 bounded recovery；明确 success/no-effect/known-partial 后按 fresh state 决策。
+只有 `native_settled=false` 或 Host lifecycle 无法证明时才是 hard global blocker；settled 且无法归因时进入
+`RETIRED_UNRESOLVED` scope quarantine，按 health 的 `required_requalification` 做 exact rebind、fresh snapshot/checkpoint，
+并用正式 `operation requalify` 消除受影响 scope 的隔离。不要通过强制读、另起脚本、重启或 replay 绕过 ownership。
+save ACK 不等于 reload persistence proof。
 
 ## Guardrails
 

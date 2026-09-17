@@ -48,7 +48,7 @@ func TestV2UnknownRestartReconcileSameOperationWithoutReplay(t *testing.T) {
 	}
 	digest, _ := req.Digest()
 	late <- executionv2.HandlerResult{Protocol: executionv2.Version, OperationID: req.OperationID, Digest: digest, Target: req.Target, Effects: executionv2.Effects{Started: executionv2.Bool(true), Changed: executionv2.Bool(true), Settled: true, Scope: "PROJECT_TOPOLOGY"}, Verification: executionv2.Verification{Verdict: "unavailable"}}
-	deadline := time.Now().Add(time.Second)
+	deadline := time.Now().Add(5 * time.Second)
 	for {
 		evidence, _ := old.v2.Evidence(req.OperationID)
 		data, _ := os.ReadFile(path)
@@ -145,5 +145,65 @@ func TestV2RestoredUnprovableOperationIsQueryableNot404(t *testing.T) {
 	}
 	if !next.v2StartupFenced() || next.v2.EffectOwner() != req.OperationID {
 		t.Fatal("unprovable operation was unsafely released")
+	}
+}
+
+func TestV2RetiredUnresolvedQuarantineSurvivesDaemonRestart(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "receipts.json")
+	old := New(Options{V2ReceiptFile: path})
+	startupConn(old)
+	var nativeWrites atomic.Int32
+	old.v2 = executionv2.New(20, old.validateV2, func(r executionv2.Request, digest string) <-chan executionv2.HandlerResult {
+		nativeWrites.Add(1)
+		ch := make(chan executionv2.HandlerResult, 1)
+		ch <- executionv2.HandlerResult{Protocol: executionv2.Version, OperationID: r.OperationID, Digest: digest, Target: r.Target, Effects: executionv2.Effects{Started: executionv2.Bool(true), Changed: nil, Settled: true, Scope: "SAVE"}, Verification: executionv2.Verification{Verdict: "unavailable"}}
+		return ch
+	})
+	old.v2.OnPersist(old.persistV2Snapshot)
+	request := startupRequest("pcb.save", "retired-before-restart")
+	result, err := old.v2.Submit(context.Background(), request)
+	if err != nil || result.Outcome != executionv2.Unknown || !result.Effects.Settled {
+		t.Fatal(result, err)
+	}
+	digest, _ := request.Digest()
+	evidence, _ := old.v2.Evidence(request.OperationID)
+	if _, quarantine, err := old.v2.RetireUnresolved(request.OperationID, digest, executionv2.EvidenceFingerprint(evidence), "bounded recovery exhausted", 0); err != nil || quarantine.Scope.Kind != "DOCUMENT" {
+		t.Fatal(quarantine, err)
+	}
+	if err := old.writeV2Lifecycle(v2Lifecycle{Version: "execution.v2.lifecycle.1", State: "effect_started", OperationID: request.OperationID, Digest: digest}); err != nil {
+		t.Fatal(err)
+	}
+
+	restarted := New(Options{V2ReceiptFile: path})
+	startupConn(restarted)
+	if restarted.v2StartupErr != nil || restarted.v2StartupFenced() || restarted.v2.EffectOwner() != "" {
+		t.Fatal("retired settled operation restored a global startup fence", restarted.v2StartupErr, restarted.v2.BarrierStatus())
+	}
+	status, exists := restarted.v2.Status(request.OperationID)
+	if !exists || status.Outcome != executionv2.RetiredUnresolved || !status.RetiredUnresolved || status.NativeReplayed || len(restarted.v2.Quarantines()) != 1 {
+		t.Fatal(status, exists, restarted.v2.Quarantines())
+	}
+	if restoredEvidence, exists := restarted.v2.Evidence(request.OperationID); !exists || executionv2.EvidenceFingerprint(restoredEvidence) != executionv2.EvidenceFingerprint(evidence) {
+		t.Fatal("durable evidence missing or changed", exists, restoredEvidence)
+	}
+	if _, err := restarted.v2.Submit(context.Background(), startupRequest("pcb.save", "affected-scope")); err == nil || !strings.Contains(err.Error(), "V2_SCOPE_QUARANTINED") {
+		t.Fatal("restart lost affected-scope quarantine", err)
+	}
+	server := httptest.NewServer(restarted.routes(0))
+	defer server.Close()
+	healthResponse, err := http.Get(server.URL + "/health")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer healthResponse.Body.Close()
+	var health struct {
+		Barrier     executionv2.BarrierStatus `json:"v2_barrier"`
+		Quarantines []executionv2.Quarantine  `json:"v2_quarantines"`
+	}
+	if json.NewDecoder(healthResponse.Body).Decode(&health) != nil || health.Barrier.Mode != executionv2.BarrierNone || len(health.Quarantines) != 1 || health.Quarantines[0].OperationID != request.OperationID {
+		t.Fatal(health)
+	}
+	if nativeWrites.Load() != 1 {
+		t.Fatal("daemon restart replayed mutation", nativeWrites.Load())
 	}
 }

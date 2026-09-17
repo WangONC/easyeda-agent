@@ -184,7 +184,7 @@ func TestV2RestoredUnknownOwnerCannotBeBypassed(t *testing.T) {
 			if _, e := recovered.v2.Submit(context.Background(), read); e != nil {
 				t.Fatal(e)
 			}
-			if r, e := recovered.v2.ReleaseSettled("original", "fresh"); e != nil || r.Outcome != executionv2.Unknown {
+			if r, e := recovered.v2.ReleaseSettled("original", "fresh"); e != nil || r.Outcome != executionv2.RetiredUnresolved || r.BarrierMode != executionv2.BarrierScoped {
 				t.Fatal(r, e)
 			}
 			if recovered.v2StartupFenced() || calls.Load() != 2 {

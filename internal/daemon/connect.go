@@ -106,8 +106,8 @@ func (s *Server) handleFrame(ctx context.Context, c *conn, data []byte) {
 			return
 		}
 		for _, id := range s.rebindV2Transport(c) {
-			// Readback only; never dispatch the original mutation again.
-			_ = c.write(ctx, map[string]any{"type": "v2_reconcile", "operation_id": id})
+			// Bounded readback only; never dispatch the original mutation again.
+			s.startBoundedV2Recovery(id)
 		}
 		s.logf("connector registered windowId=%s version=%s", msg.WindowID, msg.ConnectorVersion)
 		if note := staleConnectorNotice(msg.ConnectorVersion, s.opts.Version); note != "" {

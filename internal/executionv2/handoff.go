@@ -9,22 +9,25 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"time"
 )
 
 // Handoff is a bounded local restart snapshot, not a mutation log. Nothing in
 // this file authorizes executing a restored request.
 type Handoff struct {
-	Version  string    `json:"version"`
-	Owner    string    `json:"owner,omitempty"`
-	Receipts []Receipt `json:"receipts"`
+	Version     string       `json:"version"`
+	Owner       string       `json:"owner,omitempty"`
+	Receipts    []Receipt    `json:"receipts"`
+	Quarantines []Quarantine `json:"quarantines,omitempty"`
 }
 type Receipt struct {
-	Request  Request       `json:"request"`
-	Digest   string        `json:"digest"`
-	Result   Result        `json:"result"`
-	Evidence HandlerResult `json:"evidence"`
-	Scope    string        `json:"scope"`
-	TimedOut bool          `json:"timed_out"`
+	Request    Request       `json:"request"`
+	Digest     string        `json:"digest"`
+	Result     Result        `json:"result"`
+	Evidence   HandlerResult `json:"evidence"`
+	Scope      string        `json:"scope"`
+	TimedOut   bool          `json:"timed_out"`
+	AdmittedAt time.Time     `json:"admitted_at,omitempty"`
 	// WindowID is daemon routing provenance for restart reconciliation. It is
 	// not part of the immutable V2 target/digest and never authorizes retargeting.
 	WindowID string `json:"window_id,omitempty"`
@@ -55,11 +58,15 @@ func firstWindowMap(values []map[string]string) map[string]string {
 }
 
 func (c *Coordinator) snapshotLocked(windows map[string]string) Handoff {
-	h := Handoff{Version: "execution.v2.handoff.1", Owner: c.owner, Receipts: []Receipt{}}
+	h := Handoff{Version: "execution.v2.handoff.1", Owner: c.owner, Receipts: []Receipt{}, Quarantines: []Quarantine{}}
 	for _, r := range c.records {
-		h.Receipts = append(h.Receipts, Receipt{Request: r.request, Digest: r.digest, Result: r.result, Evidence: r.evidence, Scope: r.scope, TimedOut: r.timedOut, WindowID: windows[r.request.OperationID]})
+		h.Receipts = append(h.Receipts, Receipt{Request: r.request, Digest: r.digest, Result: r.result, Evidence: r.evidence, Scope: r.scope, TimedOut: r.timedOut, AdmittedAt: r.admittedAt, WindowID: windows[r.request.OperationID]})
 	}
 	sort.Slice(h.Receipts, func(i, j int) bool { return h.Receipts[i].Request.OperationID < h.Receipts[j].Request.OperationID })
+	for _, q := range c.quarantines {
+		h.Quarantines = append(h.Quarantines, copyQuarantine(q))
+	}
+	sort.Slice(h.Quarantines, func(i, j int) bool { return h.Quarantines[i].OperationID < h.Quarantines[j].OperationID })
 	return h
 }
 
@@ -128,12 +135,13 @@ func (c *Coordinator) RestoreHandoff(path string) ([]Receipt, error) {
 		if e != nil || r.Validate() != nil || digest != saved.Digest || records[r.OperationID] != nil {
 			return nil, errors.New("V2_HANDOFF_IDENTITY_MISMATCH")
 		}
+		r.LogicalWindowID = saved.WindowID
 		result := saved.Result
 		if result.Protocol != Version || result.OperationID != r.OperationID || result.EvidenceRef != r.OperationID || saved.Scope == "" || result.Effects.Scope != saved.Scope {
 			return nil, errors.New("V2_HANDOFF_RESULT_MISMATCH")
 		}
 		switch result.Outcome {
-		case Succeeded, NotApplied, Partial, Unknown:
+		case Succeeded, NotApplied, Partial, Unknown, RetiredUnresolved:
 		default:
 			return nil, errors.New("V2_HANDOFF_OUTCOME_INVALID")
 		}
@@ -150,7 +158,53 @@ func (c *Coordinator) RestoreHandoff(path string) ([]Receipt, error) {
 		}
 		ready := make(chan struct{})
 		close(ready)
-		records[r.OperationID] = &record{request: r, digest: digest, result: result, evidence: saved.Evidence, ready: ready, complete: true, timedOut: saved.TimedOut, scope: saved.Scope, released: result.OwnershipReleased, stop: make(chan struct{})}
+		records[r.OperationID] = &record{request: r, digest: digest, admittedAt: saved.AdmittedAt, result: result, evidence: saved.Evidence, ready: ready, complete: true, timedOut: saved.TimedOut, scope: saved.Scope, released: result.OwnershipReleased, stop: make(chan struct{})}
+	}
+	quarantines := map[string]Quarantine{}
+	for _, saved := range h.Quarantines {
+		rec := records[saved.OperationID]
+		if rec == nil || quarantines[saved.OperationID].OperationID != "" || rec.result.Outcome != RetiredUnresolved || !rec.result.OwnershipReleased || !rec.result.Effects.Settled || saved.OperationID == "" || saved.Scope.Kind == "" || len(saved.Required) == 0 {
+			return nil, errors.New("V2_HANDOFF_QUARANTINE_INVALID")
+		}
+		required := map[string]bool{}
+		for _, action := range saved.Required {
+			if action == "" || required[action] {
+				return nil, errors.New("V2_HANDOFF_QUARANTINE_INVALID")
+			}
+			required[action] = true
+		}
+		completed := map[string]bool{}
+		for _, action := range saved.Completed {
+			if !required[action] || completed[action] {
+				return nil, errors.New("V2_HANDOFF_QUARANTINE_INVALID")
+			}
+			completed[action] = true
+		}
+		if saved.Requalified != (len(completed) == len(required)) {
+			return nil, errors.New("V2_HANDOFF_QUARANTINE_INVALID")
+		}
+		quarantines[saved.OperationID] = copyQuarantine(saved)
+	}
+	// Snapshots written by the pre-quarantine ReleaseSettled contract may carry
+	// a settled, ownership-released UNKNOWN without a scope quarantine. Preserve
+	// its evidence but migrate the tombstone fail-closed instead of restoring an
+	// unqualified mutation surface.
+	for id, rec := range records {
+		if rec.result.Outcome != Unknown || !rec.released || quarantines[id].OperationID != "" {
+			continue
+		}
+		q := quarantineFor(rec, "migrated pre-quarantine settled ownership release")
+		rec.result.Outcome = RetiredUnresolved
+		rec.result.Code = "V2_RETIRED_UNRESOLVED"
+		rec.result.RecoveryAttempted = true
+		rec.result.RecoveryResult = "RETIRED_UNRESOLVED"
+		rec.result.BarrierMode = BarrierScoped
+		ref := q.Scope
+		rec.result.QuarantineScope = &ref
+		rec.result.RequiresRequalification = append([]string(nil), q.Required...)
+		rec.result.RetiredUnresolved = true
+		rec.result.NativeReplayed = false
+		quarantines[id] = q
 	}
 	if h.Owner != "" {
 		owner := records[h.Owner]
@@ -170,6 +224,7 @@ func (c *Coordinator) RestoreHandoff(path string) ([]Receipt, error) {
 	}
 	c.records = records
 	c.owner = h.Owner
+	c.quarantines = quarantines
 	return h.Receipts, nil
 }
 

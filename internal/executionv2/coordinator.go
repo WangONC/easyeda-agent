@@ -18,20 +18,22 @@ type Validate func(Request) (Admission, error)
 // the channel, disconnecting, or replacing the Connector never proves settlement.
 type Executor func(Request, string) <-chan HandlerResult
 type record struct {
-	request  Request
-	digest   string
-	result   Result
-	evidence HandlerResult
-	ready    chan struct{}
-	complete bool
-	timedOut bool
-	scope    string
-	released bool
-	stop     chan struct{}
+	request    Request
+	digest     string
+	admittedAt time.Time
+	result     Result
+	evidence   HandlerResult
+	ready      chan struct{}
+	complete   bool
+	timedOut   bool
+	scope      string
+	released   bool
+	stop       chan struct{}
 }
 type Coordinator struct {
-	mu      sync.Mutex
-	records map[string]*record
+	mu          sync.Mutex
+	records     map[string]*record
+	quarantines map[string]Quarantine
 	// owner is intentionally Host-domain global. EasyEDA mutations share one
 	// activation/editor state; project identity alone is not an isolation proof.
 	owner      string
@@ -45,7 +47,7 @@ type Coordinator struct {
 }
 
 func New(capacity int, validate Validate, execute Executor) *Coordinator {
-	return &Coordinator{records: map[string]*record{}, capacity: capacity, validate: validate, execute: execute}
+	return &Coordinator{records: map[string]*record{}, quarantines: map[string]Quarantine{}, capacity: capacity, validate: validate, execute: execute}
 }
 func (c *Coordinator) OnResult(callback func(Request, Result)) { c.onResult = callback }
 
@@ -95,8 +97,30 @@ func (c *Coordinator) Submit(ctx context.Context, r Request) (Result, error) {
 		c.mu.Unlock()
 		return Result{}, errors.New("V2_EFFECT_BARRIER")
 	}
-	r.ExecutionDeadline = time.Now().Add(time.Duration(r.BudgetMS) * time.Millisecond)
-	rec := &record{stop: make(chan struct{}), scope: a.EffectScope, request: r, digest: digest, ready: make(chan struct{}), result: Result{Protocol: Version, OperationID: r.OperationID, Outcome: Unknown, EvidenceRef: r.OperationID, Effects: Effects{Scope: a.EffectScope}}}
+	if a.EffectScope != "NONE" {
+		for _, quarantine := range c.quarantines {
+			if quarantine.blocks(r, a.EffectScope) {
+				c.mu.Unlock()
+				return Result{}, errors.New("V2_SCOPE_QUARANTINED:" + quarantine.OperationID)
+			}
+		}
+	}
+	admittedAt := time.Now().UTC()
+	// Windows clocks can return the same wall timestamp for consecutive calls,
+	// and clocks can move backwards across a restart. A read admitted after a
+	// retirement must still compare strictly newer than every durable quarantine
+	// watermark; pre-retirement receipts retain their original timestamp.
+	for _, quarantine := range c.quarantines {
+		if !admittedAt.After(quarantine.RetiredAt) {
+			admittedAt = quarantine.RetiredAt.Add(time.Nanosecond)
+		}
+	}
+	r.ExecutionDeadline = admittedAt.Add(time.Duration(r.BudgetMS) * time.Millisecond)
+	initialBarrier := BarrierNone
+	if a.EffectScope != "NONE" {
+		initialBarrier = BarrierGlobal
+	}
+	rec := &record{stop: make(chan struct{}), scope: a.EffectScope, request: r, digest: digest, admittedAt: admittedAt, ready: make(chan struct{}), result: Result{Protocol: Version, OperationID: r.OperationID, Outcome: Unknown, EvidenceRef: r.OperationID, Effects: Effects{Scope: a.EffectScope}, BarrierMode: initialBarrier, RecoveryResult: "NATIVE_PENDING", NativeReplayed: false}}
 	c.records[r.OperationID] = rec
 	if a.EffectScope != "NONE" {
 		c.owner = r.OperationID
@@ -137,6 +161,11 @@ func (c *Coordinator) run(rec *record) {
 			rec.timedOut = true
 			rec.result.Outcome = Unknown
 			rec.result.Code = "V2_DEADLINE"
+			rec.result.RecoveryResult = "NATIVE_PENDING"
+			rec.result.NativeReplayed = false
+			if rec.scope != "NONE" {
+				rec.result.BarrierMode = BarrierGlobal
+			}
 			request, result := rec.request, rec.result
 			snapshot := c.snapshotLocked(nil)
 			c.mu.Unlock()
@@ -160,6 +189,11 @@ func (c *Coordinator) run(rec *record) {
 					return
 				}
 				rec.result.Code = "V2_EXECUTOR_LOST"
+				rec.result.RecoveryResult = "NATIVE_PENDING"
+				rec.result.NativeReplayed = false
+				if rec.scope != "NONE" {
+					rec.result.BarrierMode = BarrierGlobal
+				}
 				request, result := rec.request, rec.result
 				snapshot := c.snapshotLocked(nil)
 				c.mu.Unlock()
@@ -205,6 +239,13 @@ func (c *Coordinator) accept(rec *record, h HandlerResult) (Result, bool) {
 		h.Protocol = "invalid"
 	}
 	result := Finalize(rec.request, rec.digest, h, rec.timedOut)
+	if rec.result.RecoveryAttempted {
+		result.RecoveryAttempted = true
+		if rec.result.RecoveryDurationMS > result.RecoveryDurationMS {
+			result.RecoveryDurationMS = rec.result.RecoveryDurationMS
+		}
+		result.RecoveryResult = recoveryLabel(result.Outcome, true, result.Effects.Settled)
+	}
 	result.Effects.Scope = rec.scope
 	rec.result = result
 	rec.evidence = h
@@ -224,6 +265,8 @@ func (c *Coordinator) accept(rec *record, h HandlerResult) (Result, bool) {
 		c.mu.Lock()
 		result.Outcome = Unknown
 		result.Code = "V2_RECEIPT_PERSIST_FAILED"
+		result.BarrierMode = BarrierGlobal
+		result.RecoveryResult = "UNRESOLVED"
 		rec.result = result
 		resolved = false
 		c.mu.Unlock()
@@ -244,6 +287,33 @@ func (c *Coordinator) accept(rec *record, h HandlerResult) (Result, bool) {
 		c.onResolved(request, digest)
 	}
 	return result, resolved
+}
+
+// RecordRecovery durably annotates daemon-owned bounded recovery. It changes no
+// semantic evidence and never invokes the executor.
+func (c *Coordinator) RecordRecovery(id string, duration time.Duration) (Result, error) {
+	c.mu.Lock()
+	rec := c.records[id]
+	if rec == nil {
+		c.mu.Unlock()
+		return Result{}, errors.New("V2_RECOVERY_RECORD_REQUIRED")
+	}
+	previous := rec.result
+	rec.result.RecoveryAttempted = true
+	if elapsed := duration.Milliseconds(); elapsed > rec.result.RecoveryDurationMS {
+		rec.result.RecoveryDurationMS = elapsed
+	}
+	rec.result.RecoveryResult = recoveryLabel(rec.result.Outcome, true, rec.result.Effects.Settled)
+	snapshot := c.snapshotLocked(nil)
+	result := rec.result
+	c.mu.Unlock()
+	if err := c.persist(snapshot); err != nil {
+		c.mu.Lock()
+		rec.result = previous
+		c.mu.Unlock()
+		return Result{}, errors.New("V2_RECEIPT_PERSIST_FAILED")
+	}
+	return result, nil
 }
 
 // ReconcileResult applies a fresh readback result to an operation restored from
@@ -338,9 +408,10 @@ func projectPCBRecoveryProof(original Request, read Request, h HandlerResult, pc
 	return bindings == 1 && matches == 1
 }
 
-// ReleaseSettled ends effect ownership, not the semantic operation conclusion.
-// The original terminal HandlerResult proves the handler/native chain settled.
-// A new, exact-document read proves current binding. Neither may be client facts.
+// ReleaseSettled is the compatibility recovery path for callers that already
+// supplied a separate exact-identity read. It no longer releases an unresolved
+// mutation into an unqualified Host: the operation is durably retired into the
+// same scoped quarantine as RetireUnresolved. Neither proof may be client facts.
 func (c *Coordinator) ReleaseSettled(id, readbackID string, expectedPCB ...string) (Result, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -366,15 +437,29 @@ func (c *Coordinator) ReleaseSettled(id, readbackID string, expectedPCB ...strin
 		return Result{}, errors.New("V2_NATIVE_NOT_SETTLED")
 	}
 	if !rec.released {
+		previousResult := rec.result
+		q := quarantineFor(rec, "settled compatibility recovery requires scope requalification")
+		rec.result.Outcome = RetiredUnresolved
+		rec.result.Code = "V2_RETIRED_UNRESOLVED"
 		rec.released = true
 		rec.result.OwnershipReleased = true
+		rec.result.RecoveryAttempted = true
+		rec.result.RecoveryResult = "RETIRED_UNRESOLVED"
+		rec.result.BarrierMode = BarrierScoped
+		ref := q.Scope
+		rec.result.QuarantineScope = &ref
+		rec.result.RequiresRequalification = append([]string(nil), q.Required...)
+		rec.result.RetiredUnresolved = true
+		rec.result.NativeReplayed = false
+		c.quarantines[id] = q
 		previousOwner := c.owner
 		if c.owner == id {
 			c.owner = ""
 		}
 		if err := c.persist(c.snapshotLocked(nil)); err != nil {
+			delete(c.quarantines, id)
+			rec.result = previousResult
 			rec.released = false
-			rec.result.OwnershipReleased = false
 			c.owner = previousOwner
 			return Result{}, errors.New("V2_RECEIPT_PERSIST_FAILED")
 		}

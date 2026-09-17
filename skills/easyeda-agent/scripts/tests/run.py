@@ -155,6 +155,29 @@ def check_fast_manual_contract(failures):
         print(f"{GREEN}✓{RESET} fast manual PCB reliability contracts are explicit")
 
 
+def check_unknown_recovery_contract(failures):
+    """UNKNOWN is no-replay recovery, not an unconditional permanent freeze."""
+    skill = os.path.normpath(os.path.join(ROOT, '..', 'SKILL.md'))
+    environment = os.path.normpath(os.path.join(ROOT, '..', 'references', 'environment-setup.md'))
+    with open(skill, encoding='utf-8') as f:
+        text = f.read()
+    with open(environment, encoding='utf-8') as f:
+        recovery = f.read()
+    required = [
+        'UNKNOWN means “investigate before retry”, not “permanent global shutdown”',
+        'native_settled=false', 'RETIRED_UNRESOLVED', 'scope quarantine',
+        'operation requalify', '不得为绕过 UNKNOWN',
+    ]
+    missing = [value for value in required if value not in text]
+    reference_required = ['operation retire-unresolved', 'evidence fingerprint',
+                          'required_requalification', 'hard global barrier']
+    missing_reference = [value for value in reference_required if value not in recovery]
+    if missing or missing_reference:
+        failures.append(f"UNKNOWN recovery contract missing skill={missing} reference={missing_reference}")
+    else:
+        print(f"{GREEN}✓{RESET} UNKNOWN recovery is bounded, no-replay and scope-quarantined")
+
+
 def run_lint(path):
     proc = subprocess.run([sys.executable, LINT, path], capture_output=True, text=True)
     if proc.returncode != 0:
@@ -240,6 +263,7 @@ def main():
     check_ts_consistency(failures)
     check_bulk_connect_envelope(failures)
     check_fast_manual_contract(failures)
+    check_unknown_recovery_contract(failures)
     check_fixtures(update, failures)
     check_diffs(update, failures)
     if update:

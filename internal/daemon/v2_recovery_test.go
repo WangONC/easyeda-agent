@@ -99,7 +99,11 @@ func TestRecoveryHTTPUsesOnlyNewReadAndPreservesOriginal(t *testing.T) {
 				t.Fatal(mode, res.StatusCode)
 			}
 			got, _ := s.v2.Status("original")
-			if got.Outcome != executionv2.Unknown || got.OwnershipReleased != (mode == "release") {
+			wantOutcome := executionv2.Unknown
+			if mode == "release" {
+				wantOutcome = executionv2.RetiredUnresolved
+			}
+			if got.Outcome != wantOutcome || got.OwnershipReleased != (mode == "release") {
 				t.Fatal(got)
 			}
 			if nativeWrites.Load() != 1 {
@@ -117,7 +121,7 @@ func TestRecoveryHTTPUsesOnlyNewReadAndPreservesOriginal(t *testing.T) {
 					t.Fatal("wrong release recipient")
 				}
 				dup, _ := s.v2.Submit(context.Background(), original)
-				if !dup.OwnershipReleased || nativeWrites.Load() != 1 {
+				if !dup.OwnershipReleased || dup.Outcome != executionv2.RetiredUnresolved || nativeWrites.Load() != 1 {
 					t.Fatal(dup)
 				}
 			}
@@ -260,7 +264,11 @@ func TestProjectRecoveryHTTPFreshPCBInventory(t *testing.T) {
 				t.Fatal(mode, res.StatusCode)
 			}
 			got, _ := s.v2.Status("original")
-			if got.Outcome != executionv2.Unknown || got.OwnershipReleased != (mode == "release") {
+			wantOutcome := executionv2.Unknown
+			if mode == "release" {
+				wantOutcome = executionv2.RetiredUnresolved
+			}
+			if got.Outcome != wantOutcome || got.OwnershipReleased != (mode == "release") {
 				t.Fatal(got)
 			}
 			if nativeWrites.Load() != 1 {
@@ -278,7 +286,7 @@ func TestProjectRecoveryHTTPFreshPCBInventory(t *testing.T) {
 					t.Fatal("wrong release recipient")
 				}
 				dup, _ := s.v2.Submit(context.Background(), original)
-				if !dup.OwnershipReleased || nativeWrites.Load() != 1 {
+				if !dup.OwnershipReleased || dup.Outcome != executionv2.RetiredUnresolved || nativeWrites.Load() != 1 {
 					t.Fatal(dup)
 				}
 			}

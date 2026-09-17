@@ -54,7 +54,7 @@ func (r *applyRunner) reconcileApplyOperation(action, operationID string, action
 				return nil, err
 			}
 			return anyResult(parsed.Result), nil
-		case executionv2.NotApplied, executionv2.Partial:
+		case executionv2.NotApplied, executionv2.Partial, executionv2.RetiredUnresolved:
 			return nil, fmt.Errorf("operation %s reconcile resolved %s; mutation was not replayed", operationID, result.Outcome)
 		case executionv2.Unknown:
 			if time.Now().After(deadline) {

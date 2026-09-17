@@ -73,7 +73,7 @@ func TestProjectPCBRecoveryNoReplay(t *testing.T) {
 			}
 			out, e := c.ReleaseSettled(source.OperationID, read.OperationID, pcb)
 			if mode == "ok" {
-				if e != nil || out.Outcome != Unknown || !out.OwnershipReleased {
+				if e != nil || out.Outcome != RetiredUnresolved || !out.OwnershipReleased || out.BarrierMode != BarrierScoped {
 					t.Fatal(out, e)
 				}
 			} else {

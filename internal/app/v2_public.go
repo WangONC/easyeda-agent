@@ -280,7 +280,7 @@ func submitV2(endpoint string, req executionv2.Request) (executionv2.Result, err
 		return result, fmt.Errorf("V2_FOREIGN_RESULT")
 	}
 	switch result.Outcome {
-	case executionv2.Succeeded, executionv2.NotApplied, executionv2.Partial, executionv2.Unknown:
+	case executionv2.Succeeded, executionv2.NotApplied, executionv2.Partial, executionv2.Unknown, executionv2.RetiredUnresolved:
 	default:
 		return result, fmt.Errorf("V2_MALFORMED_RESULT")
 	}

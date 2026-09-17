@@ -188,10 +188,16 @@ func (s *Server) handleV2(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "V2_INVALID_REQUEST: "+e.Error(), 400)
 		return
 	}
+	if connection, ok := s.hub.get(req.Target.Session); ok {
+		req.LogicalWindowID = connection.id()
+	}
 	result, e := s.v2.Submit(r.Context(), req)
 	if e != nil {
 		http.Error(w, e.Error(), 409)
 		return
+	}
+	if result.Outcome == executionv2.Unknown && result.Effects.Scope != "" && result.Effects.Scope != "NONE" {
+		result = s.autoRecoverV2(r.Context(), req, result)
 	}
 	writeV2(w, result)
 }
@@ -199,6 +205,14 @@ func (s *Server) handleV2Status(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	if r.Method == "POST" && r.URL.Query().Get("view") == "retire-legacy-orphan" {
 		s.handleV2LegacyOrphanRetire(w, r, id)
+		return
+	}
+	if r.Method == "POST" && r.URL.Query().Get("view") == "retire-unresolved" {
+		s.handleV2RetireUnresolved(w, r, id)
+		return
+	}
+	if r.Method == "POST" && r.URL.Query().Get("view") == "requalify" {
+		s.handleV2Requalify(w, r, id)
 		return
 	}
 	if r.Method == "POST" && (r.URL.Query().Get("view") == "recover" || r.URL.Query().Get("view") == "release") {

@@ -75,13 +75,18 @@ func TestHandoffRestartUnknownBarrierRecovery(t *testing.T) {
 				}
 				return
 			}
-			if err != nil || result.Outcome != Unknown || !result.OwnershipReleased || writes != 1 {
+			if err != nil || result.Outcome != RetiredUnresolved || !result.OwnershipReleased || result.BarrierMode != BarrierScoped || writes != 1 {
 				t.Fatal(result, err, writes)
 			}
-			if _, err := restored.Submit(context.Background(), request("new-effect")); err != nil || writes != 2 {
+			if _, err := restored.Submit(context.Background(), request("same-scope")); err == nil {
+				t.Fatal("retired scope was not quarantined")
+			}
+			newEffect := request("new-effect")
+			newEffect.Target.ProjectUUID, newEffect.Target.DocumentUUID, newEffect.Target.TabID = "other-project", "other-document", "other-tab"
+			if _, err := restored.Submit(context.Background(), newEffect); err != nil || writes != 2 {
 				t.Fatal(err, writes)
 			}
-			// Repeat atomic replacement; a released UNKNOWN remains a tombstone and the
+			// Repeat atomic replacement; a retired UNKNOWN remains quarantined and the
 			// new unresolved effect, not the old operation, owns the next restart fence.
 			if err := restored.SaveHandoff(path); err != nil {
 				t.Fatal(err)
@@ -90,7 +95,7 @@ func TestHandoffRestartUnknownBarrierRecovery(t *testing.T) {
 			if _, err := next.RestoreHandoff(path); err != nil {
 				t.Fatal(err)
 			}
-			if r, _ := next.Status("original"); !r.OwnershipReleased || r.Outcome != Unknown {
+			if r, _ := next.Status("original"); !r.OwnershipReleased || r.Outcome != RetiredUnresolved {
 				t.Fatal(r)
 			}
 			if writes != 2 {
@@ -135,5 +140,27 @@ func TestHandoffMalformedFailsClosed(t *testing.T) {
 				t.Fatal("partial restore")
 			}
 		})
+	}
+}
+
+func TestHandoffMigratesPreQuarantineSettledRelease(t *testing.T) {
+	r := request("old-settled-release")
+	r.LogicalWindowID = "window-1"
+	digest, _ := r.Digest()
+	e := evidence(r, "unavailable", true, 0, 1)
+	result := Finalize(r, digest, e, false)
+	result.OwnershipReleased = true
+	h := Handoff{Version: "execution.v2.handoff.1", Receipts: []Receipt{{Request: r, Digest: digest, Result: result, Evidence: e, Scope: "DESIGN_CONTENT", TimedOut: true, WindowID: "window-1"}}}
+	path := filepath.Join(t.TempDir(), "old-release.json")
+	if err := PersistHandoff(path, h); err != nil {
+		t.Fatal(err)
+	}
+	restored := New(10, func(Request) (Admission, error) { return Admission{EffectScope: "DESIGN_CONTENT"}, nil }, nil)
+	if _, err := restored.RestoreHandoff(path); err != nil {
+		t.Fatal(err)
+	}
+	status, ok := restored.Status(r.OperationID)
+	if !ok || status.Outcome != RetiredUnresolved || status.BarrierMode != BarrierScoped || !status.OwnershipReleased || restored.EffectOwner() != "" || len(restored.Quarantines()) != 1 {
+		t.Fatal(status, ok, restored.Quarantines())
 	}
 }

@@ -20,6 +20,8 @@ type v2ReadBinding struct {
 	window        string
 	nextProject   string
 	nextDocument  string
+	nextDocType   string
+	nextReload    bool
 	endpoint      string
 	target        executionv2.Target
 }

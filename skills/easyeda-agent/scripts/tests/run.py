@@ -178,6 +178,47 @@ def check_unknown_recovery_contract(failures):
         print(f"{GREEN}✓{RESET} UNKNOWN recovery is bounded, no-replay and scope-quarantined")
 
 
+def check_pcb_e2e_reliability_contract(failures):
+    """Freeze the stage, width, routing-quality and auto-requalification guidance."""
+    skill = os.path.normpath(os.path.join(ROOT, '..', 'SKILL.md'))
+    refs = os.path.normpath(os.path.join(ROOT, '..', 'references'))
+    paths = {
+        'skill': skill,
+        'fast': os.path.join(refs, 'fast-manual-pcb.md'),
+        'routing': os.path.join(refs, 'pcb-routing.md'),
+        'decisions': os.path.join(refs, 'design-decisions.md'),
+        'layout': os.path.join(refs, 'pcb-layout-conventions.md'),
+        'pcb': os.path.join(refs, 'pcb.md'),
+    }
+    texts = {key: open(path, encoding='utf-8').read() for key, path in paths.items()}
+    required = {
+        'skill': ['build identity、catalog 与 action schema 均未变化',
+                  'AUTO_REQUALIFIED', '不得复用 retirement 前 receipt'],
+        'fast': ['pin_to_pad_map', 'pin_pad_relations', 'apply_ready',
+                 'missing_stage_requirements', 'canonical copper geometry'],
+        'routing': ['Canonical Track Width Source', 'required_width = max(',
+                    'pad → short fanout → trunk', '四向 junction',
+                    'unnecessary neck-down'],
+        'decisions': ['canonical ladder', 'known voltage-drop requirement'],
+        'layout': ['样板事实，不是 Agent 默认阶梯', 'power-trunk=0.40mm'],
+        'pcb': ['AUTO_REQUALIFIED', 'retirement 前 receipt'],
+    }
+    missing = {key: [value for value in values if value not in texts[key]]
+               for key, values in required.items()}
+    missing = {key: values for key, values in missing.items() if values}
+    contradictory = [
+        phrase for phrase in [
+            '推荐默认**：信号走 DRC 规则默认宽度（约 6–10mil）',
+            '电源走 fab 推荐宽度（约 20mil / 0.5mm）',
+            '信号常用 ≥0.25mm（比 JLC 极限 6mil 富余），电源 0.5/0.6mm',
+        ] if any(phrase in text for text in texts.values())
+    ]
+    if missing or contradictory:
+        failures.append(f"PCB E2E reliability contract missing={missing} contradictory={contradictory}")
+    else:
+        print(f"{GREEN}✓{RESET} PCB stage/width/routing/requalification contracts are canonical")
+
+
 def run_lint(path):
     proc = subprocess.run([sys.executable, LINT, path], capture_output=True, text=True)
     if proc.returncode != 0:
@@ -264,6 +305,7 @@ def main():
     check_bulk_connect_envelope(failures)
     check_fast_manual_contract(failures)
     check_unknown_recovery_contract(failures)
+    check_pcb_e2e_reliability_contract(failures)
     check_fixtures(update, failures)
     check_diffs(update, failures)
     if update:

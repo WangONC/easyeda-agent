@@ -207,6 +207,15 @@ func (s *Server) preflightV2(req executionv2.Request, snapshot fastpath.Snapshot
 	if e != nil {
 		return nil, e
 	}
+	geometryOK := checked.OK
+	missingStage := routeStageRequirements(st)
+	var projected map[string]any
+	if e = fastpath.Decode(checked, &projected); e != nil {
+		return nil, e
+	}
+	projected["geometry_ok"] = geometryOK
+	projected["apply_ready"] = geometryOK && len(missingStage) == 0
+	projected["missing_stage_requirements"] = missingStage
 	if checked.OK {
 		s.fastPlans.Lock()
 		defer s.fastPlans.Unlock()
@@ -219,7 +228,37 @@ func (s *Server) preflightV2(req executionv2.Request, snapshot fastpath.Snapshot
 		s.fastPlans.receipts[checked.Hash] = fastReceipt{plan.Base, doc, project, fastpath.Hash(checked.Operations), checked.Nets}
 	}
 	// checked.OK is a geometry preflight business answer, never the execution Outcome.
-	return checked, nil
+	// Stage readiness is projected alongside it so callers do not need to burn an
+	// apply attempt merely to discover an already-known workflow gate.
+	return projected, nil
+}
+
+// routeStageRequirements is the read-only projection of the existing formal
+// PCB workflow ladder. It does not authorize or confirm anything; apply still
+// enforces the daemon gate independently.
+func routeStageRequirements(st *workflow.State) []string {
+	missing := []string{}
+	if st == nil || st.Assembly == nil {
+		missing = append(missing, "assembly_profile")
+	}
+	for tier := 1; tier <= workflow.PlacementTierCount; tier++ {
+		if st == nil || st.Tier(tier) == nil {
+			missing = append(missing, fmt.Sprintf("placement_tier_%d", tier))
+		}
+	}
+	if st == nil || st.Layout == nil || st.Assembly == nil || st.Layout.TightPairs != 0 || st.Layout.AccessBlocked != 0 || st.Layout.MinGapMil < st.Assembly.MinGapMil {
+		missing = append(missing, "layout_gate")
+	}
+	if st == nil || !st.Has(workflow.StagePlacementConfirmed) {
+		missing = append(missing, string(workflow.StagePlacementConfirmed))
+	}
+	if st == nil || !st.Has(workflow.StageOutlineConfirmed) {
+		missing = append(missing, string(workflow.StageOutlineConfirmed))
+	}
+	if st == nil || !st.Has(workflow.StagePreRoutePassed) {
+		missing = append(missing, string(workflow.StagePreRoutePassed))
+	}
+	return missing
 }
 
 func (s *Server) validateBatchV2(req executionv2.Request) error {

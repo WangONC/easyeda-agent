@@ -160,3 +160,44 @@ func TestCompletionDoesNotInventStateChange(t *testing.T) {
 		t.Fatal("unknown change is not itself completion proof")
 	}
 }
+
+func TestNoneEffectReadDeadlineNeverOwnsGlobalMutationBarrier(t *testing.T) {
+	c := New(10, func(r Request) (Admission, error) {
+		if r.Action == "read" {
+			return Admission{EffectScope: "NONE"}, nil
+		}
+		return Admission{EffectScope: "DESIGN_CONTENT"}, nil
+	}, func(r Request, digest string) <-chan HandlerResult {
+		ch := make(chan HandlerResult, 1)
+		if r.Action != "read" {
+			ch <- HandlerResult{Protocol: Version, OperationID: r.OperationID, Digest: digest, Target: r.Target, Effects: Effects{Started: Bool(true), Changed: Bool(true), Settled: true, Scope: "DESIGN_CONTENT"}, Verification: Verification{Verdict: "satisfied", Checked: []string{"fresh"}, Complete: true, Required: 1, Satisfied: 1}}
+		}
+		return ch
+	})
+	read := request("slow-read")
+	read.Action = "read"
+	result, err := c.Submit(context.Background(), read)
+	if err != nil || result.Outcome != Unknown || result.Code != "V2_DEADLINE" || result.BarrierMode != BarrierNone || c.EffectOwner() != "" {
+		t.Fatalf("read timeout acquired mutation ownership: result=%+v owner=%q err=%v", result, c.EffectOwner(), err)
+	}
+	mutation := request("mutation-after-read")
+	mutation.Action = "mutation"
+	result, err = c.Submit(context.Background(), mutation)
+	if err != nil || result.Outcome != Succeeded || c.EffectOwner() != "" {
+		t.Fatalf("unrelated mutation blocked by NONE read: result=%+v owner=%q err=%v", result, c.EffectOwner(), err)
+	}
+}
+
+func TestNoneEffectReadReceiptFailureDoesNotClaimGlobalBarrier(t *testing.T) {
+	c := New(10, func(Request) (Admission, error) { return Admission{EffectScope: "NONE"}, nil }, func(r Request, digest string) <-chan HandlerResult {
+		ch := make(chan HandlerResult, 1)
+		ch <- HandlerResult{Protocol: Version, OperationID: r.OperationID, Digest: digest, Target: r.Target, Effects: Effects{Started: Bool(false), Changed: Bool(false), Settled: true, Scope: "NONE"}, Verification: Verification{Verdict: "satisfied", Checked: []string{"fresh"}, Complete: true, Required: 1, Satisfied: 1}}
+		return ch
+	})
+	c.OnPersist(func(Handoff) error { return context.DeadlineExceeded })
+	read := request("read-persist-failure")
+	result, err := c.Submit(context.Background(), read)
+	if err != nil || result.Outcome != Unknown || result.Code != "V2_RECEIPT_PERSIST_FAILED" || result.BarrierMode != BarrierNone || c.EffectOwner() != "" {
+		t.Fatalf("NONE receipt failure became a write fence: %+v owner=%q err=%v", result, c.EffectOwner(), err)
+	}
+}

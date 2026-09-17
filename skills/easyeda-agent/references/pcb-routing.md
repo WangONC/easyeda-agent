@@ -26,6 +26,9 @@ corridor、preferred layer set、escape direction、成员 ordering、via strate
 ### Ordinary Routing Geometry
 
 没有特殊几何目的的普通信号，宜采用简单、一致的几何，通常优先水平、垂直和 45° 斜线。
+避免无意义的碎 segment、短 stub、折返、窄蛇形和多条独立支路挤在同一坐标形成四向“+” junction。
+同网分支默认组织成清楚的主 trunk 与错开的 T branch；pad escape 默认采用
+`pad → short fanout → trunk`，不要让多个 pad 直接乱序汇入一个大节点。
 这不是 DRC 硬规则或 SI 定律。BGA/fine-pitch、连接器 pin-field escape、RF/天线/受控几何、
 差分、正式 length tuning/serpentine、大电流/power copper、polygon/fill/局部异形铜、
 机械避让及其它有工程目的的几何均可有合理例外；不要为视觉上的 45° 牺牲高优先级目标。
@@ -52,9 +55,24 @@ corridor、preferred layer set、escape direction、成员 ordering、via strate
 ### Routing Ends With Cleanup
 
 All Nets Connected 不等于 Routing 完成。最终 DRC 前宜做一次 Routing Cleanup 复核：
-过程残留、可能无目的的 via/tail、重复或重叠同网铜、same-net loop、局部碎折线、
-无理由 layer hopping、组内明显离群成员及差分对不一致。先核对设计意图，再决定是否修改；
+四向 junction、过程残留、unnecessary stub、重复/重叠同网铜、duplicate trace、tiny fragment、
+backtracking、same-net loop、无理由 layer hopping、abrupt width change、unnecessary neck-down、
+可 canonical merge 却人为保留的碎 segment、组内明显离群成员及差分对不一致。先核对设计意图，再决定是否修改；
 这是一轮工程复核，不是自动 detector 或新硬 gate，也不意味着发现这些形态就应删除。
+
+### Canonical Track Width Source
+
+线宽真值来自 runtime `internal/app/pcb_netclass.go`，公开查询为
+`easyeda pcb net-classes --json`；Skill 文本只镜像它，不另立经验表。角色默认：
+`signal = live board default`、`power-branch = 0.25 mm ≈ 9.84 mil`、
+`power-trunk = 0.40 mm ≈ 15.75 mil`、`high-current = 0.50 mm ≈ 19.69 mil`，
+GND 若必须走线按 high-current，通常优先 plane/pour。
+
+`required_width = max(live/fab legal minimum, canonical net-class default, known current/temperature requirement, known voltage-drop requirement)`。
+开始 route planning 前读取 live board minimum/default、canonical net-class，并在已知时纳入最大持续电流、铜厚、
+长度/压降和温升要求。负载电流未知时不捏造，使用 canonical role default 并记录 design assumption；
+只有高风险/高功率设计才向用户追问。power routing 应明确区分 trunk、branch、pad neck-down 与 local copper/pour；
+宽主干进入小焊盘可以短距离 neck-down，但不能把整条主干一并变细。
 
 ### Telemetry: scope follows the edit
 

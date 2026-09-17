@@ -160,6 +160,64 @@ func TestPublicV2NavigationPinsNewDocumentWithoutReplay(t *testing.T) {
 		})
 	}
 }
+
+func TestPublicV2ReloadKeepsExactDocumentAndAdoptsFreshActivation(t *testing.T) {
+	for _, documentType := range []string{"pcb", "schematic"} {
+		for _, mode := range []string{"ok", "wrong-project", "wrong-document", "wrong-type"} {
+			t.Run(documentType+"/"+mode, func(t *testing.T) {
+				target := executionv2.Target{Scope: "DOCUMENT", Session: "old-transport", Activation: "old-activation", ProjectUUID: "project", DocumentUUID: "document", DocumentType: documentType, TabID: "old-tab"}
+				requests := []executionv2.Request{}
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if r.URL.Path == "/health" {
+						project, document, kind := "project", "document", documentType
+						if mode == "wrong-project" {
+							project = "foreign"
+						}
+						if mode == "wrong-document" {
+							document = "foreign"
+						}
+						if mode == "wrong-type" {
+							if kind == "pcb" {
+								kind = "schematic"
+							} else {
+								kind = "pcb"
+							}
+						}
+						fmt.Fprintf(w, `{"windows":[{"windowId":"physical","transportId":"new-transport","activationId":"new-activation","context":{"projectUuid":%q,"documentUuid":%q,"documentType":%q,"tabId":"new-tab"}}]}`, project, document, kind)
+						return
+					}
+					var request executionv2.Request
+					if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+						t.Error(err)
+					}
+					requests = append(requests, request)
+					scope := "NONE"
+					if request.Action == "document.open" {
+						scope = "NAVIGATION_SELECTION"
+						if request.Target != target || request.Input["reload"] != true || request.Input["uuid"] != "document" {
+							t.Errorf("reload lost exact pre-target: %+v", request)
+						}
+					} else if request.Target.Session != "new-transport" || request.Target.Activation != "new-activation" || request.Target.DocumentUUID != "document" {
+						t.Errorf("fresh read did not use rebound target: %+v", request.Target)
+					}
+					_ = json.NewEncoder(w).Encode(executionv2.Result{Protocol: executionv2.Version, OperationID: request.OperationID, EvidenceRef: request.OperationID, Outcome: executionv2.Succeeded, Effects: executionv2.Effects{Scope: scope, Settled: true}, Value: json.RawMessage(`{"uuid":"document"}`)})
+				}))
+				defer server.Close()
+				cfg := &appConfig{v2Read: &v2ReadBinding{endpoint: server.URL, window: "physical", target: target}}
+				_, err := publicActionV2(cfg, "document.open", "physical", map[string]any{"uuid": "document", "reload": true}, 0)
+				if err == nil {
+					_, err = requestAction(cfg, "document.current", "physical", nil)
+				}
+				if (err == nil) != (mode == "ok") {
+					t.Fatalf("mode=%s err=%v", mode, err)
+				}
+				if mode == "ok" && (len(requests) != 3 || cfg.v2Read.target.TabID != "new-tab") {
+					t.Fatalf("requests=%d binding=%+v", len(requests), cfg.v2Read.target)
+				}
+			})
+		}
+	}
+}
 func TestPublicV2LibraryDefaultIsResolvedBeforeEffect(t *testing.T) {
 	calls := []string{}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

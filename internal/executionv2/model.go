@@ -185,6 +185,7 @@ type Result struct {
 	QuarantineScope         *QuarantineRef  `json:"quarantine_scope,omitempty"`
 	RequiresRequalification []string        `json:"requires_requalification,omitempty"`
 	RetiredUnresolved       bool            `json:"retired_unresolved"`
+	AutoRequalified         bool            `json:"auto_requalified"`
 	NativeReplayed          bool            `json:"native_replayed"`
 }
 

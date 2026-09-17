@@ -46,3 +46,34 @@ func TestV2Round2CompleteCatalog(t *testing.T) {
 		t.Fatal(native)
 	}
 }
+
+func TestAddComponentsBatchExplicitPinPadMappingContract(t *testing.T) {
+	valid := map[string]any{
+		"libraryUuid": "library", "uuid": "generic-device", "designator": "J1", "uniqueId": "unique",
+		"nets":           map[string]any{"1": "SHELL", "2": "SHELL", "3": "SHELL", "4": "SHELL"},
+		"pin_nets":       map[string]any{"EP1": "SHELL", "EP2": "SHELL", "EP3": "SHELL", "EP4": "SHELL"},
+		"pin_to_pad_map": map[string]any{"EP1": "1", "EP2": "2", "EP3": "3", "EP4": "4"},
+		"x":              1.0, "y": 2.0, "rotation": 0.0, "layer": 1.0,
+	}
+	if err := ValidateV2BusinessInput("pcb.add_components_batch", map[string]any{"components": []any{valid}}, map[string]string{"components": "!array"}); err != nil {
+		t.Fatal(err)
+	}
+	for name, mutate := range map[string]func(map[string]any){
+		"missing map":  func(row map[string]any) { delete(row, "pin_to_pad_map") },
+		"unknown pad":  func(row map[string]any) { row["pin_to_pad_map"].(map[string]any)["EP4"] = "9" },
+		"net mismatch": func(row map[string]any) { row["pin_nets"].(map[string]any)["EP4"] = "OTHER" },
+	} {
+		t.Run(name, func(t *testing.T) {
+			copyRow := map[string]any{}
+			for key, value := range valid {
+				copyRow[key] = value
+			}
+			copyRow["pin_nets"] = map[string]any{"EP1": "SHELL", "EP2": "SHELL", "EP3": "SHELL", "EP4": "SHELL"}
+			copyRow["pin_to_pad_map"] = map[string]any{"EP1": "1", "EP2": "2", "EP3": "3", "EP4": "4"}
+			mutate(copyRow)
+			if err := ValidateV2BusinessInput("pcb.add_components_batch", map[string]any{"components": []any{copyRow}}, map[string]string{"components": "!array"}); err == nil {
+				t.Fatal("invalid explicit pin-to-pad relation accepted")
+			}
+		})
+	}
+}

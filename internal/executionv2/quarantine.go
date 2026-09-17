@@ -191,10 +191,22 @@ func (c *Coordinator) RetireUnresolved(id, digest, evidenceFingerprint, reason s
 // Requalify consumes an already completed, separate NONE-effect read receipt.
 // It never dispatches or replays the retired operation.
 func (c *Coordinator) Requalify(id, readID string) (Quarantine, error) {
+	return c.requalify(id, readID, false)
+}
+
+// AutoRequalify applies the exact same durable proof contract as Requalify,
+// while recording that the daemon (not an Agent-authored recovery sequence)
+// admitted the new NONE-effect read after retirement.
+func (c *Coordinator) AutoRequalify(id, readID string) (Quarantine, error) {
+	return c.requalify(id, readID, true)
+}
+
+func (c *Coordinator) requalify(id, readID string, automatic bool) (Quarantine, error) {
 	c.mu.Lock()
 	q, ok := c.quarantines[id]
+	original := c.records[id]
 	read := c.records[readID]
-	if !ok || read == nil || read.request.OperationID == id {
+	if !ok || original == nil || read == nil || read.request.OperationID == id {
 		c.mu.Unlock()
 		return Quarantine{}, errors.New("V2_REQUALIFICATION_RECORD_REQUIRED")
 	}
@@ -241,12 +253,20 @@ func (c *Coordinator) Requalify(id, readID string) (Quarantine, error) {
 		q.RequalifiedAt = &now
 	}
 	previous := c.quarantines[id]
+	previousResult := original.result
 	c.quarantines[id] = q
+	if complete && automatic {
+		original.result.AutoRequalified = true
+		original.result.RecoveryResult = "RETIRED_UNRESOLVED_AUTO_REQUALIFIED"
+		original.result.BarrierMode = BarrierNone
+		original.result.RequiresRequalification = nil
+	}
 	snapshot := c.snapshotLocked(nil)
 	c.mu.Unlock()
 	if err := c.persist(snapshot); err != nil {
 		c.mu.Lock()
 		c.quarantines[id] = previous
+		original.result = previousResult
 		c.mu.Unlock()
 		return Quarantine{}, errors.New("V2_RECEIPT_PERSIST_FAILED")
 	}

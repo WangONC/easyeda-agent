@@ -29,3 +29,28 @@ for(const wrong of [false,true])test('checkpoint companion editor preserves clos
  assert.deepEqual(calls,wrong?['save','open:companion']:['save','open:companion','activate:d@p','close:d@p','open:d']);
  await ex.reconcile('o');assert.equal(calls.length,wrong?2:5);
 });
+
+test('checkpoint controlled reload preserves exact schematic identity and type',async()=>{
+ let current:any={uuid:'sch-page',tabId:'sch-page@p',documentType:1};
+ let saved=0,closed=0,opened=0;const tabs=new Set(['sch-page@p']);
+ (globalThis as any).eda={
+  dmt_Project:{getCurrentProjectInfo:async()=>({uuid:'p'})},
+  dmt_Schematic:{getAllSchematicPagesInfo:async()=>[{uuid:'sch-page'}]},
+  dmt_Pcb:{getAllPcbsInfo:async()=>[]},
+  dmt_SelectControl:{getCurrentDocumentInfo:async()=>current},
+  sch_Document:{save:async()=>{saved++;return true}},
+  dmt_EditorControl:{
+   getSplitScreenIdByTabId:async()=> 'split',
+   getSplitScreenTree:async()=>({tabs:[...tabs].map(tabId=>({tabId}))}),
+   getTabsBySplitScreenId:async()=>[...tabs].map(tabId=>({tabId})),
+   closeDocument:async(id:string)=>{closed++;assert.equal(id,'sch-page@p');tabs.delete(id);current=undefined;return true},
+   openDocument:async(id:string)=>{opened++;assert.equal(id,'sch-page');const tabId='sch-page@p#reloaded';tabs.add(tabId);current={uuid:id,tabId,documentType:1};return tabId},
+  },
+ };
+ const schematicTarget={...target,document_uuid:'sch-page',document_type:'schematic',tab_id:'sch-page@p'};
+ const ex=new ControlledExecutor(()=>documentOpen,async wanted=>wanted);
+ const req:Request={protocol:V2,action:'document.open',action_revision:'1',schema:'x',request_id:'r-sch',operation_id:'o-sch',target_ref:schematicTarget,input:{uuid:'sch-page',reload:true},budget_ms:10000};
+ const result=await ex.execute(req,'digest-sch');
+ assert.equal(result.verification.verdict,'satisfied');assert.equal(saved,1);assert.equal(closed,1);assert.equal(opened,1);
+ assert.equal((result.value as any).tabId,'sch-page@p#reloaded');
+});

@@ -142,7 +142,8 @@ func publicActionV2(cfg *appConfig, action, window string, payload any, timeout 
 		return nil, e
 	}
 	t := b.target
-	if spec.Target == "PROJECT" && (action != "schematic.components.list" || t.DocumentType != "schematic") {
+	reload := action == "document.open" && input["reload"] == true
+	if spec.Target == "PROJECT" && !reload && (action != "schematic.components.list" || t.DocumentType != "schematic") {
 		t = executionv2.Target{Scope: "PROJECT", Session: t.Session, Activation: t.Activation, ProjectUUID: t.ProjectUUID}
 	}
 	// Explicit --doc is discovery followed by the same controlled V2 open.
@@ -250,6 +251,10 @@ func publicActionV2(cfg *appConfig, action, window string, payload any, timeout 
 			if next.nextDocument == "" {
 				next.nextDocument, _ = input["schematicPageUuid"].(string)
 			}
+			next.nextReload = reload
+			if reload {
+				next.nextDocType = t.DocumentType
+			}
 		}
 		cfg.v2Read = &next
 	}
@@ -310,7 +315,13 @@ func finishPublicNavigation(cfg *appConfig) (*v2ReadBinding, error) {
 	}
 	var matches []healthWindow
 	for _, w := range health.Windows {
-		if w.WindowID == old.window && w.TransportID == old.target.Session && w.ActivationID == old.target.Activation && w.Context.ProjectUUID == old.nextProject && (old.nextDocument == "" || w.Context.DocumentUUID == old.nextDocument) {
+		identity := w.WindowID == old.window && w.Context.ProjectUUID == old.nextProject && (old.nextDocument == "" || w.Context.DocumentUUID == old.nextDocument) && (old.nextDocType == "" || w.Context.DocumentType == old.nextDocType)
+		// A controlled reload deliberately replaces the editor tab and then rotates
+		// the Connector activation/transport after the operation receipt is released.
+		// The exact logical window + project + document are the stable post-reload
+		// binding; requiring the pre-reload transport here makes every valid reload
+		// unrebindable. Ordinary navigation keeps the stricter same-session rule.
+		if identity && (old.nextReload || (w.TransportID == old.target.Session && w.ActivationID == old.target.Activation)) {
 			matches = append(matches, w)
 		}
 	}

@@ -124,7 +124,7 @@ func validateActionSpecificInput(action string, input map[string]any) error {
 		for _, raw := range rows {
 			p := raw.(map[string]any)
 			for key := range p {
-				if key != "libraryUuid" && key != "uuid" && key != "designator" && key != "uniqueId" && key != "channelId" && key != "nets" && key != "x" && key != "y" && key != "rotation" && key != "layer" {
+				if key != "libraryUuid" && key != "uuid" && key != "designator" && key != "uniqueId" && key != "channelId" && key != "nets" && key != "pin_nets" && key != "pin_to_pad_map" && key != "x" && key != "y" && key != "rotation" && key != "layer" {
 					return errors.New("V2_UNKNOWN_INPUT:components." + key)
 				}
 			}
@@ -145,6 +145,24 @@ func validateActionSpecificInput(action string, input map[string]any) error {
 				}
 				if _, ok := net.(string); !ok {
 					return errors.New("V2_INVALID_INPUT:components.nets")
+				}
+			}
+			pinNets, hasPinNets := p["pin_nets"].(map[string]any)
+			pinMap, hasPinMap := p["pin_to_pad_map"].(map[string]any)
+			if (p["pin_nets"] != nil) != hasPinNets || (p["pin_to_pad_map"] != nil) != hasPinMap || hasPinNets != hasPinMap {
+				return errors.New("V2_INVALID_INPUT:components.pin_to_pad_map")
+			}
+			if hasPinMap {
+				if len(pinMap) == 0 || len(pinMap) != len(pinNets) {
+					return errors.New("V2_INVALID_INPUT:components.pin_to_pad_map")
+				}
+				for pin, rawPad := range pinMap {
+					pad, ok := rawPad.(string)
+					net, netOK := pinNets[pin].(string)
+					padNet, padOK := nets[pad].(string)
+					if pin == "" || !ok || pad == "" || !netOK || !padOK || net != padNet {
+						return errors.New("V2_INVALID_INPUT:components.pin_to_pad_map")
+					}
 				}
 			}
 			if ch, exists := p["channelId"]; exists {

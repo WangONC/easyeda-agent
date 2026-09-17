@@ -215,6 +215,8 @@ for (const rebuild of ['filled', 'empty', 'reject'] as const) test(`pour baselin
  const result=await run(pourCreate,{points:[[0,0],[10,0],[0,10]],net:'GND',name:'shared'});
  assert.equal(result.verification.verdict,'satisfied');
  assert.equal((result.value as {poured:boolean}).poured,rebuild==='filled');
+ assert.equal((result.value as {connectivity:string}).connectivity,'unknown');
+ assert.equal((result.value as {connectivity_requires:string}).connectivity_requires,'pcb.drc');
  assert.equal(result.effects.native_settled,true);
 });
 

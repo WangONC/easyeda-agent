@@ -2,6 +2,8 @@ package daemon
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"net"
 	"net/http"
@@ -9,12 +11,15 @@ import (
 	"time"
 
 	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/protocol"
 )
 
 const (
 	defaultV2RecoveryBudget   = 6 * time.Second
 	defaultV2RecoveryAttempts = 2
 	defaultV2RecoveryPoll     = 50 * time.Millisecond
+	defaultV2RequalifyBudget  = 20 * time.Second
+	defaultV2RequalifyRead    = 10 * time.Second
 )
 
 func (s *Server) recoveryPolicy() (time.Duration, int) {
@@ -81,14 +86,139 @@ func (s *Server) autoRecoverV2(_ context.Context, req executionv2.Request, initi
 			if err != nil {
 				return finish(current)
 			}
-			retired, _, err := s.v2.RetireUnresolved(req.OperationID, digest, executionv2.EvidenceFingerprint(evidence), "bounded recovery exhausted after native settlement", time.Since(started))
+			retired, quarantine, err := s.v2.RetireUnresolved(req.OperationID, digest, executionv2.EvidenceFingerprint(evidence), "bounded recovery exhausted after native settlement", time.Since(started))
 			if err != nil {
 				return finish(current)
 			}
-			return retired
+			return s.autoRequalifyRetired(req.OperationID, retired, quarantine)
 		case <-time.After(defaultV2RecoveryPoll):
 		}
 	}
+}
+
+func newRecoveryOperationID() (string, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return "requal-" + hex.EncodeToString(b), nil
+}
+
+func v2ActionSpec(name string) (*protocol.V2Action, bool) {
+	for _, action := range protocol.AllActions() {
+		if action.Name == name && action.V2 != nil && action.V2.EffectScope == "NONE" {
+			return action.V2, true
+		}
+	}
+	return nil, false
+}
+
+func (s *Server) requalificationWindow(q executionv2.Quarantine) (Window, bool) {
+	windows := s.hub.list()
+	matches := []Window{}
+	for _, window := range windows {
+		switch q.Scope.Kind {
+		case "DOCUMENT":
+			if window.Context.ProjectUUID == q.Scope.ProjectUUID && window.Context.DocumentUUID == q.Scope.DocumentUUID && window.Context.DocumentType == q.Scope.DocumentType {
+				matches = append(matches, window)
+			}
+		case "PROJECT", "LIBRARY":
+			if window.Context.ProjectUUID == q.Scope.ProjectUUID {
+				matches = append(matches, window)
+			}
+		default:
+			if q.Scope.WindowID != "" && window.WindowID == q.Scope.WindowID {
+				matches = append(matches, window)
+			}
+		}
+	}
+	if len(matches) == 1 {
+		return matches[0], true
+	}
+	if newest, ok := newestExactDocumentDuplicate(matches); ok {
+		return newest, true
+	}
+	return Window{}, false
+}
+
+func targetForRequalification(window Window, q executionv2.Quarantine, action string, spec *protocol.V2Action) (executionv2.Target, bool) {
+	session := window.TransportID
+	if session == "" {
+		session = window.WindowID
+	}
+	base := executionv2.Target{Session: session, Activation: window.ActivationID}
+	switch spec.Target {
+	case "PROJECT":
+		base.Scope, base.ProjectUUID = "PROJECT", q.Scope.ProjectUUID
+	case "pcb", "schematic":
+		if q.Scope.Kind != "DOCUMENT" || q.Scope.DocumentType != spec.Target || window.Context.TabID == "" {
+			return executionv2.Target{}, false
+		}
+		base.Scope, base.ProjectUUID = "DOCUMENT", q.Scope.ProjectUUID
+		base.DocumentUUID, base.DocumentType, base.TabID = q.Scope.DocumentUUID, q.Scope.DocumentType, window.Context.TabID
+	case "ANY":
+		switch q.Scope.Kind {
+		case "LIBRARY":
+			base.Scope, base.ProjectUUID, base.LibraryUUID = "LIBRARY", q.Scope.ProjectUUID, q.Scope.LibraryUUID
+		default:
+			if window.Context.ProjectUUID != "" && window.Context.DocumentUUID != "" && window.Context.DocumentType != "" && window.Context.TabID != "" {
+				base.Scope, base.ProjectUUID = "DOCUMENT", window.Context.ProjectUUID
+				base.DocumentUUID, base.DocumentType, base.TabID = window.Context.DocumentUUID, window.Context.DocumentType, window.Context.TabID
+			} else if window.Context.ProjectUUID != "" {
+				base.Scope, base.ProjectUUID = "PROJECT", window.Context.ProjectUUID
+			} else {
+				base.Scope = "HOME"
+			}
+		}
+	default:
+		return executionv2.Target{}, false
+	}
+	return base, base.Validate() == nil
+}
+
+// autoRequalifyRetired admits only new, exact-target NONE-effect reads after
+// retirement. Every read has its own durable operation receipt and passes the
+// same Coordinator proof used by the explicit operation requalify command.
+func (s *Server) autoRequalifyRetired(id string, retired executionv2.Result, quarantine executionv2.Quarantine) executionv2.Result {
+	window, ok := s.requalificationWindow(quarantine)
+	if !ok {
+		return retired
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), defaultV2RequalifyBudget)
+	defer cancel()
+	for _, action := range quarantine.Required {
+		spec, ok := v2ActionSpec(action)
+		if !ok {
+			return retired
+		}
+		target, ok := targetForRequalification(window, quarantine, action, spec)
+		if !ok {
+			return retired
+		}
+		op, err := newRecoveryOperationID()
+		if err != nil {
+			return retired
+		}
+		input := map[string]any{}
+		if action == "board.snapshot_compact" {
+			input["project_uuid"], input["document_uuid"] = target.ProjectUUID, target.DocumentUUID
+		}
+		request := executionv2.Request{Protocol: executionv2.Version, Action: action, ActionRevision: spec.Revision, Schema: spec.SchemaID(), RequestID: op, OperationID: op, LogicalWindowID: window.WindowID, Target: target, Input: input, BudgetMS: int(defaultV2RequalifyRead / time.Millisecond)}
+		result, err := s.v2.Submit(ctx, request)
+		if err != nil || result.Outcome != executionv2.Succeeded || result.Effects.Started == nil || *result.Effects.Started || !result.Effects.Settled {
+			return retired
+		}
+		updated, err := s.v2.AutoRequalify(id, op)
+		if err != nil {
+			return retired
+		}
+		if updated.Requalified {
+			if latest, exists := s.v2.Status(id); exists {
+				return latest
+			}
+		}
+	}
+	return retired
 }
 
 func (s *Server) startBoundedV2Recovery(id string) {

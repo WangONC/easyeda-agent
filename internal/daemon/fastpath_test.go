@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
 	"github.com/zhoushoujianwork/easyeda-agent/internal/fastpath"
 	"github.com/zhoushoujianwork/easyeda-agent/internal/protocol"
 	"github.com/zhoushoujianwork/easyeda-agent/internal/workflow"
@@ -150,6 +151,48 @@ func TestFastGatesAndTelemetry(t *testing.T) {
 	r := &protocol.Request{Action: "route.preflight"}
 	resp := errorResponse("1", "STAGE_BLOCKED", "test", "")
 	_ = fromResponse(time.Now(), r, &resp)
+}
+
+func TestRoutePreflightReportsApplyReadinessWithoutMutatingWorkflow(t *testing.T) {
+	t.Setenv(workflow.EnvDir, t.TempDir())
+	s := New(Options{})
+	snapshot, plan := fastFixture(1, 1)
+	input := map[string]any{}
+	if err := fastpath.Decode(plan, &input); err != nil {
+		t.Fatal(err)
+	}
+	request := executionv2.Request{Action: "route.preflight", Target: executionv2.Target{ProjectUUID: "project", DocumentUUID: "pcb"}, Input: input}
+	value, err := s.preflightV2(request, snapshot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	missing := value.(map[string]any)["missing_stage_requirements"].([]string)
+	if value.(map[string]any)["geometry_ok"] != true || value.(map[string]any)["apply_ready"] != false || len(missing) != 9 {
+		t.Fatalf("unexpected missing-stage projection: %#v", value)
+	}
+	state, err := workflow.Load("project")
+	if err != nil {
+		t.Fatal(err)
+	}
+	state.Assembly = &workflow.AssemblyProfile{Profile: "reflow", MinGapMil: 8}
+	state.Layout = &workflow.GateSummary{MinGapMil: 8}
+	for tier := 1; tier <= workflow.PlacementTierCount; tier++ {
+		state.ConfirmTier(tier, &workflow.TierConfirm{Empty: true})
+	}
+	state.Confirm(workflow.StagePlacementConfirmed, "confirm", "test")
+	state.Confirm(workflow.StageOutlineConfirmed, "confirm", "test")
+	state.Confirm(workflow.StagePreRoutePassed, "gate-pass", "test")
+	if err := workflow.Save(state); err != nil {
+		t.Fatal(err)
+	}
+	value, err = s.preflightV2(request, snapshot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ready := value.(map[string]any)
+	if ready["geometry_ok"] != true || ready["apply_ready"] != true || len(ready["missing_stage_requirements"].([]string)) != 0 {
+		t.Fatalf("complete workflow not apply-ready: %#v", ready)
+	}
 }
 func BenchmarkFastPathPreflight(b *testing.B) {
 	s, p := fastFixture(16, 12)

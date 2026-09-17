@@ -19,6 +19,7 @@ metadata:
 
 1. 按用户任务选择下表中的流程，只加载**当前阶段**相关参考。已有项目的小修复沿用已确认的需求和授权。
    需求/规划阶段只读 `design-flow` 与必要的 decision；进入选型才读 `part-selection`；进入原理图才读 schematic 对应参考；真正开始 PCB 才读 `pcb`/`pcb-layout`；真正开始布线才读 `pcb-routing`。不得因为后续“可能会用到”在开局预读尚未进入阶段的参考。
+   同一阶段内若 build identity、catalog 与 action schema 均未变化，已经读过的 reference 和已经解析的 action contract 直接复用，不重复读取或临场 grep。首次进入 PCB/布线阶段时一次取得该阶段所需的 stage readiness、Fast Path contract 与相关 action schema；只有真实 schema error、catalog/build 变化或 capability mismatch 才重新 discovery。
 2. 首次写入前运行 `easyeda update --check --exit-code` 核对三方版本，再运行
    `easyeda health` 确认工程、活动页和连接器；版本不齐时按环境说明升级后继续。
 3. 手动命令用 `--project <project>` 指定工程；变更带 `--doc <page>`，操作已有页面。
@@ -28,7 +29,7 @@ metadata:
    MCP 只传 action、input，以及需要时的 window/project/document 选择器；不手填内部 envelope、会话标识或 schema。
    不使用旧通用调用或独立 Bridge；不通过源码内部目录寻找调用参数。遇到多个真实窗口明确选择，不猜最新连接。
    mutation 的 UNKNOWN 禁止盲目 replay；public runtime 会先在同一 operation_id 上执行 bounded read-only recovery。若收敛为 SUCCEEDED、明确 NOT_APPLIED 或 known PARTIAL，就以 authoritative fresh state 为准继续决策；前一次明确 zero-effect 后可用新的 operation/transaction 另行尝试，绝不复用原 operation。
-   只有 `native_settled=false`，或 Connector/Host identity 无法建立因而不能证明旧 native lifecycle 已结束时，才停止整个 Host mutation flow。settled 但最终无法归因的 operation 进入 `RETIRED_UNRESOLVED` 与 scope quarantine；完成 health 所列 requalification 前只阻止受影响 scope，不把整个 daemon 永久冻结。`sch apply` 仍只在同一 operation 上 recovery，证明 SUCCEEDED 才记为 `ok(reconciled)`。
+   只有 `native_settled=false`，或 Connector/Host identity 无法建立因而不能证明旧 native lifecycle 已结束时，才停止整个 Host mutation flow。settled 但最终无法归因的 operation 进入 `RETIRED_UNRESOLVED` 与 scope quarantine；runtime 会先用 retirement 之后新建、exact-target、NONE-effect 的正式 read operation 做 bounded auto requalification，成功时返回 `AUTO_REQUALIFIED` 并只解除该 scope。自动读取失败时才保留 health 所列 manual requalification；不得复用 retirement 前 receipt。`sch apply` 仍只在同一 operation 上 recovery，证明 SUCCEEDED 才记为 `ok(reconciled)`。
    **UNKNOWN means “investigate before retry”, not “permanent global shutdown”.**
 5. 以 `easyeda <domain> <command> --help` 和 `easyeda actions` 为参数真值。
    MCP 若可用，只是同一套 CLI/typed action 的入口。
@@ -82,7 +83,7 @@ metadata:
 ## 执行与验证约束
 
 - 仅使用正式 V2-native 能力；没有对应能力时明确报告不支持，不使用任意脚本或调试旁路。
-- 一次 timeout/UNKNOWN 不构成放弃 MCP 或正式 CLI 高层入口的理由。先让 runtime 的 bounded recovery 收敛；必要时用正式 `operation status/evidence/reconcile` 检查同一 operation。hard global barrier 只对应未 settle native 或无法建立 Host lifecycle；`RETIRED_UNRESOLVED` 必须按 health 的 quarantined scope 和 `required_requalification` 做新鲜 NONE-effect reads，再用 `operation requalify` 提交这些独立 read receipts。不得为绕过 UNKNOWN 自制 shell/Python 拆步、解析文本 operation_id、重放 mutation 或 force-clear barrier。只有正式能力确实缺失时才可增加额外 orchestration，并明确说明缺口。
+- 一次 timeout/UNKNOWN 不构成放弃 MCP 或正式 CLI 高层入口的理由。先让 runtime 的 bounded recovery 收敛；必要时用正式 `operation status/evidence/reconcile` 检查同一 operation。hard global barrier 只对应未 settle native 或无法建立 Host lifecycle；`RETIRED_UNRESOLVED` 先由 runtime 尝试 bounded auto requalification。只有结果仍列出 quarantined scope 与 `required_requalification` 时，才按它执行新鲜 NONE-effect reads，再用 `operation requalify` 提交这些独立 read receipts。不得为绕过 UNKNOWN 自制 shell/Python 拆步、解析文本 operation_id、重放 mutation 或 force-clear barrier。只有正式能力确实缺失时才可增加额外 orchestration，并明确说明缺口。
 - Skill 安装 metadata 缺失只产生 warning/diagnostic；只要当前 CLI/Connector/Skill 实际兼容且调用正常，就继续生产任务。不得因此自动 update、reinstall 或覆盖用户安装。只有用户明确要求更新，或已证明真实 version/protocol 不兼容并阻塞执行，才进入安装/升级流程。
 - 使用真实非零导线连接 netflag 与 pin，坐标重合不算连接。原理图坐标 **y 向上**，网格 5 raw。
   符号方向以 [orientation.json](references/orientation.json) 和实际回读为准。

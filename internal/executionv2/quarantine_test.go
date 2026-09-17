@@ -252,7 +252,7 @@ func TestRetiredQuarantineSurvivesRestartWithoutReplay(t *testing.T) {
 		if err != nil || result.Outcome != Succeeded {
 			t.Fatal(result, err)
 		}
-		if _, err := restored.Requalify(r.OperationID, read.OperationID); err != nil {
+		if _, err := restored.AutoRequalify(r.OperationID, read.OperationID); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -263,6 +263,10 @@ func TestRetiredQuarantineSurvivesRestartWithoutReplay(t *testing.T) {
 	quarantines := afterRequalification.Quarantines()
 	if len(quarantines) != 1 || !quarantines[0].Requalified || afterRequalification.EffectOwner() != "" {
 		t.Fatal("durable requalification was not restored", quarantines, afterRequalification.EffectOwner())
+	}
+	status, ok = afterRequalification.Status(r.OperationID)
+	if !ok || !status.AutoRequalified || status.RecoveryResult != "RETIRED_UNRESOLVED_AUTO_REQUALIFIED" || status.BarrierMode != BarrierNone || len(status.RequiresRequalification) != 0 {
+		t.Fatal("automatic requalification provenance was not durable", status, ok)
 	}
 }
 

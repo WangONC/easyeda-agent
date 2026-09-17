@@ -265,7 +265,11 @@ func (c *Coordinator) accept(rec *record, h HandlerResult) (Result, bool) {
 		c.mu.Lock()
 		result.Outcome = Unknown
 		result.Code = "V2_RECEIPT_PERSIST_FAILED"
-		result.BarrierMode = BarrierGlobal
+		if rec.scope == "NONE" {
+			result.BarrierMode = BarrierNone
+		} else {
+			result.BarrierMode = BarrierGlobal
+		}
 		result.RecoveryResult = "UNRESOLVED"
 		rec.result = result
 		resolved = false

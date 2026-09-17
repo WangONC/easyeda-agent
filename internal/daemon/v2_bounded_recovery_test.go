@@ -14,6 +14,7 @@ import (
 	"github.com/coder/websocket"
 	"github.com/coder/websocket/wsjson"
 	"github.com/zhoushoujianwork/easyeda-agent/internal/executionv2"
+	"github.com/zhoushoujianwork/easyeda-agent/internal/protocol"
 )
 
 func TestPublicMutationBoundedRecoveryReturnsTerminalWithoutReplay(t *testing.T) {
@@ -156,6 +157,69 @@ func TestBoundedRecoveryRetiresOnlySettledEvidence(t *testing.T) {
 				if result.Outcome != executionv2.Unknown || !result.RecoveryAttempted || result.RecoveryResult != "NATIVE_PENDING" || result.RecoveryDurationMS < 20 || result.Effects.Settled || result.BarrierMode != executionv2.BarrierGlobal || s.v2.EffectOwner() != request.OperationID || len(s.v2.Quarantines()) != 0 {
 					t.Fatal(result, s.v2.Quarantines())
 				}
+			}
+		})
+	}
+}
+
+func TestBoundedRecoveryAutomaticallyRequalifiesWithNewExactReads(t *testing.T) {
+	for _, readsSucceed := range []bool{true, false} {
+		t.Run(map[bool]string{true: "success", false: "read-failure-retains-quarantine"}[readsSucceed], func(t *testing.T) {
+			s := New(Options{V2RecoveryBudget: 20 * time.Millisecond, V2RecoveryAttempts: 1})
+			window := newConn(nil, time.Now())
+			window.windowID, window.transportID, window.activationID = "logical-window", "transport", "activation"
+			window.ctx = protocol.Context{ProjectUUID: "project", DocumentUUID: "document", DocumentType: "pcb", TabID: "tab"}
+			s.hub.mu.Lock()
+			s.hub.windows[window.windowID] = window
+			s.hub.mu.Unlock()
+			var writes atomic.Int32
+			readIDs := []string{}
+			s.v2 = executionv2.New(20, func(r executionv2.Request) (executionv2.Admission, error) {
+				if r.Action == "document.current" || r.Action == "board.snapshot_compact" {
+					return executionv2.Admission{EffectScope: "NONE"}, nil
+				}
+				return executionv2.Admission{EffectScope: "DESIGN_CONTENT"}, nil
+			}, func(r executionv2.Request, digest string) <-chan executionv2.HandlerResult {
+				ch := make(chan executionv2.HandlerResult, 1)
+				if r.Action == "document.current" || r.Action == "board.snapshot_compact" {
+					readIDs = append(readIDs, r.OperationID)
+					verdict, satisfied, residual := "satisfied", 1, 0
+					if !readsSucceed && strings.HasPrefix(r.OperationID, "requal-") {
+						verdict, satisfied, residual = "unchanged", 0, 1
+					}
+					ch <- executionv2.HandlerResult{Protocol: executionv2.Version, OperationID: r.OperationID, Digest: digest, Target: r.Target, Effects: executionv2.Effects{Started: executionv2.Bool(false), Changed: executionv2.Bool(false), Settled: true, Scope: "NONE"}, Verification: executionv2.Verification{Verdict: verdict, Checked: []string{"fresh_exact_target"}, Complete: true, Required: 1, Satisfied: satisfied, Residual: residual}}
+				} else {
+					writes.Add(1)
+					ch <- executionv2.HandlerResult{Protocol: executionv2.Version, OperationID: r.OperationID, Digest: digest, Target: r.Target, Effects: executionv2.Effects{Started: executionv2.Bool(true), Settled: true, Scope: "DESIGN_CONTENT"}, Verification: executionv2.Verification{Verdict: "unavailable"}}
+				}
+				return ch
+			})
+			s.v2.OnResolved(s.resolveV2)
+			oldRead := executionv2.Request{Protocol: executionv2.Version, Action: "document.current", ActionRevision: "1", Schema: "test", RequestID: "old-read", OperationID: "old-read", LogicalWindowID: "logical-window", Target: executionv2.Target{Scope: "DOCUMENT", Session: "transport", Activation: "activation", ProjectUUID: "project", DocumentUUID: "document", DocumentType: "pcb", TabID: "tab"}, Input: map[string]any{}, BudgetMS: 100}
+			if result, err := s.v2.Submit(context.Background(), oldRead); err != nil || result.Outcome != executionv2.Succeeded {
+				t.Fatal(result, err)
+			}
+			request := oldRead
+			request.Action, request.OperationID, request.RequestID = "mutation", "operation", "operation"
+			s.v2Pending[request.OperationID] = v2Pending{request: request, started: time.Now(), windowID: "logical-window"}
+			initial, err := s.v2.Submit(context.Background(), request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			result := s.autoRecoverV2(context.Background(), request, initial)
+			quarantines := s.v2.Quarantines()
+			if writes.Load() != 1 || len(quarantines) != 1 || result.Outcome != executionv2.RetiredUnresolved || result.NativeReplayed {
+				t.Fatalf("result=%+v writes=%d quarantine=%+v", result, writes.Load(), quarantines)
+			}
+			if readsSucceed {
+				if !result.AutoRequalified || result.RecoveryResult != "RETIRED_UNRESOLVED_AUTO_REQUALIFIED" || result.BarrierMode != executionv2.BarrierNone || len(result.RequiresRequalification) != 0 || !quarantines[0].Requalified || len(quarantines[0].Completed) != 2 {
+					t.Fatal(result, quarantines)
+				}
+				if len(readIDs) != 3 || readIDs[0] != "old-read" || !strings.HasPrefix(readIDs[1], "requal-") || !strings.HasPrefix(readIDs[2], "requal-") || readIDs[1] == readIDs[2] {
+					t.Fatalf("old receipt reused or fresh operation ids missing: %v", readIDs)
+				}
+			} else if result.AutoRequalified || result.BarrierMode != executionv2.BarrierScoped || quarantines[0].Requalified || len(result.RequiresRequalification) != 2 {
+				t.Fatal(result, quarantines)
 			}
 		})
 	}

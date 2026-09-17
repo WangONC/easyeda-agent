@@ -670,7 +670,7 @@ export const pourCreate: NativeAction = { mode:'V2_NATIVE',scope:'DESIGN_CONTENT
   // Completion proves the region, not successful copper computation. Rebuild
   // remains best-effort as in a583; its return is business data, never proof.
   if(!complete)return {changed:null,verification:unavailable(),evidence};
-  return {...observed({primitiveId:fresh.getState_PrimitiveId(),logical_id:logicalPlaneId(fresh),net,layer,fill,poured},['fresh_new_pour_identity','fresh_pour_exact_geometry'],true),evidence};
+  return {...observed({primitiveId:fresh.getState_PrimitiveId(),logical_id:logicalPlaneId(fresh),net,layer,fill,poured,rebuild_ack:poured,connectivity:'unknown',connectivity_requires:'pcb.drc'},['fresh_new_pour_identity','fresh_pour_exact_geometry','connectivity_deferred_to_drc'],true),evidence};
  });
  let made:IPCB_PrimitivePour|undefined;
  await c.effect(async()=>{made=await eda.pcb_PrimitivePour.create(net,layer as TPCB_LayersOfCopper,polygon,fill as EPCB_PrimitivePourFillMethod,undefined,name,p.priority as number|undefined,p.lineWidth as number|undefined);id=made?.getState_PrimitiveId();});

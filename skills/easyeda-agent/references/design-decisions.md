@@ -87,13 +87,13 @@
 | 选项 | 优点 | 坑 |
 |---|---|---|
 | **全板统一默认线宽** | 实现简单 | 电源网若沿用信号级细线宽，是 DRC 违规大头（ceshi 实测：删掉 6 条细线径 3V3 走线后，Safe-Spacing 违规从 27 降到 9，占了 18/27） |
-| **按网络角色分级**（信号 6mil、电源支线 ~10/9.5mil、主干 15mil、大电流/连接器进线 20mil，或公制 0.25/0.5/0.6mm 圆整） | 兼顾载流能力与走线密度，是官方成熟板（N8R8、实战派 S3/C3）的通用做法 | DRC 规则接口只给一个默认宽度+最小值（不含按网络类别分级）——"电源宽于信号"是**设计惯例，非制造规则**，需 daemon/规则层额外维护 per-net-class 宽度表（`getNetRules`/`netClasses` 目前是待办 P2） |
+| **按网络角色分级**（signal=live default；power-branch=0.25mm；power-trunk=0.40mm；high-current=0.50mm） | 兼顾载流能力与走线密度，且与 daemon `pcb_netclass.go` 的 canonical ladder 一致 | DRC 规则接口只给一个默认宽度+最小值（不含按网络类别分级）；最终还必须取 live/fab 下限、已知载流/温升和压降要求的最大值 |
 
-**推荐默认**：信号走 DRC 规则默认宽度（约 6–10mil）；电源走 fab 推荐宽度（约 20mil / 0.5mm）；主干/大电流路径按官方基准进一步加宽（15–20mil 或 0.5–0.6mm）。
+**推荐默认**：以 `easyeda pcb net-classes --json` 为唯一运行时真值：signal 用 live board default，电源支线 0.25mm、主干 0.40mm、高电流 0.50mm，GND 走线按 high-current 且通常优先 plane/pour。所需宽度取 `max(live/fab legal minimum, canonical net-class default, known current/temperature requirement, known voltage-drop requirement)`。电流未知时使用角色默认并记录假设，不自行捏造。
 
 **判据**：网络承载电流越大、越关键（主干、大电流路径）→ 线宽越宽；纯低电流信号网 → 用 DRC 默认最小合规宽度即可，无需额外加宽。
 
-**状态（已落地，daemon 侧）**：per-net-class 宽度阶梯已实现（`pcb_netclass.go`）——`netRole()` 按网名/电压分档（signal / power-branch 3V3·1V8 / power-trunk +5V / high-current VBUS·VIN / gnd），`netClassWidthTable()` 给规范宽（内联 Go 真值，§7.8 阶梯，seed 自 live 规则并 clamp）。`route-short` 查表给宽（不再是 20/10 二分桶），`pcb net-classes` 打印表，`pcb check` **width-under-spec** 校验达标，**power-not-poured** 校验电源已铺铜，2 层电源一键 `pcb power-pour`。**仍待 P2**：把角色写进 EasyEDA **原生 net-class 规则**（`createNetClass`/`overwriteNetRules` @beta）让原生 DRC 也认；块声明的 per-net `track_width_mil` 覆盖启发式（消费待 block-apply）。
+**状态（已落地，daemon 侧）**：per-net-class 宽度阶梯已实现（`pcb_netclass.go`）——`netRole()` 按网名/电压分档，`netClassWidthTable()` 给上述规范宽，seed 自 live 规则并 clamp。`route-short` 查表给宽，`pcb net-classes` 打印表，`pcb check` **width-under-spec** 校验达标，**power-not-poured** 校验电源已铺铜，2 层电源可用 `pcb power-pour`。原生 net-class 写入仍是后续能力，不改变当前 canonical source。
 
 **来源**：`pcb-layout-conventions.md` §7.8/§7.9（线宽分级与公制圆整）；ceshi 删细线 Safe-Spacing 27→9 为实测沉淀
 

@@ -27,12 +27,12 @@ apply 在一个 Connector action 中按给定顺序写入，fresh readback 对�
 
 ## Exact component materialization batch
 
-`pcb.add_components_batch` 独立于 placement batch。每项必须给出 exact `libraryUuid/uuid`、`designator`、`uniqueId`、可选 exact `channelId`、`nets`（padNumber→net）以及 x/y/layer/rotation。它不调用 `pcb.import_changes`、不猜 Channel ID、不自动布局。重复 designator/uniqueId 在 effect 前拒绝；结果逐项返回 applied/failed/skipped 与 unmatchedPads，并 fresh verify schematic↔PCB identity 和 pad nets。partial/uncertain 不 replay。
+`pcb.add_components_batch` 独立于 placement batch。每项必须给出 exact `libraryUuid/uuid`、`designator`、`uniqueId`、可选 exact `channelId`、`nets`（**物理 footprint padNumber→net**）以及 x/y/layer/rotation。若 schematic pin 名与 footprint pad number 不同，必须成对给出可审计的 `pin_nets`（schematic pin→net）和 `pin_to_pad_map`（schematic pin→physical pad）；两者必须完整一一覆盖且每个映射两侧 net 相同。不得靠字符串相等、USB-C/EP 特判或 silent guessing 推断映射。它不调用 `pcb.import_changes`、不猜 Channel ID、不自动布局。重复 designator/uniqueId、错误 mapping 在 effect 前拒绝；结果逐项返回 applied/failed/skipped、unmatchedPads 与 `pin_pad_relations`，并 fresh verify schematic↔PCB identity、pin↔pad relation 和 pad nets。partial/uncertain 不 replay。
 
 一次正常流程：
 
 1. `board.snapshot_compact`：`nets[]`、`bbox`、`layers[]` 和 `include:{components,pads,traces,vias,fills}` 可选。空过滤表示更大范围；未提供 include 返回五组，提供后只返回 true 的组。返回稳定排序的紧凑数组、scope、geometry_hash、board_revision、可识别的 rule_profile 和 telemetry。
-2. `route.preflight`：提交下面的显式计划。保存返回的 `plan_hash`；只有 `ok:true` 才授权下一步。
+2. 开始 routing Fast Path 前先完成正式 assembly/profile、placement tiers、layout、outline 与 pre-route gate。然后调用 `route.preflight` 提交下面的显式计划并保存 `plan_hash`。它同时返回 `geometry_ok`、`apply_ready` 与 `missing_stage_requirements[]`；只有 `ok:true && apply_ready:true` 才授权下一步。几何合法但 stage 未完成时在 preflight 当场补齐 gate，不等 apply 才发现。
 3. `route.apply_batch`：提交相同 base_revision/plan_hash 和下述规范化 operations。public CLI/MCP 内部绑定唯一 transaction identity；一个 Connector action 顺序执行所有 primitive。
 4. 需要独立观察时再调用局部 snapshot_compact；apply 自带创建几何/删除 ID 的批量回读验证，不需要逐段回读。
 
@@ -64,7 +64,7 @@ apply 在一个 Connector action 中按给定顺序写入，fresh readback 对�
 
 ## 检查和数据边界
 
-Go 完成 net/layer/bbox 过滤、紧凑序列化、SHA-256 geometry/plan hash、segment/capsule 与保守焊盘/填充 AABB 距离计算；检测 trace/pad、trace/trace、via/pad、via/trace、via/via、candidate/candidate、层有效性、宽度/孔径/环宽及 protected/locked 删除。返回至多 128 条 conflict，并明确标记截断；任何 conflict 都不能 PASS。candidate_index 指 **规范化 operations 的零基索引**；候选互撞的 obstacle_id 为 `candidate:<index>`。
+Go 完成 net/layer/bbox 过滤、紧凑序列化、SHA-256 geometry/plan hash、segment/capsule 与保守焊盘/填充 AABB 距离计算；检测 trace/pad、trace/trace、via/pad、via/trace、via/via、candidate/candidate、层有效性、宽度/孔径/环宽及 protected/locked 删除。返回至多 128 条 conflict，并明确标记截断；任何 conflict 都不能 PASS。candidate_index 指 **规范化 operations 的零基索引**；候选互撞的 obstacle_id 为 `candidate:<index>`。apply fresh verification 按 canonical copper geometry 比较：同 net/layer/width 的连续共线 segment 可被 Host merge 或 split，endpoint 顺序可规范化；planned coverage 与 observed changed copper coverage 必须等价，缺线、额外 branch、错 net/layer/width 或 unrelated copper 仍失败。
 
 同网端点接触只提供几何提示，不证明整个 net 已连接、铺铜热焊盘已连接或电气正确。焊盘/填充采用包围盒，可能保守误拒绝。复杂焊盘、arc/polyline、pour/region 等无法证明的铜层障碍会标记 unsupported；对应层的 preflight fail closed。首版不把未知铜几何静默忽略，也不尝试修线。板边、电气/net class/差分等完整 DRC 不在本接口证明范围内。
 

@@ -3,6 +3,37 @@ import { canonical, fastPath, matchesOperation, validOperations, type NativePort
 import { nativePort } from './fast-path-native';
 import { declaredReadFields } from './v2-native-actions';
 import { covered } from './v2-batch-actions';
+const GEOMETRY_EPSILON=1e-6;
+const quantize=(value:number)=>Math.round(value/GEOMETRY_EPSILON);
+type CopperInterval={start:number;end:number};
+// Compare copper as a set of straight-line intervals, not as Host primitive
+// identities. EasyEDA is allowed to merge/split adjacent collinear traces, but
+// may not change net/layer/width or add/remove any branch of copper.
+export function canonicalCopperGeometry(items:Primitive[]):string|null{
+ const groups=new Map<string,CopperInterval[]>();
+ for(const item of items){
+  if(item.kind!=='trace'||typeof item.net!=='string'||!Number.isInteger(item.layer)||typeof item.width!=='number'||!Number.isFinite(item.width)||!Array.isArray(item.points)||item.points.length!==2)return null;
+  let [[x1,y1],[x2,y2]]=item.points;
+  if(![x1,y1,x2,y2].every(Number.isFinite))return null;
+  let dx=x2-x1,dy=y2-y1;const length=Math.hypot(dx,dy);if(length<=GEOMETRY_EPSILON)return null;
+  dx/=length;dy/=length;
+  if(dx < -GEOMETRY_EPSILON || Math.abs(dx)<=GEOMETRY_EPSILON&&dy<0){dx=-dx;dy=-dy}
+  const offset=-dy*x1+dx*y1;
+  let start=dx*x1+dy*y1,end=dx*x2+dy*y2;if(start>end)[start,end]=[end,start];
+  const key=JSON.stringify([item.net,item.layer,quantize(item.width),quantize(dx),quantize(dy),quantize(offset)]);
+  const rows=groups.get(key)??[];rows.push({start,end});groups.set(key,rows);
+ }
+ const normalized=[...groups].sort(([a],[b])=>a.localeCompare(b)).map(([key,rows])=>{
+  rows.sort((a,b)=>a.start-b.start||a.end-b.end);const merged:CopperInterval[]=[];
+  for(const row of rows){const last=merged.at(-1);if(last&&row.start<=last.end+GEOMETRY_EPSILON)last.end=Math.max(last.end,row.end);else merged.push({...row})}
+  return [key,merged.map(row=>[quantize(row.start),quantize(row.end)])];
+ });
+ return canonical(normalized);
+}
+export function copperGeometryEquivalent(expected:Primitive[],observed:Primitive[]):boolean{
+ const left=canonicalCopperGeometry(expected),right=canonicalCopperGeometry(observed);
+ return left!==null&&left===right;
+}
 function primitives(data: BoardObservation): Map<string, Primitive> {
     const found = new Map<string, Primitive>();
     for (const group of [data.components, data.pads, data.traces, data.vias, data.fills]) {
@@ -52,14 +83,42 @@ export function routeBatch(port: () => NativePort = nativePort): NativeAction {
             let failed: number | null = null, rollbackAttempted = false;
             c.prepare(async () => {
                 const after = (await fastPath.snapshotData(n, bound)).data, now = primitives(after), createdIDs = new Set(created.values());
-                const unknown = [...attempted].some(i => ops[i].type.startsWith('add') && !created.has(i)) || createdIDs.size !== created.size || [...createdIDs].some(id => old.has(id)) || [...now.keys()].some(id => !old.has(id) && !createdIDs.has(id)) || [...old].some(([id, item]) => (!removed.has(id) || now.has(id)) && canonical(now.get(id)) !== canonical(item));
-                const items = ops.map((op, index) => { const id = op.type.startsWith('delete') ? op.id : created.get(index); const matched = op.type.startsWith('delete') ? !now.has(id!) : !!id && matchesOperation(now.get(id), op); return { index, id, postcondition_satisfied: matched, attempted: attempted.has(index), error: errors.get(index) }; });
+                const deletedTraceIDs=new Set(ops.filter(op=>op.type==='delete_trace').map(op=>op.id!));
+                const expectedTraces=before.traces.filter(item=>item.kind==='trace'&&!deletedTraceIDs.has(item.id)).map(item=>structuredClone(item));
+                const plannedTraceRows:{index:number;item:Primitive}[]=[];
+                for(const [index,op] of ops.entries())if(op.type==='add_trace'){
+                    const item:Primitive={id:'planned-'+index,kind:'trace',net:op.net,layer:op.layer,width:op.width,points:op.points};
+                    plannedTraceRows.push({index,item});expectedTraces.push(item);
+                }
+                const observedTraces=after.traces.filter(item=>item.kind==='trace');
+                const traceEquivalent=copperGeometryEquivalent(expectedTraces,observedTraces);
+                // Full-board equivalence is necessary but not sufficient when a planned
+                // trace is already covered by authoritative before copper. Require every
+                // trace operation to make an independently observable canonical delta;
+                // otherwise old same-net copper could mask a native no-op.
+                const traceDeltaProvable=new Map<number,boolean>();
+                for(const row of plannedTraceRows){
+                    const without=expectedTraces.filter(item=>item!==row.item);
+                    traceDeltaProvable.set(row.index,!copperGeometryEquivalent(expectedTraces,without));
+                }
+                for(const [index,op] of ops.entries())if(op.type==='delete_trace'){
+                    const deleted=before.traces.find(item=>item.kind==='trace'&&item.id===op.id);
+                    traceDeltaProvable.set(index,!!deleted&&!copperGeometryEquivalent(expectedTraces,[...expectedTraces,structuredClone(deleted)]));
+                }
+                const unknown = [...attempted].some(i => ops[i].type.startsWith('add') && !created.has(i))
+                    || createdIDs.size !== created.size
+                    || [...createdIDs].some(id => old.has(id))
+                    // Trace IDs may be replaced by deterministic Host merge/split.
+                    || [...now].some(([id,item]) => item.kind!=='trace'&&!old.has(id)&&!createdIDs.has(id))
+                    || [...old].some(([id,item]) => item.kind!=='trace'&&(!removed.has(id)||now.has(id))&&canonical(now.get(id))!==canonical(item))
+                    || [...created].some(([index,id])=>ops[index].type!=='add_trace'&&!now.has(id));
+                const items = ops.map((op, index) => { const id = op.type.startsWith('delete') ? op.id : created.get(index); const matched = op.type==='add_trace'||op.type==='delete_trace' ? traceEquivalent&&traceDeltaProvable.get(index)===true : op.type.startsWith('delete') ? !now.has(id!) : !!id && matchesOperation(now.get(id), op); return { index, id, postcondition_satisfied: matched, attempted: attempted.has(index), verification:op.type.includes('trace')?'canonical_copper_geometry_delta':'exact_primitive',error: errors.get(index) }; });
                 const satisfied = items.filter(i => i.postcondition_satisfied).length;
-                const value = { created_ids: [...createdIDs].filter(id => now.has(id)), deleted_ids: [...removed].filter(id => !now.has(id)), item_results: items, failed_index: failed, revision_before: before.board_revision, revision_after: after.board_revision, readback_verified: !unknown && satisfied === ops.length, rollback_attempted: rollbackAttempted, rollback_complete: rollbackAttempted && [...createdIDs].every(id => !now.has(id)) && [...removed].every(id => now.has(id)), warnings: unknown ? ['Residual scope is unknown; reconcile without replay.'] : [], native_api_call_count: n.calls };
+                const value = { created_ids: [...createdIDs].filter(id => now.has(id)), deleted_ids: [...removed].filter(id => !now.has(id)), item_results: items, failed_index: failed, revision_before: before.board_revision, revision_after: after.board_revision, canonical_trace_geometry_equivalent:traceEquivalent,unproven_trace_delta_indices:[...traceDeltaProvable].filter(([,proved])=>!proved).map(([index])=>index),planned_trace_segments:ops.filter(op=>op.type==='add_trace').length,observed_trace_primitives:observedTraces.length,readback_verified: !unknown && satisfied === ops.length, rollback_attempted: rollbackAttempted, rollback_complete: rollbackAttempted && [...createdIDs].every(id => !now.has(id)) && [...removed].every(id => now.has(id)), warnings: unknown ? ['Residual scope is unknown; reconcile without replay.'] : [], native_api_call_count: n.calls };
                 if (unknown)
                     return { value, changed: null, verification: unavailable() };
                 const changed = canonical([...old]) !== canonical([...now]);
-                return covered(value, ops.length, satisfied, changed, ['fresh_all_item_geometry_and_identity', 'unrelated_primitives_unchanged', 'no_unowned_created_primitive', 'fresh_board_revision']);
+                return covered(value, ops.length, satisfied, changed, ['canonical_before_plus_planned_delta_vs_after_copper', 'per_operation_copper_delta_not_preexisting', 'fresh_exact_net_layer_width', 'unrelated_primitives_unchanged', 'no_unplanned_copper_geometry', 'fresh_board_revision']);
             });
             for (let i = 0; i < ops.length; i++) {
                 const op = ops[i];

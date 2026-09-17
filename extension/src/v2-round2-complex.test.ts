@@ -31,7 +31,7 @@ for (const kind of ['via', 'plane', 'manufacturing'] as const)
                 release();
             }
             const result = await pending;
-            if (mode === 'normal' || kind === 'plane' && mode === 'late')
+            if (mode === 'normal' || kind === 'plane' && (mode === 'late' || mode === 'missing'))
                 assert.equal(result.verification.verdict, 'satisfied');
             else
                 assert.notEqual(result.verification.verdict, 'satisfied');
@@ -44,3 +44,25 @@ for (const kind of ['via', 'plane', 'manufacturing'] as const)
             if (mode === 'drift')
                 assert.equal(writes, 0);
         });
+
+test('pour rebuild proves logical effect while connectivity inventory is unavailable',async()=>{
+ let rebuilds=0;
+ const pour={getState_PrimitiveId:()=> 'pour',getState_PourName:()=> 'GND@Top',getState_Net:()=> 'GND',getState_Layer:()=>1,getState_ComplexPolygon:()=>({getSource:()=>[0,0,'L',10,0,0,10,0,0]}),rebuildCopperRegion:async()=>{rebuilds++;return undefined}};
+ (globalThis as any).eda={pcb_PrimitivePour:{getAll:async()=>[pour]},pcb_PrimitivePoured:{getAll:async()=>{throw Error('API unavailable')}}};
+ const port:NativePort={calls:0,context:async()=>({projectUuid:'p',documentUuid:'d',documentType:'pcb',tabId:'t'}),read:async()=>({components:[],pads:[],traces:[],vias:[],fills:[],copper_layers:[1,2]}),create:async()=>undefined,remove:async()=>false};
+ const action=rebuildPlanes('pcb.pour.rebuild',()=>port),executor=new ControlledExecutor(()=>action,async()=>target);
+ const req:Request={protocol:V2,action:'pcb.pour.rebuild',action_revision:'1',schema:'test',request_id:'r',operation_id:'rebuild-no-connectivity',target_ref:target,input:{logical_ids:['GND@Top']},budget_ms:1000};
+ const result=await executor.execute(req,'digest');
+ assert.equal(result.verification.verdict,'satisfied');assert.equal(rebuilds,1);assert.equal((result.value as any).connectivity,'unknown');assert.equal((result.value as any).connectivity_requires,'pcb.drc');
+ const missing=await new ControlledExecutor(()=>action,async()=>target).execute({...req,operation_id:'missing-pour',input:{logical_ids:['missing']}},'missing-digest');
+ assert.equal(missing.effects.effect_started,false);assert.equal(rebuilds,1);
+});
+
+test('pour rebuild native rejection does not become mutation success',async()=>{
+ const pour={getState_PrimitiveId:()=> 'pour',getState_PourName:()=> 'GND@Top',getState_Net:()=> 'GND',getState_Layer:()=>1,getState_ComplexPolygon:()=>({getSource:()=>[0,0,'L',10,0,0,10,0,0]}),rebuildCopperRegion:async()=>{throw Error('native rejection')}};
+ (globalThis as any).eda={pcb_PrimitivePour:{getAll:async()=>[pour]},pcb_PrimitivePoured:{getAll:async()=>[]}};
+ const port:NativePort={calls:0,context:async()=>({projectUuid:'p',documentUuid:'d',documentType:'pcb',tabId:'t'}),read:async()=>({components:[],pads:[],traces:[],vias:[],fills:[],copper_layers:[1,2]}),create:async()=>undefined,remove:async()=>false};
+ const req:Request={protocol:V2,action:'pcb.pour.rebuild',action_revision:'1',schema:'test',request_id:'r',operation_id:'rebuild-rejected',target_ref:target,input:{logical_ids:['GND@Top']},budget_ms:1000};
+ const result=await new ControlledExecutor(()=>rebuildPlanes('pcb.pour.rebuild',()=>port),async()=>target).execute(req,'digest');
+ assert.notEqual(result.verification.verdict,'satisfied');assert.equal((result.value as any).item_results[0].native_settled,false);
+});
